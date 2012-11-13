@@ -18,16 +18,32 @@ ArrhNoBNrOfRuns = [0,0,3]
 #
 #
 #Kobayashi: the parameter are [A_1, E_1, A_2, E_2]
-KobIndexToOptimize = [0,1,2,3]
-KobBoundaries = [[100,1e5],[100,8e3],[10000,1e8],[8e3,80e3]]
-KobNrOfRuns = [3,3,3,3]
+KobIndexToOptimize = [1,3,4,5]
+KobBoundaries = [[6e3,12e3],[16e3,22e3],[0.3,0.6],[0.6,1.]]
+KobNrOfRuns = [0,2,0,2,2,2]
 #
 #
 #Kobayashi with optimization parameters [A_1,A_2,E_1,alpha1]
 #gets PAVM_daf from Pyrolysis.py:
-KobAlphaIndexToOptimize = [0,1,2,3]
+KobAlphaIndexToOptimize = [2,3]
 def KobAlphaBoundaries(VolatileMatterinProxAnal):
-    return [[1000,1e8],[1000,1e8],[500,10000],[VolatileMatterinProxAnal/100.-0.25,VolatileMatterinProxAnal/100.+0.15]]
-KobAlphaNrOfRuns = [1,1,1,1]
+    return [[6e3,12e3],[VolatileMatterinProxAnal/100.-0.15,VolatileMatterinProxAnal/100.+0.15]]
+KobAlphaNrOfRuns = [0,0,3,3]
 #
 #
+################################
+#For generic algorithm:
+#minimum for Arrhenius equation:[A,E]
+EvAArrhMin=[1e3,-2,1e2]
+#maximum for Arrhenius equation:[A,E]
+EvAArrhMax=[1e15,2,1e6]
+EvAArrhInit=[1e10,0,2e4]
+#
+#minimum For Kobayashi:
+EvAKobMax=[100.,1000,1000,5000,0.,0.5]
+EvAKobMin=[50000.,20000,100000000,50000,0.5,1.]
+EvAKobInit=[100157.0037,5849.84292004,85011813.05,12648.7543183,0.45,0.65]
+#
+#the weights for yields and rates for optimization
+EvAWeightY=1.
+EvAWeightR=1.

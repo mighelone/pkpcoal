@@ -211,7 +211,7 @@ class ArrheniusModel(Model):
                 #print '(m_s0-m)',(m_s0-m)
             return dmdt_out
         InitialCondition=[u[0]]
-        m_out=sp.integrate.odeint(dmdt,InitialCondition,time,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax)
+        m_out=sp.integrate.odeint(dmdt,InitialCondition,time,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax) 
         if (ParamVec[0]<0 or ParamVec[2]<0):
             m_out[:,0]=float('inf')
             return m_out[:,0]
@@ -286,12 +286,16 @@ class ArrheniusModelAlternativeNotation2(ArrheniusModel):
     def __init__(self,InitialParameterVector):
         print 'Arrhenius Model class initialized'
         self._ParamVector=InitialParameterVector
+        self.T_min=300
+        self.T_max=1500
+        
+    def setMinMaxTemp(self,Tmin,Tmax):
+        """Sets the temperature constants, see the equation."""
+        self.T_min=Tmin
+        self.T_max=Tmax
         
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
-        T_general=fgdvc.Rate('Temp')
-        self.T_min=T_general[0]
-        self.T_max=T_general[-1]
         self.c=1./(1./self.T_max-1./self.T_min)
         self.ODE_hmax=1.e-2
         self.fgdvc=fgdvc
@@ -326,16 +330,14 @@ class ArrheniusModelAlternativeNotation2(ArrheniusModel):
         """Converts the own kinetic factors back to the standard Arrhenius kinetic factors."""
         #b1=ParameterVector[0]
         #b2=ParameterVector[1]
+        self.c=1./(1./self.T_max-1./self.T_min)
         A=np.exp( -self.c*ParameterVector[0]/self.T_min + self.c*ParameterVector[1]/self.T_max )
         E=self.c*ParameterVector[1]-self.c*ParameterVector[0]
         m_s0=ParameterVector[2]
         return [A,0,E,m_s0]
 
-    def ConvertKinFactorsToOwnNotation(self,fgdvc,ParameterVector):
-        """Converts the standard Arrhenius kinetic factors backk to the factors of the own notation."""
-        T_general=fgdvc.Rate('Temp')
-        self.T_min=T_general[0]    #maybe change later
-        self.T_max=T_general[-1]
+    def ConvertKinFactorsToOwnNotation(self,ParameterVector):
+        """Converts the standard Arrhenius kinetic factors back to the factors of the own notation."""
         self.c=1/(1/self.T_max-1/self.T_min)
         #A=ParameterVector[0]
         #b not used
@@ -354,7 +356,7 @@ class Kobayashi(Model):
         self.ODE_hmax=1.e-2
         
     def calcMass(self,fgdvc,time,T,Name):
-        """Outputs the mass(t) using the model specific equation."""
+        """Outputs the mass(t) using the model specific equation. The input Vector is [A1,E1,A2,E2,alpha1,alpha2]"""
         self.fgdvc=fgdvc
         time=np.delete(time,0)
         self.__Integral=0.0
@@ -368,33 +370,33 @@ class Kobayashi(Model):
             tList.append(t)
             k1k2.append(k1+k2)
             self.__Integral+=0.5*(tList[-1]-tList[-2])*(k1k2[-1]+k1k2[-2])
-            dmdt_out = ( (self.__alpha1*k1+self.__alpha2*k2)*np.exp(-self.__Integral) )
+            dmdt_out = ( (ParamVec[4]*k1+ParamVec[5]*k2)*np.exp(-self.__Integral) )
             dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problem(nan)
             return dmdt_out
         InitialCondition=[0]
         m_out=sp.integrate.odeint(dmdt,InitialCondition,time,atol=1.e-5,rtol=1.e-4,hmax=1.e-2)
         m_out=m_out[:,0]
         m_out=np.insert(m_out,0,0.0)
-        if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or ParamVec[3]<0):
+        if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or ParamVec[3]<0 or ParamVec[4]<0  or ParamVec[5]>1  ):
             m_out[:]=float('inf')
             return m_out
         else:
             return m_out
         
 
-    def ConvertKinFactors(self,ParameterVector):
-        """Outputs the Arrhenius equation factors in the shape [A1,E1,A2,E2]. Here where the real Arrhenius model is in use only a dummy function."""
-        P=self.ParamVector()
-        return [P[0],P[1],P[2],P[3]]
-    
-    def setKobWeights(self,alpha1,alpha2):
-        """Sets the two Kobayashi weights alpha1 and alpha2."""
-        self.__alpha1=alpha1
-        self.__alpha2=alpha2
-        
-    def KobWeights(self):
-        """Returns the two Kobayashi weights alpha1 and alpha2."""
-        return self.__alpha1, self.__alpha2
+#    def ConvertKinFactors(self,ParameterVector):
+#        """Outputs the Arrhenius equation factors in the shape [A1,E1,A2,E2]. Here where the real Arrhenius model is in use only a dummy function."""
+#        P=self.ParamVector()
+#        return [P[0],P[1],P[2],P[3]]
+#    
+#    def setKobWeights(self,alpha1,alpha2):
+#        """Sets the two Kobayashi weights alpha1 and alpha2."""
+#        self.__alpha1=alpha1
+#        self.__alpha2=alpha2
+#        
+#    def KobWeights(self):
+#        """Returns the two Kobayashi weights alpha1 and alpha2."""
+#        return self.__alpha1, self.__alpha2
 
 class KobayashiPCCL(Model):
     """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation. The fitting parameter are as in PCCL A1,A2,E1,alpha1."""

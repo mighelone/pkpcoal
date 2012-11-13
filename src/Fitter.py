@@ -80,7 +80,7 @@ class LeastSquarsEstimator(object):
         Len_tPoints=self.minLengthOfVectors(fgdvc_list)
         t=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
         dt=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        T=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
+        T=list()
         u=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
         uDot=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
         v=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
@@ -88,23 +88,24 @@ class LeastSquarsEstimator(object):
         for runnedCaseNr in range(len(fgdvc_list)):
             t[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Time()[:Len_tPoints]
             dt[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Dt()[:Len_tPoints]
-            T=fgdvc_list[runnedCaseNr].Interpolate('Temp')
+            T.append(fgdvc_list[runnedCaseNr].Interpolate('Temp'))
             u[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Yield(Name)[:Len_tPoints]
         #updated Vector: CurrentVector
         #####improve all parameters
         w0=self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
         print fgdvc_list[0].SpeciesName(Name)
-        print 'a0: ', self.a0
-        print 'w0: ', w0
+#        print 'a0: ', self.a0
+#        print 'w0: ', w0
         w1=self.a1/(max( ((fgdvc_list[0].Rate(Name)))**2 ))
-        print 'a1: ', self.a1
-        print 'w1: ',w1
+#        print 'a1: ', self.a1
+#        print 'w1: ',w1
+        print 'start gradient based optimization'
         #
         def LeastSquareFunction(Parameter):
             model.setParamVector(Parameter)
-            #print model.ParamVector()
+#            print model.ParamVector()
             for runnedCaseNr in range(len(fgdvc_list)):
-                v[:,runnedCaseNr]=model.calcMass(fgdvc_list[runnedCaseNr],t[:,runnedCaseNr],T,Name)[:Len_tPoints]
+                v[:,runnedCaseNr]=model.calcMass(fgdvc_list[runnedCaseNr],t[:,runnedCaseNr],T[runnedCaseNr],Name)[:Len_tPoints]
                 uDot[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Rate(Name)[:Len_tPoints]
                 vDot[:,runnedCaseNr]=model.deriveC(fgdvc_list[runnedCaseNr],v[:,runnedCaseNr],Len_tPoints)
             if self.selectedOptimizer=='leastsq':
@@ -116,14 +117,14 @@ class LeastSquarsEstimator(object):
                 Error=np.zeros((Len_tPoints),dtype='d')
                 #makes a long array, containing both, the rates and yields
                 Error[:]=np.sum(Dot1+Dot2,axis=1)
-                #print np.sum(Error)
+#                print np.sum(Error)
             else:
                 sumYields_vec=(u-v)**2
                 SumYields=np.sum(sumYields_vec*dt)
                 SumRates_vec=(uDot-vDot)**2
                 SumRates=np.sum(SumRates_vec*dt)
                 Error= w0*SumYields+w1*SumRates
-                #print Error
+#                print Error
             return Error
         model.setParamVector(Parameter_Vector)
         if self.selectedOptimizer=='fmin':
@@ -241,6 +242,29 @@ class GlobalOptimizer(object):
                         self.KinModel.setParamVector(self.LocOpt.estimate_T(self.FitInfo,self.KinModel,self.__ParamList,Species))
                         DevList.append(self.LocOpt.Deviation())
                         ParamArray.append(self.KinModel.ParamVector())
+        if len(self.__ParamList)==6:
+            for i in range(ListNrRuns[0]+1):
+                if ListNrRuns[0]!=0:
+                    self.__ParamList[0] = ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(0)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0])*((float(i))/ListNrRuns[0])
+                for j in range(ListNrRuns[1]+1):
+                    if ListNrRuns[1]!=0:
+                        self.__ParamList[1]=ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(1)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0])*((float(j))/ListNrRuns[1])
+                    for k in range(ListNrRuns[2]+1):
+                        if ListNrRuns[2]!=0:
+                            self.__ParamList[2]=ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(2)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0])*((float(k))/ListNrRuns[2])
+                        for l in range(ListNrRuns[3]+1):
+                            if ListNrRuns[3]!=0:
+                                self.__ParamList[3] = ArrayOfRanges[IndexListofParameterToOptimize.index(3)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(3)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(3)][0])*((float(l))/ListNrRuns[3])
+                            for m in range(ListNrRuns[4]+1):
+                                if ListNrRuns[4]!=0:
+                                    self.__ParamList[4]=ArrayOfRanges[IndexListofParameterToOptimize.index(4)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(4)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(4)][0])*((float(m))/ListNrRuns[4])
+                                for n in range(ListNrRuns[5]+1):
+                                    if ListNrRuns[5]!=0:
+                                        self.__ParamList[5] = ArrayOfRanges[IndexListofParameterToOptimize.index(5)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(5)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(5)][0])*((float(n))/ListNrRuns[5])
+                            #
+                            self.KinModel.setParamVector(self.LocOpt.estimate_T(self.FitInfo,self.KinModel,self.__ParamList,Species))
+                            DevList.append(self.LocOpt.Deviation())
+                            ParamArray.append(self.KinModel.ParamVector())
         indexMinDeviation=DevList.index(np.min(DevList))
         return ParamArray[indexMinDeviation]
 

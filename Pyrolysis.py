@@ -11,6 +11,7 @@ import FitInfo                  #supports the Fitting with the yield information
 import Compos_and_Energy        #Species balance and energy balance for CPD and FG-DVC
 import InformationFiles         #reads the user input files, writes FG-DVC coalsd.exe coal generation file
 import GlobalOptParam           #contains the Information of the Number Of Runs for the Global Optimum search
+import Evolve                   #contains the generic algortihm optimizer
 import os
 import numpy as np
 import platform
@@ -22,8 +23,8 @@ def DAF(PAFC_asRecieved,PAVM_asRecieved):
     fractionVM=PAVM_asRecieved/(PAFC_asRecieved+PAVM_asRecieved)
     return 100.*fractionFC, 100.*fractionVM
 #
-#Use Global Optimizer?
-UseGlobalOpt=True
+#Use Global Optimizer? select 'Evolve' for a generic algorithm or 'ManyPoints' to use many starting points combined with a local optimization
+UseGlobalOpt= 'Evolve'
 #Which operating Sytem?
 oSystem=platform.system()
 #Directories:
@@ -212,13 +213,13 @@ def MakeResults(PyrolProgram,File,Fit):
         for Species in SpeciesList:
             #
             m_final_prediction=Fit[0].Yield(Species)[-1]
-            PredictionV0=[0.86e15,0,27700,m_final_prediction]  #for Standard Arrhenius
+            PredictionV0=[0.86e15,0.01,27700,m_final_prediction]  #for Standard Arrhenius
             PredictionV1=[10.,-20.,m_final_prediction]         #for Arrhenius notation #1
             PredictionV2=[10.,-18.,m_final_prediction]           #for Arrhenius notation #2
             Arr=Models.ArrheniusModel(PredictionV0)
             #
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt==True:
+            if UseGlobalOpt=='ManyPoints':
                 #GlobalOptimize:
                 GlobalMin=Fitter.GlobalOptimizer(LS,Arr,Fit)
                 m_final_predictionAll=[]
@@ -230,6 +231,25 @@ def MakeResults(PyrolProgram,File,Fit):
                 LS.setTolerance(1.e-7)
                 print 'Final optimization Run:'
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
+            if UseGlobalOpt=='Evolve':
+                m_final_predictionAll=[]
+                for i in range(len(Fit)):
+                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+                GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
+                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+                GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
+                GAArrhMinB = GlobalOptParam.EvAArrhMin[1]
+                GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
+                GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
+                GAArrhMaxB = GlobalOptParam.EvAArrhMax[1]
+                GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
+                GAArrhInit=GlobalOptParam.EvAArrhInit
+                GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+                GenAlg.setParamRanges(GAArrhInit,[GAArrhMinA,GAArrhMinB,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxB,GAArrhMaxE,max(m_final_predictionAll)])
+                Arr.setParamVector(GenAlg.mkResults())
+                #
+                #use afterwards local optimization
+                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Arr.plot(Fit,Species)
@@ -287,7 +307,7 @@ def MakeResults(PyrolProgram,File,Fit):
             ArrPlot=Models.ArrheniusModel([0,0,0,0]) #use Original Arrhenius Model to Plot
             #
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt==True:
+            if UseGlobalOpt=='ManyPoints':
                 #GlobalOptimize:
                 GlobalMin=Fitter.GlobalOptimizer(LS,Arr,Fit)
                 m_final_predictionAll=[]
@@ -299,6 +319,23 @@ def MakeResults(PyrolProgram,File,Fit):
                 LS.setTolerance(1.e-7)
                 print 'Final optimization Run:'
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
+            if UseGlobalOpt=='Evolve':
+                m_final_predictionAll=[]
+                for i in range(len(Fit)):
+                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+                GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
+                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+                GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
+                GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
+                GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
+                GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
+                GAArrhInit=GlobalOptParam.EvAArrhInit
+                GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+                GenAlg.setParamRanges(Arr.ConvertKinFactorsToOwnNotation(GAArrhInit),Arr.ConvertKinFactorsToOwnNotation([GAArrhMinA,0,GAArrhMinE,min(m_final_predictionAll)]),Arr.ConvertKinFactorsToOwnNotation([GAArrhMaxA,0,GAArrhMaxE,max(m_final_predictionAll)]))
+                Arr.setParamVector(GenAlg.mkResults())
+                #
+                #use afterwards local optimization
+                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Solution=Arr.ConvertKinFactors(Arr.ParamVector())
@@ -310,22 +347,21 @@ def MakeResults(PyrolProgram,File,Fit):
     elif (CPD_FittingKineticParameter_Select=='Kobayashi' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='Kobayashi' and PyrolProgram=='FGDVC'): #Kob means Kobayashi
 #        PredictionVKob2=[10,-16,8,-20]           #for Arrhenius notation #2 [b11,b21,b12,b22] with the second indice as the reaction
 #        PredictionVKob0=[2e5,1.046e8/8314.33,1.3e7,1.674e8/8314.33,PAVM_daf/100.]
-        PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33]#,PAVM_daf/100.]
+# 	PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33]#,PAVM_daf/100.]
+        PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33,0.4,0.9]
         LS=Fitter.LeastSquarsEstimator()
         LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
         LS.setTolerance(1.e-9)
         LS.setMaxIter(2000)
-        LS.setWeights(1.0,0.0)
+        LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_KobayashiRate.txt', 'w')
         outfile.write("Species\t\tA1 [1/s]\t\tE_a1 [K]\t\tA2 [1/s]\t\t\tE_a2 [K]\talpha1 \t\t\talpha2 \n\n")
         Kob=Models.Kobayashi(PredictionVKob0)
-        #Kob.setKobWeights(PAVM_daf/100.,1.0)
-        Kob.setKobWeights(0.45,0.55)
         #######
         ##The single species:
         for Species in [Fit[0].SpeciesIndex('Total')]:
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt==True:
+            if UseGlobalOpt=='ManyPoints':
                 #GlobalOptimize:
                 GlobalMin=Fitter.GlobalOptimizer(LS,Kob,Fit)
                 LS.setTolerance(1e-2)
@@ -334,46 +370,20 @@ def MakeResults(PyrolProgram,File,Fit):
                 LS.setTolerance(1.e-7)
                 print 'Final optimization Run:'
                 Kob.setParamVector(LS.estimate_T(Fit,Kob,ParamGlobalMin,Species))
-            if UseGlobalOpt==False:
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
-            Solution=Kob.ParamVector()
-            #
-            Kob.plot(Fit,Species)
-            KobWeight1,KobWeight2 = Kob.KobWeights()
-            outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t\t'+str(Solution[1])+'\t\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\t\t'+str(KobWeight1)+'\t\t'+str(KobWeight2)+'\n')
-        outfile.close()
-    elif (CPD_FittingKineticParameter_Select=='KobayashiAlpha' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='KobayashiAlpha' and PyrolProgram=='FGDVC'): #Kob means Kobayashi
-        PredictionVKob0=[7e5,2.3e8,8e7/8314.33,PAVM_daf/100.]#,PAVM_daf/100.]
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-9)
-        LS.setMaxIter(2000)
-        LS.setWeights(1.0,0.0)
-        outfile = open(PyrolProgram+'-Results_KobayashiRate.txt', 'w')
-        outfile.write("Species\t\tA1 [1/s]\t\tE_a1 [K]\t\tA2 [1/s]\t\t\tE_a2 [K]\talpha1 \t\t\talpha2 \n\n")
-        Kob=Models.KobayashiPCCL(PredictionVKob0)
-        Kob.setKobWeights(1.0)
-        Kob.setE2Diff(5000.0)
-        #######
-        ##The single species:
-        for Species in [Fit[0].SpeciesIndex('Total')]:
-            print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt==True:
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Kob,Fit)
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.KobAlphaIndexToOptimize,GlobalOptParam.KobAlphaBoundaries(PAVM_daf),GlobalOptParam.KobAlphaNrOfRuns)
+            if UseGlobalOpt=='Evolve':
+                GenAlg=Evolve.GenericOpt(Kob,Fit,Species)
+                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+                GenAlg.setParamRanges(GlobalOptParam.EvAKobInit,GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax)
+                Kob.setParamVector(GenAlg.mkResults())
                 #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,ParamGlobalMin,Species))
+                #use afterwards local optimization
+                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             Solution=Kob.ParamVector()
             #
             Kob.plot(Fit,Species)
-            KobWeight2 = Kob.KobWeights()
-            outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t\t'+str(Solution[2])+'\t\t'+str(Solution[1])+'\t\t'+str(Solution[2]+Kob.E2Diff())+'\t\t'+str(Solution[3])+'\t\t'+str(KobWeight2)+'\n')
+            outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t\t'+str(Solution[1])+'\t\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\t\t'+str(Solution[4])+'\t\t'+str(Solution[5])+'\n')
         outfile.close()
     ##SPECIES AND ENERGY BALANCE:
     for runNr in range(NrOfRuns):
