@@ -50,7 +50,7 @@ class SpeciesBalance(object):
 
 class CPD_SpeciesBalance(SpeciesBalance):
     """This class calculates the Species and the Energy balance for CPD. See the manual for the formulas and more details."""
-    def __init__(self,CPD_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,HHV,MTar,RunNr):
+    def __init__(self,CPD_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,RunNr):
         #imports the dictionaries for the species defined in 'CPD_Fit_one_run.py' -> CPD_Result()
         self.Yields2Cols=CPD_ResultObject.DictYields2Cols()
         self.Cols2Yields=CPD_ResultObject.DictCols2Yields()
@@ -64,6 +64,8 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.UAS=UAS/100.
         self.PAVM=PAVM/100.
         self.PAFC=PAFC/100.
+	self.PAash=PAash/100.
+	self.PAmoist=PAmoist/100.
         if HHV==0:
             HHV=self.Dulong()
         self.HHV=HHV
@@ -71,25 +73,27 @@ class CPD_SpeciesBalance(SpeciesBalance):
         #corrects UA, if UA<1: Sulfur -> Carbon
         self.correctUA()
         self.CPDBalanceFile=open('CPD-BalanceResults'+str(RunNr)+'.txt','w')
-        self.CPDBalanceFile.write('Coal Properties input:\nUltimate Analysis:\n')
-        self.CPDBalanceFile.write('UAC= '+str(self.UAC*100.)+'\n')
-        self.CPDBalanceFile.write('UAH= '+str(UAH)+'\n')
-        self.CPDBalanceFile.write('UAN= '+str(UAN)+'\n')
-        self.CPDBalanceFile.write('UAO= '+str(UAO)+'\n')
-        self.CPDBalanceFile.write('UAS= '+str(UAS)+'\n')
-        self.CPDBalanceFile.write('Proximate analysis, as recieved:\n')
-        self.CPDBalanceFile.write('PAVM='+str(PAVM)+'\n')
-        self.CPDBalanceFile.write('PAFC='+str(PAFC)+'\n')
-        self.CPDBalanceFile.write('HHV= '+str(HHV)+' MJ/kg\n\n\n')
+        self.CPDBalanceFile.write('= Coal Properties =\n==Ultimate Analysis==\n')
+        self.CPDBalanceFile.write('|C |'+str('%6.3f' %(self.UAC*100.))+'%|\n')
+        self.CPDBalanceFile.write('|H |'+str('%6.3f' %(self.UAH*100.))+'%|\n')
+        self.CPDBalanceFile.write('|N |'+str('%6.3f' %(self.UAN*100.))+'%|\n')
+        self.CPDBalanceFile.write('|O |'+str('%6.3f' %(self.UAO*100.))+'%|\n')
+        self.CPDBalanceFile.write('|S |'+str('%6.3f' %(self.UAS*100.))+'%|\n\n')
+        self.CPDBalanceFile.write('== Proximate analysis ==\n')
+        self.CPDBalanceFile.write('|   |  AR% | dry% | daf% |\n')
+        self.CPDBalanceFile.write('|VM |'+str('%6.3f|' %PAVM)+str('%6.3f|' %(100*PAVM/(100.-PAmoist)))+str('%6.3f|' %(100*PAVM/(100.-PAmoist-PAash)))+'\n')
+        self.CPDBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
+        self.CPDBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
+        self.CPDBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
         #if sum Yields != 1.0: scales every Yield up
         self.__correctYields()
         #print "Sum of Yields, input" ,( self.Yields[self.SpeciesIndex('Solid')]+self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('CO')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')] + self.Yields[self.SpeciesIndex('Other')])
         #print "Sum of Yields, input + Nitrogen" ,( self.Yields[self.SpeciesIndex('Solid')]+self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('CO')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')] + self.Yields[self.SpeciesIndex('Other')] +self.UAN)
         #print "UA ", (self.UAC+self.UAH+self.UAN+self.UAO)
+        self.__Q_React() #calculate heat of reaction for raw coal
         self.__CheckOxygen()
         self.__CheckOthers()
         self.__TarComp()
-        self.__Q_React()
         self.__hfRaw()
         self.__hfTar()
         self.__QPyro()
@@ -99,7 +103,6 @@ class CPD_SpeciesBalance(SpeciesBalance):
         
     def __correctYields(self):
         """Correct the amount of the yields 'Other'."""
-        print 'Others (correct yields before) = ',self.Yields[self.SpeciesIndex('Other')]
         SumYieldsWitoutN=( self.Yields[self.SpeciesIndex('Solid')]+
             self.Yields[self.SpeciesIndex('Tar')]+
             self.Yields[self.SpeciesIndex('CO')]+
@@ -114,7 +117,6 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.Yields[self.SpeciesIndex('H2O')]=self.Yields[self.SpeciesIndex('H2O')]/SumYieldsWitoutN
         self.Yields[self.SpeciesIndex('CH4')]=self.Yields[self.SpeciesIndex('CH4')]/SumYieldsWitoutN
         self.Yields[self.SpeciesIndex('Other')]=self.Yields[self.SpeciesIndex('Other')]/SumYieldsWitoutN
-        print 'Others (correct yields after) = ',self.Yields[self.SpeciesIndex('Other')]
         
 
     def __CheckOxygen(self):
@@ -125,7 +127,6 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.gamma=(self.UAO/Y0_cpd) #gamma in eq. (2) in Michele's report
         #
         if self.gamma<1.: #if gamma < 1 then is Y0_cpd > UAO
-            print 'gamma  = ',self.gamma,' -> no Oxygen in the Tar'
             # eq. (4) in Michele's report:
             Sum4=self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('CO')]
             self.Yields[self.SpeciesIndex('Other')]=self.Yields[self.SpeciesIndex('Other')]+(1-self.gamma)*Sum4
@@ -133,9 +134,6 @@ class CPD_SpeciesBalance(SpeciesBalance):
             self.Yields[self.SpeciesIndex('H2O')]=self.gamma*self.Yields[self.SpeciesIndex('H2O')]
             self.Yields[self.SpeciesIndex('CO2')]=self.gamma*self.Yields[self.SpeciesIndex('CO2')]
             self.Yields[self.SpeciesIndex('CO')] =self.gamma*self.Yields[self.SpeciesIndex('CO')]
-        else:
-            print 'gamma  = ',self.gamma,' -> Tar contains Oxygen'
-        print 'Others (checkO2) = ',self.Yields[self.SpeciesIndex('Other')]
 
 
     
@@ -145,36 +143,37 @@ class CPD_SpeciesBalance(SpeciesBalance):
             # eq. (6) in Michele's report:
             self.Yields[self.SpeciesIndex('CH4')]=self.Yields[self.SpeciesIndex('CH4')]+(self.Yields[self.SpeciesIndex('Other')]-self.UAN)
         #Result File:
-        self.CPDBalanceFile.write('final Yields in kg(species)/kg(coal):\n')
-        self.CPDBalanceFile.write('Tar:  '+ str(self.Yields[self.SpeciesIndex('Tar')])+'\n')
-        self.CPDBalanceFile.write('Char: '+ str(self.Yields[self.SpeciesIndex('Solid')])+'\n')
-        self.CPDBalanceFile.write('Gas:  '+ str(self.Yields[self.SpeciesIndex('Gas')])+'\n\n')
-        self.CPDBalanceFile.write('H2O:  '+ str(self.Yields[self.SpeciesIndex('H2O')])+'\n')
-        self.CPDBalanceFile.write('CO2:  '+ str(self.Yields[self.SpeciesIndex('CO2')])+'\n')
-        self.CPDBalanceFile.write('CH4:  '+ str(self.Yields[self.SpeciesIndex('CH4')])+'\n')
-        self.CPDBalanceFile.write('CO:   '+ str(self.Yields[self.SpeciesIndex('CO')])+'\n')
-        self.CPDBalanceFile.write('N2:   '+ str(self.UAN)+'\n\n\n')
+        self.CPDBalanceFile.write('== Final yields ==\n')
+        self.CPDBalanceFile.write('Char '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('Solid')]))
+        self.CPDBalanceFile.write('Tar  '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('Tar')]))
+        self.CPDBalanceFile.write('H2O  '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('H2O')]))
+        self.CPDBalanceFile.write('CO2  '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('CO2')]))
+        self.CPDBalanceFile.write('CH4  '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('CH4')]))
+        self.CPDBalanceFile.write('CO   '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('CO')]))
+        self.CPDBalanceFile.write('N2   '+ str('%7.5f\n' %self.UAN)+'\n')
+        #self.CPDBalanceFile.write('Gas:  '+ str(self.Yields[self.SpeciesIndex('Gas')])+'\n\n')
         self.Yields[self.SpeciesIndex('Other')] = str(self.UAN)
-#        print 'sum yields =',(self.Yields[self.SpeciesIndex('Other')]+
-#            self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('Solid')]+
-#            self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('CO')]+
-#            self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')])
-        print 'Others (checkother) = ',self.Yields[self.SpeciesIndex('Other')]
+        self.CPDBalanceFile.write('=== Fluent ===\n')
+	char = self.Yields[self.SpeciesIndex('Solid')]*(1.-self.PAash)*100.
+	vol = (1-self.Yields[self.SpeciesIndex('Solid')])*(1.-self.PAash)*100.
+	ash = 100. - char - vol
+
+	self.CPDBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %char))
+	self.CPDBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %vol))
+	self.CPDBalanceFile.write('Ash fraction:                '+ str('%7.3f\n\n' %ash))
+
            
     def __TarComp(self): #saves [m,n,o] from C_m H_n O_o
         """Calculates and returns the tar composition."""
         # eq. (7) in Michele's report:
 #        print "Sum of Yields" ,( self.Yields[self.SpeciesIndex('Solid')]+self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('CO')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')] +self.UAN )
-        print "Sum of Yields" ,( self.Yields[self.SpeciesIndex('Solid')]+self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('CO')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')]+self.Yields[self.SpeciesIndex('Other')] )
 
 #check Sum of UA
 #        sumy = self.Yields[self.SpeciesIndex('Solid')]+self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('CO')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')] 
 #        self.Yields[self.SpeciesIndex('Other')] = 1.0 - sumy
 
-        print "Sum of UA", self.UAC+self.UAH+self.UAN+self.UAO+self.UAS
         #check Sum UA, sums up carbon part: Sulfur->Carbon, newer, higher amount of char (incresed by sulfur)
         #Carbon:
-        print self.MTar
 	sum = 0
         self.muCTar = ( self.UAC/MC - self.Yields[self.SpeciesIndex('Solid')]/MC - self.Yields[self.SpeciesIndex('CO2')]/(MC+2.*MO) - self.Yields[self.SpeciesIndex('CO')]/(MC+MO) - self.Yields[self.SpeciesIndex('CH4')]/(MC+4.*MH) )*(self.MTar/self.Yields[self.SpeciesIndex('Tar')])
         #Hydrogen:        
@@ -187,39 +186,39 @@ class CPD_SpeciesBalance(SpeciesBalance):
 	self.muNTar =  (self.UAN/MN - 2.*self.Yields[self.SpeciesIndex('Other')]/(2.*MN)) *(self.MTar/self.Yields[self.SpeciesIndex('Tar')])
         if abs(self.muNTar)<1.e-10:
             self.muNTar=0.0
-        print 'TarComposition: ', 'C=',self.muCTar,',H=', self.muHTar,',O=',self.muOTar,',N=',self.muNTar,',S=',self.muSTar
-        self.CPDBalanceFile.write('Tar Composition, C_c H_h O_o\n')
-        self.CPDBalanceFile.write('Carbon:   '+ str(self.muCTar)+'\n')
-        self.CPDBalanceFile.write('Hydrogen: '+ str(self.muHTar)+'\n')
-        self.CPDBalanceFile.write('Oxygen:   '+ str(self.muOTar)+'\n')
-        self.CPDBalanceFile.write('Nytrogen:   '+ str(self.muNTar)+'\n')
-        self.CPDBalanceFile.write('Sulphur:   '+ str(self.muSTar)+'\n\n')
-	self.CPDBalanceFile.write('TAR oxidation\n')
+        #print 'TarComposition: ', 'C=',self.muCTar,',H=', self.muHTar,',O=',self.muOTar,',N=',self.muNTar,',S=',self.muSTar
+        self.CPDBalanceFile.write('== Tar ==\n=== Atomic composition ===\n')
+        self.CPDBalanceFile.write(str('C_%5.3f ' %self.muCTar)+str('H_%5.3f ' %self.muHTar)+str('O_%5.3f ' %self.muOTar)+str('N_%5.3f ' %self.muNTar)+str('S_%5.3f\n' %self.muSTar))
+        self.CPDBalanceFile.write(str('Molecular weigth = %5.3f kg/kmol\n\n' %self.MTar))
+        #self.CPDBalanceFile.write('Carbon:   '+ str(self.muCTar)+'\n')
+        #self.CPDBalanceFile.write('Hydrogen: '+ str(self.muHTar)+'\n')
+        #self.CPDBalanceFile.write('Oxygen:   '+ str(self.muOTar)+'\n')
+        #self.CPDBalanceFile.write('Nytrogen:   '+ str(self.muNTar)+'\n')
+        #self.CPDBalanceFile.write('Sulphur:   '+ str(self.muSTar)+'\n\n')
+	self.CPDBalanceFile.write('=== TAR oxidation ===\n')
 	nuO2 =0.5*(2.*self.muCTar+self.muHTar/2.+2.*self.muSTar-self.muOTar)
-	self.CPDBalanceFile.write('TAR +'+str(nuO2)+' O2 -> '+str(self.muCTar)+' CO2 + '+str(self.muHTar/2)+' H2O + '+str(self.muNTar/2)+' N2 + '+str(self.muSTar)+' SO2\n')
-	self.CPDBalanceFile.write('TAR partial\n')
+	self.CPDBalanceFile.write(str('TAR + %5.3f O2 --> ' %nuO2)+str('%5.3f CO2 + ' %self.muCTar)+str('%5.3f H2O + ' %(self.muHTar/2))+str('%5.3f N2 + ' %(self.muNTar/2))+str('%5.3f SO2\n\n' %self.muSTar))
+	self.CPDBalanceFile.write('=== TAR partial oxidation ===\n')
 	nuO2 =0.5*(self.muCTar+2.*self.muSTar-self.muOTar)
-	self.CPDBalanceFile.write('TAR +'+str(nuO2)+' O2 -> '+str(self.muCTar)+' CO + '+str(self.muHTar/2)+' H2 + '+str(self.muNTar/2)+' N2 + '+str(self.muSTar)+' SO2\n\n\n')
+	self.CPDBalanceFile.write(str('TAR + %5.3f O2 -->' %nuO2)+str(' %5.3f CO + ' %self.muCTar)+str('%5.3f H2 + ' %(self.muHTar/2))+str('%5.3f N2 + ' %(self.muNTar/2))+str('%5.3f SO2\n\n' %self.muSTar))
         # check mass weight
 	MTarCheck=self.muCTar*MC+self.muHTar*MH +self.muOTar*MO+self.muNTar*MN+self.muSTar*MS 
-        print "Mass Weight of Tar " , MTarCheck 
         return [self.muCTar,self.muHTar,self.muOTar,self.muSTar,self.muNTar]
         
 
     def __Q_React(self):
         """Calculates the Heat of Reaction of the coal cumbustion."""
         # eq. (8) in Michele's report
-        print 'HHV as rec =',self.HHV/1e6,'MJ/kg'
         HHVdaf=self.HHV/(self.PAFC+self.PAVM)
-        print 'HHV daf =',HHVdaf/1e6,'MJ/kg'
         # eq. (9) in Michele's report:
         LHVdaf = HHVdaf - ((MO+2.*MH)/(2.*MH))*self.UAH*rH2O
-        print 'Latent heat drying =',rH2O/1e6,'MJ/kg'
-        print 'LHV-daf =',LHVdaf/1e6,'MJ/kmol'
-        print 'MRaw =',MRaw,'kg/kmol'
+	LHVar = LHVdaf * (self.PAFC+self.PAVM) -self.PAmoist * rH2O
         # Q_react in J/mol; eq. (10) in Michele's report:
         self.Q_react=LHVdaf*MRaw
-        print 'Q_React =',self.Q_react/1e6,'MJ/kmol'
+        self.CPDBalanceFile.write('== Heating value ==\n')
+        self.CPDBalanceFile.write('|   | ar MJ/kg|daf MJ/kg|\n') 
+        self.CPDBalanceFile.write('|HHV|'+str('%9.3f|' %(self.HHV/1e6))+str('%9.3f|\n' %(HHVdaf/1e6)))
+        self.CPDBalanceFile.write('|LHV|'+str('%9.3f|' %(LHVar/1e6))+str('%9.3f|\n\n' %(HHVdaf/1e6)))
         
     def __hfRaw(self):
         """Calculates the heat of formation of the coal molecule and writes it into the output file."""
@@ -250,9 +249,8 @@ class CPD_SpeciesBalance(SpeciesBalance):
 #        print 'muhfO2=',muO2*hfO2 
 #        print 'muhfN2=',muN2*hfN2               
         self.hfraw = self.Q_react + muCO2*hfCO2 + muH2O*hfH2O + muN2*hfN2 +muSO2*hfSO2 - muO2*hfO2
-        print 'hfraw =', self.hfraw 
-        self.CPDBalanceFile.write('Heat of Formation in J/mol: \n')
-        self.CPDBalanceFile.write('Raw Coal Molecule: '+ str(self.hfraw)+'\n')
+        #self.CPDBalanceFile.write('Heat of Formation in J/mol: \n')
+        #self.CPDBalanceFile.write('Raw Coal Molecule: '+ str(self.hfraw)+'\n')
         
     def __nysEq15(self):
         """Calculates the stoichiometric coefficients of the devolatilization reaction."""
@@ -286,8 +284,7 @@ class CPD_SpeciesBalance(SpeciesBalance):
         # eq. (16) in Michele's report:
         Sum16 = self.nyH2O*hfH2O + self.nyCO2*hfCO2+self.nyCH4*hfCH4 + self.nyCO*hfCO + self.nyChar*hfChar+self.nyN2*hfN2
         hfTar = ( self.hfraw - Sum16)/self.nyTar
-        self.CPDBalanceFile.write('Tar Molecule:      '+str(hfTar)+'\n\n\n')
-        print 'hfTar =', hfTar
+        self.CPDBalanceFile.write(str('=== Enthalpy of formation ===\nhf = %10.3f J/kmol\n' %hfTar))
     
     def __QPyro(self):
         """Calculates the heat of the pyrolysis process, assuming heat of tar formation is equal zero."""
@@ -295,12 +292,11 @@ class CPD_SpeciesBalance(SpeciesBalance):
         # eq. (17) in Michele's report:
         Sum17 = self.nyH2O*hfH2O + self.nyCO2*hfCO2 + self.nyCH4*hfCH4 + self.nyCO*hfCO
         QPyro = -(self.hfraw - Sum17)/(MRaw)
-        print 'QPyro =', QPyro
         # eq. (18) in Michele's report:
         QPyroVM=QPyro/(1-self.Yields[self.SpeciesIndex('Solid')])
-        self.CPDBalanceFile.write('Pyrolysis Heat in J/g: \n')
-        self.CPDBalanceFile.write('Q= '+ str(QPyro)+'\n')
-        self.CPDBalanceFile.write('refered to VM= '+ str(QPyroVM)+'\n')
+        #self.CPDBalanceFile.write('Pyrolysis Heat in J/g: \n')
+        #self.CPDBalanceFile.write('Q= '+ str(QPyro)+'\n')
+        #self.CPDBalanceFile.write('refered to VM= '+ str(QPyroVM)+'\n')
         
     def __closeResultFile(self):
         """Closes the CPD Composition file."""

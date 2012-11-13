@@ -52,6 +52,18 @@ FG_CoalName='GenCoal'
 CoalInput=InformationFiles.ReadFile(workingDir+'Coal.inp')
 PAFC_asrec=CoalInput.getValue(InformationFiles.M_PA[0])
 PAVM_asrec=CoalInput.getValue(InformationFiles.M_PA[1])
+PAmoist = CoalInput.getValue(InformationFiles.M_PA[2])
+PAash = CoalInput.getValue(InformationFiles.M_PA[3])
+print PAFC_asrec
+# scale proximate analysis
+sumPA = (PAFC_asrec+PAVM_asrec + PAmoist + PAash)/100.
+PAFC_asrec/=sumPA
+PAVM_asrec/=sumPA
+PAmoist/=sumPA
+PAash/=sumPA
+
+
+
 #gets daf values, as CPD needs daf as input:
 PAFC_daf, PAVM_daf = DAF(PAFC_asrec,PAVM_asrec)
 UAC=CoalInput.getValue(InformationFiles.M_UA[0])
@@ -59,9 +71,8 @@ UAH=CoalInput.getValue(InformationFiles.M_UA[1])
 UAN=CoalInput.getValue(InformationFiles.M_UA[2])
 UAO=CoalInput.getValue(InformationFiles.M_UA[3])
 UAS=CoalInput.getValue(InformationFiles.M_UA[4])
-# scale proximate analysis
+# scale ultimate analysis
 sumUA = UAC+UAH+UAN+UAO+UAS
-print sumUA
 UAC=UAC/sumUA*100
 UAH=UAH/sumUA*100
 UAO=UAO/sumUA*100
@@ -368,7 +379,7 @@ def MakeResults(PyrolProgram,File,Fit):
     for runNr in range(NrOfRuns):
         if PyrolProgram=='CPD':
 	    print 'CPD energy and mass balance...'
-            Compos_and_Energy.CPD_SpeciesBalance(File[runNr],UAC,UAH,UAN,UAO,UAS,PAVM_asrec,PAFC_asrec,HHV,MTar,runNr)
+            Compos_and_Energy.CPD_SpeciesBalance(File[runNr],UAC,UAH,UAN,UAO,UAS,PAVM_asrec,PAFC_asrec,PAmoist,PAash,HHV,MTar,runNr)
         if PyrolProgram=='FGDVC':    
             Compos_and_Energy.FGDVC_SpeciesBalance(FGFile[runNr],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,runNr)
 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
