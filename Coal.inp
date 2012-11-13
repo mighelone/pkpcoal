@@ -1,0 +1,28 @@
+#Proximate Analysis (in percent, as recieved):
+Fixed Carbon:
+56.70
+Volatile Matter:
+37.10
+
+#Ultimate Analysis (in percent):
+UA Carbon:
+78.41
+UA Hydrogen:
+5.22
+UA Nitrogen:
+1.49
+UA Oxygen:
+10.90
+UA Sulphur:
+0.82
+
+Higher Heating Value, as recieved, in J/kg:
+31.842e6
+
+Tar Molecule weight, MTar:
+50
+
+Weight-Parameter yields for fitting the kinetics:
+1.0
+Weight-Parameter rates for fitting the kinetics:
+1.0
