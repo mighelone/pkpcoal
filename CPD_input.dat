@@ -1,0 +1,52 @@
+0.524811024884           !p0
+0.0           !c0
+5.00359707741           !sig+1
+351.263955163           !mw
+33.8862191867           !mdel (7 will be subtracted internally to the CPD model
+
+0.809686080132           !fcar (daf mass fraction of carbon in unreacted coal)
+0.0539033457249           !fhyd (daf mass fraction of hydrogen in unreacted coal)
+0.0153862040479           !fnit (daf mass fraction of nitrogen in unreacted coal)
+0.112556794713           !foxy (daf mass fraction of oxygen in unreacted coal)
+
+
+
+2.602e+15           !ab
+55400           !eb
+1800           !ebsig
+0.9           !ac=rho
+0           !ec
+3e+15           !ag
+69000           !eg
+8100           !egsig
+3e+15           !Acr (pre-exponential factor for crosslinking rate)
+65000           !Ecr (activation energy for crosslinking rate)
+
+18.4           !arad (pre-exponential factor for N attack by free radical)
+6000           !erad (activation energy for N attack by free radical, cal.)
+0.03           !fstable (initial frac. of MW decay with no radical N attack)
+55000000.0           !an (high T slow N release pre-exponential factor)
+90000           !en (high T slow N release activation energy, calories)
+0           !ensig (deviation bound for distribution of en)
+
+
+1.0           !pressure (atm)
+
+3           !number of time points
+0.0,313.0           !time(ms),temp(K)
+20.0,1700.0
+60.0,1700.0
+
+
+
+
+
+
+
+
+
+
+
+0.0001,1.0,0.001   !dt (s),print increment,max dt (s)
+0.06           !timax (maximum residence time [s] for calculations)
+20           !nmax (maximum number of mers for tar molecular wt)

@@ -1,0 +1,47 @@
+= Coal Properties =
+==Ultimate Analysis==
+|C |80.969%|
+|H | 5.390%|
+|N | 1.539%|
+|O |11.256%|
+|S | 0.847%|
+
+== Proximate analysis ==
+|   |  AR% | dry% | daf% |
+|VM |37.100|38.208|39.552|
+|FC |56.700|58.393|60.448|
+|ash| 3.300| 3.399| 0.000|
+|H2O| 2.900| 0.000| 0.000|
+
+== Heating value ==
+|   | ar MJ/kg|daf MJ/kg|
+|HHV|   31.842|   33.947|
+|LHV|   30.754|   33.947|
+
+== Final yields ==
+Char 0.44580
+Tar  0.28150
+H2O  0.07738
+CO2  0.02923
+CH4  0.11117
+CO   0.03954
+N2   0.01539
+
+=== Fluent ===
+Volatile component fraction:  43.109
+Combustibile fraction:        53.591
+Ash fraction:                  3.300
+
+== Tar ==
+=== Atomic composition ===
+C_3.782 H_3.050 O_0.000 N_0.000 S_0.047
+Molecular weigth = 50.000 kg/kmol
+
+=== TAR oxidation ===
+TAR + 4.591 O2 --> 3.782 CO2 + 1.525 H2O + 0.000 N2 + 0.047 SO2
+
+=== TAR partial oxidation ===
+TAR + 1.938 O2 --> 3.782 CO + 1.525 H2 + 0.000 N2 + 0.047 SO2
+
+=== Enthalpy of formation ===
+hf = 312011376.613 J/kmol
