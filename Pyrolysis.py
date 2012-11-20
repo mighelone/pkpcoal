@@ -55,7 +55,6 @@ PAFC_asrec=CoalInput.getValue(InformationFiles.M_PA[0])
 PAVM_asrec=CoalInput.getValue(InformationFiles.M_PA[1])
 PAmoist = CoalInput.getValue(InformationFiles.M_PA[2])
 PAash = CoalInput.getValue(InformationFiles.M_PA[3])
-print PAFC_asrec
 # scale proximate analysis
 sumPA = (PAFC_asrec+PAVM_asrec + PAmoist + PAash)/100.
 PAFC_asrec/=sumPA
@@ -139,7 +138,7 @@ CPD_t_max5=CPD_TimeTemp5[-1,0]*1.e-3 #tmax in s, not ms
 #
 #Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 (which is FG-DVC not able to read):
 if ((FG_select==True) and (FG_dt<1e-4)):
-    print "Please select for FG-DVC a time step greather equal 1e-3 in 'OperCond.inp'. FG-DVC would not be able to read the time history file for a dt<1e-4."
+    print "Please select for FG-DVC a time step greather equal 1e-4 in 'OperCond.inp'. FG-DVC would not be able to read the time history file for a dt<1e-4."
     sys.exit()
 #
 #
@@ -391,7 +390,7 @@ def MakeResults(PyrolProgram,File,Fit):
 	    print 'CPD energy and mass balance...'
             Compos_and_Energy.CPD_SpeciesBalance(File[runNr],UAC,UAH,UAN,UAO,UAS,PAVM_asrec,PAFC_asrec,PAmoist,PAash,HHV,MTar,runNr)
         if PyrolProgram=='FGDVC':    
-            Compos_and_Energy.FGDVC_SpeciesBalance(FGFile[runNr],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,runNr)
+            Compos_and_Energy.FGDVC_SpeciesBalance(FGFile[runNr],UAC,UAH,UAN,UAO,UAS,PAVM_asrec,PAFC_asrec,PAmoist,PAash,HHV,MTar,runNr)
 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
 #
 #
@@ -421,8 +420,8 @@ if CPDselect==True:
             CPD.SetOperateCond(CPD_pressure,CPD_TimeTemp5)
             CPD.SetNumericalParam(CPDdt,CPD_t_max5)
         CPD.writeInstructFile(workingDir)
+	print 'Running CPD ...',runNr
         if oSystem=='Linux':
-	    print 'Running CPD ...',runNr
             CPD.Run('./'+'cpdnlg','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
             os.system('cp CPD_input.dat CPD_'+str(runNr)+'_input.dat')
             os.system('cp CPD_Result1.dat CPD_'+str(runNr)+'_Result1.dat')
@@ -430,7 +429,7 @@ if CPDselect==True:
             os.system('cp CPD_Result3.dat CPD_'+str(runNr)+'_Result3.dat')
             os.system('cp CPD_Result4.dat CPD_'+str(runNr)+'_Result4.dat')
         elif oSystem=='Windows':
-            CPD.Run('cpdnlg.exe','IN.dat')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
+            CPD.Run('cpdnlg.exe','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
             os.system('copy CPD_Result1.dat CPD_'+str(runNr)+'_Result1.dat')
             os.system('copy CPD_Result2.dat CPD_'+str(runNr)+'_Result2.dat')
             os.system('copy CPD_Result3.dat CPD_'+str(runNr)+'_Result3.dat')
@@ -468,13 +467,14 @@ if FG_select==True:
         os.system('cd '+FG_MainDir+FG_GenCoalDir+' & del '+FG_CoalName+'_com.dat, '+FG_CoalName+'_kin.dat, '+FG_CoalName+'_pol.dat')
         #generates coalsd.exe input file
         MakeCoalGenFile=InformationFiles.WriteFGDVCCoalFile(FG_CoalGenFileName)
-        MakeCoalGenFile.setCoalComp(UAC,UAH,UAO,UAN,(100.-UAC-UAH-UAO-UAN),0)
+        MakeCoalGenFile.setCoalComp(UAC,UAH,UAO,UAN,UAS,0)
         MakeCoalGenFile.write(FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName)
         #makes new file
         try:
-            os.system('cd '+FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName)
+            os.system('cd '+FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
         except OSError:
             print 'Problems with coalsd.exe'
+	os.system('copy '+FG_MainDir+FG_GenCoalDir+'\coalsd_pkp.log . >> log.txt')
         #tests weather the coal file was genearated:
         if os.path.exists(FG_MainDir+'\\'+FG_GenCoalDir+'\\'+FG_CoalName+'_com.dat')==False:
             print 30*'*','\n','The coal is may outside the libraries coals. Select manually the closest library coal.',30*'*','\n'

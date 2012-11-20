@@ -1,5 +1,5 @@
 useCPD?:
-Yes
+No
 
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'KobayashiAlpha' or 'None'; selectedFit:
 Kobayashi

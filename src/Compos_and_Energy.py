@@ -307,7 +307,7 @@ class CPD_SpeciesBalance(SpeciesBalance):
 
 class FGDVC_SpeciesBalance(SpeciesBalance):
     """This class calculates the Species and the Energy balance for FG-DVC. See the manual for the formulars and more details."""
-    def __init__(self,FGDVC_ResultObject,UAC,UAH,UAN,UAO,PAVM,PAFC,HHV,MTar,RunNr):
+    def __init__(self,FGDVC_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,RunNr):
         #imports the dictionaries for the species defined in 'CPD_Fit_one_run.py' -> CPD_Result()
         self.Yields2Cols=FGDVC_ResultObject.DictYields2Cols()
         self.Cols2Yields=FGDVC_ResultObject.DictCols2Yields()
@@ -318,25 +318,30 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.UAH=UAH/100.
         self.UAN=UAN/100.
         self.UAO=UAO/100.
+        self.UAS=UAS/100.
         self.PAVM=PAVM/100.
         self.PAFC=PAFC/100.
+	self.PAash=PAash/100.
+	self.PAmoist=PAmoist/100.
         if HHV==0:
             HHV=self.Dulong()
         self.HHV=HHV
         self.MTar=MTar
         #corrects UA, if UA<1: Sulfur -> Carbon
         self.correctUA()
-        self.FGBalanceFile=open('FGDVC_'+str(RunNr)+'_BalanceResults.txt','w')
-        self.FGBalanceFile.write('Coal Properties input:\nUltimate Analysis:\n')
-        self.FGBalanceFile.write('UAC= '+str(self.UAC*100.)+'\n')
-        self.FGBalanceFile.write('UAH= '+str(UAH)+'\n')
-        self.FGBalanceFile.write('UAN= '+str(UAN)+'\n')
-        self.FGBalanceFile.write('UAO= '+str(UAO)+'\n')
-        self.FGBalanceFile.write('Proximate analysis, as recieved:\n')
-        self.FGBalanceFile.write('PAVM='+str(PAVM)+'\n')
-        self.FGBalanceFile.write('PAFC='+str(PAFC)+'\n')
-        self.FGBalanceFile.write('Higher Heating Value, as recieved:\n')
-        self.FGBalanceFile.write('HHV= '+str(HHV)+' MJ/kg\n\n\n')
+        self.FGBalanceFile=open('FGDVC-BalanceResults'+str(RunNr)+'.txt','w')
+        self.FGBalanceFile.write('= Coal Properties =\n==Ultimate Analysis==\n')
+        self.FGBalanceFile.write('|C |'+str('%6.3f' %(self.UAC*100.))+'%|\n')
+        self.FGBalanceFile.write('|H |'+str('%6.3f' %(self.UAH*100.))+'%|\n')
+        self.FGBalanceFile.write('|N |'+str('%6.3f' %(self.UAN*100.))+'%|\n')
+        self.FGBalanceFile.write('|O |'+str('%6.3f' %(self.UAO*100.))+'%|\n')
+        self.FGBalanceFile.write('|S |'+str('%6.3f' %(self.UAS*100.))+'%|\n\n')
+        self.FGBalanceFile.write('== Proximate analysis ==\n')
+        self.FGBalanceFile.write('|   |  AR% | dry% | daf% |\n')
+        self.FGBalanceFile.write('|VM |'+str('%6.3f|' %PAVM)+str('%6.3f|' %(100*PAVM/(100.-PAmoist)))+str('%6.3f|' %(100*PAVM/(100.-PAmoist-PAash)))+'\n')
+        self.FGBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
+        self.FGBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
+        self.FGBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
         #considered yields: char, tar, CO, CO2, H2O, CH4, N2, H2, O2
         self.__correctYields()
         #the missing of the UA is included into carbon
@@ -362,7 +367,7 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.Tar=self.Yields[self.SpeciesIndex('Tar')]
         Sum=self.Char+self.CO+self.CO2+self.H2O+self.CH4+self.H2+self.Tar#+self.N2 # ??
         self.Tar += 1.-Sum
-        print 'Sum of modified Species: ', self.Char+self.CO+self.CO2+self.H2O+self.CH4+self.H2+self.Tar#+self.N2 #??
+        #print 'Sum of modified Species: ', self.Char+self.CO+self.CO2+self.H2O+self.CH4+self.H2+self.Tar#+self.N2 #??
         
     def __TarComp(self):
         """Calculates the Tar composition using analyisis of the Ultimate Analysis."""
@@ -378,29 +383,44 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         TarO=self.UAO-SumO
         #Nitrogen:
         TarN=self.UAN
+	TarS=self.UAS
         #
         #now, tar coefficients (molar, not mass)
         self.TarC=(TarC*self.MTar)/(self.Tar*MC)
         self.TarH=(TarH*self.MTar)/(self.Tar*MH)
         self.TarO=(TarO*self.MTar)/(self.Tar*MO)
         self.TarN=(TarN*self.MTar)/(self.Tar*MN)
-        print "Mass Weight of Tar " ,  self.TarC*MC+self.TarH*MH +self.TarO*MO+self.TarN
+        self.TarS=(TarS*self.MTar)/(self.Tar*MS)
+        #print "Mass Weight of Tar " ,  self.TarC*MC+self.TarH*MH +self.TarO*MO+self.TarN
     
     def __writeSpeciesResults(self):
         """Writes the Species Balance results into the result file."""
-        self.FGBalanceFile.write('modified yields for further species and energy calculations:\n')
-        self.FGBalanceFile.write('Char:  '+str(self.Char)+'\n')
-        self.FGBalanceFile.write('CO:    '+str(self.CO)+'\n')
-        self.FGBalanceFile.write('CO2:   '+str(self.CO2)+'\n')
-        self.FGBalanceFile.write('H2O:   '+str(self.H2O)+'\n')
-        self.FGBalanceFile.write('CH4:   '+str(self.CH4)+'\n')
-        self.FGBalanceFile.write('H2:    '+str(self.H2)+'\n')
-        self.FGBalanceFile.write('Tar:   '+str(self.Tar)+'\n\n')
-        self.FGBalanceFile.write('The tar molecule composition:\n')
-        self.FGBalanceFile.write('Carbon:   '+str(self.TarC)+'\n')
-        self.FGBalanceFile.write('Hydrogen: '+str(self.TarH)+'\n')
-        self.FGBalanceFile.write('Oxygen:   '+str(self.TarO)+'\n')
-        self.FGBalanceFile.write('Nitrogen: '+str(self.TarN)+'\n\n\n')
+        self.FGBalanceFile.write('== Final yields ==\n')
+        self.FGBalanceFile.write('Char '+ str('%7.5f\n' %self.Char))
+        self.FGBalanceFile.write('Tar  '+ str('%7.5f\n' %self.Tar))
+        self.FGBalanceFile.write('H2O  '+ str('%7.5f\n' %self.H2O))
+        self.FGBalanceFile.write('H2   '+ str('%7.5f\n' %self.H2))
+        self.FGBalanceFile.write('CO2  '+ str('%7.5f\n' %self.CO2))
+        self.FGBalanceFile.write('CH4  '+ str('%7.5f\n' %self.CH4))
+        self.FGBalanceFile.write('CO   '+ str('%7.5f\n\n' %self.CO))
+        self.FGBalanceFile.write('=== Fluent ===\n')
+	char = self.Char*(1.-self.PAash)*100.
+	vol = (1-self.Char)*(1.-self.PAash)*100.
+	ash = 100. - char - vol
+	
+	self.FGBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %char))
+	self.FGBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %vol))
+	self.FGBalanceFile.write('Ash fraction:                '+ str('%7.3f\n\n' %ash))
+
+        self.FGBalanceFile.write('== Tar ==\n=== Atomic composition ===\n')
+        self.FGBalanceFile.write(str('C_%5.3f ' %self.TarC)+str('H_%5.3f ' %self.TarH)+str('O_%5.3f ' %self.TarO)+str('N_%5.3f ' %self.TarN)+str('S_%5.3f\n' %self.TarS))
+        self.FGBalanceFile.write(str('Molecular weigth = %5.3f kg/kmol\n\n' %self.MTar))
+
+        #self.FGBalanceFile.write('The tar molecule composition:\n')
+        #self.FGBalanceFile.write('Carbon:   '+str(self.TarC)+'\n')
+        #self.FGBalanceFile.write('Hydrogen: '+str(self.TarH)+'\n')
+        #self.FGBalanceFile.write('Oxygen:   '+str(self.TarO)+'\n')
+        #self.FGBalanceFile.write('Nitrogen: '+str(self.TarN)+'\n\n\n')
         
     def __EnergyBalance(self):
         """Calculates the heat of formation of tar."""
@@ -452,10 +472,11 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
     
     def __writeEnergyResults(self):
         """Writes the Energy results into the result file."""
-        self.FGBalanceFile.write('The lower heating value of daf coal:\n')
-        self.FGBalanceFile.write('LHV:   %.4f MJ/mol\n' % (self.LHVdaf*1.e-6))
-        self.FGBalanceFile.write('The enthalpie of foramtion for the tar:\n')
-        self.FGBalanceFile.write('hfTar: %.4f MJ/mol\n' % (self.hfTar*1.e-6))
+        #self.FGBalanceFile.write('The lower heating value of daf coal:\n')
+        #self.FGBalanceFile.write('LHV:   %.4f MJ/mol\n' % (self.LHVdaf*1.e-6))
+        #self.FGBalanceFile.write('The enthalpie of foramtion for the tar:\n')
+        #self.FGBalanceFile.write('hfTar: %.4f MJ/mol\n' % (self.hfTar*1.e-6))
+        self.FGBalanceFile.write(str('=== Enthalpy of formation ===\nhf = %10.3f J/kmol\n' %self.hfTar))
         
     def __closeFile(self):
         """Closes the FG-DVC Composition file."""
