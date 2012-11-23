@@ -1,8 +1,8 @@
 useCPD?:
-No
+Yes
 
-selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'KobayashiAlpha' or 'None'; selectedFit:
-Kobayashi
+selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
+DAEM
 
 Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
 Total

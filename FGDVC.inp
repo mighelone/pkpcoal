@@ -1,7 +1,7 @@
 use FG-DVC?:
-Yes
+No
 
-selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'KobayashiAlpha' or 'None'; selectedFit:
+selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
 Kobayashi
 
 Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
