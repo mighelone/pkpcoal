@@ -25,6 +25,7 @@ def DAF(PAFC_asRecieved,PAVM_asRecieved):
 #
 #Use Global Optimizer? select 'Evolve' for a generic algorithm or 'ManyPoints' to use many starting points combined with a local optimization
 UseGlobalOpt= 'Evolve'
+#UseGlobalOpt= GlobalOptParam.GlobalOptimizeMethod
 #Which operating Sytem?
 oSystem=platform.system()
 #Directories:
@@ -46,10 +47,7 @@ FG_CoalName='GenCoal'
 #
 #Coal File:
 #
-#print GlobalOptParam.KobIndexToOptimize,GlobalOptParam.KobBoundaries,GlobalOptParam.KobNrOfRuns
-#print GlobalOptParam.ArrhNobIndexToOptimize,GlobalOptParam.ArrhNoBNrOfRuns
-#print GlobalOptParam.KobAlphaIndexToOptimize,GlobalOptParam.KobAlphaBoundaries,GlobalOptParam.KobAlphaNrOfRuns
-#print GlobalOptParam.ArrhIndexToOptimize,GlobalOptParam.ArrhNrOfRuns
+print 'Reading Coal.inp ...'
 CoalInput=InformationFiles.ReadFile(workingDir+'Coal.inp')
 PAFC_asrec=CoalInput.getValue(InformationFiles.M_PA[0])
 PAVM_asrec=CoalInput.getValue(InformationFiles.M_PA[1])
@@ -86,6 +84,7 @@ WeightR=CoalInput.getValue(InformationFiles.M_Weight[1])
 #
 #CPD Properties:
 #
+print 'Reading CPD.inp ...'
 CPDInput=InformationFiles.ReadFile(workingDir+'CPD.inp')
 CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
 CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
@@ -97,6 +96,7 @@ CPDdt[1]=(CPDInput.getValue(InformationFiles.MC_dt[1]))
 #
 #FG-DVC Properties:
 #
+print 'Reading FGDVC.inp ...'
 FGDVCInput=InformationFiles.ReadFile(workingDir+'FGDVC.inp')
 FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
 FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
@@ -109,6 +109,7 @@ FG_TarCacking=FGDVCInput.getValue(InformationFiles.MF_TarCr)
 #
 #Operating Condition File:
 #
+print 'Reading OperCond.inp ...'
 OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
 CPD_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
 FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
@@ -177,6 +178,12 @@ def MakeResults(PyrolProgram,File,Fit):
 #                    SumSingleYieldsCalc[:,runNr]+=CRCPD.calcMass(Fit[runNr],Fit[runNr].Time(),Fit[runNr].Interpolate('Temp'),Spec)
 #                    SumSingleYields[:,runNr]+=Fit[runNr].Yield(Spec)
         outfile.close()
+        if oSystem=='Linux':
+            shutil.move(PyrolProgram+'-Results_const_rate.txt','Result/'+PyrolProgram+'-Results_const_rate.txt')
+        elif oSystem=='Windows':
+            shutil.move(PyrolProgram+'-Results_const_rate.txt','Result\\'+PyrolProgram+'-Results_const_rate.txt')
+        else:
+            print "The name of the operating system couldn't be found."
 #        Fit[0].plt_InputVectors(Fit[0].Time(),1.-SolidYieldsCalc,1.-SolidYields,SumSingleYieldsCalc,SumSingleYields,'1-Solid; fitted','1-Solid; CPD output','Sum Yields; fitted','Sum Yields; CPD output')
     ##ARRHENIUS RATE
     elif (CPD_FittingKineticParameter_Select=='Arrhenius' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='Arrhenius' and PyrolProgram=='FGDVC'): #Arr means Arrhenius
@@ -264,6 +271,12 @@ def MakeResults(PyrolProgram,File,Fit):
 #                    SumSingleYieldsCalc[:,runNr]+=ArrPCPD.calcMass(Fit[runNr],Fit[runNr].Time()[:len(Fit[0].Yield('Time'))],Fit[runNr].Interpolate('Temp'),Species)
 #                    SumSingleYields[:,runNr]+=Fit[runNr].Yield(Species)[:len(Fit[0].Yield('Time'))],Fit[runNr]
         outfile.close()
+        if oSystem=='Linux':
+            shutil.move(PyrolProgram+'-Results_ArrheniusRate.txt','Result/'+PyrolProgram+'-Results_ArrheniusRate.txt')
+        elif oSystem=='Windows':
+            shutil.move(PyrolProgram+'-Results_ArrheniusRate.txt','Result\\'+PyrolProgram+'-Results_ArrheniusRate.txt')
+        else:
+            print "The name of the operating system couldn't be found."
 #        Fit[0].plt_InputVectors(Fit[0].Time(),1.-SolidYieldsCalc,1.-SolidYields,SumSingleYieldsCalc,SumSingleYields,'1-Solid; fitted','1-Solid; CPD output','Sum Yields; fitted','Sum Yields; CPD output')
     elif (CPD_FittingKineticParameter_Select=='ArrheniusNoB' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='ArrheniusNoB' and PyrolProgram=='FGDVC'): #Arr means Arrhenius
         LS=Fitter.LeastSquarsEstimator()
@@ -305,6 +318,8 @@ def MakeResults(PyrolProgram,File,Fit):
             Arr=Models.ArrheniusModelAlternativeNotation2(PredictionV2)
             ArrPlot=Models.ArrheniusModel([0,0,0,0]) #use Original Arrhenius Model to Plot
             #
+            Arr.setMinMaxTemp(Fit[0].Yield('Temp')[0],Fit[0].Yield('Temp')[-1])
+            #
             print Fit[0].SpeciesName(Species)
             if UseGlobalOpt=='ManyPoints':
                 #GlobalOptimize:
@@ -342,6 +357,13 @@ def MakeResults(PyrolProgram,File,Fit):
             ArrPlot.plot(Fit,Species)
             if np.sum(Arr.ParamVector())!=np.sum(PredictionV2): #To avoid, a species with no yield is added to the parameter file
                 outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\n')
+        outfile.close()
+        if oSystem=='Linux':
+            shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result/'+PyrolProgram+'-Results_ArrheniusNoBRate.txt');print 'mv'
+        elif oSystem=='Windows':
+            shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result\\'+PyrolProgram+'-Results_ArrheniusNoBRate.txt')
+        else:
+            print "The name of the operating system couldn't be found."
     ##KOBAYASHI RATE
     elif (CPD_FittingKineticParameter_Select=='Kobayashi' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='Kobayashi' and PyrolProgram=='FGDVC'): #Kob means Kobayashi
 #        PredictionVKob2=[10,-16,8,-20]           #for Arrhenius notation #2 [b11,b21,b12,b22] with the second indice as the reaction
@@ -384,6 +406,68 @@ def MakeResults(PyrolProgram,File,Fit):
             Kob.plot(Fit,Species)
             outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t\t'+str(Solution[1])+'\t\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\t\t'+str(Solution[4])+'\t\t'+str(Solution[5])+'\n')
         outfile.close()
+        if oSystem=='Linux':
+            shutil.move(PyrolProgram+'-Results_KobayashiRate.txt','Result/'+PyrolProgram+'-Results_KobayashiRate.txt')
+        elif oSystem=='Windows':
+            shutil.move(PyrolProgram+'-Results_KobayashiRate.txt','Result\\'+PyrolProgram+'-Results_KobayashiRate.txt')
+        else:
+            print "The name of the operating system couldn't be found."
+    elif (CPD_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='FGDVC'):
+        PredictionDAEM=[2e10,20e3,5e3,0.5]
+        LS=Fitter.LeastSquarsEstimator()
+        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
+        LS.setTolerance(1.e-9)
+        LS.setMaxIter(2000)
+        LS.setWeights(1.0,1.0)
+        outfile = open(PyrolProgram+'-Results_DAEM.txt', 'w')
+        outfile.write("Species\t\tA1 [1/s]\t\tE_a1 [K]\t\tsigma [K]\t\t\tFinal Yield\n\n")
+        DAEM=Models.DAEM(PredictionDAEM)
+        DAEM.setNrOfActivationEnergies(GlobalOptParam.NrOFActivtionEnergies)
+        #######
+        ##The single species:
+        for Species in [Fit[0].SpeciesIndex('Total')]:
+            print Fit[0].SpeciesName(Species)
+            m_final_predictionAll=[]
+            for i in range(len(Fit)):
+                m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+            if UseGlobalOpt=='ManyPoints':
+                #GlobalOptimize:
+                GlobalMin=Fitter.GlobalOptimizer(LS,DAEM,Fit)
+                LS.setTolerance(1e-2)
+                DAEMBdr=GlobalOptParam.DAEMBoundaries
+                DAEMBdr.append([min(m_final_predictionAll),max(m_final_predictionAll)])
+                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.DAEMIndexToOptimize,DAEMBdr,GlobalOptParam.DAEMNrOfRuns)
+                #
+                LS.setTolerance(1.e-7)
+                print 'Final optimization Run:'
+                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,ParamGlobalMin,Species))
+            if UseGlobalOpt=='Evolve':
+                GenAlg=Evolve.GenericOpt(DAEM,Fit,Species)
+                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+                EvADAEMInit=GlobalOptParam.EvADAEMInit
+                EvADAEMMin=GlobalOptParam.EvADAEMMin
+                EvADAEMMax=GlobalOptParam.EvADAEMMax
+                EvADAEMInit.append((min(m_final_predictionAll)+max(m_final_predictionAll))/2.)
+                EvADAEMMin.append(min(m_final_predictionAll))
+                EvADAEMMax.append(max(m_final_predictionAll))
+                GenAlg.setParamRanges(EvADAEMInit,EvADAEMMin,EvADAEMMax)
+                DAEM.setParamVector(GenAlg.mkResults())
+                #
+                #use afterwards local optimization
+                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
+            if UseGlobalOpt==False:
+                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
+            Solution=DAEM.ParamVector()
+            #
+            DAEM.plot(Fit,Species)
+            outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t\t'+str(Solution[2])+'\t\t\t'+str(Solution[3])+'\n')
+        outfile.close()
+        if oSystem=='Linux':
+            shutil.move(PyrolProgram+'-Results_DAEM.txt','Result/'+PyrolProgram+'-Results_DAEM.txt')
+        elif oSystem=='Windows':
+            shutil.move(PyrolProgram+'-Results_DAEM.txt','Result\\'+PyrolProgram+'-Results_DAEM.txt')
+        else:
+            print "The name of the operating system couldn't be found."
     ##SPECIES AND ENERGY BALANCE:
     for runNr in range(NrOfRuns):
         if PyrolProgram=='CPD':
@@ -444,6 +528,19 @@ if CPDselect==True:
         CurrentCPDFit=FitInfo.Fit_one_run(CurrentCPDFile)
         CPDFile.append(CurrentCPDFile)
         CPDFit.append(CurrentCPDFit)
+        #
+        if oSystem=='Linux':
+            shutil.move('CPD_Result1.dat', 'Result/'+'CPD_'+str(runNr)+'_Result1.dat')
+            shutil.move('CPD_Result2.dat', 'Result/'+'CPD_'+str(runNr)+'_Result2.dat')
+            shutil.move('CPD_Result3.dat', 'Result/'+'CPD_'+str(runNr)+'_Result3.dat')
+            shutil.move('CPD_Result4.dat', 'Result/'+'CPD_'+str(runNr)+'_Result4.dat')
+        elif oSystem=='Windows':
+            shutil.move('CPD_Result1.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result1.dat')
+            shutil.move('CPD_Result2.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result2.dat')
+            shutil.move('CPD_Result3.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result3.dat')
+            shutil.move('CPD_Result4.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result4.dat')
+        else:
+            print "The name of the operating system couldn't be found."
     #####
     MakeResults('CPD',CPDFile,CPDFit)
 ####FG-DVC####

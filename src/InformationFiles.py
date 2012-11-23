@@ -12,7 +12,7 @@ M_MTar='Tar Molecule weight, MTar:'
 M_Weight=['Weight-Parameter yields for fitting the kinetics:','Weight-Parameter rates for fitting the kinetics:']
 #Markers for the Reading procedure of the coal input file:
 MC_sel='useCPD?:'
-M_selFit="selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'KobayashiAlpha' or 'None'; selectedFit:"
+M_selFit="selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:"
 M_selArrhSpec="Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'"
 MC_dt=['initial time step in s:','print increment, writeValue:']
 #Markers for the Reading procedure of the coal input file:
@@ -77,6 +77,8 @@ class ReadFile(object):
                 return 'Kobayashi'
             elif Value=='KobayashiAlpha' or Value=="'KobayashiAlpha'" or Value=='KOBAYASHIALPHA' or Value=="'KOBAYASHIALPHA'":
                 return 'KobayashiAlpha'
+            elif Value=='DAEM' or Value=="'DAEM'" or Value=='daem' or Value=="'daem'":
+                return 'DAEM'
             else:
                 return None
         except IndexError:

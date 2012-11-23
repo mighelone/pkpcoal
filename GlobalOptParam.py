@@ -31,6 +31,12 @@ def KobAlphaBoundaries(VolatileMatterinProxAnal):
 KobAlphaNrOfRuns = [0,0,3,3]
 #
 #
+#DAEM: the parameter are [A, E_0, sigma]
+DAEMIndexToOptimize = [1,2,3]
+DAEMBoundaries = [[14e3,25e3],[1e3,7e3]] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
+DAEMNrOfRuns = [0,3,3,3]
+#
+#
 ################################
 #For generic algorithm:
 #minimum for Arrhenius equation:[A,E]
@@ -40,9 +46,18 @@ EvAArrhMax=[1e15,2,1e6]
 EvAArrhInit=[1e10,0,2e4]
 #
 #minimum For Kobayashi:
-EvAKobMax=[100.,1000,1000,5000,0.,0.5]
-EvAKobMin=[50000.,20000,100000000,50000,0.5,1.]
+EvAKobMin=[100.,1000,1000,5000,0.,0.5]
+EvAKobMax=[50000.,20000,100000000,50000,0.5,1.]
 EvAKobInit=[100157.0037,5849.84292004,85011813.05,12648.7543183,0.45,0.65]
+#
+#For Kobayashi:
+EvADAEMMin=[1e4, 12e3, 1e3] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
+EvADAEMMax=[1e14,25e3, 7e3] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
+EvADAEMInit=[2e10,20e3,5e3]
+#
+#Nr Of activation Enrgies to solve the dE Integral for
+NrOFActivtionEnergies=50
+#
 #
 #the weights for yields and rates for optimization
 EvAWeightY=1.

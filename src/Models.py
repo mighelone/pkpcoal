@@ -3,6 +3,11 @@ import pylab as plt
 import scipy as sp
 import scipy.integrate
 import scipy.interpolate
+import platform
+#
+PngResolution=100
+#
+oSystem=platform.system()
 #the general parent class
 class Model(object):
     """Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models."""
@@ -22,7 +27,12 @@ class Model(object):
         plt.ylabel('yield in wt%')
         plt.legend()
         plt.grid()
-        plt.savefig('Yields_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+        if oSystem=='Linux':
+            plt.savefig('Result/'+'Yields_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+        elif oSystem=='Windows':
+            plt.savefig('Result\\'+'Yields_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+        else:
+            print 'Models: Operating Platform cannot be specified.'
         plt.clf(),plt.cla()
 
     def pltRate(self,fgdvc_list,xValueToPlot,yValueToPlot):
@@ -41,7 +51,12 @@ class Model(object):
         plt.title(SpeciesForTitle)
         plt.legend()
         plt.grid()
-        plt.savefig('Rates_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+        if oSystem=='Linux':
+            plt.savefig('Result/'+'Rates_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+        elif oSystem=='Windows':
+            plt.savefig('Result\\'+'Rates_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+        else:
+            print 'Models: Operating Platform cannot be specified.'
         plt.clf(),plt.cla()
         
     def minLengthOfVectors(self,fgdvc_list):
@@ -82,7 +97,14 @@ class Model(object):
         plt.ylabel('yield fraction in kg/kg_coal')
         plt.legend()
         plt.grid()
-        plt.savefig(fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.pdf',format='pdf')
+        if oSystem=='Linux':
+            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.pdf',format='pdf')
+            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.png',dpi=PngResolution,format='png')
+        elif oSystem=='Windows':
+            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.pdf',format='pdf')
+            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.png',dpi=PngResolution,format='png')
+        else:
+            print 'Models: Operating Platform cannot be specified.'
         plt.clf(),plt.cla()
         #Rates to compare
         for runnedCaseNr in range(len(fgdvc_list)):
@@ -99,14 +121,26 @@ class Model(object):
         plt.ylabel('rate in 1/s')#min')
         plt.legend()
         plt.grid()
-        plt.savefig(fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.pdf',format='pdf')
+        if oSystem=='Linux':
+            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.pdf',format='pdf')
+            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.png',dpi=PngResolution,format='png')
+        elif oSystem=='Windows':
+            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.pdf',format='pdf')
+            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.png',dpi=PngResolution,format='png')
+        else:
+            print 'Models: Operating Platform cannot be specified.'
         plt.clf(),plt.cla()
         #writes result file
         for runnedCaseNr in range(len(fgdvc_list)):
             t=fgdvc_list[runnedCaseNr].Yield('Time')
             T=fgdvc_list[runnedCaseNr].Yield('Temp')
             w=self.deriveC(fgdvc_list[runnedCaseNr],v[:,runnedCaseNr],Len_tPoints)
-            resultFile=open(fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+            if oSystem=='Linux':
+                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+            elif oSystem=='Windows':
+                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+            else:
+                print 'Models: Operating Platform cannot be specified.'
             resultFile.write('    Time       Temperature    Yields       Rates \n')
             for i in range(len(v)):
                 resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], v[i,runnedCaseNr], w[i]))
@@ -512,3 +546,47 @@ class KobayashiA2(Model):
         """Returns the two Kobayashi weights alpha1 and alpha2."""
         return self.__alpha1, self.__alpha2
         
+
+class DAEM(Model):
+    """Calculates the devolatilization reaction using the Distributed Activation Energy Model."""
+    def __init__(self,InitialParameterVector):
+        print 'DAEM initialized'
+        self._ParamVector=InitialParameterVector
+        self.ODE_hmax=1.e-2
+        self.NrOfActivationEnergies=50
+    
+    def setNrOfActivationEnergies(self,NrOfE):
+        """Define for how many activation energies of the range of the whole distribution the integral shall be solved (using Simpson Rule)."""
+        self.NrOfActivationEnergies=NrOfE
+        
+    def NrOfActivationEnergies(self):
+        """Returns the number of activation enrgies the integral shall be solved for (using Simpson Rule)."""
+        return self.NrOfActivationEnergies
+        
+    def calcMass(self,fgdvc,time,T,Name):
+        """Outputs the mass(t) using the model specific equation."""
+        self.E_List=np.arange(int(self._ParamVector[1]-3.*self._ParamVector[2]),int(self._ParamVector[1]+3.*self._ParamVector[2]),int((6.*self._ParamVector[2])/self.NrOfActivationEnergies)) #integration range E0 +- 3sigma, see [Cai 2008]
+        #Inner Integral Funktion
+        def II_dt(t,E_i):
+            return np.exp( -E_i/T(t) )
+        #outer Integral for one activation energy from t0 to tfinal
+        #stores all values of the inner Integrals (time,ActivationEnergy) in a 2D-Array
+        InnerInts=np.zeros([len(time),len(self.E_List)])
+        CurrentInnerInt=np.zeros(len(time))
+        for Ei in range(len(self.E_List)):
+            CurrentInnerInt[:]=II_dt(time[:],self.E_List[Ei])
+            InnerInts[1:,Ei] = sp.integrate.cumtrapz(CurrentInnerInt,time[:])
+        #
+        def OI_dE(EIndex,tIndex):
+            m = np.exp(-self._ParamVector[0]*InnerInts[tIndex,EIndex])*(1./(self._ParamVector[2]*(2.*np.pi)**0.5))*np.exp(-(self.E_List[EIndex]-self._ParamVector[1])**2/(2.*self._ParamVector[2]**2)) 
+#            print 'InnerInt',InnerInt,'mass',dm_dt
+            return m
+        m_out=np.zeros(np.shape(time))
+        mE=np.zeros(np.shape(self.E_List))
+        for ti in range(len(time)):
+            for Ei in range(len(self.E_List)):
+                mE[Ei]=OI_dE(Ei,ti)
+            m_out[ti]=sp.integrate.simps(mE,self.E_List)
+        #descaling
+        m_out = self._ParamVector[3]*(1.-m_out)
+        return m_out
