@@ -165,3 +165,7 @@ pip-log.txt
 
 # other stuff
 *.dat
+*.pdf
+*.png
+*.db
+*.py~
