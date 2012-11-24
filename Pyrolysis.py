@@ -507,17 +507,8 @@ if CPDselect==True:
 	print 'Running CPD ...',runNr
         if oSystem=='Linux':
             CPD.Run('./'+'cpdnlg','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
-            os.system('cp CPD_input.dat CPD_'+str(runNr)+'_input.dat')
-            os.system('cp CPD_Result1.dat CPD_'+str(runNr)+'_Result1.dat')
-            os.system('cp CPD_Result2.dat CPD_'+str(runNr)+'_Result2.dat')
-            os.system('cp CPD_Result3.dat CPD_'+str(runNr)+'_Result3.dat')
-            os.system('cp CPD_Result4.dat CPD_'+str(runNr)+'_Result4.dat')
         elif oSystem=='Windows':
             CPD.Run('cpdnlg.exe','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
-            os.system('copy CPD_Result1.dat CPD_'+str(runNr)+'_Result1.dat')
-            os.system('copy CPD_Result2.dat CPD_'+str(runNr)+'_Result2.dat')
-            os.system('copy CPD_Result3.dat CPD_'+str(runNr)+'_Result3.dat')
-            os.system('copy CPD_Result4.dat CPD_'+str(runNr)+'_Result4.dat')
         else:
             print "The name of the operating system couldn't be found."
         #
@@ -534,11 +525,13 @@ if CPDselect==True:
             shutil.move('CPD_Result2.dat', 'Result/'+'CPD_'+str(runNr)+'_Result2.dat')
             shutil.move('CPD_Result3.dat', 'Result/'+'CPD_'+str(runNr)+'_Result3.dat')
             shutil.move('CPD_Result4.dat', 'Result/'+'CPD_'+str(runNr)+'_Result4.dat')
+            shutil.move('CPD_'+str(runNr)+'_output.log', 'Result/'+'CPD_'+str(runNr)+'_output.log')
         elif oSystem=='Windows':
             shutil.move('CPD_Result1.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result1.dat')
             shutil.move('CPD_Result2.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result2.dat')
             shutil.move('CPD_Result3.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result3.dat')
             shutil.move('CPD_Result4.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result4.dat')
+            shutil.move('CPD_'+str(runNr)+'_output.log', 'Result\\'+'CPD_'+str(runNr)+'_output.log')
         else:
             print "The name of the operating system couldn't be found."
     #####

@@ -1,3 +1,6 @@
+import shutil
+import platform
+oSystem=platform.system()
 #PARAMETER:
 #Molecular weights [Formeln und Tabellen, Peatec, 8.Auflage] (g/mol):
 MH=2.01588*0.5
@@ -19,7 +22,6 @@ hfN2 = 1429.881
 hfH2 = 2448.595
 hfChar = -101.268
 ######################################
-import sys
 
 class SpeciesBalance(object):
     """This is the parent Class for the CPD and FG-DVC specific Species Balances, containing general methods like the Dulong formular."""
@@ -98,6 +100,12 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.__hfTar()
         self.__QPyro()
         self.__closeResultFile()
+        if oSystem=='Linux':
+            shutil.move('CPD-BalanceResults'+str(RunNr)+'.txt','Result/'+'CPD-BalanceResults'+str(RunNr)+'.txt')
+        elif oSystem=='Windows':
+            shutil.move('CPD-BalanceResults'+str(RunNr)+'.txt','Result\\'+'CPD-BalanceResults'+str(RunNr)+'.txt')
+        else:
+            print "The name of the operating system couldn't be found."
 
 
         
@@ -354,6 +362,12 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.__EnergyBalance()
         self.__writeEnergyResults()
         self.__closeFile()
+        if oSystem=='Linux':
+            shutil.move('FGDVC-BalanceResults'+str(RunNr)+'.txt','Result/'+'FGDVC-BalanceResults'+str(RunNr)+'.txt')
+        elif oSystem=='Windows':
+            shutil.move('FGDVC-BalanceResults'+str(RunNr)+'.txt','Result\\'+'FGDVC-BalanceResults'+str(RunNr)+'.txt')
+        else:
+            print "The name of the operating system couldn't be found."
         
     def __correctYields(self):
         """Further, only the yields of char, tar, CO, CO2, H2O, CH4, N2, H2, O2 are considered. Modifies the yields, merge species like Olefins parafins, HCN to tar."""
