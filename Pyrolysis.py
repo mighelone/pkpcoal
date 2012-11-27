@@ -252,6 +252,8 @@ def MakeResults(PyrolProgram,File,Fit):
                 GAArrhInit=GlobalOptParam.EvAArrhInit
                 GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
                 GenAlg.setParamRanges(GAArrhInit,[GAArrhMinA,GAArrhMinB,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxB,GAArrhMaxE,max(m_final_predictionAll)])
+		GenAlg.setNrPopulation(100)
+		GenAlg.setNrGenerations(100)
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization

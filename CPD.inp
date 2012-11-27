@@ -2,7 +2,7 @@ useCPD?:
 Yes
 
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-DAEM
+Arrhenius
 
 Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
 Total
