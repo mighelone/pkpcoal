@@ -255,7 +255,7 @@ def MakeResults(PyrolProgram,File,Fit):
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Arr.plot(Fit,Species)
@@ -349,7 +349,7 @@ def MakeResults(PyrolProgram,File,Fit):
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Solution=Arr.ConvertKinFactors(Arr.ParamVector())
@@ -398,7 +398,7 @@ def MakeResults(PyrolProgram,File,Fit):
                 Kob.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
+                #Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             Solution=Kob.ParamVector()
@@ -454,7 +454,7 @@ def MakeResults(PyrolProgram,File,Fit):
                 DAEM.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
+                #DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
             if UseGlobalOpt==False:
                 DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
             Solution=DAEM.ParamVector()
