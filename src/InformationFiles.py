@@ -9,6 +9,7 @@ M_PA=['Fixed Carbon:','Volatile Matter:','Moisture:','Ash:']
 M_UA=['UA Carbon:','UA Hydrogen:','UA Nitrogen:','UA Oxygen:','UA Sulphur:'] #for UA input
 M_HHV='Higher Heating Value, as recieved, in J/kg:'
 M_MTar='Tar Molecule weight, MTar:'
+M_MRaw='Raw Molecule weight, MRaw:'
 M_Weight=['Weight-Parameter yields for fitting the kinetics:','Weight-Parameter rates for fitting the kinetics:']
 #Markers for the Reading procedure of the coal input file:
 MC_sel='useCPD?:'
