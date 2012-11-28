@@ -5,6 +5,11 @@
 from PyQt4 import QtCore, QtGui
 import pylab as plt
 import numpy as np
+import platform
+import os
+import writeInfoFiles
+
+OSys=platform.system()
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -346,7 +351,8 @@ class Ui_PKP(object):
 
         self.retranslateUi(PKP)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("activated()")), PKP.close)
-        QtCore.QObject.connect(self.B_Launch, QtCore.SIGNAL(_fromUtf8("clicked()")), self.actionWrite_and_Run.trigger)
+        QtCore.QObject.connect(self.B_Launch, QtCore.SIGNAL(_fromUtf8("clicked()")), self.WriteRun)
+        QtCore.QObject.connect(self.actionWrite_and_Run, QtCore.SIGNAL(_fromUtf8("activated()")), self.WriteRun)
         #manually added
         QtCore.QObject.connect(self.actionWrite_into_File, QtCore.SIGNAL(_fromUtf8("activated()")), self.SaveInfos)
         #
@@ -535,6 +541,9 @@ class Ui_PKP(object):
         T4 = str(self.tE_THist_4.toPlainText())
         T5 = str(self.tE_THist_5.toPlainText())
         self.svInfo.setTimeHistories(NrOfT,T1,T2,T3,T4,T5)
+        #
+        #write Files
+        writeInfoFiles.WriteCoalFile(self.svInfo)
         
     def LoadTtFile1(self):
         """Loads the temperature history nr 1 file via file browser"""
@@ -632,6 +641,15 @@ class Ui_PKP(object):
         plt.grid()
         plt.plot(Tt[:,0],Tt[:,1])
         plt.show()
+
+    def WriteRun(self):
+        self.SaveInfos()
+        #os.system('python Pyrolysis.py')
+        print 'STAAAART'
+
+
+############################################################################
+
 
 class InfosFromGUI(object):
     """Saves the information from the GUI."""
