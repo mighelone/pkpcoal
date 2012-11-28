@@ -169,3 +169,9 @@ pip-log.txt
 *.png
 *.db
 *.py~
+*.pdf
+*.png
+*.out
+*.pyc
+*.txt
+*.log

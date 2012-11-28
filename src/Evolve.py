@@ -8,11 +8,16 @@ class GenericOpt(object):
         self.kinModel=KineticModel
         self.FitInfo=Fit_one_runObj
         self.Species=Species
-        self.__NrGenerations=30
+        self.__NrGenerations=100
+        self.__NrPopulation=30
         
     def setNrGenerations(self,NrOfGenerations):
         """Defines the number of generations for the generic optimization."""
         self.__NrGenerations=NrOfGenerations
+
+    def setNrPopulation(self,NrOfPopulation):
+        """Defines the size of the population for the generic optimization."""
+        self.__NrPopulation=NrOfPopulation
         
     def setParamRanges(self,InitialGuess,minimum,maximum):
         """Sets the range where to evolve."""
@@ -74,9 +79,12 @@ class GenericOpt(object):
         # Genetic Algorithm Instance
         ga = GSimpleGA.GSimpleGA(genome)
         ga.setMinimax(Consts.minimaxType["minimize"])
+	# set the population size
+	ga.setPopulationSize(self.__NrPopulation)
+	# set the number of generation
+        ga.setGenerations(self.__NrGenerations)
         # Set the Roulette Wheel selector method, the number of generations and the termination criteria
         ga.selector.set(Selectors.GRouletteWheel)
-        ga.setGenerations(self.__NrGenerations)
         ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
         # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
         # the database and erase all data every run, you should use this flag
