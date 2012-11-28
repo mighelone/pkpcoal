@@ -51,7 +51,7 @@ class Ui_PKP(object):
         self.tE_THist_1.setGeometry(QtCore.QRect(220, 590, 111, 76))
         self.tE_THist_1.setObjectName(_fromUtf8("tE_THist_1"))
         self.layoutWidget = QtGui.QWidget(self.centralwidget)
-        self.layoutWidget.setGeometry(QtCore.QRect(80, 100, 241, 91))
+        self.layoutWidget.setGeometry(QtCore.QRect(40, 100, 241, 91))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.formLayout = QtGui.QFormLayout(self.layoutWidget)
         self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
@@ -97,7 +97,7 @@ class Ui_PKP(object):
         self.cB_PCCL.addItem(_fromUtf8(""))
         self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.cB_PCCL)
         self.layoutWidget1 = QtGui.QWidget(self.centralwidget)
-        self.layoutWidget1.setGeometry(QtCore.QRect(420, 100, 201, 81))
+        self.layoutWidget1.setGeometry(QtCore.QRect(540, 100, 201, 81))
         self.layoutWidget1.setObjectName(_fromUtf8("layoutWidget1"))
         self.formLayout_2 = QtGui.QFormLayout(self.layoutWidget1)
         self.formLayout_2.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
@@ -318,6 +318,15 @@ class Ui_PKP(object):
         self.lE_PAAsh.setObjectName(_fromUtf8("lE_PAAsh"))
         self.gridLayout.addWidget(self.lE_PAAsh, 3, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
+	self.cB_ArrhSpec = QtGui.QComboBox(self.centralwidget)                         
+        self.cB_ArrhSpec.setGeometry(QtCore.QRect(330, 160, 118, 24))                  
+        self.cB_ArrhSpec.setObjectName(_fromUtf8("cB_ArrhSpec"))                       
+        self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
+        self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
+        self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
+        self.L_ArrhSpec = QtGui.QLabel(self.centralwidget)                             
+        self.L_ArrhSpec.setGeometry(QtCore.QRect(290, 110, 199, 41))                   
+        self.L_ArrhSpec.setObjectName(_fromUtf8("L_ArrhSpec"))
         PKP.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(PKP)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1033, 21))
@@ -485,6 +494,10 @@ class Ui_PKP(object):
         self.L_PAVM.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Volatile Matter</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.L_PAMoi.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Moisture</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.L_PAAsh.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Ash</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+ 	self.cB_ArrhSpec.setItemText(0, QtGui.QApplication.translate("PKP", "Total", None, QtGui.QApplication.UnicodeUTF8))
+        self.cB_ArrhSpec.setItemText(1, QtGui.QApplication.translate("PKP", "Main Species", None, QtGui.QApplication.UnicodeUTF8))
+        self.cB_ArrhSpec.setItemText(2, QtGui.QApplication.translate("PKP", "all Species", None, QtGui.QApplication.UnicodeUTF8))
+        self.L_ArrhSpec.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p align=\"center\"><span style=\" font-size:14pt;\">selected Fit Species<br/>(Arrhenius)</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("PKP", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuHelp.setTitle(QtGui.QApplication.translate("PKP", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.actionWrite_into_File.setText(QtGui.QApplication.translate("PKP", "Write into File", None, QtGui.QApplication.UnicodeUTF8))
@@ -506,6 +519,9 @@ class Ui_PKP(object):
         FGsel  = self.cB_FGDVC.currentIndex()
         PCCLsel= self.cB_PCCL.currentIndex()
         self.svInfo.SetRunPyrolProg(CPDsel,FGsel,PCCLsel)
+        #saves the Species for Arrhenius to fit
+        ArrSpec=self.cB_ArrhSpec.currentIndex()
+        self.svInfo.SetArrhSpec(ArrSpec)
         #saves the WeightParameter
         weightY = str(self.lE_Yweight.text())
         weightR = str(self.lE_Rweight.text())
@@ -526,7 +542,7 @@ class Ui_PKP(object):
         MWRaw = str(self.lE_MWRaw.text())#	information MW
         MWTar = str(self.lE_MWTar.text())
         self.svInfo.setMwsHHV(MWRaw,MWTar,HHV)
-        FGCoal = self.cB_FGDVCcoal.currentIndex()  # information FG-DVC coal interpolation
+        FGCoal = str(self.cB_FGDVCcoal.currentIndex())  # information FG-DVC coal interpolation
         FGTar  = self.lE_FGDVCtarCr.text()         # information FG-DVC tar cracking
         self.svInfo.setFGCoalProp(FGCoal,FGTar)
         #operating condition
@@ -535,15 +551,33 @@ class Ui_PKP(object):
         self.svInfo.setOperCond(pressure,dt)
         # setTime Histories
         NrOfT = str(self.sB_Nr_THist.value())
-        T1 = str(self.tE_THist_1.toPlainText())
-        T2 = str(self.tE_THist_2.toPlainText())
-        T3 = str(self.tE_THist_3.toPlainText())
-        T4 = str(self.tE_THist_4.toPlainText())
-        T5 = str(self.tE_THist_5.toPlainText())
-        self.svInfo.setTimeHistories(NrOfT,T1,T2,T3,T4,T5)
+#        T1 = str(self.tE_THist_1.toPlainText())
+#        T2 = str(self.tE_THist_2.toPlainText())
+#        T3 = str(self.tE_THist_3.toPlainText())
+#        T4 = str(self.tE_THist_4.toPlainText())
+#        T5 = str(self.tE_THist_5.toPlainText())
+        file1=open('TempHist1.dat','w')
+        file1.write(self.tE_THist_1.toPlainText())
+        file1.close()
+        file2=open('TempHist2.dat','w')
+        file2.write(self.tE_THist_2.toPlainText())
+        file2.close()
+        file3=open('TempHist3.dat','w')
+        file3.write(self.tE_THist_3.toPlainText())
+        file3.close()
+        file4=open('TempHist4.dat','w')
+        file4.write(self.tE_THist_4.toPlainText())
+        file4.close()
+        file5=open('TempHist5.dat','w')
+        file5.write(self.tE_THist_5.toPlainText())
+        file5.close()
+        self.svInfo.setTimeHistories(NrOfT)
         #
         #write Files
         writeInfoFiles.WriteCoalFile(self.svInfo)
+        writeInfoFiles.WriteCPDFile(self.svInfo)
+        writeInfoFiles.WriteFGFile(self.svInfo)
+        writeInfoFiles.WriteOCFile(self.svInfo)
         
     def LoadTtFile1(self):
         """Loads the temperature history nr 1 file via file browser"""
@@ -665,6 +699,16 @@ class InfosFromGUI(object):
         """Returns which options of the three Pyrolysis programs are used."""
         return self.__CPDsel, self.__FGsel, self.__PCCLsel
 
+    def SetArrhSpec(self,SpeciesIndex):
+        """Sets which species shall be fitted for Arrhenius."""
+        SpecIndexDict={0:'Total', 1:'MainSpecies', 2:'allSpecies'}
+        Species=SpecIndexDict[SpeciesIndex]
+        self.__ArrSpec=Species
+        
+    def ArrhSpec(self):
+        """Returns which species shall be fitted for Arrhenius."""
+        return self.__ArrSpec
+
     def setWeightYR(self,Y,R):
         """Sets the weghts for Yields and Rates"""
         self.__WeightY=Y
@@ -712,6 +756,10 @@ class InfosFromGUI(object):
         self.__FGCoalFit = FGCoalFit
         self.__FGTarModeling = FGTarModeling
 
+    def FGCoalProp(self):
+        """Defines the way of the FG-DVC Coal Fitting and the Tar Modeling."""
+        return self.__FGCoalFit, self.__FGTarModeling
+        
     def setOperCond(self,pressure,timestep):
         """Sets the pressure and the time step."""
         self.__p = pressure
@@ -721,18 +769,13 @@ class InfosFromGUI(object):
         """Sets the pressure and the time step."""
         return self.__p, self.__dt
         
-    def setTimeHistories(self,NrOfTs,T1,T2,T3,T4,T5):
-        """Saves the time history (must have shape: t [s], T[K])."""
+    def setTimeHistories(self,NrOfTs):
+        """Saves the Number time history"""
         self.__nrT=NrOfTs
-        self.__T1=T1
-        self.__T2=T2
-        self.__T3=T3
-        self.__T4=T4
-        self.__T5=T5
 
     def TimeHistories(self):
-        """Returns the time history."""
-        return self.__nrT,self.__T1,self.__T2,self.__T3,self.__T4,self.__T5
+        """Returns the number of time history."""
+        return self.__nrT
 
 
 if __name__ == "__main__":
