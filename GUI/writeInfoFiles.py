@@ -1,7 +1,12 @@
 import InformationFiles
 import numpy as np
 import sys
-sys.path.append('../src')
+import platform
+OSys=platform.system()
+if OSys=='Linux':
+    sys.path.append('../src')
+elif OSys=='Windows':
+    sys.path.append('..\\src')
 
 class WriteCoalFile(object):
     """Writes the Coal.inp file using the output of the GUI."""

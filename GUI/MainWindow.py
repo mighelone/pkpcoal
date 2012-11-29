@@ -5,11 +5,9 @@
 from PyQt4 import QtCore, QtGui
 import pylab as plt
 import numpy as np
-import platform
 import os
 import writeInfoFiles
 
-OSys=platform.system()
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
