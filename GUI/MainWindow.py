@@ -500,7 +500,7 @@ class Ui_PKP(object):
         self.actionExit.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
         self.actionRun_the_saved_state.setText(QtGui.QApplication.translate("PKP", "Run the saved state", None, QtGui.QApplication.UnicodeUTF8))
         self.actionRun_the_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+T", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionShow_saved_state.setText(QtGui.QApplication.translate("PKP", "Show saved state", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_saved_state.setText(QtGui.QApplication.translate("PKP", "Load saved state", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+O", None, QtGui.QApplication.UnicodeUTF8))
 
     #manually added
@@ -576,30 +576,35 @@ class Ui_PKP(object):
         file1=open(filename)
         data = file1.read()
         self.tE_THist_1.setText(data)
+        file1.close()
     def LoadTtFile2(self):
         """Loads the temperature history nr 2 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
         file2=open(filename)
         data = file2.read()
         self.tE_THist_2.setText(data)
+        file2.close()
     def LoadTtFile3(self):
         """Loads the temperature history nr 3 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
         file3=open(filename)
         data = file3.read()
         self.tE_THist_3.setText(data)
+        file3.close()
     def LoadTtFile4(self):
         """Loads the temperature history nr 4 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
         file4=open(filename)
         data = file4.read()
         self.tE_THist_4.setText(data)
+        file4.close()
     def LoadTtFile5(self):
         """Loads the temperature history nr 5 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
         file5=open(filename)
         data = file5.read()
         self.tE_THist_5.setText(data)
+        file5.close()
         
     def Plot1(self):
         """Plots the temperature over time history (temperature history nr 1) and saves temperatuer history in "TempHist1.dat"."""

@@ -1,5 +1,7 @@
 import InformationFiles
 import numpy as np
+import sys
+sys.path.append('../src')
 
 class WriteCoalFile(object):
     """Writes the Coal.inp file using the output of the GUI."""
@@ -154,11 +156,26 @@ class WriteOCFile(object):
         FileStr+=InformationFiles.M_NrRuns+'\n'
         nrT = self.Info.TimeHistories()
         FileStr+=nrT+'\n'
-        T1=np.genfromtxt('TempHist1.dat')
-        T2=np.genfromtxt('TempHist2.dat')
-        T3=np.genfromtxt('TempHist3.dat')
-        T4=np.genfromtxt('TempHist4.dat')
-        T5=np.genfromtxt('TempHist5.dat')
+        try:
+            T1=np.genfromtxt('TempHist1.dat')
+        except IOError:
+            T1=np.array([[0.0,300],[0.5,1200]])
+        try:
+            T2=np.genfromtxt('TempHist2.dat')
+        except IOError:
+            T2=T1
+        try:
+            T3=np.genfromtxt('TempHist3.dat')
+        except IOError:
+            T3=T1
+        try:
+            T4=np.genfromtxt('TempHist4.dat')
+        except IOError:
+            T4=T1
+        try:
+            T5=np.genfromtxt('TempHist5.dat')
+        except IOError:
+            T5=T1
         FileStr+=InformationFiles.M_TimePoints1[0]+'\n'
         for i in range(len(T1[:,0])):
             FileStr+=str(T1[i,0])+',  '+str(T1[i,1])+'\n'
