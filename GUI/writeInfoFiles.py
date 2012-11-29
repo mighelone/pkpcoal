@@ -38,11 +38,9 @@ class WriteCoalFile(object):
         FileStr+=UAS+'\n'
         FileStr+='\n'
         #
-        MRaw,MTar,HHV=self.Info.MwsHHV()
+        MTar,HHV=self.Info.MwsHHV()
         FileStr+=InformationFiles.M_HHV+'\n'
         FileStr+=HHV+'\n'
-        FileStr+=InformationFiles.M_MRaw+'\n'
-        FileStr+=MRaw+'\n'
         FileStr+=InformationFiles.M_MTar+'\n'
         FileStr+=MTar+'\n'
         FileStr+='\n'

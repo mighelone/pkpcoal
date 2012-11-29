@@ -30,10 +30,10 @@ class Ui_PKP(object):
         self.Header2.setGeometry(QtCore.QRect(30, 230, 721, 31))
         self.Header2.setObjectName(_fromUtf8("Header2"))
         self.L_HHV = QtGui.QLabel(self.centralwidget)
-        self.L_HHV.setGeometry(QtCore.QRect(570, 370, 191, 51))
+        self.L_HHV.setGeometry(QtCore.QRect(570, 350, 191, 51))
         self.L_HHV.setObjectName(_fromUtf8("L_HHV"))
         self.lE_HHV = QtGui.QLineEdit(self.centralwidget)
-        self.lE_HHV.setGeometry(QtCore.QRect(570, 420, 113, 23))
+        self.lE_HHV.setGeometry(QtCore.QRect(570, 400, 113, 23))
         self.lE_HHV.setObjectName(_fromUtf8("lE_HHV"))
         self.Header3 = QtGui.QLabel(self.centralwidget)
         self.Header3.setGeometry(QtCore.QRect(20, 520, 721, 31))
@@ -119,7 +119,7 @@ class Ui_PKP(object):
         self.lE_Rweight.setObjectName(_fromUtf8("lE_Rweight"))
         self.formLayout_2.setWidget(2, QtGui.QFormLayout.FieldRole, self.lE_Rweight)
         self.layoutWidget2 = QtGui.QWidget(self.centralwidget)
-        self.layoutWidget2.setGeometry(QtCore.QRect(570, 280, 154, 78))
+        self.layoutWidget2.setGeometry(QtCore.QRect(570, 280, 154, 51))
         self.layoutWidget2.setObjectName(_fromUtf8("layoutWidget2"))
         self.gridLayout_4 = QtGui.QGridLayout(self.layoutWidget2)
         self.gridLayout_4.setMargin(0)
@@ -127,18 +127,12 @@ class Ui_PKP(object):
         self.L_MW = QtGui.QLabel(self.layoutWidget2)
         self.L_MW.setObjectName(_fromUtf8("L_MW"))
         self.gridLayout_4.addWidget(self.L_MW, 0, 0, 1, 2)
-        self.L_MWRaw = QtGui.QLabel(self.layoutWidget2)
-        self.L_MWRaw.setObjectName(_fromUtf8("L_MWRaw"))
-        self.gridLayout_4.addWidget(self.L_MWRaw, 1, 0, 1, 1)
-        self.lE_MWRaw = QtGui.QLineEdit(self.layoutWidget2)
-        self.lE_MWRaw.setObjectName(_fromUtf8("lE_MWRaw"))
-        self.gridLayout_4.addWidget(self.lE_MWRaw, 1, 1, 1, 1)
         self.L_MWTar = QtGui.QLabel(self.layoutWidget2)
         self.L_MWTar.setObjectName(_fromUtf8("L_MWTar"))
-        self.gridLayout_4.addWidget(self.L_MWTar, 2, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.L_MWTar, 1, 0, 1, 1)
         self.lE_MWTar = QtGui.QLineEdit(self.layoutWidget2)
         self.lE_MWTar.setObjectName(_fromUtf8("lE_MWTar"))
-        self.gridLayout_4.addWidget(self.lE_MWTar, 2, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.lE_MWTar, 1, 1, 1, 1)
         self.layoutWidget3 = QtGui.QWidget(self.centralwidget)
         self.layoutWidget3.setGeometry(QtCore.QRect(160, 450, 341, 53))
         self.layoutWidget3.setObjectName(_fromUtf8("layoutWidget3"))
@@ -391,8 +385,7 @@ class Ui_PKP(object):
         PKP.setTabOrder(self.lE_PAFC, self.lE_PAVM)
         PKP.setTabOrder(self.lE_PAVM, self.lE_PAMoi)
         PKP.setTabOrder(self.lE_PAMoi, self.lE_PAAsh)
-        PKP.setTabOrder(self.lE_PAAsh, self.lE_MWRaw)
-        PKP.setTabOrder(self.lE_MWRaw, self.lE_MWTar)
+        PKP.setTabOrder(self.lE_PAAsh, self.lE_MWTar)
         PKP.setTabOrder(self.lE_MWTar, self.lE_HHV)
         PKP.setTabOrder(self.lE_HHV, self.cB_FGDVCcoal)
         PKP.setTabOrder(self.cB_FGDVCcoal, self.lE_FGDVCtarCr)
@@ -455,7 +448,6 @@ class Ui_PKP(object):
         self.L_Rweight.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Rates</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.lE_Rweight.setText(QtGui.QApplication.translate("PKP", "1", None, QtGui.QApplication.UnicodeUTF8))
         self.L_MW.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Molecule Weight</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.L_MWRaw.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Raw</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.L_MWTar.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Tar</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.L_FGDVCcoal.setText(QtGui.QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">FG-DVC Coal #</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.cB_FGDVCcoal.setItemText(0, QtGui.QApplication.translate("PKP", "0 - Interpolate", None, QtGui.QApplication.UnicodeUTF8))
@@ -539,9 +531,8 @@ class Ui_PKP(object):
         PAAsh = str(self.lE_PAAsh.text())
         self.svInfo.setPA(PAFC,PAVM,PAMoi,PAAsh)
         HHV = str(self.lE_HHV.text()) #	information HHV
-        MWRaw = str(self.lE_MWRaw.text())#	information MW
         MWTar = str(self.lE_MWTar.text())
-        self.svInfo.setMwsHHV(MWRaw,MWTar,HHV)
+        self.svInfo.setMwsHHV(MWTar,HHV)
         FGCoal = str(self.cB_FGDVCcoal.currentIndex())  # information FG-DVC coal interpolation
         FGTar  = self.lE_FGDVCtarCr.text()         # information FG-DVC tar cracking
         self.svInfo.setFGCoalProp(FGCoal,FGTar)
@@ -621,7 +612,10 @@ class Ui_PKP(object):
         plt.ylabel('Time in s')
         plt.legend()
         plt.grid()
-        plt.plot(Tt[:,0],Tt[:,1])
+        if len(Tt[:,0])<50:
+            plt.plot(Tt[:,0],Tt[:,1],'-x')
+        else:
+            plt.plot(Tt[:,0],Tt[:,1],'-')
         plt.show()
     def Plot2(self):
         """Plots the temperature over time history (temperature history nr 2) and saves temperatuer history in "TempHist2.dat"."""
@@ -634,7 +628,10 @@ class Ui_PKP(object):
         plt.ylabel('Time in s')
         plt.legend()
         plt.grid()
-        plt.plot(Tt[:,0],Tt[:,1])
+        if len(Tt[:,0])<50:
+            plt.plot(Tt[:,0],Tt[:,1],'-x')
+        else:
+            plt.plot(Tt[:,0],Tt[:,1],'-')
         plt.show()
     def Plot3(self):
         """Plots the temperature over time history (temperature history nr 3) and saves temperatuer history in "TempHist3.dat"."""
@@ -647,7 +644,10 @@ class Ui_PKP(object):
         plt.ylabel('Time in s')
         plt.legend()
         plt.grid()
-        plt.plot(Tt[:,0],Tt[:,1])
+        if len(Tt[:,0])<50:
+            plt.plot(Tt[:,0],Tt[:,1],'-x')
+        else:
+            plt.plot(Tt[:,0],Tt[:,1],'-')
         plt.show()
     def Plot4(self):
         """Plots the temperature over time history (temperature history nr 4) and saves temperatuer history in "TempHist4.dat"."""
@@ -660,7 +660,10 @@ class Ui_PKP(object):
         plt.ylabel('Time in s')
         plt.legend()
         plt.grid()
-        plt.plot(Tt[:,0],Tt[:,1])
+        if len(Tt[:,0])<50:
+            plt.plot(Tt[:,0],Tt[:,1],'-x')
+        else:
+            plt.plot(Tt[:,0],Tt[:,1],'-')
         plt.show()
     def Plot5(self):
         """Plots the temperature over time history (temperature history nr 5) and saves temperatuer history in "TempHist5.dat"."""
@@ -673,7 +676,10 @@ class Ui_PKP(object):
         plt.ylabel('Time in s')
         plt.legend()
         plt.grid()
-        plt.plot(Tt[:,0],Tt[:,1])
+        if len(Tt[:,0])<50:
+            plt.plot(Tt[:,0],Tt[:,1],'-x')
+        else:
+            plt.plot(Tt[:,0],Tt[:,1],'-')
         plt.show()
 
     def WriteRun(self):
@@ -741,15 +747,14 @@ class InfosFromGUI(object):
         """Returns the coal PA properties."""
         return self.__PAFC,self.__PAVM,self.__PAMoi,self.__PAASh
     
-    def setMwsHHV(self,MoleWeightRaw,MoleWweightTar,HHV):
-        """Sets the Molar Weight of raw and Tar and sets the Higher Heating Value."""
-        self.__MwRaw = MoleWeightRaw
+    def setMwsHHV(self,MoleWweightTar,HHV):
+        """Sets the Molar Weight of Tar and sets the Higher Heating Value."""
         self.__MwTar = MoleWweightTar
         self.__HHV   = HHV
 
     def MwsHHV(self):
-        """Retruns the Molar Weight of raw and Tar and sets the Higher Heating Value."""
-        return self.__MwRaw,self.__MwTar,self.__HHV
+        """Retruns the Molar Weight of Tar and sets the Higher Heating Value."""
+        return self.__MwTar,self.__HHV
 
     def setFGCoalProp(self,FGCoalFit,FGTarModeling):
         """Defines the way of the FG-DVC Coal Fitting and the Tar Modeling."""
