@@ -7,7 +7,12 @@ import pylab as plt
 import numpy as np
 import os
 import writeInfoFiles
+import sys
+import platform
 
+OSys=platform.system()
+sys.path.append('GUI')
+import Done   #second GUI
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -612,7 +617,7 @@ class Ui_PKP(object):
         Tt=np.genfromtxt('TempHist1.dat')
         plt.clf(),plt.cla()
         plt.ylabel('Temperature in K')
-        plt.ylabel('Time in s')
+        plt.xlabel('Time in s')
         plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
@@ -628,7 +633,7 @@ class Ui_PKP(object):
         Tt=np.genfromtxt('TempHist2.dat')
         plt.clf(),plt.cla()
         plt.ylabel('Temperature in K')
-        plt.ylabel('Time in s')
+        plt.xlabel('Time in s')
         plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
@@ -644,7 +649,7 @@ class Ui_PKP(object):
         Tt=np.genfromtxt('TempHist3.dat')
         plt.clf(),plt.cla()
         plt.ylabel('Temperature in K')
-        plt.ylabel('Time in s')
+        plt.xlabel('Time in s')
         plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
@@ -660,7 +665,7 @@ class Ui_PKP(object):
         Tt=np.genfromtxt('TempHist4.dat')
         plt.clf(),plt.cla()
         plt.ylabel('Temperature in K')
-        plt.ylabel('Time in s')
+        plt.xlabel('Time in s')
         plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
@@ -676,7 +681,7 @@ class Ui_PKP(object):
         Tt=np.genfromtxt('TempHist5.dat')
         plt.clf(),plt.cla()
         plt.ylabel('Temperature in K')
-        plt.ylabel('Time in s')
+        plt.xlabel('Time in s')
         plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
@@ -688,7 +693,21 @@ class Ui_PKP(object):
     def WriteRun(self):
         self.SaveInfos()
         #os.system('python Pyrolysis.py')
-        print 'STAAAART'
+        print 'START executable'
+        #app = QtGui.QApplication(sys.argv)
+#        Dialog = QtGui.QDialog()
+#        DoneW = Done.Ui_Dialog()
+#        DoneW.setupUi(Dialog,["Total","Tar","Gas"],["CPD"],{'CPD':'ArrheniusRate'})
+#        Dialog.show()
+#        sys.exit(app.exec_())
+        #
+#        self.Done=Done.Ui_Dialog()
+#        self.Done.setupUi(QtGui.QDialog(),["Total","Tar","Gas"],["CPD"],{'CPD':'ArrheniusRate'})
+#        self.Done.exec_()
+        os.system('python Done.py')
+        self.actionExit
+        
+        
 
 
 ############################################################################

@@ -108,8 +108,8 @@ class Model(object):
         plt.clf(),plt.cla()
         #Rates to compare
         for runnedCaseNr in range(len(fgdvc_list)):
-            u=fgdvc_list[runnedCaseNr].Rate(Species)
-            plt.plot(fgdvc_list[runnedCaseNr].Time(),u,'-',color=colors[runnedCaseNr],label=fgdvc_list[runnedCaseNr].Name()+' '+str(runnedCaseNr))
+            ur=fgdvc_list[runnedCaseNr].Rate(Species)
+            plt.plot(fgdvc_list[runnedCaseNr].Time(),ur,'-',color=colors[runnedCaseNr],label=fgdvc_list[runnedCaseNr].Name()+' '+str(runnedCaseNr))
             w=self.deriveC(fgdvc_list[runnedCaseNr],v[:,runnedCaseNr],Len_tPoints)
             plt.plot(fgdvc_list[runnedCaseNr].Time()[:Len_tPoints],w[:Len_tPoints],'--',color=colors[runnedCaseNr],label='fit')
         if type(Species)==int:
@@ -141,9 +141,9 @@ class Model(object):
                 resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
             else:
                 print 'Models: Operating Platform cannot be specified.'
-            resultFile.write('    Time       Temperature    Yields       Rates \n')
+            resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
             for i in range(len(v)):
-                resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], v[i,runnedCaseNr], w[i]))
+                resultFile.write('%7e  %11e %7e %8e %7e %8e \n' % (t[i], T[i], v[i,runnedCaseNr], w[i], u[i,runnedCaseNr], ur[i]))
             resultFile.close()
 
     def deriveC(self,fgdvc,yVector,maxVectorLenght=None):

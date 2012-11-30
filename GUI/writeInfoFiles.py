@@ -1,12 +1,13 @@
-import InformationFiles
-import numpy as np
 import sys
 import platform
 OSys=platform.system()
 if OSys=='Linux':
     sys.path.append('../src')
-elif OSys=='Windows':
+if OSys=='Linux':
     sys.path.append('..\\src')
+import shutil
+import numpy as np
+import InformationFiles
 
 class WriteCoalFile(object):
     """Writes the Coal.inp file using the output of the GUI."""
@@ -15,6 +16,10 @@ class WriteCoalFile(object):
         CoalFile=open('Coal.inp','w')
         CoalFile.write(self.__mkstr())
         CoalFile.close()
+        if OSys=='Linux':
+            shutil.move('Coal.inp','../Coal.inp')
+        elif OSys=='Windows':
+            shutil.move('Coal.inp','..\\Coal.inp')
     
     def __mkstr(self):
         """Writes the content of the coal file"""
@@ -66,13 +71,20 @@ class WriteCPDFile(object):
         self.Info=InfosFromGUIObject
         #get Nr of CPD print increment
         try:
-            NrPrintCPDObj = InformationFiles.ReadFile('CPD.inp')
+            if OSys=='Linux':
+                NrPrintCPDObj = InformationFiles.ReadFile('../CPD.inp')
+            elif OSys=='Windows':
+                NrPrintCPDObj = InformationFiles.ReadFile('..\\CPD.inp')
             self.NrPrintCPD = NrPrintCPDObj.getText(InformationFiles.MC_dt[1])
         except IOError:
             self.NrPrintCPD = '1'
         CPDFile=open('CPD.inp','w')
         CPDFile.write(self.__mkstr())
         CPDFile.close()
+        if OSys=='Linux':
+            shutil.move('CPD.inp','../CPD.inp')
+        elif OSys=='Windows':
+            shutil.move('CPD.inp','..\\CPD.inp')
     
     def __mkstr(self):
         """Writes the content of the CPD file"""
@@ -105,7 +117,10 @@ class WriteFGFile(object):
         self.Info=InfosFromGUIObject
         #get directories for FGDVC
         try:
-            Obj = InformationFiles.ReadFile('FGDVC.inp')
+            if OSys=='Linux':
+                Obj = InformationFiles.ReadFile('../FGDVC.inp')
+            elif OSys=='Windows':
+                Obj = InformationFiles.ReadFile('..\\FGDVC.inp')
             self.DirMain= Obj.getText(InformationFiles.MF_dir[0])
             self.DirOut= Obj.getText(InformationFiles.MF_dir[1])
         except IOError:
@@ -113,6 +128,10 @@ class WriteFGFile(object):
         FGFile=open('FGDVC.inp','w')
         FGFile.write(self.__mkstr())
         FGFile.close()
+        if OSys=='Linux':
+            shutil.move('FGDVC.inp','../FGDVC.inp')
+        elif OSys=='Windows':
+            shutil.move('FGDVC.inp','..\\FGDVC.inp')
     
     def __mkstr(self):
         """Writes the content of the FGDVC file"""
@@ -149,6 +168,10 @@ class WriteOCFile(object):
         OCFile=open('OperCond.inp','w')
         OCFile.write(self.__mkstr())
         OCFile.close()
+        if OSys=='Linux':
+            shutil.move('OperCond.inp','../OperCond.inp')
+        elif OSys=='Windows':
+            shutil.move('OperCond.inp','..\\OperCond.inp')
     
     def __mkstr(self):
         """Writes the content of the CPD file"""

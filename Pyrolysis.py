@@ -201,17 +201,19 @@ def MakeResults(PyrolProgram,File,Fit):
         SpeciesList=[]
         if CPD_ArrhSpec=='Total' and PyrolProgram=='CPD':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-        elif CPD_ArrhSpec=='allSpecies' and PyrolProgram=='CPD':
+        elif CPD_ArrhSpec=='MainSpecies' and PyrolProgram=='CPD':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
+            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
         elif CPD_ArrhSpec=='allSpecies' and PyrolProgram=='CPD':
             for i in range(2,len(Fit[0].SpeciesNames()),1):
                 SpeciesList.append(i)
         elif FG_ArrhSpec=='Total' and PyrolProgram=='FGDVC':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-        elif FG_ArrhSpec=='allSpecies' and PyrolProgram=='FGDVC':
+        elif FG_ArrhSpec=='MainSpecies' and PyrolProgram=='FGDVC':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
+            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
         elif FG_ArrhSpec=='allSpecies' and PyrolProgram=='FGDVC':
             for i in range(2,len(Fit[0].SpeciesNames()),1):
                 SpeciesList.append(i)
@@ -250,10 +252,13 @@ def MakeResults(PyrolProgram,File,Fit):
                 GAArrhMaxB = GlobalOptParam.EvAArrhMax[1]
                 GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
                 GAArrhInit=GlobalOptParam.EvAArrhInit
-                GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+                if len(GAArrhInit)==3:
+                    GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+                else:
+                    GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
                 GenAlg.setParamRanges(GAArrhInit,[GAArrhMinA,GAArrhMinB,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxB,GAArrhMaxE,max(m_final_predictionAll)])
-		GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-		GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
+                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
@@ -346,8 +351,13 @@ def MakeResults(PyrolProgram,File,Fit):
                 GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
                 GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
                 GAArrhInit=GlobalOptParam.EvAArrhInit
-                GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+                if len(GAArrhInit)==3:
+                    GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+                else:
+                    GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
                 GenAlg.setParamRanges(Arr.ConvertKinFactorsToOwnNotation(GAArrhInit),Arr.ConvertKinFactorsToOwnNotation([GAArrhMinA,0,GAArrhMinE,min(m_final_predictionAll)]),Arr.ConvertKinFactorsToOwnNotation([GAArrhMaxA,0,GAArrhMaxE,max(m_final_predictionAll)]))
+                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
@@ -361,7 +371,7 @@ def MakeResults(PyrolProgram,File,Fit):
                 outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\n')
         outfile.close()
         if oSystem=='Linux':
-            shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result/'+PyrolProgram+'-Results_ArrheniusNoBRate.txt');print 'mv'
+            shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result/'+PyrolProgram+'-Results_ArrheniusNoBRate.txt')
         elif oSystem=='Windows':
             shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result\\'+PyrolProgram+'-Results_ArrheniusNoBRate.txt')
         else:
@@ -397,6 +407,8 @@ def MakeResults(PyrolProgram,File,Fit):
                 GenAlg=Evolve.GenericOpt(Kob,Fit,Species)
                 GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
                 GenAlg.setParamRanges(GlobalOptParam.EvAKobInit,GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax)
+                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
                 Kob.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
@@ -453,6 +465,8 @@ def MakeResults(PyrolProgram,File,Fit):
                 EvADAEMMin.append(min(m_final_predictionAll))
                 EvADAEMMax.append(max(m_final_predictionAll))
                 GenAlg.setParamRanges(EvADAEMInit,EvADAEMMin,EvADAEMMax)
+                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
                 DAEM.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
