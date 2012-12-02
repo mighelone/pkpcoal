@@ -77,4 +77,4 @@ class FGDVC_Result(object):
 
     def Name(self):
         """returns 'FG-DVC' as the name of the Program"""
-        return 'FG-DVC'
+        return 'FGDVC'

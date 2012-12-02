@@ -80,23 +80,25 @@ class Ui_Dialog(QWidget):
     def OpenSpecAnalysis(self):
         """Opens the species analysis file with Kate/Windows Editor"""
         if OSys=='Linux':
-            if os.path.exists('Result/CPD-BalanceResults3.txt'):
-                os.system('kate Result/CPD-BalanceResults0.txt Result/CPD-BalanceResults1.txt Result/CPD-BalanceResults2.txt Result/CPD-BalanceResults3.txt')
-            elif os.path.exists('Result/CPD-BalanceResults2.txt'):
-                os.system('kate Result/CPD-BalanceResults0.txt Result/CPD-BalanceResults1.txt Result/CPD-BalanceResults2.txt')
-            elif os.path.exists('Result/CPD-BalanceResults1.txt'):
-                os.system('kate Result/CPD-BalanceResults0.txt Result/CPD-BalanceResults1.txt')
-            elif os.path.exists('Result/CPD-BalanceResults0.txt'):
-                os.system('kate Result/CPD-BalanceResults0.txt')
+            for PyrolPr in self.PyrModelsD:
+                if os.path.exists('Result/'+PyrolPr+'-BalanceResults3.txt'):
+                    os.system('kate Result/'+PyrolPr+'-BalanceResults0.txt Result/'+PyrolPr+'-BalanceResults1.txt Result/'+PyrolPr+'-BalanceResults2.txt Result/'+PyrolPr+'-BalanceResults3.txt')
+                elif os.path.exists('Result/'+PyrolPr+'BalanceResults2.txt'):
+                    os.system('kate Result/'+PyrolPr+'-BalanceResults0.txt Result/'+PyrolPr+'-BalanceResults1.txt Result/'+PyrolPr+'-BalanceResults2.txt')
+                elif os.path.exists('Result/'+PyrolPr+'-BalanceResults1.txt'):
+                    os.system('kate Result/'+PyrolPr+'-BalanceResults0.txt Result/'+PyrolPr+'-BalanceResults1.txt')
+                elif os.path.exists('Result/'+PyrolPr+'-BalanceResults0.txt'):
+                    os.system('kate Result/'+PyrolPr+'-BalanceResults0.txt')
         elif OSys=='Windows':
-            if os.path.exists('Result/CPD-BalanceResults0.txt'):
-                os.system('Result\\CPD-BalanceResults0.txt')
-            if os.path.exists('Result/CPD-BalanceResults1.txt'):
-                os.system('Result\\CPD-BalanceResults1.txt')
-            if os.path.exists('Result/CPD-BalanceResults2.txt'):
-                os.system('Result\\CPD-BalanceResults2.txt')
-            if os.path.exists('Result/CPD-BalanceResults3.txt'):
-                os.system('Result\\CPD-BalanceResults3.txt')
+            for PyrolPr in self.PyrModelsD:
+                if os.path.exists('Result\\'+PyrolPr+'-BalanceResults0.txt'):
+                    os.system('Result\\'+PyrolPr+'-BalanceResults0.txt')
+                if os.path.exists('Result\\'+PyrolPr+'-BalanceResults1.txt'):
+                    os.system('Result\\'+PyrolPr+'-BalanceResults1.txt')
+                if os.path.exists('Result'+PyrolPr+'-BalanceResults2.txt'):
+                    os.system('Result\\'+PyrolPr+'-BalanceResults2.txt')
+                if os.path.exists('Result/'+PyrolPr+'-BalanceResults3.txt'):
+                    os.system('Result\\'+PyrolPr+'-BalanceResults3.txt')
 
     
     def OpenKinParam(self):
@@ -119,22 +121,25 @@ class Ui_Dialog(QWidget):
         plt.xlabel('Time in s')
         plt.legend()
         plt.grid()
-        colors=['g','b','r','purple']
+        colors=['g','b','r','purple','c','m','y','b','purple','r','b','g','c','y','m']
+        colorIndex=0
         Spec=self.SpecL[SpecNr]
         if OSys=='Linux':
             for PyrolPr in self.PyrModelsD:
                 for i in range(4):
                     if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
                         Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
-                        plt.plot(Y[:,0],Y[:,2],'--',color=colors[i],label=PyrolPr+' fit')
-                        plt.plot(Y[:,0],Y[:,4],'-',color=colors[i],label=PyrolPr+' original')
+                        plt.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
+                        plt.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
+                        colorIndex+=1
         elif OSys=='Windows':
             for PyrolPr in self.PyrModelsD:
                 for i in range(4):
                     if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
                         Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out')
-                        plt.plot(Y[:,0],Y[:,2],'--',color=colors[i],label=PyrolPr+' fit')
-                        plt.plot(Y[:,0],Y[:,4],'-',color=colors[i],label=PyrolPr+' original')
+                        plt.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
+                        plt.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
+                        colorIndex+=1
         plt.legend(loc='4')
         plt.show()
         #

@@ -178,7 +178,7 @@ class MainProcess(object):
             CR.plot(Fit,Spec)
             Solution=CR.ParamVector()
             if np.sum(Solution)!=np.sum(PredictionVector):
-                outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+str(Solution[0])+'\n')
+                outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\n')
 #            #for the comparison of the species sum with (1-Solid)
 #            for runNr in range(NrOfRuns):
 #                if Fit[runNr].SpeciesName(Spec)=='Solid':
@@ -565,7 +565,7 @@ class MainProcess(object):
                 Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,runNr)
             if PyrolProgram=='FGDVC':    
                 print 'FG-DVC energy and mass balance...'
-                Compos_and_Energy.FGDVC_SpeciesBalance(FGFile[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,runNr)
+                Compos_and_Energy.FGDVC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,runNr)
                 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
 #
 #
@@ -668,16 +668,16 @@ class MainProcess(object):
         #initialize the launching object
         FGDVC=FGDVC_SetAndLaunch.SetterAndLauncher()
         #set and writes Coal Files:
-        if FG_CoalSelection==0:
+        if self.FG_CoalSelection==0:
             #deletes old generated file
             os.system('cd '+self.FG_MainDir+FG_GenCoalDir+' & del '+FG_CoalName+'_com.dat, '+FG_CoalName+'_kin.dat, '+FG_CoalName+'_pol.dat')
             #generates coalsd.exe input file
             MakeCoalGenFile=InformationFiles.WriteFGDVCCoalFile(FG_CoalGenFileName)
             MakeCoalGenFile.setCoalComp(self.UAC,self.UAH,self.UAO,self.UAN,self.UAS,0)
-            MakeCoalGenFile.write(self.FG_MainDir+self.FG_GenCoalDir+'\\',self.FG_CoalName)
+            MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName)
             #makes new file
             try:
-                os.system('cd '+self.FG_MainDir+self.FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
+                os.system('cd '+self.FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
             except OSError:
                 print 'Problems with coalsd.exe'
             os.system('copy '+self.FG_MainDir+FG_GenCoalDir+'\coalsd_pkp.log . >> log.txt')
@@ -706,17 +706,18 @@ class MainProcess(object):
         #
         FGFile=[]
         FGFit=[]
+        OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
         for runNr in range(self.NrOfRuns):
             if runNr==0:
-                OpCondInp.writeFGDVCtTHist(self.FG_TimeTemp1,self.FG_dt,self.FG_T_t_History)
+                OpCondInp.writeFGDVCtTHist(FG_TimeTemp1,self.FG_dt,self.FG_T_t_History)
             elif runNr==1:
-                OpCondInp.writeFGDVCtTHist(self.FG_TimeTemp2,self.FG_dt,self.FG_T_t_History)
+                OpCondInp.writeFGDVCtTHist(FG_TimeTemp2,self.FG_dt,self.FG_T_t_History)
             elif runNr==2:
-                OpCondInp.writeFGDVCtTHist(self.FG_TimeTemp3,self.FG_dt,self.FG_T_t_History)
+                OpCondInp.writeFGDVCtTHist(FG_TimeTemp3,self.FG_dt,self.FG_T_t_History)
             elif runNr==3:
-                OpCondInp.writeFGDVCtTHist(self.FG_TimeTemp4,self.FG_dt,self.FG_T_t_History)
+                OpCondInp.writeFGDVCtTHist(FG_TimeTemp4,self.FG_dt,self.FG_T_t_History)
             elif runNr==4:
-                OpCondInp.writeFGDVCtTHist(self.FG_TimeTemp5,self.FG_dt,self.FG_T_t_History)
+                OpCondInp.writeFGDVCtTHist(FG_TimeTemp5,self.FG_dt,self.FG_T_t_History)
             FGDVC.set7File(self.FG_T_t_History)
             FGDVC.set9AshMoisture(0.0,0.0)
             FGDVC.setTRamp_or_TFile('File') #case: models temperature history with the file
@@ -732,11 +733,15 @@ class MainProcess(object):
             FGFile.append(CurrentFGFile)
             FGFit.append(CurrentFGFit)
             #copies file, keeping the name:
-            shutil.copyfile(self.FG_DirOut+'gasyield.txt', 'gasyield_'+str(runNr)+'.txt')
-            shutil.copyfile(self.FG_DirOut+'gasrate.txt', 'gasrate_'+str(runNr)+'.txt')        
+            if oSystem=='Linux':
+                shutil.copyfile(self.FG_DirOut+'gasyield.txt', 'Result/gasyield_'+str(runNr)+'.txt')
+                shutil.copyfile(self.FG_DirOut+'gasrate.txt', 'Result/gasrate_'+str(runNr)+'.txt')
+            elif oSystem=='Windows':
+                shutil.copyfile(self.FG_DirOut+'gasyield.txt', 'Result\\gasyield_'+str(runNr)+'.txt')
+                shutil.copyfile(self.FG_DirOut+'gasrate.txt', 'Result\\gasrate_'+str(runNr)+'.txt')
         #####
         if self.FG_FittingKineticParameter_Select=='constantRate':
-            self.MMakeResults_CR('FGDVC',FGFile,FGFit)
+            self.MakeResults_CR('FGDVC',FGFile,FGFit)
             currentDict={'FGDVC':'constantRate'}
         elif self.FG_FittingKineticParameter_Select=='Arrhenius':
             self.MakeResults_Arrh('FGDVC',FGFile,FGFit)
