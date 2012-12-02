@@ -10,6 +10,8 @@ import writeInfoFiles
 import sys
 import platform
 
+from PyQt4.Qt import QWidget, QMainWindow
+
 OSys=platform.system()
 sys.path.append('GUI')
 import Done   #second GUI
@@ -19,8 +21,11 @@ try:
 except AttributeError:
     _fromUtf8 = lambda s: s
 
-class Ui_PKP(object):
+class Ui_PKP(QMainWindow):
     def setupUi(self, PKP, SaveInfoObj):
+        QMainWindow.__init__(self) #manually added
+        self.QWidgMain= QWidget(self) #manually added
+        self.setCentralWidget(self.QWidgMain) #manually added
         self.svInfo=SaveInfoObj
         PKP.setObjectName(_fromUtf8("PKP"))
         PKP.resize(1033, 753)
@@ -694,18 +699,13 @@ class Ui_PKP(object):
         self.SaveInfos()
         #os.system('python Pyrolysis.py')
         print 'START executable'
-        #app = QtGui.QApplication(sys.argv)
-#        Dialog = QtGui.QDialog()
-#        DoneW = Done.Ui_Dialog()
-#        DoneW.setupUi(Dialog,["Total","Tar","Gas"],["CPD"],{'CPD':'ArrheniusRate'})
-#        Dialog.show()
-#        sys.exit(app.exec_())
         #
-#        self.Done=Done.Ui_Dialog()
-#        self.Done.setupUi(QtGui.QDialog(),["Total","Tar","Gas"],["CPD"],{'CPD':'ArrheniusRate'})
-#        self.Done.exec_()
-        os.system('python Done.py')
-        self.actionExit
+        self.Done=Done.Ui_Dialog()
+        self.Done.setupUi(["Total","Tar","Gas"],["CPD"],{'CPD':'ArrheniusRate'})
+        self.Done.show()
+        #
+#        os.system('python Done.py')
+#        self.actionExit
         
         
 
