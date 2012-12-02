@@ -40,7 +40,7 @@ DAEMNrOfRuns = [0,3,3,3]
 ################################
 #For generic algorithm:
 # number of generations
-NrOfGeneration = 50#100
+NrOfGeneration = 10#50#100
 # size of population
 NrOfPopulation = 50
 #minimum for Arrhenius equation:[A,E]
