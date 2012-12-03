@@ -1,0 +1,60 @@
+% copyright 2010 by Thomas Benkert
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Dieses Werk ist unter einem Creative Commons 
+% Namensnennung - Keine Bearbeitung 3.0 Deutschland Lizenzvertrag lizenziert. 
+% Um die Lizenz anzusehen, gehen Sie bitte zu http://creativecommons.org/licenses/by-nd/3.0/de/ 
+% oder schicken Sie einen Brief an 
+% Creative Commons, 171 Second Street, Suite 300, San Francisco, California 94105, USA.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\ProvidesFile{NTFDgutachten.ldf}[2010/03/01 v.0.1 Benkert]
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% Sprachanpassungen
+% deutsch
+\addto\captionsgerman{%
+	% allgemein
+	\renewcommand{\figurename}{Abb.}
+	\renewcommand{\tablename}{Tab.}
+	% NTFDgutachten
+	\renewcommand{\NTFDAutorprefix}{vorgelegt~von}
+	\renewcommand{\NTFDDatumprefix}{vom}
+	\renewcommand{\shortNTFDDatumprefix}{(}
+	\renewcommand{\shortNTFDDatumsuffix}{)}
+	\renewcommand{\NTFDseitenname}{Seite}
+	\renewcommand{\NTFDseitentrenner}{~von~}
+	%\renewcommand{\NTFDGutachtenname}{Gutachten}
+	%\NTFDGutachtensuffix{\"uber}
+}
+% deutsch neu
+\addto\captionsngerman{%
+	% allgemein
+	\renewcommand{\figurename}{Abb.}
+	\renewcommand{\tablename}{Tab.}
+	% NTFDgutachten
+	\renewcommand{\NTFDAutorprefix}{vorgelegt~von}
+	\renewcommand{\NTFDDatumprefix}{vom}
+	\renewcommand{\shortNTFDDatumprefix}{(}
+	\renewcommand{\shortNTFDDatumsuffix}{)}
+	\renewcommand{\NTFDseitenname}{Seite}
+	\renewcommand{\NTFDseitentrenner}{~von~}
+	%\renewcommand{\NTFDGutachtenname}{Gutachten}
+	%\NTFDGutachtensuffix{\"uber}
+}
+% englisch UK
+\addto\captionsenglish{%
+	% allgemein
+	\renewcommand{\figurename}{Fig.}
+	\renewcommand{\tablename}{Tab.}
+	% NTFDgutachten
+	\renewcommand{\NTFDAutorprefix}{submitted~by}
+	\renewcommand{\NTFDDatumprefix}{of}
+	\renewcommand{\shortNTFDDatumprefix}{(}
+	\renewcommand{\shortNTFDDatumsuffix}{)}
+	\renewcommand{\NTFDseitenname}{page}
+	\renewcommand{\NTFDseitentrenner}{~of~}
+	%\renewcommand{\NTFDGutachtenname}{Approval certificate}%Advisory opinion
+	%\NTFDGutachtensuffix{about}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput

@@ -1,0 +1,14 @@
+==============
+The Main Class
+==============
+
+This is the class controlling the whole process. It initialize the other classes and use their methods. If accesed as main file, it launches itself the whole process. But it is also connetced by the GUI, there the GUI tells to apply the MainProcess' methods.
+
+
+.. py:currentmodule:: Pyrolysis.MainProcess
+
+
+.. autoclass:: Pyrolysis.MainProcess
+    :members:
+
+

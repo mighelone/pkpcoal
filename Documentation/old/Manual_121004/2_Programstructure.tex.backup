@@ -1,0 +1,8 @@
+\section{Programs Structure}\label{S_Program}
+
+\begin{figure}
+\centering%\capstart
+\includegraphics[height=10cm,angle=90]{Figures/Programstructure}
+\caption{The temperature where the maximum rate occurs dependent on the operating pressure.}%[FG-DVC influence of pressure: temperature vs. pressure]
+\label{F_FG_p_T_v}
+\end{figure}

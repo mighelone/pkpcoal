@@ -1,0 +1,309 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The CPD Classes &mdash; PKP 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PKP 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="The FG-DVC Classes" href="FGDVCClasses.html" />
+    <link rel="prev" title="The PKP Code Documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="FGDVCClasses.html" title="The FG-DVC Classes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="The PKP Code Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PKP 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-cpd-classes">
+<h1>The CPD Classes<a class="headerlink" href="#the-cpd-classes" title="Permalink to this headline">¶</a></h1>
+<p>The CPD classes are contained in the files:
+- CPD_Fit_lin_regr.py  (Writes the CPD input file and launches of the program)
+- CPD_Compos_and_Energy.py  (The species and energy balance)
+- Fit_one_run.py  (&#8216;CPD_Result&#8217; reads the CPD output and contains the output specific information.)</p>
+<div class="section" id="the-class-writing-the-cpd-instruction-file-and-launching-cpd">
+<span id="my-reference-label"></span><span id="ss-readgen"></span><h2>The Class writing the CPD instruction File and launching CPD<a class="headerlink" href="#the-class-writing-the-cpd-instruction-file-and-launching-cpd" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher">
+<em class="property">class </em><tt class="descclassname">CPD_Fit_lin_regr.</tt><tt class="descname">SetterAndLauncher</tt><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is able to write the CPD input file and launch the CPD program. Before writing the CPD input file (method &#8216;writeInstructFile&#8217;) set all parameter using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam, CalcCoalParam). After writing the instruct file, the .Run method can be used.</p>
+<dl class="method">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher.CalcCoalParam">
+<tt class="descname">CalcCoalParam</tt><big>(</big><big>)</big><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher.CalcCoalParam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the CPD coal parameter mdel, mw, p0, sig and sets the as an attribute of the class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher.Run">
+<tt class="descname">Run</tt><big>(</big><em>CPD_exe</em>, <em>Input_File</em><big>)</big><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher.Run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launches CPD_exe and inputs Input_File. If the CPD executable is in another directory than the Python script enter the whole path for CPD_exe.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher.SetCoalParameter">
+<tt class="descname">SetCoalParameter</tt><big>(</big><em>fcar</em>, <em>fhyd</em>, <em>fnit</em>, <em>foxy</em>, <em>VMdaf</em><big>)</big><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher.SetCoalParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the mass fraction of carbon (UA), hydrogen  (UA), nitrogen (UA), oxygen (UA) and the daf fraction of volatile matter (PA).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher.SetNumericalParam">
+<tt class="descname">SetNumericalParam</tt><big>(</big><em>dt</em>, <em>timax</em><big>)</big><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher.SetNumericalParam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the numerical parameter and the maximum simulation time. dt is a vector with the following information: [dt_initial,print-increment,dt_max]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher.SetOperateCond">
+<tt class="descname">SetOperateCond</tt><big>(</big><em>pressure</em>, <em>TimeTemp</em><big>)</big><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher.SetOperateCond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stes the operating condtions pressure and the time-temperature array. TimeTemp is an 2D-Array. One line of this array is [time_i,temp_i].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CPD_Fit_lin_regr.SetterAndLauncher.writeInstructFile">
+<tt class="descname">writeInstructFile</tt><big>(</big><em>Dirpath</em><big>)</big><a class="headerlink" href="#CPD_Fit_lin_regr.SetterAndLauncher.writeInstructFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the File &#8216;CPD_input.dat&#8217; into the directory Dirpath.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-class-making-the-species-and-the-energy-balance">
+<h2>The Class making the Species and the Energy Balance<a class="headerlink" href="#the-class-making-the-species-and-the-energy-balance" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Compos_and_Energy.SpeciesBalance">
+<em class="property">class </em><tt class="descclassname">Compos_and_Energy.</tt><tt class="descname">SpeciesBalance</tt><a class="headerlink" href="#Compos_and_Energy.SpeciesBalance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the parent Class for the CPD and FG-DVC specific Species Balances, containing general methods like the Dulong formular.</p>
+<dl class="method">
+<dt id="Compos_and_Energy.SpeciesBalance.Dulong">
+<tt class="descname">Dulong</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.SpeciesBalance.Dulong" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the Dulong formular to calculate the Higher heating value. The output is in J/kg.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.SpeciesBalance.SpeciesIndex">
+<tt class="descname">SpeciesIndex</tt><big>(</big><em>species</em><big>)</big><a class="headerlink" href="#Compos_and_Energy.SpeciesBalance.SpeciesIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the column number of the input species.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.SpeciesBalance.correctUA">
+<tt class="descname">correctUA</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.SpeciesBalance.correctUA" title="Permalink to this definition">¶</a></dt>
+<dd><p>The difference of the UA to 1 is putted to coal.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance">
+<em class="property">class </em><tt class="descclassname">Compos_and_Energy.</tt><tt class="descname">CPD_SpeciesBalance</tt><big>(</big><em>CPD_ResultObject</em>, <em>UAC</em>, <em>UAH</em>, <em>UAN</em>, <em>UAO</em>, <em>PAVM</em>, <em>PAFC</em>, <em>HHV</em>, <em>MTar</em><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class calculates the Species and the Energy balance for CPD. See the manual for the formulars and more details.</p>
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__CheckOthers">
+<tt class="descname">_CPD_SpeciesBalance__CheckOthers</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__CheckOthers" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the yield of nitrogen (is equal the UA of nitrogen) is lower than the species &#8216;Other&#8217; the difference is set equal Methane.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__CheckOxygen">
+<tt class="descname">_CPD_SpeciesBalance__CheckOxygen</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__CheckOxygen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks weather the amount of Oxygen in the light gases is lower than in the Ultimate Analysis. If not, the amount of these species decreases. If yes, the tar contains oxygen.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__QPyro">
+<tt class="descname">_CPD_SpeciesBalance__QPyro</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__QPyro" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the heat of the pyrolysis process, assuming heat of tar formation is equal zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__Q_React">
+<tt class="descname">_CPD_SpeciesBalance__Q_React</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__Q_React" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Heat of Reaction of the coal cumbustion.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__TarComp">
+<tt class="descname">_CPD_SpeciesBalance__TarComp</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__TarComp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates and returns the tar composition.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__closeResultFile">
+<tt class="descname">_CPD_SpeciesBalance__closeResultFile</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__closeResultFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the CPD Composition file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__correctYields">
+<tt class="descname">_CPD_SpeciesBalance__correctYields</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__correctYields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correct the amount of the yields &#8216;Other&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__hfRaw">
+<tt class="descname">_CPD_SpeciesBalance__hfRaw</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__hfRaw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the heat of formation of the coal molecule and writes it into the output file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__hfTar">
+<tt class="descname">_CPD_SpeciesBalance__hfTar</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__hfTar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the heat of formation of tar and writes it into the CPD Composition file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__nysEq15">
+<tt class="descname">_CPD_SpeciesBalance__nysEq15</tt><big>(</big><big>)</big><a class="headerlink" href="#Compos_and_Energy.CPD_SpeciesBalance._CPD_SpeciesBalance__nysEq15" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the stoichiometric coefficients of the devolatilization reaction.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-reading-class-containg-the-cpd-specific-output-information">
+<h2>The Reading Class containg the CPD specific output information<a class="headerlink" href="#the-reading-class-containg-the-cpd-specific-output-information" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Fit_one_run.CPD_Result">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">CPD_Result</tt><big>(</big><em>FilePath</em><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the CPD input and saves the values in one array. The results include the yields and the rates. The rates were calculated using a CDS. This class also contains the dictionaries for the columns in the array - the name of the species. These dictionaries are CPD-Version dependent and the only thing which has to be changed for the case of a new release of CPD with a new order of species in the result files.</p>
+<dl class="method">
+<dt id="Fit_one_run.CPD_Result.DictCols2Yields">
+<tt class="descname">DictCols2Yields</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result.DictCols2Yields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the whole Dictionary Columns of the matrix to Yield names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.CPD_Result.DictYields2Cols">
+<tt class="descname">DictYields2Cols</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result.DictYields2Cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the whole Dictionary Yield names to Columns of the matrix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.CPD_Result.FinalYields">
+<tt class="descname">FinalYields</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result.FinalYields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the last line of the Array, containing the yields at the time=time_End</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.CPD_Result.Name">
+<tt class="descname">Name</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result.Name" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns &#8216;CPD&#8217; as the name of the Program</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.CPD_Result.Rates_all">
+<tt class="descname">Rates_all</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result.Rates_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the whole result matrix of the Rates.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.CPD_Result.Yields_all">
+<tt class="descname">Yields_all</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.CPD_Result.Yields_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the whole result matrix of the yields.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The CPD Classes</a><ul>
+<li><a class="reference internal" href="#the-class-writing-the-cpd-instruction-file-and-launching-cpd">The Class writing the CPD instruction File and launching CPD</a></li>
+<li><a class="reference internal" href="#the-class-making-the-species-and-the-energy-balance">The Class making the Species and the Energy Balance</a></li>
+<li><a class="reference internal" href="#the-reading-class-containg-the-cpd-specific-output-information">The Reading Class containg the CPD specific output information</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">The PKP Code Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="FGDVCClasses.html"
+                        title="next chapter">The FG-DVC Classes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/CPDClasses.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="FGDVCClasses.html" title="The FG-DVC Classes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="The PKP Code Documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">PKP 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Martin Pollack.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

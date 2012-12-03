@@ -1,0 +1,89 @@
+\documentclass[
+stil=epost,
+futura=false,
+sprache=english]{NTFDaushang}
+% Use these packages for proper encoding
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{hyperref}
+\usepackage{lmodern}
+\usepackage{blindtext}
+\hypersetup{
+colorlinks=true,       % false: boxed links; true: colored links
+urlcolor=TUBAFhausfarbe,           % color of external links
+linkcolor=black,
+citecolor=black
+}
+
+%Only available for pdflatex; produces nicely typed text
+\usepackage[protrusion=true,expansion]{microtype}
+\NTFDTitel{PKP}
+\usepackage{blindtext}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%added%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{TUBAFbib}
+
+\usepackage[english]{babel} %% englisches Sprachpaket
+\usepackage{icomma}	%% fuer schoene Kommata
+\usepackage{url}	%% um URLs zu setzen und zu verlinken
+\usepackage{graphicx,textcomp,booktabs,amsmath}
+\usepackage{amssymb,extarrows,cancel,wasysym} %% zusaetzliche mathematische Symbole
+\usepackage[scaled]{helvet}
+\usepackage{mathptmx,courier} %% Schriftart
+
+%\usepackage[
+%colorlinks=true,
+%linkcolor=blue,
+%anchorcolor=blue,
+%citecolor=blue,
+%urlcolor=blue,
+% linkcolor=black,
+% anchorcolor=black,
+% citecolor=black,
+% urlcolor=black,
+%pdftitle={Titel der Arbeit},
+%pdfauthor={Martin Pollack},
+%pdfkeywords={Bachelorthesis, Coal, Devolatilization, CFD}
+%]{hyperref} %% PDF-Optionen
+
+
+%\usepackage[all]{hypcap} %% damit Verlinkungen Gleitumgebungen oben zeigen (\capstart)
+\usepackage{microtype} % tolle Typo
+\usepackage{lscape} % zur Benutzung von landscape
+\usepackage{dcolumn} % fuer schoene Ausrichtung der Tabelleneintr"age
+\usepackage{nicefrac} % fuer schoene Brueche im Text
+\usepackage{verbatim}
+\usepackage{array}
+\usepackage{listings} %for source code
+\usepackage{setspace} % Um Zeilenabstand zu setzen
+
+\usepackage{lscape}
+\usepackage{float}
+
+
+\usepackage{longtable}
+%%%%%%%%%commands%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%print CPD and FG-DVC as type
+\newcommand{\CPD}{\texttt{CPD} }	% CPD
+\newcommand{\FGDVC}{\texttt{FG-DVC} }	% FG-DVC
+\newcommand{\PCCL}{\texttt{PC Coal Lab} }	% PC COAL LAB
+\newcommand{\PKP}{\texttt{PKP} }	% PKP
+
+
+%%%%%%%%%%%%%%%%%%%%BEGIN%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliography{bibo}
+
+\begin{document}
+\pagenumbering{Roman}
+\maketitle
+%\tableofcontents\newpage
+%\listoffigures\newpage
+%\listoftables\newpage
+
+\input{1_Main}
+
+%\printbibliography[heading=bibintoc]
+\end{document}

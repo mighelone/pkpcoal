@@ -1,0 +1,25 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}User Manual}{3}
+\contentsline {subsection}{\numberline {1.1}Previous Steps}{3}
+\contentsline {subsection}{\numberline {1.2}Generate Results}{3}
+\contentsline {paragraph}{Coal.inp}{4}
+\contentsline {paragraph}{CPD.inp}{4}
+\contentsline {paragraph}{FGDVC.inp}{4}
+\contentsline {paragraph}{OperCond.inp}{5}
+\contentsline {subsubsection}{\numberline {1.2.1}Results}{6}
+\contentsline {paragraph}{BalanceResults.txt}{6}
+\contentsline {paragraph}{Results\_const\_rate.txt}{6}
+\contentsline {paragraph}{Result\_ArrheniusRate.txt}{6}
+\contentsline {paragraph}{CPD-Results\_KobayashiRate.txt}{6}
+\contentsline {paragraph}{Fit\_result\_[Species]\_[R/Y].pdf}{6}
+\contentsline {paragraph}{Fit\_result\_[Species].out}{6}
+\contentsline {subsection}{\numberline {1.3}Equations}{6}
+\contentsline {subsubsection}{\numberline {1.3.1}Pyrolysis Kinetic Equations}{6}
+\contentsline {subsubsection}{\numberline {1.3.2}Fitting the Kinetic Equations}{7}
+\contentsline {subsubsection}{\numberline {1.3.3}Pyrolysis Species- and Energy Conservation for \texttt {CPD} output}{8}
+\contentsline {paragraph}{Species Conservation}{8}
+\contentsline {paragraph}{Energy Conservation}{8}
+\contentsline {subsubsection}{\numberline {1.3.4}Pyrolysis Species and Energy Conservation for \texttt {FG-DVC} output}{9}
+\contentsline {paragraph}{Species Conservation}{9}
+\contentsline {paragraph}{Energy Conservation}{10}
+\contentsline {section}{\numberline {2}Programs Structure}{11}

@@ -1,0 +1,503 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Fitting Classes &mdash; PKP 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PKP 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="The Code of the Main Part" href="MainProgramCode.html" />
+    <link rel="prev" title="The FG-DVC Classes" href="FGDVCClasses.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="MainProgramCode.html" title="The Code of the Main Part"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="FGDVCClasses.html" title="The FG-DVC Classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PKP 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-fitting-classes">
+<h1>The Fitting Classes<a class="headerlink" href="#the-fitting-classes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-general-fitting-support-class">
+<h2>The General Fitting Support Class<a class="headerlink" href="#the-general-fitting-support-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Fit_one_run.Fit_one_run">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">Fit_one_run</tt><big>(</big><em>ResultObject</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports from the Result objects the arrays. It provides the fitting objects with the yields and rates over time for the specific species. This class futher offers the option to plot the generated fitting results.</p>
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.Dt">
+<tt class="descname">Dt</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.Dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the vector with the time steps dt.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.DtC">
+<tt class="descname">DtC</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.DtC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the vector with the time steps dt_C. This time steps are for points between the original points, so the lenght of this vector is the lenght of the time vector minus one.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.Interpolate">
+<tt class="descname">Interpolate</tt><big>(</big><em>Species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.Interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the interpolation object Species(time).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.LineNumberMaxRate">
+<tt class="descname">LineNumberMaxRate</tt><big>(</big><em>Species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.LineNumberMaxRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the line with the maximum Rate of the inputted species.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.MassCoal">
+<tt class="descname">MassCoal</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.MassCoal" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the Vector with the solid mass(t)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.MassVM_s">
+<tt class="descname">MassVM_s</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.MassVM_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Vector with the mass of the volatile Matter over time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.NPoints">
+<tt class="descname">NPoints</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.NPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns number of Points for each species over time. Is equal the number of time points.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.Name">
+<tt class="descname">Name</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.Name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Name of the imported Result object (e.g. &#8216;CPD&#8217;)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.Rate">
+<tt class="descname">Rate</tt><big>(</big><em>species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.Rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Vector of the species rate(t). The species can be inputted with the Column number (integer) or the name corresponding to the dictionary saved in the result class (string).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.RateSingleSpec">
+<tt class="descname">RateSingleSpec</tt><big>(</big><em>NameSpecies</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.RateSingleSpec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Rate of the species (inputted as string) by calculate it from the yields by using a CDS</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.SpeciesIndex">
+<tt class="descname">SpeciesIndex</tt><big>(</big><em>species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.SpeciesIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the species column number (integer) of the recieved species name (string)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.SpeciesName">
+<tt class="descname">SpeciesName</tt><big>(</big><em>ColumnNumber</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.SpeciesName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the species name (string) of the recieved column number (integer)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.SpeciesNames">
+<tt class="descname">SpeciesNames</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.SpeciesNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list with all species names (including time and temperature).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.Time">
+<tt class="descname">Time</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.Time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the time vector</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.Yield">
+<tt class="descname">Yield</tt><big>(</big><em>species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.Yield" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Vector of the species yield(t). The species can be inputted with the Column number (integer) or the name corresponding to the dictionary saved in the result class (string).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.plt_InputVectors">
+<tt class="descname">plt_InputVectors</tt><big>(</big><em>xVector</em>, <em>y1Vector</em>, <em>y2Vector</em>, <em>y3Vector</em>, <em>y4Vector</em>, <em>y1Name</em>, <em>y2Name</em>, <em>y3Name</em>, <em>y4Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.plt_InputVectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the y input Vectors vs. the x input vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.plt_RateVsTime">
+<tt class="descname">plt_RateVsTime</tt><big>(</big><em>ColumnNumber</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.plt_RateVsTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the original rates output of the pyrolysis program (as e.g. CPD) of the species marke with the columns number</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Fit_one_run.plt_YieldVsTime">
+<tt class="descname">plt_YieldVsTime</tt><big>(</big><em>ColumnNumber</em><big>)</big><a class="headerlink" href="#Fit_one_run.Fit_one_run.plt_YieldVsTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the original yield output of the pyrolysis program (as e.g. CPD) of the species marke with the columns number</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="a-simple-two-point-astimator-for-constant-rate">
+<h2>A simple two point astimator for constant rate<a class="headerlink" href="#a-simple-two-point-astimator-for-constant-rate" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Fit_one_run.TwoPointEstimator">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">TwoPointEstimator</tt><a class="headerlink" href="#Fit_one_run.TwoPointEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the devolatilization reaction analytically using two arbitrary selected points and the constant rate model. Unprecise. Should only be used for tests.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="the-least-square-optimization-class">
+<h2>The Least Square Optimization Class<a class="headerlink" href="#the-least-square-optimization-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">TwoPointEstimator</tt></dt>
+<dd><p>Solves the devolatilization reaction analytically using two arbitrary selected points and the constant rate model. Unprecise. Should only be used for tests.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="the-model-parent-class">
+<h2>The Model parent Class<a class="headerlink" href="#the-model-parent-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Fit_one_run.Model">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">Model</tt><big>(</big><em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models.</p>
+<dl class="method">
+<dt id="Fit_one_run.Model.ErrorRate">
+<tt class="descname">ErrorRate</tt><big>(</big><em>fgdvc</em>, <em>Species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.ErrorRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the absolute deviation per point between the fitted and the original rate curve.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.ErrorYield">
+<tt class="descname">ErrorYield</tt><big>(</big><em>fgdvc</em>, <em>Species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.ErrorYield" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the absolute deviation per point between the fitted and the original yield curve.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.ParamVector">
+<tt class="descname">ParamVector</tt><big>(</big><big>)</big><a class="headerlink" href="#Fit_one_run.Model.ParamVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Vector containing the kinetic parameter of the Model (refering to the child model).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.alpha_d">
+<tt class="descname">alpha_d</tt><big>(</big><em>fgdvc</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.alpha_d" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns alpha_d which is the final yield of tar devided by amount of volatile Matter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.beta_d">
+<tt class="descname">beta_d</tt><big>(</big><em>fgdvc</em>, <em>species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.beta_d" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns beta_d which is the final yield of a species devided by amount of volatile Matter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.calcRate">
+<tt class="descname">calcRate</tt><big>(</big><em>fgdvc</em>, <em>time</em>, <em>T</em>, <em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.calcRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the Rates using the yields vector and a CDS.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.deriveC">
+<tt class="descname">deriveC</tt><big>(</big><em>fgdvc</em>, <em>yVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.deriveC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a CDS of the inputted yVector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.plot">
+<tt class="descname">plot</tt><big>(</big><em>fgdvc</em>, <em>Species</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the yield and the rates over time with two curves: one is the original data, the other the fitting curve. Also file &#8216;PyrolysisProgramName-Species.out&#8217; (e.g. &#8216;CPD-CO2.out&#8217;) containing the time (s), yields (kg/kg), rates (kg/(kg s)).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.pltRate">
+<tt class="descname">pltRate</tt><big>(</big><em>fgdvc</em>, <em>xValueToPlot</em>, <em>yValueToPlot</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.pltRate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the rates (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.pltYield">
+<tt class="descname">pltYield</tt><big>(</big><em>fgdvc</em>, <em>xValueToPlot</em>, <em>yValueToPlot</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.pltYield" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the yields (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Model.setParamVector">
+<tt class="descname">setParamVector</tt><big>(</big><em>ParameterList</em><big>)</big><a class="headerlink" href="#Fit_one_run.Model.setParamVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the Vector containing the kinetic parameter of the Model (refering to the child model).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-model-children-classes">
+<h2>The Model children Classes<a class="headerlink" href="#the-model-children-classes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Fit_one_run.ConstantRateModel">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">ConstantRateModel</tt><big>(</big><em>InitialParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ConstantRateModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>The model calculating the mass with m(t)=m_s0+(m_s0-m_s,e)*e**(-k*(t-t_start)) from the ODE dm/dt = -k*(m-m_s,e). The Parameter to optimize are k and t_start.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="Fit_one_run.ArrheniusModel">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">ArrheniusModel</tt><big>(</big><em>InitialParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Arrhenius model in the standart notation: dm/dt=A*(T**b)*exp(-E/T)*(m_s-m) with the parameter a,b,E to optimize.</p>
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModel.ConvertKinFactors">
+<tt class="descname">ConvertKinFactors</tt><big>(</big><em>ParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModel.ConvertKinFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy. Function actual has to convert the parameter into the standart Arrhenius notation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModel.calcMass">
+<tt class="descname">calcMass</tt><big>(</big><em>fgdvc</em>, <em>time</em>, <em>T</em>, <em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModel.calcMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the mass(t) using the model specific equation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation1">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">ArrheniusModelAlternativeNotation1</tt><big>(</big><em>InitialParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arrhenius model with a notation having a better optimization behaviour: dm/dt=exp[k0-a*(T0/T(t)-1)]*(ms-m). See the documentation for the reference. The parameters to optimize are k0 and a.</p>
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation1.ConvertKinFactors">
+<tt class="descname">ConvertKinFactors</tt><big>(</big><em>ParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation1.ConvertKinFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the own kinetic factors back to the standard Arrhenius kinetic factors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation1.ConvertKinFactorsToOwnNotation">
+<tt class="descname">ConvertKinFactorsToOwnNotation</tt><big>(</big><em>fgdvc</em>, <em>ParameterVector</em>, <em>Species</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation1.ConvertKinFactorsToOwnNotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the standard Arrhenius kinetic factors backk to the factors of the own notation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation1.calcMass">
+<tt class="descname">calcMass</tt><big>(</big><em>fgdvc</em>, <em>time</em>, <em>T</em>, <em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation1.calcMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the mass(t) using the model specific equation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation2">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">ArrheniusModelAlternativeNotation2</tt><big>(</big><em>fgdvc</em>, <em>InitialParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arrhenius model with a notation having a better optimization behaviour: dm/dt=exp[c*(b1*(1/T(t)-1/T_min)-b2*(1/T(t)-1/T_max))]*(ms-m); with c=(1/T_max-1/Tmin)**(-1). See the documentation for the reference. The parameters to optimize are b1 and b2.</p>
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation2.ConvertKinFactors">
+<tt class="descname">ConvertKinFactors</tt><big>(</big><em>ParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation2.ConvertKinFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the own kinetic factors back to the standard Arrhenius kinetic factors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation2.ConvertKinFactorsToOwnNotation">
+<tt class="descname">ConvertKinFactorsToOwnNotation</tt><big>(</big><em>fgdvc</em>, <em>ParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation2.ConvertKinFactorsToOwnNotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the standard Arrhenius kinetic factors backk to the factors of the own notation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.ArrheniusModelAlternativeNotation2.calcMass">
+<tt class="descname">calcMass</tt><big>(</big><em>fgdvc</em>, <em>time</em>, <em>T</em>, <em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.ArrheniusModelAlternativeNotation2.calcMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the mass(t) using the model specific equation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Fit_one_run.Kobayashi">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">Kobayashi</tt><big>(</big><em>fgdvc</em>, <em>InitialParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.Kobayashi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation.</p>
+<dl class="method">
+<dt id="Fit_one_run.Kobayashi.ConvertKinFactors">
+<tt class="descname">ConvertKinFactors</tt><big>(</big><em>ParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.Kobayashi.ConvertKinFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the Arrhenius equation factors in the shape [A1,E1,A2,E2,alpha1,alpha2]. Here where the real Arrhenius model is in use only a dummy function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.Kobayashi.calcMass">
+<tt class="descname">calcMass</tt><big>(</big><em>fgdvc</em>, <em>time</em>, <em>T</em>, <em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.Kobayashi.calcMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the mass(t) using the model specific equation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Fit_one_run.KobayashiA2">
+<em class="property">class </em><tt class="descclassname">Fit_one_run.</tt><tt class="descname">KobayashiA2</tt><big>(</big><em>fgdvc</em>, <em>InitialParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.KobayashiA2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the secend alternative notation (see class ArrheniusModelAlternativeNotation2).</p>
+<dl class="method">
+<dt id="Fit_one_run.KobayashiA2.ConvertKinFactors">
+<tt class="descname">ConvertKinFactors</tt><big>(</big><em>ParameterVector</em><big>)</big><a class="headerlink" href="#Fit_one_run.KobayashiA2.ConvertKinFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the alternative notaion Arrhenius factors into the satndard Arrhenius factors and return them in the shape  [A1,E1], [A2,E2]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Fit_one_run.KobayashiA2.calcMass">
+<tt class="descname">calcMass</tt><big>(</big><em>fgdvc</em>, <em>time</em>, <em>T</em>, <em>Name</em><big>)</big><a class="headerlink" href="#Fit_one_run.KobayashiA2.calcMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the mass(t) using the model specific equation.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-classes-reading-the-user-input">
+<h2>The Classes reading the user-Input<a class="headerlink" href="#the-classes-reading-the-user-input" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ReadInputFiles.ReadFile">
+<em class="property">class </em><tt class="descclassname">ReadInputFiles.</tt><tt class="descname">ReadFile</tt><big>(</big><em>InputFile</em><big>)</big><a class="headerlink" href="#ReadInputFiles.ReadFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>general parent class for the reading objects CPDFile and FGDVCFile</p>
+<dl class="method">
+<dt id="ReadInputFiles.ReadFile.Fitting">
+<tt class="descname">Fitting</tt><big>(</big><em>FileNote</em><big>)</big><a class="headerlink" href="#ReadInputFiles.ReadFile.Fitting" title="Permalink to this definition">¶</a></dt>
+<dd><p>outputs the Fitting mode for Pyrolysis Program output (string: &#8216;constantRate&#8217;,&#8217;Arrhenius&#8217;,&#8217;Kobayashi&#8217;). Possible input: &#8216;constantRate&#8217;, &#8216;Arrhenius&#8217; or &#8216;Kobayashi&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ReadInputFiles.ReadFile.UsePyrolProgr">
+<tt class="descname">UsePyrolProgr</tt><big>(</big><em>FileNote</em><big>)</big><a class="headerlink" href="#ReadInputFiles.ReadFile.UsePyrolProgr" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets the information, whether Pyrolsis Program will be in use. Enter &#8216;Yes&#8217; or &#8216;True&#8217; for the case it should be used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ReadInputFiles.ReadFile.getText">
+<tt class="descname">getText</tt><big>(</big><em>FileNote</em><big>)</big><a class="headerlink" href="#ReadInputFiles.ReadFile.getText" title="Permalink to this definition">¶</a></dt>
+<dd><p>output the data of the line below the FileNote as a string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ReadInputFiles.ReadFile.getValue">
+<tt class="descname">getValue</tt><big>(</big><em>FileNote</em><big>)</big><a class="headerlink" href="#ReadInputFiles.ReadFile.getValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>output the data of the line below the FileNote as a float</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ReadInputFiles.ReadFile.readLines">
+<tt class="descname">readLines</tt><big>(</big><big>)</big><a class="headerlink" href="#ReadInputFiles.ReadFile.readLines" title="Permalink to this definition">¶</a></dt>
+<dd><p>reads the input File line by line</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ReadInputFiles.OperCondInput">
+<em class="property">class </em><tt class="descclassname">ReadInputFiles.</tt><tt class="descname">OperCondInput</tt><big>(</big><em>InputFile</em><big>)</big><a class="headerlink" href="#ReadInputFiles.OperCondInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the input file for the operating conditions and also writes the temperature-history file, required by FG-DVC.</p>
+<dl class="method">
+<dt id="ReadInputFiles.OperCondInput.getTimePoints">
+<tt class="descname">getTimePoints</tt><big>(</big><em>FileNoteBegin</em>, <em>FileNoteEnd</em><big>)</big><a class="headerlink" href="#ReadInputFiles.OperCondInput.getTimePoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>reads the time points in the shape &#8216;time, temperature&#8217; for the lines between the line with the FileNoteBegin and the line with the FileNoteEnd</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ReadInputFiles.OperCondInput.writeFGDVCtTHist">
+<tt class="descname">writeFGDVCtTHist</tt><big>(</big><em>tTPoints</em>, <em>dt</em>, <em>OutputFilePath</em><big>)</big><a class="headerlink" href="#ReadInputFiles.OperCondInput.writeFGDVCtTHist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes output file for FG-DVC containing in first column time in s, in the second tempearure in degree Celsius. FG-DVC will import this file. The time-temperature array has to be a numpy.array, dt a float, OutputFilePath a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Fitting Classes</a><ul>
+<li><a class="reference internal" href="#the-general-fitting-support-class">The General Fitting Support Class</a></li>
+<li><a class="reference internal" href="#a-simple-two-point-astimator-for-constant-rate">A simple two point astimator for constant rate</a></li>
+<li><a class="reference internal" href="#the-least-square-optimization-class">The Least Square Optimization Class</a></li>
+<li><a class="reference internal" href="#the-model-parent-class">The Model parent Class</a></li>
+<li><a class="reference internal" href="#the-model-children-classes">The Model children Classes</a></li>
+<li><a class="reference internal" href="#the-classes-reading-the-user-input">The Classes reading the user-Input</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="FGDVCClasses.html"
+                        title="previous chapter">The FG-DVC Classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="MainProgramCode.html"
+                        title="next chapter">The Code of the Main Part</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/FittingClasses.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="MainProgramCode.html" title="The Code of the Main Part"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="FGDVCClasses.html" title="The FG-DVC Classes"
+             >previous</a> |</li>
+        <li><a href="index.html">PKP 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Martin Pollack.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

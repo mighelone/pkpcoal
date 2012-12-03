@@ -1,0 +1,167 @@
+\documentclass[portrait,final,a0paper,fontscale=0.277]{NTFDposter}
+
+\usepackage{setspace}
+\definecolor{Headerblue}{cmyk}{1,.30,0,0}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Some math symbols used in the text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeatletter
+\renewcommand{\NTFDbausteine@farbschema}{rgb}
+\renewcommand{\NTFDbausteine@farbtafel}{l}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Multicol Settings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\columnsep}{1.5em}
+\setlength{\columnseprule}{0mm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Save space in lists. Use this after the opening of the list
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newcommand{\compresslist}{%
+%\setlength{\itemsep}{1pt}%
+%\setlength{\parskip}{0pt}%
+%\setlength{\parsep}{0pt}%
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Begin of Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+  
+\begin{document}
+
+	\author[iec]{Max Mustermann\corref{cor1}\fnref{fn1}}
+    \ead{cvr@river-valley.com}
+    \ead[url]{ntfd.tu-freiberg.de}
+    
+    \author[vtc]{K.~Bazargan\corref{cor2}}
+    \ead{cvr@river-valley.com}
+     
+     \author{Maxi Mustermann}
+    \ead{cvr@river-valley.com}
+    
+    \author{K.~Bazargani}
+    \ead{cvr@river-valley.com}
+   
+   \address[iec]{River Valley Technologies, SJP Building, Cotton Hills, Trivandrum, Kerala, India 695014}
+   \address[vtc]{Institut f\"ur Energieverfahrenstechnik und Chemieingenieurwesn, Fuchsm\"uhlenweg 9, 09599 Freiberg}
+   
+       \cortext[cor1]{Corresponding author}
+       \cortext[cor2]{Corresponding author 2}
+    \fntext[fn1]{This is the specimen author footnote.}
+   
+   \title{Optimal Landmark Detection using Shape Models and Branch and Bound }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Here starts the poster
+%%%---------------------------------------------------------------------------
+%%% Format it to your taste with the options
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+\hyphenation{resolution occlusions}
+%%
+
+\begin{poster}%
+  % Poster Options
+  {
+  % Show grid to help with alignment
+  grid=false,
+  % Column spacing
+  colspacing=1em,
+  % Color style
+  bgColorOne=white,
+  bgColorTwo=white,
+  borderColor=black,
+  headerColorOne=TUBAFhausfarbe,
+  headerColorTwo=TUBAFhausfarbe,
+  headerFontColor=white,
+  boxColorOne=white,
+  boxColorTwo=white,
+  % Format of textbox
+  textborder=rounded,
+  % Format of text header
+  eyecatcher=false,
+  headerborder=closed,
+  headerheight=0.3\textheight,
+%  textfont=\sc, An example of changing the text font
+  headershape=rounded,
+  headershade=plain,
+  headerfont=\Large\bf\textsc, %Sans Serif
+  textfont={\setlength{\parindent}{1.5em}},
+  boxshade=plain,
+%  background=shade-tb,
+  background=plain,
+  linewidth=1pt
+  }
+  % Title
+  {}
+  % Authors
+  {}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Now define the boxes that make up the poster
+%%%---------------------------------------------------------------------------
+%%% Each box has a name and can be placed absolutely or relatively.
+%%% The only inconvenience is that you can only specify a relative position 
+%%% towards an already declared box. So if you have a box attached to the 
+%%% bottom, one to the top and a third one which should be in between, you 
+%%% have to specify the top and bottom boxes before you specify the middle 
+%%% box.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % A coloured circle useful as a bullet with an adjustably strong filling
+    \newcommand{\colouredcircle}{%
+      \tikz{\useasboundingbox (-0.2em,-0.32em) rectangle(0.2em,0.32em); \draw[draw=black,fill=lightblue,line width=0.03em] (0,0) circle(0.18em);}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Problem}{name=problem1,column=0,row=0}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Fitting statistical 2D and 3D shape models to images is necessary for a
+  variety of tasks, such as video editing and face recognition. Much progress
+  has been made on local fitting from an initial guess, but determining a close
+  enough initial guess is still an open problem. We propose a method to locate
+  fiducial points, which can then be used to initialize the fitting.
+ }
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Problem}{name=problem2,column=1,span=2,row=0}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Fitting statistical 2D and 3D shape models to images is necessary for a
+  variety of tasks, such as video editing and face recognition. Much progress
+  has been made on local fitting from an initial guess, but determining a close
+  enough initial guess is still an open problem. We propose a method to locate
+  fiducial points, which can then be used to initialize the fitting.
+    Fitting statistical 2D and 3D shape models to images is necessary for a
+  variety of tasks, such as video editing and face recognition. Much progress
+  has been made on local fitting from an initial guess, but determining a close
+  enough initial guess is still an open problem. We propose a method to locate
+  fiducial points, which can then be used to initialize the fitting.
+  Fitting statistical 2D and 3D shape models to images is necessary for a
+  variety of tasks, such as video editing and face recognition. Much progress
+  has been made on local fitting from an initial guess, but determining a close
+  enough initial guess is still an open problem. We propose a method to locate
+  fiducial points, which can then be used to initialize the fitting.
+
+ }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Problem}{name=problem3,column=0,below=problem1}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Fitting statistical 2D and 3D shape models to images is necessary for a
+  variety of tasks, such as video editing and face recognition. Much progress
+  has been made on local fitting from an initial guess, but determining a close
+  enough initial guess is still an open problem. We propose a method to locate
+  fiducial points, which can then be used to initialize the fitting.
+ }
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \headerbox{Problem}{name=problem3,column=2,below=problem2}{
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Fitting statistical 2D and 3D shape models to images is necessary for a
+  variety of tasks, such as video editing and face recognition. Much progress
+  has been made on local fitting from an initial guess, but determining a close
+  enough initial guess is still an open problem. We propose a method to locate
+  fiducial points, which can then be used to initialize the fitting.
+ }
+\end{poster}
+
+\end{document}
+

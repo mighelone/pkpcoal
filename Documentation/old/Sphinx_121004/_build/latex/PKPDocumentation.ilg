@@ -1,0 +1,7 @@
+This is makeindex, version 2.15 [TeX Live 2009] (kpathsea + Thai support).
+Scanning style file ./python.ist......done (6 attributes redefined, 0 ignored).
+Scanning input file PKPDocumentation.idx....done (158 entries accepted, 0 rejected).
+Sorting entries....done (1214 comparisons).
+Generating output file PKPDocumentation.ind....done (239 lines written, 0 warnings).
+Output written in PKPDocumentation.ind.
+Transcript written in PKPDocumentation.ilg.

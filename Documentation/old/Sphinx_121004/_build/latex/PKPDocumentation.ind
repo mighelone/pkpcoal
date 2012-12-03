@@ -1,0 +1,239 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter {Symbols}
+  \item \_CPD\_SpeciesBalance\_\_CheckOthers() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_CheckOxygen() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_QPyro() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_Q\_React() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_TarComp() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_closeResultFile() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_correctYields() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_hfRaw() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_hfTar() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_CPD\_SpeciesBalance\_\_nysEq15() (Compos\_and\_Energy.CPD\_SpeciesBalance method), 
+		\hyperpage{4}
+  \item \_FGDVC\_SpeciesBalance\_\_EnergyBalance() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method), 
+		\hyperpage{8}
+  \item \_FGDVC\_SpeciesBalance\_\_TarComp() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method), 
+		\hyperpage{8}
+  \item \_FGDVC\_SpeciesBalance\_\_closeFile() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method), 
+		\hyperpage{8}
+  \item \_FGDVC\_SpeciesBalance\_\_correctYields() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method), 
+		\hyperpage{8}
+  \item \_FGDVC\_SpeciesBalance\_\_writeEnergyResults() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method), 
+		\hyperpage{9}
+  \item \_FGDVC\_SpeciesBalance\_\_writeSpeciesResults() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method), 
+		\hyperpage{9}
+
+  \indexspace
+  \bigletter A
+  \item alpha\_d() (Fit\_one\_run.Model method), \hyperpage{12}
+  \item ArrheniusModel (class in Fit\_one\_run), \hyperpage{13}
+  \item ArrheniusModelAlternativeNotation1 (class in Fit\_one\_run), \hyperpage{13}
+  \item ArrheniusModelAlternativeNotation2 (class in Fit\_one\_run), \hyperpage{13}
+
+  \indexspace
+  \bigletter B
+  \item beta\_d() (Fit\_one\_run.Model method), \hyperpage{12}
+
+  \indexspace
+  \bigletter C
+  \item calcAE() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item calcAE() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item CalcCoalParam() (CPD\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{3}
+  \item calcMass() (Fit\_one\_run.ArrheniusModel method), \hyperpage{13}
+  \item calcMass() (Fit\_one\_run.ArrheniusModelAlternativeNotation1 method), \hyperpage{13}
+  \item calcMass() (Fit\_one\_run.ArrheniusModelAlternativeNotation2 method), \hyperpage{13}
+  \item calcMass() (Fit\_one\_run.Kobayashi method), \hyperpage{14}
+  \item calcMass() (Fit\_one\_run.KobayashiA2 method), \hyperpage{14}
+  \item calcRate() (Fit\_one\_run.Model method), \hyperpage{12}
+  \item calcYield() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item calcYield() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item CompareResults() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item CompareResults() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item ConstantRateModel (class in Fit\_one\_run), \hyperpage{13}
+  \item ConvertKinFactors() (Fit\_one\_run.ArrheniusModel method), \hyperpage{13}
+  \item ConvertKinFactors() (Fit\_one\_run.ArrheniusModelAlternativeNotation1 method), 
+		\hyperpage{13}
+  \item ConvertKinFactors() (Fit\_one\_run.ArrheniusModelAlternativeNotation2 method), 
+		\hyperpage{13}
+  \item ConvertKinFactors() (Fit\_one\_run.Kobayashi method), \hyperpage{14}
+  \item ConvertKinFactors() (Fit\_one\_run.KobayashiA2 method), \hyperpage{14}
+  \item ConvertKinFactorsToOwnNotation() (Fit\_one\_run.ArrheniusModelAlternativeNotation1 method), 
+		\hyperpage{13}
+  \item ConvertKinFactorsToOwnNotation() (Fit\_one\_run.ArrheniusModelAlternativeNotation2 method), 
+		\hyperpage{13}
+  \item correctUA() (Compos\_and\_Energy.SpeciesBalance method), \hyperpage{4}, \hyperpage{8}
+  \item CPD\_Result (class in Fit\_one\_run), \hyperpage{4}
+  \item CPD\_SpeciesBalance (class in Compos\_and\_Energy), \hyperpage{4}
+  \item CpFile() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item CpFile() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+
+  \indexspace
+  \bigletter D
+  \item Derive() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item Derive() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item deriveC() (Fit\_one\_run.Model method), \hyperpage{12}
+  \item DictCols2Yields() (Fit\_one\_run.CPD\_Result method), \hyperpage{4}
+  \item DictCols2Yields() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+  \item DictYields2Cols() (Fit\_one\_run.CPD\_Result method), \hyperpage{4}
+  \item DictYields2Cols() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+  \item Dt() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item DtC() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item Dulong() (Compos\_and\_Energy.SpeciesBalance method), \hyperpage{3}, \hyperpage{8}
+
+  \indexspace
+  \bigletter E
+  \item ErrorRate() (Fit\_one\_run.Model method), \hyperpage{12}
+  \item ErrorYield() (Fit\_one\_run.Model method), \hyperpage{12}
+
+  \indexspace
+  \bigletter F
+  \item FGDVC\_Result (class in Fit\_one\_run), \hyperpage{9}
+  \item FGDVC\_SpeciesBalance (class in Compos\_and\_Energy), \hyperpage{8}
+  \item FilePath() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+  \item FinalYields() (Fit\_one\_run.CPD\_Result method), \hyperpage{4}
+  \item FinalYields() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+  \item Fit\_one\_run (class in Fit\_one\_run), \hyperpage{11}
+  \item Fitting() (ReadInputFiles.ReadFile method), \hyperpage{14}
+
+  \indexspace
+  \bigletter G
+  \item generateRuns() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{25}
+  \item generateRuns() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item getAE() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{25}
+  \item getAE() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item getText() (ReadInputFiles.ReadFile method), \hyperpage{14}
+  \item getTimePoints() (ReadInputFiles.OperCondInput method), \hyperpage{14}
+  \item getValue() (ReadInputFiles.ReadFile method), \hyperpage{14}
+
+  \indexspace
+  \bigletter I
+  \item Interpolate() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+
+  \indexspace
+  \bigletter K
+  \item Kobayashi (class in Fit\_one\_run), \hyperpage{13}
+  \item KobayashiA2 (class in Fit\_one\_run), \hyperpage{14}
+
+  \indexspace
+  \bigletter L
+  \item LineNumberMaxRate() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+
+  \indexspace
+  \bigletter M
+  \item makeDt() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{25}
+  \item makeDt() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item MassCoal() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item MassVM\_s() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item MaxRateTemp() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item MaxRateTemp() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item Model (class in Fit\_one\_run), \hyperpage{12}
+
+  \indexspace
+  \bigletter N
+  \item Name() (Fit\_one\_run.CPD\_Result method), \hyperpage{5}
+  \item Name() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+  \item Name() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item NPoints() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+
+  \indexspace
+  \bigletter O
+  \item OperCondInput (class in ReadInputFiles), \hyperpage{14}
+
+  \indexspace
+  \bigletter P
+  \item ParamVector() (Fit\_one\_run.Model method), \hyperpage{12}
+  \item plot() (Fit\_one\_run.Model method), \hyperpage{13}
+  \item plt\_InputVectors() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{12}
+  \item plt\_RateVsTime() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{12}
+  \item plt\_YieldVsTime() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{12}
+  \item pltRate() (Fit\_one\_run.Model method), \hyperpage{13}
+  \item pltYield() (Fit\_one\_run.Model method), \hyperpage{13}
+  \item Process (class in FGDVC\_Fit\_lin\_regr), \hyperpage{23}
+  \item ProcessCPD (class in CPD\_Fit\_lin\_regr), \hyperpage{24}
+
+  \indexspace
+  \bigletter R
+  \item Rate() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item Rate() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item Rates\_all() (Fit\_one\_run.CPD\_Result method), \hyperpage{5}
+  \item Rates\_all() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+  \item RateSingleSpec() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item ReadFile (class in ReadInputFiles), \hyperpage{14}
+  \item readLines() (ReadInputFiles.ReadFile method), \hyperpage{14}
+  \item ReadRates() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item ReadYields() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item ReadYields() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item Run() (CPD\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{3}
+  \item Run() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+
+  \indexspace
+  \bigletter S
+  \item set1CoalLocation() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set2KinLocation() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set3PolyLocation() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set4RunID() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set5Pressure() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set6Theorie() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set7File() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set7Ramp() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{7}
+  \item set9AshMoisture() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{8}
+  \item setCoalComp() (ReadInputFiles.WriteFGDVCCoalFile method), \hyperpage{8}
+  \item SetCoalParameter() (CPD\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{3}
+  \item setConditions() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item setFiles() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{24}
+  \item SetNumericalParam() (CPD\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{3}
+  \item SetOperateCond() (CPD\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{3}
+  \item setParamVector() (Fit\_one\_run.Model method), \hyperpage{13}
+  \item SetterAndLauncher (class in CPD\_Fit\_lin\_regr), \hyperpage{3}
+  \item SetterAndLauncher (class in FGDVC\_Fit\_lin\_regr), \hyperpage{7}
+  \item setTRamp\_or\_TFile() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{8}
+  \item SpeciesBalance (class in Compos\_and\_Energy), \hyperpage{3}, \hyperpage{8}
+  \item SpeciesIndex() (Compos\_and\_Energy.SpeciesBalance method), \hyperpage{4}, \hyperpage{8}
+  \item SpeciesIndex() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item SpeciesIndex() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item SpeciesName() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item SpeciesName() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item SpeciesName() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+  \item SpeciesNames() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{11}
+
+  \indexspace
+  \bigletter T
+  \item Time() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item Time() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item Time() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{12}
+  \item TtInterpol() (CPD\_Fit\_lin\_regr.ProcessCPD method), \hyperpage{24}
+  \item TtInterpol() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item TwoPointEstimator (class in Fit\_one\_run), \hyperpage{12}
+
+  \indexspace
+  \bigletter U
+  \item UsePyrolProgr() (ReadInputFiles.ReadFile method), \hyperpage{14}
+
+  \indexspace
+  \bigletter W
+  \item write() (ReadInputFiles.WriteFGDVCCoalFile method), \hyperpage{8}
+  \item WriteFGDVCCoalFile (class in ReadInputFiles), \hyperpage{8}
+  \item writeFGDVCtTHist() (ReadInputFiles.OperCondInput method), \hyperpage{14}
+  \item writeInstructFile() (CPD\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{3}
+  \item writeInstructFile() (FGDVC\_Fit\_lin\_regr.SetterAndLauncher method), \hyperpage{8}
+
+  \indexspace
+  \bigletter Y
+  \item Yield() (FGDVC\_Fit\_lin\_regr.Process method), \hyperpage{23}
+  \item Yield() (Fit\_one\_run.Fit\_one\_run method), \hyperpage{12}
+  \item Yields\_all() (Fit\_one\_run.CPD\_Result method), \hyperpage{5}
+  \item Yields\_all() (Fit\_one\_run.FGDVC\_Result method), \hyperpage{9}
+
+\end{theindex}

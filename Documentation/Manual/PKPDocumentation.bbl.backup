@@ -1,0 +1,43 @@
+\begin{thebibliography}{1}
+
+\bibitem{Ferraris_1}
+G.~Buzzi-Ferraris and F.~Manenti.
+\newblock {Kinetic models analysis}.
+\newblock {\em Chemical Engineering Science}, (64):1061--1074, 2009.
+
+\bibitem{Ferraris_2}
+G.~Buzzi-Ferraris and F.~Manenti.
+\newblock {Better reformulation of kinetic models}.
+\newblock {\em Computers and Chemical Engineering}, (34):1904--1906, 2010.
+
+\bibitem{Cai_DAEM2}
+J.~Cai, C.~Jin, S.~Yang, and Y.~Chen.
+\newblock {Logistic distributed activation energy model – Part 1: Derivation
+  and numerical parametric study}.
+\newblock {\em Bioresource Technology}, (102):1556--1561, 2011.
+
+\bibitem{Cai_DAEM1}
+J.~Cai and R.~Liu.
+\newblock {New distributed activation energy model: Numerical solution and
+  application to pyrolysis kinetics of some types of biomass}.
+\newblock {\em Bioresource Technology}, (99):2795--2799, 2008.
+
+\bibitem{Cai_DAEM3}
+J.~Cai, S.~Yang, and L.~Tao.
+\newblock {Logistic distributed activation energy model – Part 2: Application
+  to cellulose pyrolysis}.
+\newblock {\em Bioresource Technology}, (102):3642--3644, 2011.
+
+\bibitem{Slovak_DAEM}
+L.~Ga\v{s}paroviè, J.~Labovsk\ý, J.~Marko\š, and L.~Jelemensk\ý.
+\newblock {Calculation of Kinetic Parameters of the Thermal Decomposition of
+  Wood by Distributed Activation Energy Model (DAEM)}.
+\newblock {\em Chem. Biochem. Eng}.
+
+\bibitem{McGuiness_DAEM}
+M.~McGuinness, E.~Donskoi, and D.~McElwain.
+\newblock {Asymptotic Approximations to the Distributed Activation Energy
+  Model}.
+\newblock {\em Applied Mathematics Letters}.
+
+\end{thebibliography}

@@ -1,0 +1,118 @@
+% copyright 2009-2011 by Thomas Benkert
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Dieses Werk ist unter einem Creative Commons 
+% Namensnennung - Keine Bearbeitung 3.0 Deutschland Lizenzvertrag lizenziert. 
+% Um die Lizenz anzusehen, gehen Sie bitte zu http://creativecommons.org/licenses/by-nd/3.0/de/ 
+% oder schicken Sie einen Brief an 
+% Creative Commons, 171 Second Street, Suite 300, San Francisco, California 94105, USA.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\ProvidesFile{TUBAFbrief.ldf}[2011/11/09 v.1.5.0 Thomas Benkert]
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% Sprachanpassungen
+% deutsch
+\addto\captionsgerman{%
+	% allgemein
+	\def\figurename{Abb.}
+	\def\tablename{Tab.}
+	% TUBAFbrief
+	\renewcommand{\unserschreibenname}{Unser Schreiben vom}
+	\renewcommand{\datumname}{Datum}
+	\renewcommand{\durchwahlname}{Durchwahl}
+	\renewcommand{\internetname}{Internet}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}von}
+	\renewcommand{\psname}{PS}
+	%	
+}
+% deutsch neu
+\addto\captionsngerman{%
+	% allgemein
+	\def\figurename{Abb.}
+	\def\tablename{Tab.}
+	% TUBAFbrief
+	\renewcommand{\unserschreibenname}{Unser Schreiben vom}
+	\renewcommand{\datumname}{Datum}
+	\renewcommand{\durchwahlname}{Durchwahl}
+	\renewcommand{\internetname}{Internet}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}von}
+	\renewcommand{\psname}{PS}
+	%	
+}
+% englisch UK
+% Übersetzung Sprachenzentrum Bergakademie
+\addto\captionsenglish{%
+	% allgemein
+	\def\figurename{Fig.}
+	\def\tablename{Tab.}
+	%TUBAFbrief
+	\renewcommand{\unserschreibenname}{Our letter of}
+	\renewcommand{\datumname}{Date}
+	\renewcommand{\durchwahlname}{Direct dialling}
+	\renewcommand{\internetname}{Internet}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}of}
+	\renewcommand{\psname}{PS}
+	%
+}
+% englisch USA
+% Übersetzung Sprachenzentrum Bergakademie
+\addto\captionsamerican{%
+	% allgemein
+	\def\figurename{Fig.}
+	\def\tablename{Tab.}
+	%TUBAFbrief
+	\renewcommand{\unserschreibenname}{Our letter of}
+	\renewcommand{\datumname}{Date}
+	\renewcommand{\durchwahlname}{Direct dialing}
+	\renewcommand{\internetname}{Internet}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}of}
+	\renewcommand{\psname}{PS}
+	%
+}
+% norsk
+% Übersetzung Karsten Opel
+\addto\captionsnorsk{%
+	% allgemein
+	\def\figurename{Figur}
+	\def\tablename{Tabell}
+	%TUBAFbrief
+	\renewcommand{\unserschreibenname}{V\aa{}r referanse fra}
+	\renewcommand{\datumname}{Dato}
+	\renewcommand{\durchwahlname}{Direkte tlf}
+	\renewcommand{\internetname}{Internett}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}av}
+	\renewcommand{\psname}{PS}
+	%
+}
+% polnisch
+% Übersetzung von Sprachenzentrum Bergakademie, Kasia Pazola
+\addto\captionspolish{%
+	% allgemein
+	\def\figurename{Rys.}
+	\def\tablename{Tab.}
+	%TUBAFbrief
+	\renewcommand{\unserschreibenname}{Nasze pismo z}
+	\renewcommand{\datumname}{Data}
+	\renewcommand{\durchwahlname}{Numer wewn\c etrzy}
+	\renewcommand{\internetname}{Strona internetowa}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}z}
+	\renewcommand{\psname}{P.S.}
+	%
+}
+% französisch
+% Übersetzung von  Anja Freitag
+\addto\captionsfrench{%
+	% allgemein
+	\def\figurename{Fig.}
+	\def\tablename{Tab.}
+	%TUBAFbrief
+	\renewcommand{\unserschreibenname}{Notre courrier de}
+	\renewcommand{\datumname}{Date}
+	\renewcommand{\durchwahlname}{Num\'ero direct}
+	\renewcommand{\internetname}{Site Internet}
+	\renewcommand{\interpagename}{\usekomavar{interpageseparator}de}
+	\renewcommand{\psname}{PS}
+	%
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput

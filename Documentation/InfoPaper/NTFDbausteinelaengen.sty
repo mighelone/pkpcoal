@@ -1,0 +1,228 @@
+% Laengen, Saklierungen und andere Berechnungen fuer TUBAFbausteine.sty
+% copyright 2011 by Thomas Benkert
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Dieses Werk ist unter einem Creative Commons 
+% Namensnennung - Keine Bearbeitung 3.0 Deutschland Lizenzvertrag lizenziert. 
+% Um die Lizenz anzusehen, gehen Sie bitte zu http://creativecommons.org/licenses/by-nd/3.0/de/ 
+% oder schicken Sie einen Brief an 
+% Creative Commons, 171 Second Street, Suite 300, San Francisco, California 94105, USA.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\NeedsTeXFormat{LaTeX2e}
+%
+\newcommand{\NTFDbausteinelaengen@name}{NTFDbausteinelaengen}
+\newcommand{\NTFDbausteinelaengen@date}{2011/11/09}
+\newcommand{\NTFDbausteinelaengen@version}{1.5.0}
+%
+\ProvidesPackage{\NTFDbausteinelaengen@name}[\NTFDbausteinelaengen@date\space  v.\NTFDbausteinelaengen@version\space Thomas Benkert]
+%
+\typeout{Package \NTFDbausteinelaengen@name
+	\space\NTFDbausteinelaengen@date\space  v.\NTFDbausteinelaengen@version\space Thomas Benkert^^J
+	\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\space Laengen, Skalierungen und andere Berechnungen^^J
+	\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\space fuer TUBAFbausteine.sty}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% benötigte Pakete
+\RequirePackage{xkeyval}
+\RequirePackage{ifthen}
+\@ifpackageloaded{fp}{}{\RequirePackage[nomessages]{fp}}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\ifthenelse{\isundefined{\TUBAFbausteine@bausteineeinheit}}{\newcommand{\TUBAFbausteine@bausteineeinheit}{mm}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Optionen
+%
+%\newcommand{\TUBAFbausteine@fp}{nomessages}
+%
+%\DeclareOptionX{bausteineeinheit}{\renewcommand{\TUBAFbausteine@bausteineeinheit}{#1}}
+\DeclareOptionX{bausteineeinheit}{\def\TUBAFbausteine@bausteineeinheit{#1}}
+%
+%\DeclareOptionX{fp}{%
+%	\XKV@cc*+[\val\nr]{#1}{messages,nomessages}{%
+%	\ifcase\nr\relax
+%		\renewcommand{\TUBAFbausteine@fp}{messages}
+%	   \or
+%		\renewcommand{\TUBAFbausteine@fp}{nomessages}
+%	\fi    
+%	}{\PackageWarningNoLine{\TUBAFbausteine@name}{the input 'fp=\val' is incorrect and ignored}}%
+%}
+%
+\DeclareOptionX*{\PackageWarningNoLine{\NTFDbausteinelaengen@name}{Unknown option ignored: \CurrentOption}}
+%
+\ExecuteOptionsX{%
+	bausteineeinheit=mm
+%	fp=nomessages
+}
+\ProcessOptionsX\relax
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% neue Befehle für Offsets und Skalierungen
+%
+\newcommand{\TUBAFbausteine@scaleext}{1}
+\let\TUBAFbausteine@scaleint\TUBAFbausteine@scaleext
+% ebenso für textbox (TUBAFrahmen, TUBAFkopfklein, TUBAFkasten)
+\newcommand{\TUBAFbausteine@textboxbreite}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Berechnung Skalierung mit fp
+%
+% Hilfslänge definieren
+\newlength\TUBAFbausteine@tmp
+%
+\newlength\TUBAFbausteine@bausteinelaenge
+% Wertzuweisung
+\setlength{\TUBAFbausteine@bausteinelaenge}{1\TUBAFbausteine@bausteineeinheit}
+%
+\setlength{\TUBAFbausteine@tmp}{297mm}
+\FPset\TUBAFbausteine@dinavierhoehe{\number\TUBAFbausteine@tmp}
+% Wertzuweisung
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPset\TUBAFbausteine@basislaenge{\number\TUBAFbausteine@tmp}%
+%
+% Hilfgrößen definieren
+\newcommand{\TUBAFbausteine@tmpa}{}
+%
+% Werte für fp zuweisen (ohne Einheit!)
+\FPset\TUBAFbausteine@aktuellehoehe{\number\paperheight}
+% Berechnung Maßstabszahl
+\FPdiv\TUBAFbausteine@scaleext\TUBAFbausteine@aktuellehoehe\TUBAFbausteine@dinavierhoehe
+%
+% Berechnungen für textbox (TUBAFrahmen, TUBAFkopfklein, TUBAFkasten)
+\setlength{\TUBAFbausteine@tmp}{1.022\paperwidth}% Korrektur, sonst ovefull hbox
+\FPset\TUBAFbausteine@aktuellebreite{\number\TUBAFbausteine@tmp}
+\FPdiv\TUBAFbausteine@tmpa\TUBAFbausteine@aktuellebreite\TUBAFbausteine@basislaenge
+\FPround\TUBAFbausteine@textboxbreite\TUBAFbausteine@tmpa5%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Berechnung der Ränder in Abhängigkeit von der Papiergröße und von \TUBAFbausteine@bausteinelaenge
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+% linke Ränder
+%
+% bis linker Rand TECH
+\setlength{\TUBAFbausteine@tmp}{78.81409pt}% aus TUBAFbalkentext abgelesen & gerundet
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandLi\TUBAFbausteine@tmpb5
+%
+% aus Kompatibilitätsgründen
+\newcommand{\TUBAFbausteinebisT}{%
+	\PackageWarning{\NTFDbausteinelaengen@name}{The command '\protect\TUBAFbausteinebisT' is obsolete!^^J
+			\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\space
+			Please use '\protect\TUBAFbausteineRandLi' instead^^J
+			\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces\@spaces}%
+	\TUBAFbausteineRandLi%
+}
+% bis rechter Rand weiße Streifen
+\setlength{\TUBAFbausteine@tmp}{59.750754pt}% aus TUBAFbalkenstreifen abgelesen & gerundet
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandLii\TUBAFbausteine@tmpb5
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+% rechte Ränder
+%
+% bis Mitte Logo/linker Rand Kastenstreifen
+\setlength{\TUBAFbausteine@tmp}{62.56757526pt}% aus TUBAFkastenstreifen abgelesen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandRi\TUBAFbausteine@tmpb5
+%
+% bis rechter Rand Logo/FREIBERG
+\setlength{\TUBAFbausteine@tmp}{20.8813712pt}% aus TUBAFkastenstreifen abgelesen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandRii\TUBAFbausteine@tmpb5
+%
+% bis linker Rand Logo/Anfang FREIBERG
+\setlength{\TUBAFbausteine@tmp}{106.1826857pt}% aus TUBAFkastenstreifen abgelesen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandRiii\TUBAFbausteine@tmpb5
+%
+% bis rechter Rand MIE
+\setlength{\TUBAFbausteine@tmp}{114.25pt}% in ghostview gemessen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandRiv\TUBAFbausteine@tmpb5
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+% obere Ränder
+%
+% bis Oberkante Logo
+\setlength{\TUBAFbausteine@tmp}{56.1pt}% in ghostview gemessen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandOi\TUBAFbausteine@tmpb5
+%
+% bis Unterkante Logo
+\setlength{\TUBAFbausteine@tmp}{140.5pt}% in ghostview gemessen und getestet
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandOii\TUBAFbausteine@tmpb5
+%
+% bis Unterkante Balken
+\setlength{\TUBAFbausteine@tmp}{42.163pt}% aus TUBAFkastenstreifen abgelesen und gerundet
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandOiii\TUBAFbausteine@tmpb5
+%
+% bis Oberkante "Institutsblock"
+\setlength{\TUBAFbausteine@tmp}{80pt}% in ghostview festgelegt und gemessen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext 
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@bisInstitut\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPtrunc\TUBAFbausteineRandOiv\TUBAFbausteine@bisInstitut2
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+% untere Ränder
+%
+% bis Oberkante Kasten
+\setlength{\TUBAFbausteine@tmp}{43.054pt}% in ghostview gemessen % eigentlich 43.054! 45.941 1.887 42.167pt
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandUi\TUBAFbausteine@tmpb5
+%
+% bis Oberkante Umweltstreifen
+\setlength{\TUBAFbausteine@tmp}{28.11pt}% aus TUBAFkastenstreifen abgelesen und gerundet
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandUii\TUBAFbausteine@tmpb5
+%
+% bis Unterkante Geostreifen
+\setlength{\TUBAFbausteine@tmp}{13.516pt}% aus TUBAFkastenstreifen abgelesen und gerundet
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@tmpb\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPround\TUBAFbausteineRandUiii\TUBAFbausteine@tmpb5
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+%
+% kein Rand, die Breite von TECH...MIE
+\setlength{\TUBAFbausteine@tmp}{402.21pt}% in ghostview gemessen
+\FPmul\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}\TUBAFbausteine@scaleext 
+\setlength{\TUBAFbausteine@tmp}{\TUBAFbausteine@bausteinelaenge}
+\FPdiv\TUBAFbausteine@InstitutBreite\TUBAFbausteine@tmpa{\number\TUBAFbausteine@tmp}
+\FPtrunc\TUBAFbausteineInstitutBreite\TUBAFbausteine@InstitutBreite2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\endinput

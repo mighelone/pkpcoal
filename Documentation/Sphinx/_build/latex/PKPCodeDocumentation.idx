@@ -1,0 +1,198 @@
+\indexentry{SetterAndLauncher (class in CPD\_SetAndLaunch)|hyperpage}{3}
+\indexentry{CalcCoalParam() (CPD\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{3}
+\indexentry{Run() (CPD\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{3}
+\indexentry{SetCoalParameter() (CPD\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{3}
+\indexentry{SetNumericalParam() (CPD\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{3}
+\indexentry{SetOperateCond() (CPD\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{3}
+\indexentry{writeInstructFile() (CPD\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{3}
+\indexentry{SpeciesBalance (class in Compos\_and\_Energy)|hyperpage}{4}
+\indexentry{Dulong() (Compos\_and\_Energy.SpeciesBalance method)|hyperpage}{4}
+\indexentry{SpeciesIndex() (Compos\_and\_Energy.SpeciesBalance method)|hyperpage}{4}
+\indexentry{correctUA() (Compos\_and\_Energy.SpeciesBalance method)|hyperpage}{4}
+\indexentry{CPD\_SpeciesBalance (class in Compos\_and\_Energy)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_CheckOthers() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_CheckOxygen() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_QPyro() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_Q\_React() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_TarComp() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_closeResultFile() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_correctYields() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_hfRaw() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_hfTar() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{\_CPD\_SpeciesBalance\_\_nysEq15() (Compos\_and\_Energy.CPD\_SpeciesBalance method)|hyperpage}{4}
+\indexentry{CPD\_Result (class in CPD\_Result)|hyperpage}{4}
+\indexentry{DictCols2Yields() (CPD\_Result.CPD\_Result method)|hyperpage}{5}
+\indexentry{DictYields2Cols() (CPD\_Result.CPD\_Result method)|hyperpage}{5}
+\indexentry{FinalYields() (CPD\_Result.CPD\_Result method)|hyperpage}{5}
+\indexentry{Name() (CPD\_Result.CPD\_Result method)|hyperpage}{5}
+\indexentry{Rates\_all() (CPD\_Result.CPD\_Result method)|hyperpage}{5}
+\indexentry{Yields\_all() (CPD\_Result.CPD\_Result method)|hyperpage}{5}
+\indexentry{SetterAndLauncher (class in FGDVC\_SetAndLaunch)|hyperpage}{7}
+\indexentry{Run() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set1CoalLocation() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set2KinLocation() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set3PolyLocation() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set4RunID() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set5Pressure() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set6Theorie() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set7File() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{7}
+\indexentry{set7Ramp() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{8}
+\indexentry{set9AshMoisture() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{8}
+\indexentry{setTRamp\_or\_TFile() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{8}
+\indexentry{writeInstructFile() (FGDVC\_SetAndLaunch.SetterAndLauncher method)|hyperpage}{8}
+\indexentry{WriteFGDVCCoalFile (class in InformationFiles)|hyperpage}{8}
+\indexentry{setCoalComp() (InformationFiles.WriteFGDVCCoalFile method)|hyperpage}{8}
+\indexentry{write() (InformationFiles.WriteFGDVCCoalFile method)|hyperpage}{8}
+\indexentry{SpeciesBalance (class in Compos\_and\_Energy)|hyperpage}{8}
+\indexentry{Dulong() (Compos\_and\_Energy.SpeciesBalance method)|hyperpage}{8}
+\indexentry{SpeciesIndex() (Compos\_and\_Energy.SpeciesBalance method)|hyperpage}{8}
+\indexentry{correctUA() (Compos\_and\_Energy.SpeciesBalance method)|hyperpage}{8}
+\indexentry{FGDVC\_SpeciesBalance (class in Compos\_and\_Energy)|hyperpage}{8}
+\indexentry{\_FGDVC\_SpeciesBalance\_\_EnergyBalance() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method)|hyperpage}{8}
+\indexentry{\_FGDVC\_SpeciesBalance\_\_TarComp() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method)|hyperpage}{8}
+\indexentry{\_FGDVC\_SpeciesBalance\_\_closeFile() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method)|hyperpage}{8}
+\indexentry{\_FGDVC\_SpeciesBalance\_\_correctYields() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method)|hyperpage}{9}
+\indexentry{\_FGDVC\_SpeciesBalance\_\_writeEnergyResults() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method)|hyperpage}{9}
+\indexentry{\_FGDVC\_SpeciesBalance\_\_writeSpeciesResults() (Compos\_and\_Energy.FGDVC\_SpeciesBalance method)|hyperpage}{9}
+\indexentry{FGDVC\_Result (class in FGDVC\_Result)|hyperpage}{9}
+\indexentry{DictCols2Yields() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{DictYields2Cols() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{FilePath() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{FinalYields() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{Name() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{Rates\_all() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{Yields\_all() (FGDVC\_Result.FGDVC\_Result method)|hyperpage}{9}
+\indexentry{Fit\_one\_run (class in FitInfo)|hyperpage}{11}
+\indexentry{Dt() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{DtC() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{Interpolate() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{LineNumberMaxRate() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{MassCoal() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{MassVM\_s() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{NPoints() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{Name() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{Rate() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{RateSingleSpec() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{SpeciesIndex() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{SpeciesName() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{SpeciesNames() (FitInfo.Fit\_one\_run method)|hyperpage}{11}
+\indexentry{Time() (FitInfo.Fit\_one\_run method)|hyperpage}{12}
+\indexentry{Yield() (FitInfo.Fit\_one\_run method)|hyperpage}{12}
+\indexentry{plt\_InputVectors() (FitInfo.Fit\_one\_run method)|hyperpage}{12}
+\indexentry{plt\_RateVsTime() (FitInfo.Fit\_one\_run method)|hyperpage}{12}
+\indexentry{plt\_YieldVsTime() (FitInfo.Fit\_one\_run method)|hyperpage}{12}
+\indexentry{TwoPointEstimator (class in Fitter)|hyperpage}{12}
+\indexentry{LeastSquarsEstimator (class in Fitter)|hyperpage}{12}
+\indexentry{Deviation() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{estimate\_T() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{improve\_E() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{improve\_a() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{minLengthOfVectors() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{setMaxIter() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{setOptimizer() (Fitter.LeastSquarsEstimator method)|hyperpage}{12}
+\indexentry{setPreMaxIter() (Fitter.LeastSquarsEstimator method)|hyperpage}{13}
+\indexentry{setPreTolerance() (Fitter.LeastSquarsEstimator method)|hyperpage}{13}
+\indexentry{setTolerance() (Fitter.LeastSquarsEstimator method)|hyperpage}{13}
+\indexentry{setWeights() (Fitter.LeastSquarsEstimator method)|hyperpage}{13}
+\indexentry{GlobalOptimizer (class in Fitter)|hyperpage}{13}
+\indexentry{GenerateOptima() (Fitter.GlobalOptimizer method)|hyperpage}{13}
+\indexentry{ParamList() (Fitter.GlobalOptimizer method)|hyperpage}{13}
+\indexentry{setParamList() (Fitter.GlobalOptimizer method)|hyperpage}{13}
+\indexentry{GenericOpt (class in Evolve)|hyperpage}{13}
+\indexentry{\_GenericOpt\_\_UpdateParam() (Evolve.GenericOpt method)|hyperpage}{13}
+\indexentry{mkResults() (Evolve.GenericOpt method)|hyperpage}{13}
+\indexentry{setNrGenerations() (Evolve.GenericOpt method)|hyperpage}{13}
+\indexentry{setNrPopulation() (Evolve.GenericOpt method)|hyperpage}{13}
+\indexentry{setParamRanges() (Evolve.GenericOpt method)|hyperpage}{14}
+\indexentry{setScaledParameter() (Evolve.GenericOpt method)|hyperpage}{14}
+\indexentry{setWeights() (Evolve.GenericOpt method)|hyperpage}{14}
+\indexentry{Model (class in Models)|hyperpage}{14}
+\indexentry{ErrorRate() (Models.Model method)|hyperpage}{14}
+\indexentry{ErrorYield() (Models.Model method)|hyperpage}{14}
+\indexentry{ParamVector() (Models.Model method)|hyperpage}{14}
+\indexentry{calcRate() (Models.Model method)|hyperpage}{14}
+\indexentry{deriveC() (Models.Model method)|hyperpage}{14}
+\indexentry{minLengthOfVectors() (Models.Model method)|hyperpage}{14}
+\indexentry{plot() (Models.Model method)|hyperpage}{14}
+\indexentry{pltRate() (Models.Model method)|hyperpage}{14}
+\indexentry{pltYield() (Models.Model method)|hyperpage}{14}
+\indexentry{setParamVector() (Models.Model method)|hyperpage}{14}
+\indexentry{ConstantRateModel (class in Models)|hyperpage}{14}
+\indexentry{ArrheniusModel (class in Models)|hyperpage}{15}
+\indexentry{ConvertKinFactors() (Models.ArrheniusModel method)|hyperpage}{15}
+\indexentry{calcMass() (Models.ArrheniusModel method)|hyperpage}{15}
+\indexentry{ArrheniusModelAlternativeNotation2 (class in Models)|hyperpage}{15}
+\indexentry{ConvertKinFactors() (Models.ArrheniusModelAlternativeNotation2 method)|hyperpage}{15}
+\indexentry{ConvertKinFactorsToOwnNotation() (Models.ArrheniusModelAlternativeNotation2 method)|hyperpage}{15}
+\indexentry{calcMass() (Models.ArrheniusModelAlternativeNotation2 method)|hyperpage}{15}
+\indexentry{setMinMaxTemp() (Models.ArrheniusModelAlternativeNotation2 method)|hyperpage}{15}
+\indexentry{Kobayashi (class in Models)|hyperpage}{15}
+\indexentry{calcMass() (Models.Kobayashi method)|hyperpage}{15}
+\indexentry{KobayashiPCCL (class in Models)|hyperpage}{15}
+\indexentry{ConvertKinFactors() (Models.KobayashiPCCL method)|hyperpage}{15}
+\indexentry{E2Diff() (Models.KobayashiPCCL method)|hyperpage}{15}
+\indexentry{KobWeights() (Models.KobayashiPCCL method)|hyperpage}{15}
+\indexentry{calcMass() (Models.KobayashiPCCL method)|hyperpage}{15}
+\indexentry{setE2Diff() (Models.KobayashiPCCL method)|hyperpage}{16}
+\indexentry{setKobWeights() (Models.KobayashiPCCL method)|hyperpage}{16}
+\indexentry{ReadFile (class in InformationFiles)|hyperpage}{17}
+\indexentry{Fitting() (InformationFiles.ReadFile method)|hyperpage}{17}
+\indexentry{UsePyrolProgr() (InformationFiles.ReadFile method)|hyperpage}{17}
+\indexentry{getText() (InformationFiles.ReadFile method)|hyperpage}{17}
+\indexentry{getValue() (InformationFiles.ReadFile method)|hyperpage}{17}
+\indexentry{readLines() (InformationFiles.ReadFile method)|hyperpage}{17}
+\indexentry{WriteFGDVCCoalFile (class in InformationFiles)|hyperpage}{17}
+\indexentry{setCoalComp() (InformationFiles.WriteFGDVCCoalFile method)|hyperpage}{17}
+\indexentry{write() (InformationFiles.WriteFGDVCCoalFile method)|hyperpage}{17}
+\indexentry{OperCondInput (class in InformationFiles)|hyperpage}{17}
+\indexentry{getTimePoints() (InformationFiles.OperCondInput method)|hyperpage}{17}
+\indexentry{writeFGDVCtTHist() (InformationFiles.OperCondInput method)|hyperpage}{18}
+\indexentry{Ui\_PKP (class in GUI)|hyperpage}{19}
+\indexentry{LoadTtFile1() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile2() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile3() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile4() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile5() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot1() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot2() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot3() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot4() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot5() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{SaveInfos() (GUI.Ui\_PKP method)|hyperpage}{19}
+\indexentry{InfosFromGUI (class in GUI)|hyperpage}{20}
+\indexentry{ArrhSpec() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{ArrhSpecReverse() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{FGCoalProp() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{MwsHHV() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{OperCond() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{PA() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{RunPyrolProg() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{RunPyrolProgReverse() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{SetArrhSpec() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{SetRunPyrolProg() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{TimeHistories() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{UA() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{WeightYR() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setFGCoalProp() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setMwsHHV() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setOperCond() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setPA() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setTimeHistories() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setUA() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setWeightYR() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{WriteCoalFile (class in writeInfoFiles)|hyperpage}{21}
+\indexentry{WriteCPDFile (class in writeInfoFiles)|hyperpage}{21}
+\indexentry{WriteFGFile (class in writeInfoFiles)|hyperpage}{21}
+\indexentry{WriteOCFile (class in writeInfoFiles)|hyperpage}{21}
+\indexentry{MainProcess (class in Pyrolysis)|hyperpage}{23}
+\indexentry{CheckFGdt() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{DAF() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_Arrh() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_ArrhNoB() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_CPD() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_CR() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_DEAM() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_FG() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_Kob() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{ReadInputFiles() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{SpeciesEnergy() (Pyrolysis.MainProcess method)|hyperpage}{23}

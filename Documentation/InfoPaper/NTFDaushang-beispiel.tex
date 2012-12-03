@@ -1,0 +1,28 @@
+\documentclass[
+stil=druck,
+futura=false,
+sprache=english]{NTFDaushang}
+% Use these packages for proper encoding
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{hyperref}
+\usepackage{lmodern}
+\usepackage{blindtext}
+\hypersetup{
+colorlinks=true,       % false: boxed links; true: colored links
+urlcolor=TUBAFhausfarbe,           % color of external links
+linkcolor=black,
+citecolor=black
+}
+%Only available for pdflatex; produces nicely typed text
+\usepackage[protrusion=true,expansion]{microtype}
+\NTFDTitel{Here comes your Titel}
+
+\NTFDGutachter{Prof. Dr.-Ing Christian Hasse}
+\NTFDBetreuer[][]{Max Advisor}
+\begin{document}
+\begin{NTFDBulletin}
+		  
+\end{NTFDBulletin}
+\end{document}

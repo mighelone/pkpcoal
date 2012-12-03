@@ -1,0 +1,275 @@
+\section{User Manual}\label{S_Manual}
+\subsection{Previous Steps}\label{SS_1stSteps}
+Before running the \CPD pyrolysis model with the program the first time, the \CPD-Code\footnote{available at: http://www.et.byu.edu/\texttildelow tom/cpd/cpdcpnlg/cpdcp\_nlgfiles.html} has to be compiled and the executable has to copied to the main directory (containing also the Python code). There the \CPD executable should be renamed \emph{CPD.out}.\footnote{Alternatively the name of the executable can be changed in the \emph{Pyrolysis.py}. But rename the file is the less effort.}
+The directory must contain the following files:
+\begin{itemize}
+ \item Coal.inp (User input for the information about the coal)
+ \item CPD.inp (User input for the settings of \CPD)
+ \item CPD.out (the \CPD executable)
+ \item Compos\_and\_Energy.py (the code for the species and energy balance for the \CPD and \FGDVC output)
+ \item CPD\_Fit\_lin\_regr.py (the code for launching \texttt{CPD})
+ \item FGDVC.inp (User input for the settings of \FGDVC)
+ \item FGDVC\_Fit\_lin\_regr.py (the code for launching \texttt{FG-DVC})
+ \item Fit\_one\_run.py (the code for fitting the kinetic parameter)
+ \item IN.dat (input file for \texttt{CPD})
+ \item OperCond.inp (User input for the operating conditions)
+ \item Pyrolysis.py (the main code, accessing to the classes defined in the other *.py)
+\end{itemize}
+
+Before running FG-DVC, the directories have to be defined, see the paragraph~\textbf{FGDVC.inp} in chapter~\ref{SS_Generate_Results}.
+\subsection{Generate Results}\label{SS_Generate_Results}
+The user input is managed by the four \emph{*.inp} files, \emph{Coal.inp, CPD.inp} \emph{FGDVC.inp} and \emph{OperCond.inp}. The information you want to insert into these files have to be in the line below the line asking for the information. For example:\\
+\emph{Fixed Carbon:\\
+43.7}\\
+This way you set the amount of Fixed Carbon equal 43.7. The position~(i.e. the line) of such two lines in the input file does not matter, the only important point is the specific string~(in this example~\emph{Fixed Carbon:}) and that the value you want to set is in the following line after the string.\footnote{If you want to use another string in this file, you also have to change the individual file note in \emph{Pyrolysis.py}. In this example \emph{PAFC\_asrec=CoalInput.getValue('Fixed Carbon:')} has to be changed to \emph{PAFC\_asrec=CoalInput.getValue('[new note]')}.}\\
+Firstly you will get a short overview into these files and the values to enter into them:\\
+\paragraph{Coal.inp} contains the main information about the coal. Both programs, \CPD and \FGDVC receive their information about the coal from this file. The proximate analysis values are only required by \CPD.
+\begin{itemize}
+ \item \textbf{Fixed Carbon:} sets the amount of fixed carbon in the coal. The value has to be entered in percent for a non-daf coal.
+ \item \textbf{Volatile Matter:} sets the amount of volatile matter in the coal in percent, as received.
+ \item \textbf{UA Carbon:}, \textbf{UA Hydrogen:}, \textbf{UA Nitrogen:}, \textbf{UA Oxygen:} sets the ultimate analysis for the coal to model. The values have to be entered in percent.
+ \item \textbf{Higher Heating Value, as received, in J/kg:} sets the Higher heating value for the coal. If this value is not known, set it equal zero. Then the Dulong formula~(equation~\ref{E_Dulong}) will be used to calculate the higher heating value.
+ \item \textbf{Tar Molecule weight, MTar:} Sets the molecule weight of the tar, as it is required for the species and energy calculation, see chapters~\ref{SSS_ConsEqCPD}~and~\ref{SSS_ConsEqFGDVC}.
+ \item \textbf{Weight-Parameter yields for fitting the kinetics:} sets the weight $\mathrm{a_0}$ of the equation~\ref{E_Weight_Param1} to weight the yields in the fitting procedure~(equation~\ref{E_LS}).
+ \item \textbf{Weight-Parameter rates for fitting the kinetics:}  sets the weight $\mathrm{a_1}$ of the equation~\ref{E_Weight_Param2} to weight the rates in the fitting procedure~(equation~\ref{E_LS}).
+\end{itemize}
+
+\paragraph{CPD.inp} controls the \CPD program.
+\begin{itemize}
+ \item \textbf{useCPD?:} if set to \emph{yes} or \emph{true}, \CPD will be launched.
+ \item \textbf{selected fitting Approximation:} if the \emph{constantRate} is selected, the fitting will be carried out using equation~\ref{E_constRate_g}~and~\ref{E_constRate_s}. When selecting \emph{Arrhenius}, the kinetic parameter for the Arrhenius equation modeled pyrolysis kinetics~(equations~\ref{E_ArrhAlternative1},\ref{E_ArrhAlternative2}) will be calculated. To fit the Kobayashi parameter, set it to \emph{Kobayashi}. If selecting \emph{None}, no fitting of the kinetic parameter will be carried out.
+ \item \textbf{initial time step in s:} The initial time step, \CPD starts to calculate with.
+\item \textbf{print increment, writeValue:} Integer which sets the frequency of writing the result into the \texttt{CPD}-output file. E.g. '1' means every value is written into the file, '3' only every third value.
+\end{itemize}
+
+\paragraph{FGDVC.inp} controls the \FGDVC program.
+\begin{itemize}
+ \item \textbf{use FG-DVC?:}  if set to \emph{yes} or \emph{true}, \CPD will be launched.
+ \item \textbf{selected fitting Approximation:} if the \emph{constantRate} is selected, the fitting will be carried out using equation~\ref{E_constRate_g}~and~\ref{E_constRate_s}. When selecting \emph{Arrhenius}, the kinetic parameter for the Arrhenius equation modeled pyrolysis kinetics~(equations~\ref{E_ArrhAlternative1},\ref{E_ArrhAlternative2}) will be calculated. To fit the Kobayashi parameter, set it to \emph{Kobayashi}. If selecting \emph{None}, no fitting of the kinetic parameter will be done.
+ \item \textbf{main directory FG-DVC:} sets the main path of \texttt{FG-DVC}, where the \emph{fgdvc.exe} is located. One example: '{C:\verb|\|Programs\verb|\|FGDVC\_8-2-3\verb|\|}'
+ \item \textbf{directory fgdvc-output:} sets the main directory, where \FGDVC outputs the results. This is in general the directory, where the \emph{fgdvcd.exe} is located. One example: '{C:\verb|\|Programs\verb|\|FGDVC\_8-2-3\verb|\|FGDVC\verb|\|}'.\\To use other already generated FG-DVC output files, it is a good option to set their path here. As long as they are still named \emph{gasrate.txt} and \emph{gasyield.txt}, the fitting will be carried out on the information contained in these files.
+ \item \textbf{Choose Coal:} If this is set equal \emph{0}, the interpolation of the coal will be carried out using the information from \emph{Coal.inp} and the FG-DVC program \emph{coalsd.exe}, leading to self generated \FGDVC coal files. If the file cannot be generated, i.e. the used coal is outside the interpolation triangle\footnote{see the FG-DVC manual for more details: THE FG-DVC COAL PYROLYSIS MODEL USER'S GUIDE Version 8.2.3 for Windows; Advanced Fuel Research, Inc., 87 Church Street, East Hartford, CT 06108-3728, USA; 2012}, select on value from \emph{1}~to~\emph{8} to select one of the library coals. The order here is the same as in \texttt{FG-DVC}:
+ \begin{enumerate}
+  \item Beulah-Zap
+  \item Wyodak-Anderson
+  \item Illinois \# 6
+  \item Bind Canyon, UT
+  \item Lewis-Stockton, WV
+  \item Pittsburgh \# 8
+  \item Upper Freeport, PA
+  \item Pocahontas \# 3, VA
+ \end{enumerate}
+ \item \textbf{Model tar cracking?} To model no tar cracking~(as recommended in the \FGDVC manual)set the tar residence time equal \emph{0}. To model a partial tar cracking enter the tar residence time is seconds. If a full tar cracking shall be modeled set the residence time to a negative input value, e.g write \emph{-1}.           
+\end{itemize}
+
+\paragraph{OperCond.inp} sets the operating condition for \FGDVC and \texttt{CPD}.
+\begin{itemize}
+  \item \textbf{pressure in atm:} Sets the constant pressure in atmospheres.
+ \item \textbf{FG-DVC: constant (numerical) time step; CPD: maximum time step}: Enter here the numerical time step, the constant for \FGDVC and the maximum value for \texttt{CPD}.
+ \item \textbf{Time History:} Write here two columns in the textfile. The first one lists the time in seconds, the second one the temperature in K. The last time point is automatically selected as the final pyrolysis time. The end of the time array \emph{ever} has to be shown by enter the term \emph{End Time History}. Here one example:\\
+\emph{0, 293\\
+0.1, 1000\\
+0.2, 1100\\
+0.6, 1700\\
+End Time History\\}
+\end{itemize}
+
+
+\subsubsection{Results}\label{SS_ResultsFiles}
+The results, if generated, are documented in the following files. The name of the text-files contains in front the used pyrolysis program (e.g. \emph{CPD-BalanceResults.txt}).
+
+\paragraph{BalanceResults.txt}
+This file contains the output of the output of the species and the energy conservation, chapters~\ref{SSS_ConsEqCPD}
+~and~\ref{SSS_ConsEqFGDVC}. The first part lists the input of the UA, PA and HHV. Afterwards, the final yields of all species are enumerated, as the result of using the equation~\ref{E_add_up}~to~\ref{E_MethanNew}. The tar composition~(equation~\ref{E_TarComp}), assuming a $\mathrm{C_nH_mO_p}$ molecule with an average molecule mass, inputted by the user, is given by the factors n, m, p. The last two parts show the results applying the equations~\ref{E_Dulong}~to~\ref{E_QPyro}.
+
+\paragraph{Results\_const\_rate.txt}
+This file contains the kinetic parameters for the constant rate (equation~\ref{E_constRate_s}~or~\ref{E_constRate_g}) fitting. The two parameters are k in $\mathrm{\frac{1}{s}}$ and $\mathrm{t_{start}}$ in s.
+
+\paragraph{Result\_ArrheniusRate.txt}
+Similar to \emph{Results\_const\_rate.txt}, \emph{Result\_ArrheniusRate.txt} lists all kinetic parameter~(A in $\mathrm{\frac{1}{s}}$ and E~in~K) for the Arrhenius equation~\ref{E_Arrhenius_s}~or~\ref{E_Arrhenius_g}.
+
+\paragraph{CPD-Results\_KobayashiRate.txt}
+This file list for all species the Kobayashi kinetic parameter $\mathrm{A_1 \; and \; A_2 \; in \; \frac{1}{s}}$, $\mathrm{E_1 \; and \; E_2 \; in \; K}$, $\mathrm{\alpha_1 \; and \; \alpha_2}$.
+
+\paragraph{Fit\_result\_[Species]\_[R/Y].pdf}
+These files contains the plots of the \CPD/\FGDVC output curve and the estimated curve using the applied model. These plots show the rate (then *\_R.pdf) or yields (*\_Y.pdf). This plot exists for all species calculated by the pyrolysis program (named in *\_Species\_*).
+
+\paragraph{Fit\_result\_[Species].out}
+For every species is in the referring file the \emph{Time}, \emph{Temperature}, \emph{Yields} and the \emph{Rates} written in columns. This is not the original output from the pyrolysis program, it is the result using the selected equation with the fitted parameter.
+
+\subsection{Equations}\label{SS_Eq}
+\subsubsection{Pyrolysis Kinetic Equations}\label{SSS_KinEq}
+The general devolatilization reactions are described with~\ref{E_Reaction_s}~and~\ref{E_Reaction_g}, where~\ref{E_Reaction_s} describes the mass loss of the solid~(s) coal, equation~\ref{E_Reaction_g} the formation of the yields~(gaseous:g, individual:i).
+\begin{align}
+\label{E_Reaction_s}
+ \frac{dm_{s}}{dt}&=-k_s \: \left( m_{s} - m_{s,final} \right)\\
+\label{E_Reaction_g}
+ \frac{dm_{g,i}}{dt}&=k_{g,i} \: \left(m_{g,i,final} - m_{g,i}\right)  
+\end{align}
+Assuming a \textbf{constant rate} ($\mathrm{k = const. }$), these equations can be solved analytically:
+\begin{align}
+\label{E_constRate_s}
+m_s(t)&=m_{s,final} + \left( m_{s}(t=t_{start,s}) - m_{s,final} \right) \: e^{-k_s(t-t_{start,s})}\\
+\label{E_constRate_g}
+m_{g,i}(t)&=m_{g,i,final}\cdot \left( 1 - \: e^{-k_i(t-t_{start,i})} \right)\\
+\label{E_Offset_Time}
+if \;\;\; t\leq t_i\::\;\;\; m(t)&=m(0)
+\end{align}
+The kinetic rate can be also expressed with the \textbf{Arrhenius} equation:
+\begin{align}\label{E_Arrhenius_s}
+ \frac{dm_s}{dt}&=A_s \: e^{-\frac{E_s}{T(t)}}\left( m_{s} - m_{s,final} \right)\\
+\label{E_Arrhenius_g}
+ \frac{dm_{g,i}}{dt}&=A_i \:e^{-\frac{E_{g,i}}{T(t)}}\left(m_{g,i,final} - m_{g,i}\right)
+\end{align}
+For the fitting procedure, the following notations~(\ref{E_ArrhAlternative1},~\ref{E_ArrhAlternative2}) were used, as they have a better behavior in optimization procedures~\cite{Ferraris_1,Ferraris_2}. The optimized kinetic parameter~$\mathrm{b_1}$~and~$\mathrm{b_2}$ are afterwards transformed back into~$\mathrm{A}$~and~$\mathrm{E}$ of the notation~\ref{E_Arrhenius_s}~and~\ref{E_Arrhenius_g}.
+\begin{align}
+\label{E_ArrhAlternative1}
+ \frac{dm_i}{dt} &= exp \left[ k_0  - a \cdot \left( \frac{T_0}{T(t)}-1 \right)  \right]\left(m_{s,i} - m_i \right)\\
+\label{E_ArrhAlternative2}
+ \frac{dm_i}{dt} &= exp \left[ c \left(b_1 \left(\frac{1}{T(t)} - \frac{1}{T_{min}}\right) - b_2 \left(\frac{1}{T(t)} - \frac{1}{T_{max}}\right)\right) \right]\left(m_{s,i} - m_i \right)\\
+\mathrm{with}\;\;\;\;\;\;\;\;\; c&=\frac{1}{\frac{1}{T_{max}}-\frac{1}{T_{min}}}
+\end{align}
+
+Also the \textbf{Kobayashi} equation can be fitted, see equation~\ref{E_Kobayashi}. The optimization is carried out using the alternative Arrhenius notation, equations~\ref{E_ArrhAlternative1}~and~\ref{E_ArrhAlternative2} for $\mathrm{k_1}$ and $\mathrm{k_1}$. The results is in the standard Arrhenius parameter~(equations~\ref{E_Arrhenius_g}~and~\ref{E_Arrhenius_s}) and also the plot is done using the standard Arrhenius expressions in equation~\ref{E_Kobayashi}.
+\begin{equation}\label{E_Kobayashi}
+ \frac{m_v(t)}{m_{p,0} - m_a}= \int_{0}^{t} ( \alpha_1 k_1 + \alpha_2 k_2 ) exp \left( -  \int_{0}^{t} ( k_1 + k_2 ) \; dt \right) \; dt
+\end{equation}
+
+
+\subsubsection{Fitting the Kinetic Equations}\label{SSS_FitKin}
+The fitting procedure is carried out with a \texttt{scipy-optimizer}\footnote{\textit{http://docs.scipy.org/doc/scipy/reference/optimize.html}} \footnote{The standard setting optimizer is \texttt{fmin}.  The \texttt{leastsq} optimizer is second choice, but sometimes it does not optimize over a sufficient range.} and the \texttt{scipy.odeint}\footnote{\textit{http://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html}} package to minimize the residual~$E(k,m_{fit})$ in the equation~\ref{E_LS}. $\mathrm{m_{out}}$ is the output of the devolatilization program \CPD or \FGDVC. The optimization is carried out over all points reported in the output file of the pyrolysis program. The normalized weight factor parameters~$\mathrm{a_0}$~and~$\mathrm{a_1}$ in the equations~\ref{E_Weight_Param1}~and~\ref{E_Weight_Param2} can both be set in the user input file~\emph{Coal.inp}.
+
+\begin{equation}\label{E_LS}
+ E(k,m_{fit})=\omega_0 \int \left( m_{out}(t) - m_{fit}(k,t) \right)^2 dt \; + \; \omega_1 \int \left( \dot m_{out}(t) - \dot m_{fit}(k,t) \right)^2 dt
+\end{equation}
+\begin{align}
+ \label{E_Weight_Param1}
+\omega_0 &= \frac{a_0}{\left( max(m_{out})-min(m_{out}) \right)^2}\\
+ \label{E_Weight_Param2}
+\omega_1 &= \frac{a_1}{max(\dot{m}_{out}^2)}
+\end{align}
+
+\subsubsection{Pyrolysis Species- and Energy Conservation for \CPD output}\label{SSS_ConsEqCPD}
+
+\paragraph{Species Conservation}
+The first step, the oxygen content in the generated yields~(oxygen containing species $\mathrm{f_i}$ with $\mu_i^{O}$ oxygen) has to be less equal that the oxygen in the ultimate analysis:
+\begin{equation}
+ UAO^{cpd, \: species \: output} = M_{O} \sum_i \frac{\mu_i^{O} f_i}{M_i} \le UAO 
+ \label{E_O_balance}
+\end{equation}
+The factor~$\mathrm{\gamma}$~(\ref{E_gamma}) tells if the outputted yields contain less oxygen than reported in the Ultimate Analysis~(UA)~($\gamma > 1$) or if they are equal~($\gamma = 1$). For the case that~$\gamma < 1$, the oxygen containing yields have to be decreased by using equation~\ref{E_scale_up}, while the amount of the other species have to be increased to conserve the conserve the amount of volatile matter~(equation~\ref{E_add_up}). In this case, the tar will contain no oxygen. The yield of $N_2$ is equal to the UA of Nitrogen.
+
+\begin{align}
+ \gamma &= \frac{UAO}{UAO^{cpd, \: species \: output}}
+ \label{E_gamma}\\
+ f_i^{new} &= \gamma \cdot f_i 
+ \label{E_scale_up}\\
+ f_{oth}^{new} &= f_{oth} + \left(1-\gamma\right) \sum_i f_i
+ \label{E_add_up}
+\end{align}
+
+For the case $f_{N_2}<f_{other}$, the remaining part is assigned to $CH_4$:
+
+\begin{equation}
+ f_{CH_4}^{new} = f_{CH_4} + \left( f_{oth}^{new} - f_{N_2} \right)
+\label{E_MethanNew}
+\end{equation}
+
+After calculating all the other yields, the composition of tar can be calculated. For each element~C,H,O, the following equation~\ref{E_TarComp} can be used, assuming a tar composition of~$C_nH_mO_p$. $M_j$ is the atom weight of the element~j, $\mu_i^j$ the number of atoms of~$j$ in the species~$i$.
+
+\begin{equation}
+\frac{UA_j}{M_j} = \mu_{tar}^j \frac{f_{tar}}{M_{tar}} + \sum_i \mu_i^{j} \frac{f_{i}}{M_{i}}
+%{UA_j} = \mu_{tar}^j \frac{f_{tar}}{M_{tar}} + \sum_i \mu_i^{j} \frac{f_{i}}{M_{i}}
+\label{E_TarComp}
+\end{equation}
+
+
+\paragraph{Energy Conservation}
+The Dulong formula is used, if the higher heating value~(HHV) of the coal is not known:
+\begin{equation}\label{E_Dulong}
+ HHV = 32.79 \cdot UAC + 150.4 \cdot (UAH - UAO/8) + 9.26 \cdot UAS + 4.97 \cdot UAO + 2.42 \cdot UAN
+\end{equation}
+where UAC, UAH, UAO, UAS and UAN are the value of the ultimate analysis for carbon, hydrogen, oxygen, sulfur and nitrogen. The result has the unit of~$\frac{MJ}{kg_{coal, as recieved}}$.\\
+
+Afterwards, the HHV~(entered by the user or calculated with the Dulong formula) for the coal as received is related to the dry ash-free~(daf) state~(equation~\ref{E_HHVdaf}). This new HHV is used to get the lower heating value for a daf state, equation~\ref{E_LHV}. In this equation, $r_{H_2O}$ is the latent heat of water.
+\begin{align}
+ HHV_{daf}&=\frac{HHV_{ar}}{PAVM+PAFC}
+\label{E_HHVdaf}\\
+LHV_{daf}&=HHV_{daf}-\frac{M_{H_2O}}{2 \cdot M_H} \cdot UAH \cdot r_{H_2O}\
+\label{E_LHV}
+\end{align}
+
+Regarding the combustion of the raw coal (equation~\ref{E_Raw_Comb}), the energy balance can be written as in equation~\ref{E_Raw_hf}.
+\begin{align}
+ &C_xH_y O_z N_w + (x + y/4 - z/2) O2 \rightarrow x CO2 + y/2 H2O + w/2 N2
+\label{E_Raw_Comb}\\
+&Q_{react}=LHV_{raw}\cdot M_{daf} = h_{f,raw} + (x + y/4 - z/2) h_{f,O_2} -x h_{f,CO_2} -y/2
+	h_{f,H_2O} - w/2 h_{f,N_2}
+\label{E_Raw_hf}
+\end{align}
+Using equation~\ref{E_Raw_hf}, the heat of formation of the raw molecule~($h_{f,raw}$) can be calculated.\\
+
+The heat of formation for tar is based on the equation~\ref{E_DevolTar}, implying, that no heat is produced or absorbed during the devolatilization process.
+\begin{equation}\label{E_DevolTar}
+ C_x H_y O_z N_w \rightarrow \nu_{char}C_{(s)} + \nu_{tar} C_n H_m O_p + \sum_i \nu_i M_i
+\end{equation}
+
+The stoichiometric coefficient of each species can be calculated from the volatile yield expressed
+as mass fraction:
+\begin{equation}\label{E_myTar}
+ \nu_i = \frac{f_i M_{raw}}{M_i}
+\end{equation}
+Making the energy balance for equation~\ref{E_DevolTar} with $Q_{react}=0$, the heat of formation for tar is:
+\begin{equation}\label{E_Tar_hf}
+ \nu_{tar} h_{f,tar} = h_{f,raw} - \nu_{char} h_{f,char} - \sum_i \nu_i h_{f,i}
+\end{equation}\\
+
+Another method is to assume a heat of formation for tar equal zero (e.g. if there is only a very low yield of tar), and calculate the heat of pyrolysis:
+\begin{equation}
+ - Q_{pyro} \cdot M_{raw} = h_{f,raw} - \nu_{char} h_{f,char} - \sum_i \nu_i h_{f,i}
+\end{equation}
+Where $Q_{pyro}$ is the heat of pyrolysis per unit of mass of daf. It is positive if heat is
+required for breaking coal structure bounds. Generally, it is expressed in terms of volatile matter:
+\begin{equation}\label{E_QPyro}
+ Q_{pyro}^{vm} = \frac{Q_{pyro}}{1-f_{char}}
+\end{equation}
+
+\subsubsection{Pyrolysis Species and Energy Conservation for \FGDVC  output}\label{SSS_ConsEqFGDVC}
+\paragraph{Species Conservation}
+As in most of the CFD applications the combustion of some \FGDVC output species like HCN, COS or Olefins are not implemented, only the species Char, Tar, CO, $CO_2$, $H_2O$, $CH_4$ and $H_2$ are further considered. The nitrogen is merged into the tar. So the amount of tar is calculated by the using equation~\ref{E_newTar}, where the sum contains the species Char, CO, $CO_2$, $H_2O$, $CH_4$ and $H_2$.
+\begin{equation}\label{E_newTar}
+ f_{Tar}=1-\sum_i f_i
+\end{equation}
+Applying the equation~\ref{E_TarComp} for all the elements~j~(Carbon, Hydrogen, Nitrogen, Oxygen), the composition of tar~(its stoichiometric coefficients) is calculated.\\
+
+\paragraph{Energy Conservation}
+
+Applying the energy balance on the combustion reaction of the devolatilization yields (for the case of a non-heat producing/consuming pyrolysis process), the following reaction equation is satisfied:
+\begin{equation} \label{E_TarEnergy}
+ LHV_{daf}=H_{f,Tar} \cdot f_{Tar} + \sum_i H_{f,i} \cdot f_{i}
+\end{equation}
+The LHV is calculated based on the HHV using the same equations as in chapter~\ref{SSS_ConsEqCPD}. The $H_{f,i}$ are calculated with the following equations~\ref{E_hf1}~to~\ref{E_hf4}, making an energy balance for every of the pyrolysis yields.
+So the heat of formation for tar can be calculated from~equation~\ref{E_TarEnergy}, as all other parameters are known.
+
+\begin{align}
+\label{E_hf1}
+ H_{f,Char}&=\left( (h_{f,Char}+h_{f,O_2}-h_{f,CO_2}) \cdot f_{Char} \right) \cdot M_C^{-1} \\
+\label{E_hf2}
+ H_{f,H_2}&=\left( (h_{f,H_2}+ \frac{1}{2} \cdot h_{f,O_2} - h_{f,H_2O}) \cdot f_{H_2} \right) \cdot M_{H_2O}^{-1} \\
+\label{E_hf3}
+ H_{f,CH_4}&=\left( (h_{f,CH_4}+ 2 \cdot h_{f,O_2}-h_{f,CO_2}-2 \cdot h_{f,H_2O}) \cdot f_{CH_4} \right) \cdot M_{CH_4}^{-1} \\
+\label{E_hf4}
+ H_{f,CO}&=\left( (h_{f,CO}+ \frac{1}{2} \cdot h_{f,O_2}-h_{f,CO_2}) \cdot f_{CO} \right) \cdot M_{CO}^{-1}
+\end{align}
+
+The $H_{f,Tar}$~with the unit~$\frac{J}{kg}$ is transformed back into~$\frac{J}{kmol}$ by multiplying with the molecular mass of tar.\\
+To calculate the heat of formation for tar, the tar combustion can be regarded, as the tar composition is known:
+\begin{equation}
+ C_nH_mO_pN_k + \nu_{O_2} O_2 \rightarrow  \nu_{CO_2} CO_2 + \nu_{H_2O} H_2O + \nu_{N_2} N_2
+\end{equation}
+
+This leads to the balance, where the $h_{f,Tar}$ can be calculated:
+\begin{equation}
+ H_{f,Tar} = h_{f,Tar} + \nu_{O_2} h_{f,O_2} - \nu_{CO_2} h_{f,CO_2} - \nu_{H_2O} h_{f,H_2O} -\nu_{N_2} h_{f,N_2} 
+\end{equation}
+

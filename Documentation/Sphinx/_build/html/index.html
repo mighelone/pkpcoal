@@ -1,0 +1,172 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The PKP Code Documentation &mdash; PKP 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PKP 1.0.0 documentation" href="#" />
+    <link rel="next" title="The CPD specific Classes" href="CPDClasses.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="CPDClasses.html" title="The CPD specific Classes"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">PKP 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-pkp-code-documentation">
+<h1>The PKP Code Documentation<a class="headerlink" href="#the-pkp-code-documentation" title="Permalink to this headline">¶</a></h1>
+<p>This is the code documentation of the PKP program. The general structur of the classes is the following:</p>
+<ul class="simple">
+<li>There are pyrolysis program (like CPD and FG-DVC) specific ones to write the configuration files, launch their program and read the specific output files and support the other classes with the pyrolysis program specific data. Every of the programs has also it&#8217;s own class calculating the species and energy balance.</li>
+<li>The pyrolysis program independent Fitting classes.</li>
+<li>The IO-classes reading the user input and the classes generaing the output, e.g. for the FG-DVC coal file.</li>
+<li>The different user input classes reading the input files or the GUI input.</li>
+</ul>
+<p>The manual is also structured the same way. Firstly the specific classes for CPD and FG-DVC are introduced, followed by the fitting classes.</p>
+<p>Required additional python libraries for using PKP are:</p>
+<ul class="simple">
+<li>scipy</li>
+<li>numpy</li>
+<li>pylab</li>
+<li>pyevolve</li>
+<li>PyQt4</li>
+</ul>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="CPDClasses.html">The CPD specific Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CPDClasses.html#the-class-writing-the-cpd-instruction-file-and-launching-cpd">The Class writing the CPD instruction File and launching CPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CPDClasses.html#the-class-making-the-species-and-the-energy-balance">The Class making the Species and the Energy Balance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CPDClasses.html#the-reading-class-containg-the-cpd-specific-output-information">The Reading Class containg the CPD specific output information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="FGDVCClasses.html">The FG-DVC specific Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="FGDVCClasses.html#the-class-writing-the-fg-dvc-instruction-file-and-launches-fg-dvc">The Class writing the FG-DVC instruction file and launches FG-DVC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="FGDVCClasses.html#the-class-generating-the-coal-file">The Class generating the Coal File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="FGDVCClasses.html#the-class-making-the-species-and-the-energy-balance">The Class making the Species and the Energy Balance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FGDVCClasses.html#the-reading-class-containg-the-cpd-specific-output-information">The Reading Class containg the CPD specific output information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="FittingClasses.html">The Fitting Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#the-general-fitting-support-class">The General Fitting Support Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#a-simple-two-point-estimator-for-constant-rate">A simple two point estimator for constant rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#the-least-square-optimization-class">The Least Square Optimization Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#the-global-optimizer-class">The Global Optimizer Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#the-evolution-algorithm-class">The Evolution algorithm  Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#the-model-parent-class">The Model parent Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FittingClasses.html#the-model-children-classes">The Model children Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="FittingClasses.html#the-constant-rate-model">The Constant Rate Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="FittingClasses.html#the-arrhenius-model">The Arrhenius Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="FittingClasses.html#the-arrhenius-model-with-no-correction-term">The Arrhenius Model with no correction Term</a></li>
+<li class="toctree-l3"><a class="reference internal" href="FittingClasses.html#the-kobayashi-models">The Kobayashi Models</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="InputOutputClasses.html">The Input- Output Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="InputOutputClasses.html#the-general-user-input-file-class">The General User Input File Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="InputOutputClasses.html#the-class-writing-the-fg-dvc-coal-generator-input-file">The Class writing the FG-DVC Coal Generator Input File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="InputOutputClasses.html#the-class-reading-the-operating-condition-input-file">The Class reading the Operating Condition Input File</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="GUI.html">The GUI Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="GUI.html#the-main-window">The Main Window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GUI.html#the-class-saving-the-information-from-the-gui">The Class Saving the information from the GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GUI.html#the-classes-writing-the-info-files">The Classes writing the Info Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="GUI.html#the-coal-file">The Coal File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GUI.html#the-cpd-file">The CPD File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GUI.html#the-fg-dvc-file">The FG-DVC File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GUI.html#the-operating-condition-file">The Operating Condition File</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MainProgramCode.html">The Main Class</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Next topic</h4>
+  <p class="topless"><a href="CPDClasses.html"
+                        title="next chapter">The CPD specific Classes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="CPDClasses.html" title="The CPD specific Classes"
+             >next</a> |</li>
+        <li><a href="#">PKP 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Martin Pollack.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
