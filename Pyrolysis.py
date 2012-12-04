@@ -164,7 +164,7 @@ class MainProcess(object):
         LS.setTolerance(1.e-18)
         LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_const_rate.txt', 'w')
-        outfile.write("Species\tk [1/s]\t\tt_start [s]\t\tFinalYield\n\n")
+        outfile.write("Species   k [1/s]  t_start [s] FinalYield\n\n")
         for Spec in range(2,len(Fit[0].SpeciesNames()),1):
             if Fit[0].SpeciesName(Spec) not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append(Fit[0].SpeciesName(Spec))
@@ -177,8 +177,8 @@ class MainProcess(object):
             CR.setParamVector(LS.estimate_T(Fit,CR,PredictionVector,Spec))
             CR.plot(Fit,Spec)
             Solution=CR.ParamVector()
-            if np.sum(Solution)!=np.sum(PredictionVector):
-                outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\n')
+            if np.sum(Solution)!=np.sum(PredictionVector):#str('%7.5f\n' %self.Yields[self.SpeciesIndex('Solid')])
+                outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+'%8.4f  %8.4f  %8.4f  ' %(Solution[0],Solution[1],Solution[2])+'\n')
 #            #for the comparison of the species sum with (1-Solid)
 #            for runNr in range(NrOfRuns):
 #                if Fit[runNr].SpeciesName(Spec)=='Solid':
@@ -206,7 +206,7 @@ class MainProcess(object):
         LS.setTolerance(1.e-7)
         LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusRate.txt', 'w')
-        outfile.write("Species\tA [1/s]\t\tb\t\tE_a [K]\t\tFinalYield\n\n")
+        outfile.write("Species A [1/s]         b       E_a [K]    FinalYield\n\n")
         #select one of the follwoing notations: 
         #Arr=Models.ArrheniusModel(PredictionV0)
         #Arr=Models.ArrheniusModelAlternativeNotation1(PredictionV1)
@@ -302,7 +302,7 @@ class MainProcess(object):
             Arr.plot(Fit,Species)
             Solution=Arr.ParamVector()
             if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
-                outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\n')
+                outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %6.4f  %11.4f  %7.4f  ' %(Solution[0],Solution[1],Solution[2],Solution[3])+'\n')
             #for the comparison of the species sum with (1-Solid)
 #            for runNr in range(NrOfRuns):
 #                if Fit[runNr].SpeciesName(Species)=='Solid':
@@ -329,7 +329,7 @@ class MainProcess(object):
         LS.setTolerance(1.e-7)
         LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusNoBRate.txt', 'w')
-        outfile.write("Species\tA [1/s]\t\tE_a [K]\t\tFinalYield\n\n")
+        outfile.write("Species A [1/s]         E_a [K]   FinalYield\n\n")
         #######
         ##The single species:
         #makes Species list which contains alls species to fit:
@@ -418,7 +418,7 @@ class MainProcess(object):
             Solution=Arr.ParamVector()
             Arr.plot(Fit,Species)
             if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
-                outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\n')
+                outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %7.4f  ' %(Solution[0],Solution[1],Solution[2])+'\n')
         outfile.close()
         if oSystem=='Linux':
             shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result/'+PyrolProgram+'-Results_ArrheniusNoB.txt')
@@ -442,7 +442,7 @@ class MainProcess(object):
         LS.setMaxIter(2000)
         LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_KobayashiRate.txt', 'w')
-        outfile.write("Species\t\tA1 [1/s]\t\tE_a1 [K]\t\tA2 [1/s]\t\t\tE_a2 [K]\talpha1 \t\t\talpha2 \n\n")
+        outfile.write("Species A1 [1/s]         E_a1 [K]    A2 [1/s]      E_a2 [K]   alpha1  alpha2\n\n")
         Kob=Models.Kobayashi(PredictionVKob0)
         #######
         ##The single species:
@@ -474,7 +474,7 @@ class MainProcess(object):
             Solution=Kob.ParamVector()
             #
             Kob.plot(Fit,Species)
-            outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t\t'+str(Solution[1])+'\t\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\t\t'+str(Solution[4])+'\t\t'+str(Solution[5])+'\n')
+            outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %.6e  %11.4f  %6.4f  %6.4f  ' %(Solution[0],Solution[1],Solution[2],Solution[3],Solution[4],Solution[5])+'\n')
         outfile.close()
         if oSystem=='Linux':
             shutil.move(PyrolProgram+'-Results_KobayashiRate.txt','Result/'+PyrolProgram+'-Results_Kobayashi.txt')
@@ -494,7 +494,7 @@ class MainProcess(object):
         LS.setMaxIter(2000)
         LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_DAEM.txt', 'w')
-        outfile.write("Species\t\tA1 [1/s]\t\tE_a1 [K]\t\tsigma [K]\t\t\tFinal Yield\n\n")
+        outfile.write("Species   A1 [1/s]      E_a1 [K]     sigma [K] Final Yield\n\n")
         DAEM=Models.DAEM(PredictionDAEM)
         DAEM.setNrOfActivationEnergies(GlobalOptParam.NrOFActivtionEnergies)
         #######
@@ -538,7 +538,7 @@ class MainProcess(object):
             Solution=DAEM.ParamVector()
             #
             DAEM.plot(Fit,Species)
-            outfile.write(str(Fit[0].SpeciesName(Species))+'\t\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t\t'+str(Solution[2])+'\t\t\t'+str(Solution[3])+'\n')
+            outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %11.4f  %6.4f  ' %(Solution[0],Solution[1],Solution[2],Solution[3])+'\n')
         outfile.close()
         if oSystem=='Linux':
             shutil.move(PyrolProgram+'-Results_DAEM.txt','Result/'+PyrolProgram+'-Results_DAEM.txt')
