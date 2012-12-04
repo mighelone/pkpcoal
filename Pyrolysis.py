@@ -329,10 +329,7 @@ class MainProcess(object):
         LS.setTolerance(1.e-7)
         LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusNoBRate.txt', 'w')
-        outfile.write("Species\tA [1/s]\t\tb\t\tE_a [K]\t\tFinalYield\n\n")
-        #select one of the follwoing notations: 
-        #Arr=Models.ArrheniusModel(PredictionV0)
-        #Arr=Models.ArrheniusModelAlternativeNotation1(PredictionV1)
+        outfile.write("Species\tA [1/s]\t\tE_a [K]\t\tFinalYield\n\n")
         #######
         ##The single species:
         #makes Species list which contains alls species to fit:
@@ -378,12 +375,8 @@ class MainProcess(object):
         ##The single species:
         for Species in SpeciesList:
             m_final_prediction=Fit[0].Yield(Species)[-1]
-            PredictionV0=[0.86e15,0,27700,m_final_prediction]  #for Standard Arrhenius
-            PredictionV2=[10.,-18.,m_final_prediction]           #for Arrhenius notation #2
-            Arr=Models.ArrheniusModelAlternativeNotation2(PredictionV2)
-            ArrPlot=Models.ArrheniusModel([0,0,0,0]) #use Original Arrhenius Model to Plot
-            #
-            Arr.setMinMaxTemp(Fit[0].Yield('Temp')[0],Fit[0].Yield('Temp')[-1])
+            PredictionV0=[0.86e15,27700,m_final_prediction]  #for Standard Arrhenius
+            Arr=Models.ArrheniusModelNoB(PredictionV0)
             #
             print Fit[0].SpeciesName(Species)
             if UseGlobalOpt=='ManyPoints':
@@ -413,7 +406,7 @@ class MainProcess(object):
                     GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
                 else:
                     GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-                GenAlg.setParamRanges(Arr.ConvertKinFactorsToOwnNotation(GAArrhInit),Arr.ConvertKinFactorsToOwnNotation([GAArrhMinA,0,GAArrhMinE,min(m_final_predictionAll)]),Arr.ConvertKinFactorsToOwnNotation([GAArrhMaxA,0,GAArrhMaxE,max(m_final_predictionAll)]))
+                GenAlg.setParamRanges(GAArrhInit.pop(1),[GAArrhMinA,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxE,max(m_final_predictionAll)])
                 GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
                 GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
                 Arr.setParamVector(GenAlg.mkResults())
@@ -422,11 +415,10 @@ class MainProcess(object):
                 #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            Solution=Arr.ConvertKinFactors(Arr.ParamVector())
-            ArrPlot.setParamVector(Solution)
-            ArrPlot.plot(Fit,Species)
-            if np.sum(Arr.ParamVector())!=np.sum(PredictionV2): #To avoid, a species with no yield is added to the parameter file
-                outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\t\t'+str(Solution[3])+'\n')
+            Solution=Arr.ParamVector()
+            Arr.plot(Fit,Species)
+            if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
+                outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+str(Solution[0])+'\t'+str(Solution[1])+'\t'+str(Solution[2])+'\n')
         outfile.close()
         if oSystem=='Linux':
             shutil.move(PyrolProgram+'-Results_ArrheniusNoBRate.txt','Result/'+PyrolProgram+'-Results_ArrheniusNoB.txt')

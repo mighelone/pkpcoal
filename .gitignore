@@ -132,6 +132,7 @@ Desktop.ini
 #############
 
 *.py[co]
+*.pyc
 
 # Packages
 *.egg
@@ -164,13 +165,12 @@ pip-log.txt
 
 
 # other stuff
+*.png
 *.dat
 *.pdf
-*.png
 *.db
 *.py~
 *.pdf
-*.png
 *.out
 *.pyc
 *.txt

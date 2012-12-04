@@ -258,6 +258,51 @@ class ArrheniusModel(Model):
         #does nothing, just to have the same way of use for all notations
         return ParameterVector
 
+                
+class ArrheniusModelNoB(Model):
+    """The Arrhenius model in the standart notation: dm/dt=A*exp(-E/T)*(m_s-m) with the parameter a,b,E to optimize."""
+    def __init__(self,InitialParameterVector):
+        print 'Arrhenuis Model initialized'
+        self._ParamVector=InitialParameterVector
+        self.ODE_hmax=1.e-2
+ 
+    def calcMass(self,fgdvc,time,T,Name):
+        """Outputs the mass(t) using the model specific equation."""
+        #numercal values:
+        absoluteTolerance = 1.0e-8
+        relativeTolerance = 1.0e-6
+        ##################
+        u=fgdvc.Yield(Name)
+        ParamVec=self.ParamVector()
+        m_s0=ParamVec[2]
+        def dmdt(m,t):
+            #A=parameter[0]
+            #b=parameter[1]
+            #E=parameter[2]
+            if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
+                dmdt_out=-ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m-m_s0)
+                dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
+            else:
+                dmdt_out= ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m_s0-m)
+                dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
+                #print 'ParamVec[0]',ParamVec[0]
+                #print '(T(t)**ParamVec[1])',(T(t)**ParamVec[1])
+                #print 'np.exp(-ParamVec[2]/(T(t)))', np.exp(-ParamVec[2]/(T(t)))
+                #print '(m_s0-m)',(m_s0-m)
+            return dmdt_out
+        InitialCondition=[u[0]]
+        m_out=sp.integrate.odeint(dmdt,InitialCondition,time,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax) 
+        if (ParamVec[0]<0 or ParamVec[1]<0):
+            m_out[:,0]=float('inf')
+            return m_out[:,0]
+        else:
+            return m_out[:,0]
+
+
+    def ConvertKinFactors(self,ParameterVector):
+        """Dummy. Function actual has to convert the parameter into the standart Arrhenius notation."""
+        #does nothing, just to have the same way of use for all notations
+        return ParameterVector
         
         
 class ArrheniusModelAlternativeNotation1(ArrheniusModel):
