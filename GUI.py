@@ -29,6 +29,7 @@ class Ui_PKP(QMainWindow):
         QMainWindow.__init__(self) #manually added
         self.QWidgMain= QWidget(self) #manually added
         self.setCentralWidget(self.QWidgMain) #manually added
+        self.TheCalculationsAreDone=False #manually added
         self.svInfo=SaveInfoObj
         PKP.setObjectName(_fromUtf8("PKP"))
         PKP.resize(1033, 753)
@@ -350,14 +351,14 @@ class Ui_PKP(QMainWindow):
         self.actionWrite_and_Run.setObjectName(_fromUtf8("actionWrite_and_Run"))
         self.actionExit = QtGui.QAction(PKP)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
-#        self.actionRun_the_saved_state = QtGui.QAction(PKP)
-#        self.actionRun_the_saved_state.setObjectName(_fromUtf8("actionRun_the_saved_state"))
+        self.actionShow_generated_Results = QtGui.QAction(PKP)
+        self.actionShow_generated_Results.setObjectName(_fromUtf8("actionShow_generated_Results"))
         self.actionShow_saved_state = QtGui.QAction(PKP)
         self.actionShow_saved_state.setObjectName(_fromUtf8("actionShow_saved_state"))
         self.menuFile.addAction(self.actionWrite_into_File)
         self.menuFile.addAction(self.actionWrite_and_Run)
         self.menuFile.addAction(self.actionShow_saved_state)
-#        self.menuFile.addAction(self.actionRun_the_saved_state)
+        self.menuFile.addAction(self.actionShow_generated_Results)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
@@ -370,6 +371,7 @@ class Ui_PKP(QMainWindow):
         #manually added
         QtCore.QObject.connect(self.actionWrite_into_File, QtCore.SIGNAL(_fromUtf8("activated()")), self.SaveInfos)
         QtCore.QObject.connect(self.actionShow_saved_state, QtCore.SIGNAL(_fromUtf8("activated()")), self.LoadState)
+        QtCore.QObject.connect(self.actionShow_generated_Results, QtCore.SIGNAL(_fromUtf8("activated()")), self.ReOpenResultWindow)
         #
         QtCore.QObject.connect(self.B_Open1, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile1)
         QtCore.QObject.connect(self.B_Open2, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile2)
@@ -510,8 +512,8 @@ class Ui_PKP(QMainWindow):
         self.actionWrite_and_Run.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+R", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setText(QtGui.QApplication.translate("PKP", "Exit", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
-#        self.actionRun_the_saved_state.setText(QtGui.QApplication.translate("PKP", "Run the saved state", None, QtGui.QApplication.UnicodeUTF8))
-#        self.actionRun_the_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+T", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_generated_Results.setText(QtGui.QApplication.translate("PKP", "Show generated Results", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_generated_Results.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+T", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setText(QtGui.QApplication.translate("PKP", "Load saved state", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+O", None, QtGui.QApplication.UnicodeUTF8))
 
@@ -700,6 +702,7 @@ class Ui_PKP(QMainWindow):
         plt.show()
 
     def WriteRun(self):
+        """Writes the *.inp files and launch the process."""
         self.SaveInfos()
         #os.system('python Pyrolysis.py')
         #print 'START executable'
@@ -720,9 +723,18 @@ class Ui_PKP(QMainWindow):
         self.Done=Done.Ui_Dialog()
         self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD)
         self.Done.show()
+        self.TheCalculationsAreDone=True
         #
 #        os.system('python Done.py')
 #        self.actionExit
+        
+    def ReOpenResultWindow(self):
+        """If the calculation were done once, the window showing the results can be opened again."""
+        if self.TheCalculationsAreDone==True:
+            self.Done.show()
+        else:
+            print 'Please launch the process first to show the results.'
+        
         
     def LoadState(self):
         CoalInput=InformationFiles.ReadFile('Coal.inp')

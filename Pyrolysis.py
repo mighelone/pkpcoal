@@ -273,7 +273,7 @@ class MainProcess(object):
                 LS.setTolerance(1.e-7)
                 print 'Final optimization Run:'
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
+            elif UseGlobalOpt=='Evolve':
                 m_final_predictionAll=[]
                 for i in range(len(Fit)):
                     m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
@@ -297,7 +297,7 @@ class MainProcess(object):
                 #
                 #use afterwards local optimization
                 #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            if UseGlobalOpt==False:
+            elif UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Arr.plot(Fit,Species)
             Solution=Arr.ParamVector()
