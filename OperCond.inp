@@ -6,6 +6,7 @@ FG-DVC: constant (numerical) time step; CPD: maximum time step
 
 Time History: first column time in seconds, second column: Temperature in K. Last point must contain the final time. The final time has to be equal in each case.
 Number of Temperature Histories to include:
+<<<<<<< HEAD
 4
 Start Time History 1
 0.0,  300.0
@@ -35,4 +36,35 @@ Start Time History 5
 0.0,  300.0
 0.01,  1500.0
 0.15,  1500.0
+=======
+2
+Start Time History 1
+0.0,  400.0
+0.1,  1700.0
+0.8,  1700.0
+End Time History 1
+
+Start Time History 2
+0.0,  400.0
+0.2,  1700.0
+0.8,  1700.0
+End Time History 2
+
+Start Time History 3
+0.0,  400.0
+0.1,  1700.0
+0.8,  1700.0
+End Time History 3
+
+Start Time History 4
+0.0,  400.0
+0.1,  1700.0
+0.8,  1700.0
+End Time History 4
+
+Start Time History 5
+0.0,  400.0
+0.1,  1700.0
+0.8,  1700.0
+>>>>>>> 00181d424542063036dd8b31e673587966dc5d1b
 End Time History 5
