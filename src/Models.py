@@ -191,7 +191,32 @@ class Model(object):
         absE=(np.sum(uDot-vDot))/fgdvc.NPoints()
         return absE
     
-
+    def mkSimpleResultFiles(self,fgdvc_list,Species):
+        """Simple result file if no fitting is carried out. Writes only the transformed results into a file."""
+        if type(Species)==int:
+            SpeciesForTitle=fgdvc_list[0].SpeciesName(Species)
+        if type(Species)==str:
+            SpeciesForTitle=Species
+        #
+        for runnedCaseNr in range(len(fgdvc_list)):
+            t=fgdvc_list[runnedCaseNr].Yield('Time')
+            T=fgdvc_list[runnedCaseNr].Yield('Temp')
+            Len_tPoints=self.minLengthOfVectors(fgdvc_list)
+            u=np.zeros([(Len_tPoints),len(fgdvc_list)])
+            for runnedCaseNr in range(len(fgdvc_list)):
+                u[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Yield(Species)[:Len_tPoints]
+            w=self.deriveC(fgdvc_list[runnedCaseNr],u[:,runnedCaseNr],Len_tPoints)
+            if oSystem=='Linux':
+                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+            elif oSystem=='Windows':
+                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+            else:
+                print 'Models: Operating Platform cannot be specified.'
+            resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
+            for i in range(len(u)):
+                resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], u[i,runnedCaseNr], w[i]))
+            print 'YEAH'
+            resultFile.close()
 
 ################childrenclasses####################
 

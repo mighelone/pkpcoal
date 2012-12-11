@@ -634,13 +634,15 @@ class MainProcess(object):
         elif self.CPD_FittingKineticParameter_Select=='DAEM':
             self.MakeResults_DEAM('CPD',CPDFile,CPDFit)
             currentDict={'CPD':'DAEM'}
-        elif self.CPD_FittingKineticParameter_Select=='None':
+        elif self.CPD_FittingKineticParameter_Select==None:
             currentDict={'CPD':'None'}
-            for Species in CPDFile[0].SpeciesNames():
-                if Species not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(CPDFile[0].SpeciesName(Species))
+            for Species in CPDFit[0].SpeciesNames():
+                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                    self.SpeciesToConsider.append(Species)
+                    M=Models.Model()
+                    M.mkSimpleResultFiles(CPDFit,Species)
         else:
-            print 'uspecified CPD_FittingKineticParameter_Select'
+            print 'unspecified CPD_FittingKineticParameter_Select'
             currentDict={}
         #
         self.ProgramModelDict.update(currentDict)
@@ -752,6 +754,14 @@ class MainProcess(object):
         elif self.FG_FittingKineticParameter_Select=='DAEM':
             self.MakeResults_DEAM('FGDVC',FGFile,FGFit)
             currentDict={'FGDVC':'DAEM'}
+        elif self.FG_FittingKineticParameter_Select==None:
+            currentDict={'FGDVC':'None'}
+            print 'YEAHYEAH'
+            for Species in FGFit[0].SpeciesNames():
+                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                    self.SpeciesToConsider.append(Species)
+                    M=Models.Model()
+                    M.mkSimpleResultFiles(FGFit,Species)
         else:
             print 'uspecified FG_FittingKineticParameter_Select'
             currentDict={}
