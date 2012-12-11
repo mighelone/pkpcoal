@@ -1,41 +1,38 @@
 pressure in atm:
-1.0
+1
 
 FG-DVC: constant (numerical) time step; CPD: maximum time step
-1.e-3
+1.e-4
 
 Time History: first column time in seconds, second column: Temperature in K. Last point must contain the final time. The final time has to be equal in each case.
 Number of Temperature Histories to include:
-3
+4
 Start Time History 1
-0, 313
-0.02, 1700
-0.080, 1700
+0.0,  300.0
+0.05,  1500.0
+0.15,  1500.0
 End Time History 1
 
 Start Time History 2
-0, 313
-0.04, 1700
-0.080, 1700
+0.0,  300.0
+0.04,  1500.0
+0.15,  1500.0
 End Time History 2
 
 Start Time History 3
-0, 400
-0.06, 1700
-0.080, 1700
+0.0,  300.0
+0.03,  1500.0
+0.15,  1500.0
 End Time History 3
 
 Start Time History 4
-0, 400
-0.010, 1600
-0.060, 1600
-0.250, 1600 
+0.0,  300.0
+0.02,  1500.0
+0.15,  1500.0
 End Time History 4
 
 Start Time History 5
-0, 400
-0.013, 1900
-0.060, 1900
-0.250, 1900 
+0.0,  300.0
+0.01,  1500.0
+0.15,  1500.0
 End Time History 5
-

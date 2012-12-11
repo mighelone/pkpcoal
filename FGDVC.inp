@@ -1,20 +1,17 @@
 use FG-DVC?:
 No
-
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-Kobayashi
+None
 
 Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
 Total
 
 main directory FG-DVC:
 C:\FGDVC_8-2-3\
-
 directory fgdvc-output:
 C:\FGDVC_8-2-3\FGDVC\
 
 Choose Coal: 0 interpolate between library coals and generate own coal. Set 1 to 8 for a library coal.
 0
-
 Model tar cracking? If no, set tar residence time equal 0. For a partial tar cracking enter the tar residence time in s. For full tar cracking write -1.
-0
+0.05
