@@ -9,6 +9,7 @@ import os
 import writeInfoFiles
 import sys
 import platform
+import shutil
 
 from PyQt4.Qt import QWidget, QMainWindow
 
@@ -717,6 +718,14 @@ class Ui_PKP(QMainWindow):
         #os.system('python Pyrolysis.py')
         #print 'START executable'
         #
+        #removes date from Result directory
+        for filename in os.listdir('Result'):
+            filepath = os.path.join('Result', filename)
+            try:
+                shutil.rmtree(filepath)
+            except OSError:
+                    os.remove(filepath)
+        #
         Case=PKP.MainProcess()
         Case.ReadInputFiles()
         ProgramL=[]
@@ -954,9 +963,9 @@ if __name__ == "__main__":
     import sys
     Infosaver=InfosFromGUI()
     app = QtGui.QApplication(sys.argv)
-    PKP = QtGui.QMainWindow()
+    PKPWindow = QtGui.QMainWindow()
     ui = Ui_PKP()
-    ui.setupUi(PKP,Infosaver)
-    PKP.show()
+    ui.setupUi(PKPWindow,Infosaver)
+    PKPWindow.show()
     sys.exit(app.exec_())
 
