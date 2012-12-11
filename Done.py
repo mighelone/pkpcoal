@@ -97,7 +97,7 @@ class Ui_Dialog(QWidget):
                     os.system('Result\\'+PyrolPr+'-BalanceResults1.txt')
                 if os.path.exists('Result'+PyrolPr+'-BalanceResults2.txt'):
                     os.system('Result\\'+PyrolPr+'-BalanceResults2.txt')
-                if os.path.exists('Result/'+PyrolPr+'-BalanceResults3.txt'):
+                if os.path.exists('Result\\'+PyrolPr+'-BalanceResults3.txt'):
                     os.system('Result\\'+PyrolPr+'-BalanceResults3.txt')
 
     
@@ -106,20 +106,24 @@ class Ui_Dialog(QWidget):
         files=''
         if OSys=='Linux':
             for PyrolPr in self.PyrModelsD:
-                files+='Result/'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt '
+                if os.path.exists('Result/'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'):
+                    files+='Result/'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt '
             os.system('kate '+files)
         elif OSys=='Windows':
             for PyrolPr in self.PyrModelsD:
-                files='Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'
-                os.system(files)
+                if os.path.exists('Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'):
+                    files='Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'
+                    os.system(files)
         
     def PlotSpec(self):
         """Plots the results for all Programs and their fits."""
         SpecNr=self.cB_selSpec.currentIndex()
-        plt.clf(),plt.cla()
+#        plt.clf(),plt.cla()
+#        fig1 = plt.figure()
+#        figSpec = fig1.add_subplot(111)
         plt.ylabel('Yields (mass fraction)')
         plt.xlabel('Time in s')
-        plt.legend()
+        plt.legend(loc='4')
         plt.grid()
         colors=['g','b','r','purple','c','m','y','b','purple','r','b','g','c','y','m']
         colorIndex=0
@@ -140,7 +144,6 @@ class Ui_Dialog(QWidget):
                         plt.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
                         plt.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
                         colorIndex+=1
-        plt.legend(loc='4')
         plt.show()
         #
             

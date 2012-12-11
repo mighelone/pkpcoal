@@ -356,12 +356,15 @@ class Ui_PKP(QMainWindow):
         self.actionShow_generated_Results.setObjectName(_fromUtf8("actionShow_generated_Results"))
         self.actionShow_saved_state = QtGui.QAction(PKP)
         self.actionShow_saved_state.setObjectName(_fromUtf8("actionShow_saved_state"))
+        self.actionManual = QtGui.QAction(PKP)
+        self.actionManual.setObjectName(_fromUtf8("actionManual"))
         self.menuFile.addAction(self.actionWrite_into_File)
         self.menuFile.addAction(self.actionWrite_and_Run)
         self.menuFile.addAction(self.actionShow_saved_state)
         self.menuFile.addAction(self.actionShow_generated_Results)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
+        self.menuHelp.addAction(self.actionManual)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
@@ -373,6 +376,7 @@ class Ui_PKP(QMainWindow):
         QtCore.QObject.connect(self.actionWrite_into_File, QtCore.SIGNAL(_fromUtf8("activated()")), self.SaveInfos)
         QtCore.QObject.connect(self.actionShow_saved_state, QtCore.SIGNAL(_fromUtf8("activated()")), self.LoadState)
         QtCore.QObject.connect(self.actionShow_generated_Results, QtCore.SIGNAL(_fromUtf8("activated()")), self.ReOpenResultWindow)
+        QtCore.QObject.connect(self.actionManual, QtCore.SIGNAL(_fromUtf8("activated()")), self.OpenManual)
         #
         QtCore.QObject.connect(self.B_Open1, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile1)
         QtCore.QObject.connect(self.B_Open2, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile2)
@@ -517,8 +521,16 @@ class Ui_PKP(QMainWindow):
         self.actionShow_generated_Results.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+T", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setText(QtGui.QApplication.translate("PKP", "Load saved state", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+O", None, QtGui.QApplication.UnicodeUTF8))
+	self.actionManual.setText(QtGui.QApplication.translate("PKP", "Manual", None, QtGui.QApplication.UnicodeUTF8))
 
     #manually added
+    def OpenManual(self):
+        """Opens the manual."""
+        if OSys=='Linux':
+            os.system('okular Documentation/Manual/PKPDocumentation.pdf')
+        elif OSys=='Windows':
+            os.system('Documentation\\Manual\\PKPDocumentation.pdf')
+    
     def SaveInfos(self):
         """Saves the Information when the save or the run -option is used."""
         #Pyrolysis Program selection
