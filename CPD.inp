@@ -1,7 +1,7 @@
 useCPD?:
 Yes
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-Kobayashi
+Arrhenius
 Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
 Total
 
@@ -9,4 +9,4 @@ Total
 initial time step in s:
 1.e-4
 print increment, writeValue:
-60
+50

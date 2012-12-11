@@ -756,7 +756,6 @@ class MainProcess(object):
             currentDict={'FGDVC':'DAEM'}
         elif self.FG_FittingKineticParameter_Select==None:
             currentDict={'FGDVC':'None'}
-            print 'YEAHYEAH'
             for Species in FGFit[0].SpeciesNames():
                 if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
                     self.SpeciesToConsider.append(Species)

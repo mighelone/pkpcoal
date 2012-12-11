@@ -123,7 +123,6 @@ class Ui_Dialog(QWidget):
 #        figSpec = fig1.add_subplot(111)
         plt.ylabel('Yields (mass fraction)')
         plt.xlabel('Time in s')
-        plt.legend(loc='4')
         plt.grid()
         colors=['g','b','r','purple','c','m','y','b','purple','r','b','g','c','y','m']
         colorIndex=0
@@ -131,7 +130,6 @@ class Ui_Dialog(QWidget):
         if OSys=='Linux':
             for PyrolPr in self.PyrModelsD:
                 for i in range(4):
-                    print 'Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'
                     if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
                         Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
@@ -153,6 +151,7 @@ class Ui_Dialog(QWidget):
                         elif np.shape(Y)[1]==4:
                             plt.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
                             colorIndex+=1
+        plt.legend(loc='4')
         plt.show()
         #
             
