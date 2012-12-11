@@ -634,6 +634,11 @@ class MainProcess(object):
         elif self.CPD_FittingKineticParameter_Select=='DAEM':
             self.MakeResults_DEAM('CPD',CPDFile,CPDFit)
             currentDict={'CPD':'DAEM'}
+        elif self.CPD_FittingKineticParameter_Select=='None':
+            currentDict={'CPD':'None'}
+            for Species in CPDFile[0].SpeciesNames():
+                if Species not in self.SpeciesToConsider:
+                    self.SpeciesToConsider.append(CPDFile[0].SpeciesName(Species))
         else:
             print 'uspecified CPD_FittingKineticParameter_Select'
             currentDict={}

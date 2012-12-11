@@ -13,7 +13,10 @@ import platform
 from PyQt4.Qt import QWidget, QMainWindow
 
 OSys=platform.system()
-sys.path.append('GUI')
+sys.path.append('src')
+import PKP
+import InformationFiles
+
 import Done   #second GUI
 
 try:
@@ -26,6 +29,7 @@ class Ui_PKP(QMainWindow):
         QMainWindow.__init__(self) #manually added
         self.QWidgMain= QWidget(self) #manually added
         self.setCentralWidget(self.QWidgMain) #manually added
+        self.TheCalculationsAreDone=False #manually added
         self.svInfo=SaveInfoObj
         PKP.setObjectName(_fromUtf8("PKP"))
         PKP.resize(1033, 753)
@@ -347,14 +351,14 @@ class Ui_PKP(QMainWindow):
         self.actionWrite_and_Run.setObjectName(_fromUtf8("actionWrite_and_Run"))
         self.actionExit = QtGui.QAction(PKP)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
-        self.actionRun_the_saved_state = QtGui.QAction(PKP)
-        self.actionRun_the_saved_state.setObjectName(_fromUtf8("actionRun_the_saved_state"))
+        self.actionShow_generated_Results = QtGui.QAction(PKP)
+        self.actionShow_generated_Results.setObjectName(_fromUtf8("actionShow_generated_Results"))
         self.actionShow_saved_state = QtGui.QAction(PKP)
         self.actionShow_saved_state.setObjectName(_fromUtf8("actionShow_saved_state"))
         self.menuFile.addAction(self.actionWrite_into_File)
         self.menuFile.addAction(self.actionWrite_and_Run)
         self.menuFile.addAction(self.actionShow_saved_state)
-        self.menuFile.addAction(self.actionRun_the_saved_state)
+        self.menuFile.addAction(self.actionShow_generated_Results)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
@@ -366,6 +370,8 @@ class Ui_PKP(QMainWindow):
         QtCore.QObject.connect(self.actionWrite_and_Run, QtCore.SIGNAL(_fromUtf8("activated()")), self.WriteRun)
         #manually added
         QtCore.QObject.connect(self.actionWrite_into_File, QtCore.SIGNAL(_fromUtf8("activated()")), self.SaveInfos)
+        QtCore.QObject.connect(self.actionShow_saved_state, QtCore.SIGNAL(_fromUtf8("activated()")), self.LoadState)
+        QtCore.QObject.connect(self.actionShow_generated_Results, QtCore.SIGNAL(_fromUtf8("activated()")), self.ReOpenResultWindow)
         #
         QtCore.QObject.connect(self.B_Open1, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile1)
         QtCore.QObject.connect(self.B_Open2, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile2)
@@ -377,7 +383,7 @@ class Ui_PKP(QMainWindow):
         QtCore.QObject.connect(self.B_Plot2, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Plot2)
         QtCore.QObject.connect(self.B_Plot3, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Plot3)
         QtCore.QObject.connect(self.B_Plot4, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Plot4)
-        QtCore.QObject.connect(self.B_Plot5, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Plot5)
+        QtCore.QObject.connect(self.B_Plot5, QtCore.SIGNAL(_fromUtf8("clicked()")), self.Plot5)        
         #end manually added
         QtCore.QMetaObject.connectSlotsByName(PKP)
         PKP.setTabOrder(self.cB_CPD, self.cB_FGDVC)
@@ -506,8 +512,8 @@ class Ui_PKP(QMainWindow):
         self.actionWrite_and_Run.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+R", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setText(QtGui.QApplication.translate("PKP", "Exit", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionRun_the_saved_state.setText(QtGui.QApplication.translate("PKP", "Run the saved state", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionRun_the_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+T", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_generated_Results.setText(QtGui.QApplication.translate("PKP", "Show generated Results", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_generated_Results.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+T", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setText(QtGui.QApplication.translate("PKP", "Load saved state", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_saved_state.setShortcut(QtGui.QApplication.translate("PKP", "Ctrl+O", None, QtGui.QApplication.UnicodeUTF8))
 
@@ -619,8 +625,10 @@ class Ui_PKP(QMainWindow):
         file1=open('TempHist1.dat','w')
         file1.write(self.tE_THist_1.toPlainText())
         file1.close()
+#        plt.clf(),plt.cla()
         Tt=np.genfromtxt('TempHist1.dat')
-        plt.clf(),plt.cla()
+#        figT1=plt.figure()
+#        figTt1=figT1.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
         plt.legend()
@@ -636,7 +644,9 @@ class Ui_PKP(QMainWindow):
         file2.write(self.tE_THist_2.toPlainText())
         file2.close()
         Tt=np.genfromtxt('TempHist2.dat')
-        plt.clf(),plt.cla()
+#        plt.clf(),plt.cla()
+#        figT2=plt.figure()
+#        figTt2=figT2.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
         plt.legend()
@@ -652,7 +662,9 @@ class Ui_PKP(QMainWindow):
         file3.write(self.tE_THist_3.toPlainText())
         file3.close()
         Tt=np.genfromtxt('TempHist3.dat')
-        plt.clf(),plt.cla()
+#        plt.clf(),plt.cla()
+#        figT3=plt.figure()
+#        figTt3=figT3.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
         plt.legend()
@@ -668,7 +680,9 @@ class Ui_PKP(QMainWindow):
         file4.write(self.tE_THist_4.toPlainText())
         file4.close()
         Tt=np.genfromtxt('TempHist4.dat')
-        plt.clf(),plt.cla()
+#        plt.clf(),plt.cla()
+#        figT4=plt.figure()
+#        figTt4=figT4.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
         plt.legend()
@@ -684,7 +698,9 @@ class Ui_PKP(QMainWindow):
         file5.write(self.tE_THist_5.toPlainText())
         file5.close()
         Tt=np.genfromtxt('TempHist5.dat')
-        plt.clf(),plt.cla()
+#        plt.clf(),plt.cla()
+#        figT5=plt.figure()
+#        figTt5=figT5.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
         plt.legend()
@@ -696,18 +712,137 @@ class Ui_PKP(QMainWindow):
         plt.show()
 
     def WriteRun(self):
+        """Writes the *.inp files and launch the process."""
         self.SaveInfos()
         #os.system('python Pyrolysis.py')
-        print 'START executable'
+        #print 'START executable'
+        #
+        Case=PKP.MainProcess()
+        Case.ReadInputFiles()
+        ProgramL=[]
+        if Case.CPDselect==True:
+            Case.MakeResults_CPD()
+            ProgramL.append('CPD')
+        if Case.FG_select==True:
+            Case.CheckFGdt()
+            Case.MakeResults_FG()
+            ProgramL.append('FGDVC')
+        SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
+        ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
         #
         self.Done=Done.Ui_Dialog()
-        self.Done.setupUi(["Total","Tar","Gas"],["CPD"],{'CPD':'ArrheniusRate'})
+        self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD)
         self.Done.show()
+        self.TheCalculationsAreDone=True
         #
 #        os.system('python Done.py')
 #        self.actionExit
         
+    def ReOpenResultWindow(self):
+        """If the calculation were done once, the window showing the results can be opened again."""
+        if self.TheCalculationsAreDone==True:
+            self.Done.show()
+        else:
+            print 'Please launch the process first to show the results.'
         
+        
+    def LoadState(self):
+        CoalInput=InformationFiles.ReadFile('Coal.inp')
+        PAFC_asrec=CoalInput.getText(InformationFiles.M_PA[0])
+        PAVM_asrec=CoalInput.getText(InformationFiles.M_PA[1])
+        PAmoist = CoalInput.getText(InformationFiles.M_PA[2])
+        PAash = CoalInput.getText(InformationFiles.M_PA[3])
+        #
+        #gets daf values, as CPD needs daf as input:
+        UAC=CoalInput.getText(InformationFiles.M_UA[0])
+        UAH=CoalInput.getText(InformationFiles.M_UA[1])
+        UAN=CoalInput.getText(InformationFiles.M_UA[2])
+        UAO=CoalInput.getText(InformationFiles.M_UA[3])
+        UAS=CoalInput.getText(InformationFiles.M_UA[4])
+        # scale ultimate analysis
+        HHV=str(CoalInput.getValue(InformationFiles.M_HHV)*1e-6)
+        MTar=CoalInput.getText(InformationFiles.M_MTar)
+        WeightY=CoalInput.getText(InformationFiles.M_Weight[0])
+        WeightR=CoalInput.getText(InformationFiles.M_Weight[1])
+        #
+        #CPD Properties:
+        CPDInput=InformationFiles.ReadFile('CPD.inp')
+#        CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
+        CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
+        CPD_ArrhSpec=CPDInput.getText(InformationFiles.M_selArrhSpec)
+        CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
+        CPDdt[0]=(CPDInput.getText(InformationFiles.MC_dt[0]))
+        CPDdt[1]=(CPDInput.getText(InformationFiles.MC_dt[1]))
+        #
+        #
+        #FG-DVC Properties:
+        FGDVCInput=InformationFiles.ReadFile('FGDVC.inp')
+#        FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
+        FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
+        FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
+        FG_TarCacking=FGDVCInput.getText(InformationFiles.MF_TarCr)
+        #
+        #
+        #Operating Condition File:
+        OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
+        CPD_pressure=OpCondInp.getText(InformationFiles.M_Pressure)
+        #Number of FG-DVC/CPD/PCCL runs:
+        NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
+        CPDdt[2]=OpCondInp.getText(InformationFiles.M_dt)
+        FG_dt=OpCondInp.getText(InformationFiles.M_dt)
+        #
+        #
+        #
+        #set it into the GUI:
+        if CPD_FittingKineticParameter_Select == None:
+            CPD_FittingKineticParameter_Select='None'
+        if FG_FittingKineticParameter_Select == None:
+            FG_FittingKineticParameter_Select='None'
+        self.cB_CPD.setCurrentIndex(self.svInfo.RunPyrolProgReverse(CPD_FittingKineticParameter_Select))
+        self.cB_FGDVC.setCurrentIndex(self.svInfo.RunPyrolProgReverse(FG_FittingKineticParameter_Select))
+#        self.cB_PCCL.setCurrentIndex(self.svInfo.RunPyrolProgReverse(PCCL_FittingKineticParameter_Select))
+        #
+        self.cB_ArrhSpec.setCurrentIndex(self.svInfo.ArrhSpecReverse(CPD_ArrhSpec))
+        #saves the WeightParameter
+        self.lE_Yweight.setText(WeightY)
+        self.lE_Rweight.setText(WeightR)
+        #Coal Properties
+        self.lE_UAC.setText(UAC) #information UA
+        self.lE_UAH.setText(UAH)
+        self.lE_UAN.setText(UAN)
+        self.lE_UAO.setText(UAO)
+        self.lE_UAS.setText(UAS)
+        self.lE_PAFC.setText(PAFC_asrec)
+        self.lE_PAVM.setText(PAVM_asrec)
+        self.lE_PAMoi.setText(PAmoist)
+        self.lE_PAAsh.setText(PAash)
+        #s
+        self.lE_HHV.setText(HHV) #	information HHV
+        self.lE_MWTar.setText(MTar)
+        self.cB_FGDVCcoal.setCurrentIndex(FG_CoalSelection)  # information FG-DVC coal interpolation
+        self.lE_FGDVCtarCr.setText(FG_TarCacking)         # information FG-DVC tar cracking
+        #operating condition
+        self.lE_pressure.setText(CPD_pressure) # operating pressure
+        self.lE_numTimeStep.setText(FG_dt) # numerical time step
+        # setTime Histories
+        self.sB_Nr_THist.setValue(NrOfRuns)
+        file1=open('TempHist1.dat','r')
+        self.tE_THist_1.setText(file1.read())
+        file1.close()
+        file2=open('TempHist2.dat','r')
+        self.tE_THist_2.setText(file2.read())
+        file2.close()
+        file3=open('TempHist3.dat','r')
+        self.tE_THist_3.setText(file3.read())
+        file3.close()
+        file4=open('TempHist4.dat','r')
+        self.tE_THist_4.setText(file4.read())
+        file4.close()
+        file5=open('TempHist5.dat','r')
+        self.tE_THist_5.setText(file5.read())
+        file5.close()
+        #
+
 
 
 ############################################################################
@@ -722,6 +857,11 @@ class InfosFromGUI(object):
         self.__CPDsel = FitDict[CPDIndex]
         self.__FGsel  = FitDict[FGDVCIndex]
         self.__PCCLsel= FitDict[PCCLIndex]
+        
+    def RunPyrolProgReverse(self,ModelName):
+        """Returns the GUI column bar index of the models selected."""
+        FitDict={'None':0,'Run':1,'constantRate':2,'Arrhenius':3,'ArrheniusNoB':4,'Kobayashi':5,'DAEM':6}
+        return FitDict[ModelName]
 
     def RunPyrolProg(self):
         """Returns which options of the three Pyrolysis programs are used."""
@@ -732,6 +872,11 @@ class InfosFromGUI(object):
         SpecIndexDict={0:'Total', 1:'MainSpecies', 2:'allSpecies'}
         Species=SpecIndexDict[SpeciesIndex]
         self.__ArrSpec=Species
+        
+    def ArrhSpecReverse(self,SpeciesName):
+        """returns the UI columns bar index of species fitted for Arrhenius."""
+        SpecIndexDict={'Total':0, 'MainSpecies':1, 'allSpecies':2}
+        return SpecIndexDict[SpeciesName]
         
     def ArrhSpec(self):
         """Returns which species shall be fitted for Arrhenius."""
@@ -772,7 +917,7 @@ class InfosFromGUI(object):
     def setMwsHHV(self,MoleWweightTar,HHV):
         """Sets the Molar Weight of Tar and sets the Higher Heating Value."""
         self.__MwTar = MoleWweightTar
-        self.__HHV   = HHV
+        self.__HHV   = str(float(HHV)*1e6)
 
     def MwsHHV(self):
         """Retruns the Molar Weight of Tar and sets the Higher Heating Value."""
