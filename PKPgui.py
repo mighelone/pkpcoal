@@ -369,14 +369,14 @@ class Ui_PKP(QMainWindow):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(PKP)
-        QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("activated()")), PKP.close)
+        QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), PKP.close)
         QtCore.QObject.connect(self.B_Launch, QtCore.SIGNAL(_fromUtf8("clicked()")), self.WriteRun)
-        QtCore.QObject.connect(self.actionWrite_and_Run, QtCore.SIGNAL(_fromUtf8("activated()")), self.WriteRun)
+        QtCore.QObject.connect(self.actionWrite_and_Run, QtCore.SIGNAL(_fromUtf8("triggered()")), self.WriteRun)
         #manually added
-        QtCore.QObject.connect(self.actionWrite_into_File, QtCore.SIGNAL(_fromUtf8("activated()")), self.SaveInfos)
-        QtCore.QObject.connect(self.actionShow_saved_state, QtCore.SIGNAL(_fromUtf8("activated()")), self.LoadState)
-        QtCore.QObject.connect(self.actionShow_generated_Results, QtCore.SIGNAL(_fromUtf8("activated()")), self.ReOpenResultWindow)
-        QtCore.QObject.connect(self.actionManual, QtCore.SIGNAL(_fromUtf8("activated()")), self.OpenManual)
+        QtCore.QObject.connect(self.actionWrite_into_File, QtCore.SIGNAL(_fromUtf8("triggered()")), self.SaveInfos)
+        QtCore.QObject.connect(self.actionShow_saved_state, QtCore.SIGNAL(_fromUtf8("triggered()")), self.LoadState)
+        QtCore.QObject.connect(self.actionShow_generated_Results, QtCore.SIGNAL(_fromUtf8("triggered()")), self.ReOpenResultWindow)
+        QtCore.QObject.connect(self.actionManual, QtCore.SIGNAL(_fromUtf8("triggered()")), self.OpenManual)
         #
         QtCore.QObject.connect(self.B_Open1, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile1)
         QtCore.QObject.connect(self.B_Open2, QtCore.SIGNAL(_fromUtf8("clicked()")), self.LoadTtFile2)

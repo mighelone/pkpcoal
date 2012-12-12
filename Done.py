@@ -95,7 +95,7 @@ class Ui_Dialog(QWidget):
                     os.system('Result\\'+PyrolPr+'-BalanceResults0.txt')
                 if os.path.exists('Result\\'+PyrolPr+'-BalanceResults1.txt'):
                     os.system('Result\\'+PyrolPr+'-BalanceResults1.txt')
-                if os.path.exists('Result'+PyrolPr+'-BalanceResults2.txt'):
+                if os.path.exists('Result\\'+PyrolPr+'-BalanceResults2.txt'):
                     os.system('Result\\'+PyrolPr+'-BalanceResults2.txt')
                 if os.path.exists('Result\\'+PyrolPr+'-BalanceResults3.txt'):
                     os.system('Result\\'+PyrolPr+'-BalanceResults3.txt')
