@@ -162,12 +162,13 @@ class CPD_SpeciesBalance(SpeciesBalance):
         #self.CPDBalanceFile.write('Gas:  '+ str(self.Yields[self.SpeciesIndex('Gas')])+'\n\n')
         self.Yields[self.SpeciesIndex('Other')] = str(self.UAN)
         self.CPDBalanceFile.write('=== Fluent ===\n')
-	char = self.Yields[self.SpeciesIndex('Solid')]*(1.-self.PAash)*100.
-	vol = (1-self.Yields[self.SpeciesIndex('Solid')])*(1.-self.PAash)*100.
+	ashdry = self.PAash/(1-self.PAmoist)
+	char = self.Yields[self.SpeciesIndex('Solid')]*(1.-ashdry)*100.
+	vol = (1-self.Yields[self.SpeciesIndex('Solid')])*(1.-ashdry)*100.
 	ash = 100. - char - vol
 
-	self.CPDBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %char))
-	self.CPDBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %vol))
+	self.CPDBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %vol))
+	self.CPDBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %char))
 	self.CPDBalanceFile.write('Ash fraction:                '+ str('%7.3f\n\n' %ash))
 
            

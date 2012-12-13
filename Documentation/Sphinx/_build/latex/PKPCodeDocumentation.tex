@@ -13,7 +13,7 @@
 
 
 \title{PKP Code Documentation}
-\date{December 03, 2012}
+\date{December 12, 2012}
 \release{1.0.0}
 \author{Martin Pollack}
 \newcommand{\sphinxlogo}{}
@@ -1141,6 +1141,14 @@ Returns the minimum lenght of a all vectors from the several runs.
 
 \end{fulllineitems}
 
+\index{mkSimpleResultFiles() (Models.Model method)}
+
+\begin{fulllineitems}
+\phantomsection\label{FittingClasses:Models.Model.mkSimpleResultFiles}\pysiglinewithargsret{\bfcode{mkSimpleResultFiles}}{\emph{fgdvc\_list}, \emph{Species}}{}
+Simple result file if no fitting is carried out. Writes only the transformed results into a file.
+
+\end{fulllineitems}
+
 \index{plot() (Models.Model method)}
 
 \begin{fulllineitems}
@@ -1451,94 +1459,118 @@ Writes output file for FG-DVC containing in first column time in s, in the secon
 \label{GUI:the-gui-classes}\label{GUI::doc}
 
 \section{The Main Window}
-\label{GUI:the-main-window}\index{Ui\_PKP (class in GUI)}
+\label{GUI:the-main-window}\index{Ui\_PKP (class in PKPgui)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP}\pysigline{\strong{class }\code{GUI.}\bfcode{Ui\_PKP}}~\index{LoadTtFile1() (GUI.Ui\_PKP method)}
+\phantomsection\label{GUI:PKPgui.Ui_PKP}\pysigline{\strong{class }\code{PKPgui.}\bfcode{Ui\_PKP}}~\index{LoadTtFile1() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.LoadTtFile1}\pysiglinewithargsret{\bfcode{LoadTtFile1}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.LoadTtFile1}\pysiglinewithargsret{\bfcode{LoadTtFile1}}{}{}
 Loads the temperature history nr 1 file via file browser
 
 \end{fulllineitems}
 
-\index{LoadTtFile2() (GUI.Ui\_PKP method)}
+\index{LoadTtFile2() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.LoadTtFile2}\pysiglinewithargsret{\bfcode{LoadTtFile2}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.LoadTtFile2}\pysiglinewithargsret{\bfcode{LoadTtFile2}}{}{}
 Loads the temperature history nr 2 file via file browser
 
 \end{fulllineitems}
 
-\index{LoadTtFile3() (GUI.Ui\_PKP method)}
+\index{LoadTtFile3() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.LoadTtFile3}\pysiglinewithargsret{\bfcode{LoadTtFile3}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.LoadTtFile3}\pysiglinewithargsret{\bfcode{LoadTtFile3}}{}{}
 Loads the temperature history nr 3 file via file browser
 
 \end{fulllineitems}
 
-\index{LoadTtFile4() (GUI.Ui\_PKP method)}
+\index{LoadTtFile4() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.LoadTtFile4}\pysiglinewithargsret{\bfcode{LoadTtFile4}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.LoadTtFile4}\pysiglinewithargsret{\bfcode{LoadTtFile4}}{}{}
 Loads the temperature history nr 4 file via file browser
 
 \end{fulllineitems}
 
-\index{LoadTtFile5() (GUI.Ui\_PKP method)}
+\index{LoadTtFile5() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.LoadTtFile5}\pysiglinewithargsret{\bfcode{LoadTtFile5}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.LoadTtFile5}\pysiglinewithargsret{\bfcode{LoadTtFile5}}{}{}
 Loads the temperature history nr 5 file via file browser
 
 \end{fulllineitems}
 
-\index{Plot1() (GUI.Ui\_PKP method)}
+\index{OpenManual() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.Plot1}\pysiglinewithargsret{\bfcode{Plot1}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.OpenManual}\pysiglinewithargsret{\bfcode{OpenManual}}{}{}
+Opens the manual.
+
+\end{fulllineitems}
+
+\index{Plot1() (PKPgui.Ui\_PKP method)}
+
+\begin{fulllineitems}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.Plot1}\pysiglinewithargsret{\bfcode{Plot1}}{}{}
 Plots the temperature over time history (temperature history nr 1) and saves temperatuer history in ``TempHist1.dat''.
 
 \end{fulllineitems}
 
-\index{Plot2() (GUI.Ui\_PKP method)}
+\index{Plot2() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.Plot2}\pysiglinewithargsret{\bfcode{Plot2}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.Plot2}\pysiglinewithargsret{\bfcode{Plot2}}{}{}
 Plots the temperature over time history (temperature history nr 2) and saves temperatuer history in ``TempHist2.dat''.
 
 \end{fulllineitems}
 
-\index{Plot3() (GUI.Ui\_PKP method)}
+\index{Plot3() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.Plot3}\pysiglinewithargsret{\bfcode{Plot3}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.Plot3}\pysiglinewithargsret{\bfcode{Plot3}}{}{}
 Plots the temperature over time history (temperature history nr 3) and saves temperatuer history in ``TempHist3.dat''.
 
 \end{fulllineitems}
 
-\index{Plot4() (GUI.Ui\_PKP method)}
+\index{Plot4() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.Plot4}\pysiglinewithargsret{\bfcode{Plot4}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.Plot4}\pysiglinewithargsret{\bfcode{Plot4}}{}{}
 Plots the temperature over time history (temperature history nr 4) and saves temperatuer history in ``TempHist4.dat''.
 
 \end{fulllineitems}
 
-\index{Plot5() (GUI.Ui\_PKP method)}
+\index{Plot5() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.Plot5}\pysiglinewithargsret{\bfcode{Plot5}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.Plot5}\pysiglinewithargsret{\bfcode{Plot5}}{}{}
 Plots the temperature over time history (temperature history nr 5) and saves temperatuer history in ``TempHist5.dat''.
 
 \end{fulllineitems}
 
-\index{SaveInfos() (GUI.Ui\_PKP method)}
+\index{ReOpenResultWindow() (PKPgui.Ui\_PKP method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.Ui_PKP.SaveInfos}\pysiglinewithargsret{\bfcode{SaveInfos}}{}{}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.ReOpenResultWindow}\pysiglinewithargsret{\bfcode{ReOpenResultWindow}}{}{}
+If the calculation were done once, the window showing the results can be opened again.
+
+\end{fulllineitems}
+
+\index{SaveInfos() (PKPgui.Ui\_PKP method)}
+
+\begin{fulllineitems}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.SaveInfos}\pysiglinewithargsret{\bfcode{SaveInfos}}{}{}
 Saves the Information when the save or the run -option is used.
+
+\end{fulllineitems}
+
+\index{WriteRun() (PKPgui.Ui\_PKP method)}
+
+\begin{fulllineitems}
+\phantomsection\label{GUI:PKPgui.Ui_PKP.WriteRun}\pysiglinewithargsret{\bfcode{WriteRun}}{}{}
+Writes the {\color{red}\bfseries{}*}.inp files and launch the process.
 
 \end{fulllineitems}
 
@@ -1548,167 +1580,167 @@ Saves the Information when the save or the run -option is used.
 
 
 \section{The Class Saving the information from the GUI}
-\label{GUI:the-class-saving-the-information-from-the-gui}\index{InfosFromGUI (class in GUI)}
+\label{GUI:the-class-saving-the-information-from-the-gui}\index{InfosFromGUI (class in PKPgui)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI}\pysigline{\strong{class }\code{GUI.}\bfcode{InfosFromGUI}}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI}\pysigline{\strong{class }\code{PKPgui.}\bfcode{InfosFromGUI}}
 Saves the information from the GUI.
-\index{ArrhSpec() (GUI.InfosFromGUI method)}
+\index{ArrhSpec() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.ArrhSpec}\pysiglinewithargsret{\bfcode{ArrhSpec}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.ArrhSpec}\pysiglinewithargsret{\bfcode{ArrhSpec}}{}{}
 Returns which species shall be fitted for Arrhenius.
 
 \end{fulllineitems}
 
-\index{ArrhSpecReverse() (GUI.InfosFromGUI method)}
+\index{ArrhSpecReverse() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.ArrhSpecReverse}\pysiglinewithargsret{\bfcode{ArrhSpecReverse}}{\emph{SpeciesName}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.ArrhSpecReverse}\pysiglinewithargsret{\bfcode{ArrhSpecReverse}}{\emph{SpeciesName}}{}
 returns the UI columns bar index of species fitted for Arrhenius.
 
 \end{fulllineitems}
 
-\index{FGCoalProp() (GUI.InfosFromGUI method)}
+\index{FGCoalProp() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.FGCoalProp}\pysiglinewithargsret{\bfcode{FGCoalProp}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.FGCoalProp}\pysiglinewithargsret{\bfcode{FGCoalProp}}{}{}
 Defines the way of the FG-DVC Coal Fitting and the Tar Modeling.
 
 \end{fulllineitems}
 
-\index{MwsHHV() (GUI.InfosFromGUI method)}
+\index{MwsHHV() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.MwsHHV}\pysiglinewithargsret{\bfcode{MwsHHV}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.MwsHHV}\pysiglinewithargsret{\bfcode{MwsHHV}}{}{}
 Retruns the Molar Weight of Tar and sets the Higher Heating Value.
 
 \end{fulllineitems}
 
-\index{OperCond() (GUI.InfosFromGUI method)}
+\index{OperCond() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.OperCond}\pysiglinewithargsret{\bfcode{OperCond}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.OperCond}\pysiglinewithargsret{\bfcode{OperCond}}{}{}
 Sets the pressure and the time step.
 
 \end{fulllineitems}
 
-\index{PA() (GUI.InfosFromGUI method)}
+\index{PA() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.PA}\pysiglinewithargsret{\bfcode{PA}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.PA}\pysiglinewithargsret{\bfcode{PA}}{}{}
 Returns the coal PA properties.
 
 \end{fulllineitems}
 
-\index{RunPyrolProg() (GUI.InfosFromGUI method)}
+\index{RunPyrolProg() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.RunPyrolProg}\pysiglinewithargsret{\bfcode{RunPyrolProg}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.RunPyrolProg}\pysiglinewithargsret{\bfcode{RunPyrolProg}}{}{}
 Returns which options of the three Pyrolysis programs are used.
 
 \end{fulllineitems}
 
-\index{RunPyrolProgReverse() (GUI.InfosFromGUI method)}
+\index{RunPyrolProgReverse() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.RunPyrolProgReverse}\pysiglinewithargsret{\bfcode{RunPyrolProgReverse}}{\emph{ModelName}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.RunPyrolProgReverse}\pysiglinewithargsret{\bfcode{RunPyrolProgReverse}}{\emph{ModelName}}{}
 Returns the GUI column bar index of the models selected.
 
 \end{fulllineitems}
 
-\index{SetArrhSpec() (GUI.InfosFromGUI method)}
+\index{SetArrhSpec() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.SetArrhSpec}\pysiglinewithargsret{\bfcode{SetArrhSpec}}{\emph{SpeciesIndex}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.SetArrhSpec}\pysiglinewithargsret{\bfcode{SetArrhSpec}}{\emph{SpeciesIndex}}{}
 Sets which species shall be fitted for Arrhenius.
 
 \end{fulllineitems}
 
-\index{SetRunPyrolProg() (GUI.InfosFromGUI method)}
+\index{SetRunPyrolProg() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.SetRunPyrolProg}\pysiglinewithargsret{\bfcode{SetRunPyrolProg}}{\emph{CPDIndex}, \emph{FGDVCIndex}, \emph{PCCLIndex}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.SetRunPyrolProg}\pysiglinewithargsret{\bfcode{SetRunPyrolProg}}{\emph{CPDIndex}, \emph{FGDVCIndex}, \emph{PCCLIndex}}{}
 Saves which options of the three Pyrolysis programs are used.
 
 \end{fulllineitems}
 
-\index{TimeHistories() (GUI.InfosFromGUI method)}
+\index{TimeHistories() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.TimeHistories}\pysiglinewithargsret{\bfcode{TimeHistories}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.TimeHistories}\pysiglinewithargsret{\bfcode{TimeHistories}}{}{}
 Returns the number of time history.
 
 \end{fulllineitems}
 
-\index{UA() (GUI.InfosFromGUI method)}
+\index{UA() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.UA}\pysiglinewithargsret{\bfcode{UA}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.UA}\pysiglinewithargsret{\bfcode{UA}}{}{}
 Returns the coal UA properties.
 
 \end{fulllineitems}
 
-\index{WeightYR() (GUI.InfosFromGUI method)}
+\index{WeightYR() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.WeightYR}\pysiglinewithargsret{\bfcode{WeightYR}}{}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.WeightYR}\pysiglinewithargsret{\bfcode{WeightYR}}{}{}
 Returns the weghts for Yields and Rates
 
 \end{fulllineitems}
 
-\index{setFGCoalProp() (GUI.InfosFromGUI method)}
+\index{setFGCoalProp() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setFGCoalProp}\pysiglinewithargsret{\bfcode{setFGCoalProp}}{\emph{FGCoalFit}, \emph{FGTarModeling}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setFGCoalProp}\pysiglinewithargsret{\bfcode{setFGCoalProp}}{\emph{FGCoalFit}, \emph{FGTarModeling}}{}
 Defines the way of the FG-DVC Coal Fitting and the Tar Modeling.
 
 \end{fulllineitems}
 
-\index{setMwsHHV() (GUI.InfosFromGUI method)}
+\index{setMwsHHV() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setMwsHHV}\pysiglinewithargsret{\bfcode{setMwsHHV}}{\emph{MoleWweightTar}, \emph{HHV}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setMwsHHV}\pysiglinewithargsret{\bfcode{setMwsHHV}}{\emph{MoleWweightTar}, \emph{HHV}}{}
 Sets the Molar Weight of Tar and sets the Higher Heating Value.
 
 \end{fulllineitems}
 
-\index{setOperCond() (GUI.InfosFromGUI method)}
+\index{setOperCond() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setOperCond}\pysiglinewithargsret{\bfcode{setOperCond}}{\emph{pressure}, \emph{timestep}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setOperCond}\pysiglinewithargsret{\bfcode{setOperCond}}{\emph{pressure}, \emph{timestep}}{}
 Sets the pressure and the time step.
 
 \end{fulllineitems}
 
-\index{setPA() (GUI.InfosFromGUI method)}
+\index{setPA() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setPA}\pysiglinewithargsret{\bfcode{setPA}}{\emph{FixedCarbon}, \emph{VolatileMatter}, \emph{Moisture}, \emph{Ash}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setPA}\pysiglinewithargsret{\bfcode{setPA}}{\emph{FixedCarbon}, \emph{VolatileMatter}, \emph{Moisture}, \emph{Ash}}{}
 Saves the coal PA properties.
 
 \end{fulllineitems}
 
-\index{setTimeHistories() (GUI.InfosFromGUI method)}
+\index{setTimeHistories() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setTimeHistories}\pysiglinewithargsret{\bfcode{setTimeHistories}}{\emph{NrOfTs}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setTimeHistories}\pysiglinewithargsret{\bfcode{setTimeHistories}}{\emph{NrOfTs}}{}
 Saves the Number time history
 
 \end{fulllineitems}
 
-\index{setUA() (GUI.InfosFromGUI method)}
+\index{setUA() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setUA}\pysiglinewithargsret{\bfcode{setUA}}{\emph{UAC}, \emph{UAH}, \emph{UAN}, \emph{UAO}, \emph{UAS}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setUA}\pysiglinewithargsret{\bfcode{setUA}}{\emph{UAC}, \emph{UAH}, \emph{UAN}, \emph{UAO}, \emph{UAS}}{}
 Saves the coal UA properties.
 
 \end{fulllineitems}
 
-\index{setWeightYR() (GUI.InfosFromGUI method)}
+\index{setWeightYR() (PKPgui.InfosFromGUI method)}
 
 \begin{fulllineitems}
-\phantomsection\label{GUI:GUI.InfosFromGUI.setWeightYR}\pysiglinewithargsret{\bfcode{setWeightYR}}{\emph{Y}, \emph{R}}{}
+\phantomsection\label{GUI:PKPgui.InfosFromGUI.setWeightYR}\pysiglinewithargsret{\bfcode{setWeightYR}}{\emph{Y}, \emph{R}}{}
 Sets the weghts for Yields and Rates
 
 \end{fulllineitems}
@@ -1768,95 +1800,95 @@ Writes the OperCond.inp file using the output of the GUI.
 \chapter{The Main Class}
 \label{MainProgramCode:the-main-class}\label{MainProgramCode::doc}
 This is the class controlling the whole process. It initialize the other classes and use their methods. If accesed as main file, it launches itself the whole process. But it is also connetced by the GUI, there the GUI tells to apply the MainProcess' methods.
-\index{MainProcess (class in Pyrolysis)}
+\index{MainProcess (class in PKP)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess}\pysigline{\strong{class }\code{Pyrolysis.}\bfcode{MainProcess}}
+\phantomsection\label{MainProgramCode:PKP.MainProcess}\pysigline{\strong{class }\code{PKP.}\bfcode{MainProcess}}
 Controls the whole process of generating input files, fitting etc.
-\index{CheckFGdt() (Pyrolysis.MainProcess method)}
+\index{CheckFGdt() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.CheckFGdt}\pysiglinewithargsret{\bfcode{CheckFGdt}}{}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.CheckFGdt}\pysiglinewithargsret{\bfcode{CheckFGdt}}{}{}
 Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 (which is FG-DVC not able to read):
 
 \end{fulllineitems}
 
-\index{DAF() (Pyrolysis.MainProcess method)}
+\index{DAF() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.DAF}\pysiglinewithargsret{\bfcode{DAF}}{\emph{PAFC\_asRecieved}, \emph{PAVM\_asRecieved}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.DAF}\pysiglinewithargsret{\bfcode{DAF}}{\emph{PAFC\_asRecieved}, \emph{PAVM\_asRecieved}}{}
 calculates PAFC, PAVM  from the as recieved state to the daf state of coal
 
 \end{fulllineitems}
 
-\index{MakeResults\_Arrh() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_Arrh() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_Arrh}\pysiglinewithargsret{\bfcode{MakeResults\_Arrh}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_Arrh}\pysiglinewithargsret{\bfcode{MakeResults\_Arrh}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
 Generates the results for Arrhenius Rate.
 
 \end{fulllineitems}
 
-\index{MakeResults\_ArrhNoB() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_ArrhNoB() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_ArrhNoB}\pysiglinewithargsret{\bfcode{MakeResults\_ArrhNoB}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_ArrhNoB}\pysiglinewithargsret{\bfcode{MakeResults\_ArrhNoB}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
 Generates the results for Arrhenius Rate with no correction term T**b.
 
 \end{fulllineitems}
 
-\index{MakeResults\_CPD() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_CPD() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_CPD}\pysiglinewithargsret{\bfcode{MakeResults\_CPD}}{}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_CPD}\pysiglinewithargsret{\bfcode{MakeResults\_CPD}}{}{}
 generates the result for CPD
 
 \end{fulllineitems}
 
-\index{MakeResults\_CR() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_CR() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_CR}\pysiglinewithargsret{\bfcode{MakeResults\_CR}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_CR}\pysiglinewithargsret{\bfcode{MakeResults\_CR}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
 Generates the results for constant Rate.
 
 \end{fulllineitems}
 
-\index{MakeResults\_DEAM() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_DEAM() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_DEAM}\pysiglinewithargsret{\bfcode{MakeResults\_DEAM}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_DEAM}\pysiglinewithargsret{\bfcode{MakeResults\_DEAM}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
 Generates the results for DAEM model.
 
 \end{fulllineitems}
 
-\index{MakeResults\_FG() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_FG() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_FG}\pysiglinewithargsret{\bfcode{MakeResults\_FG}}{}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_FG}\pysiglinewithargsret{\bfcode{MakeResults\_FG}}{}{}
 generates the result for FG-DVC
 
 \end{fulllineitems}
 
-\index{MakeResults\_Kob() (Pyrolysis.MainProcess method)}
+\index{MakeResults\_Kob() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.MakeResults_Kob}\pysiglinewithargsret{\bfcode{MakeResults\_Kob}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.MakeResults_Kob}\pysiglinewithargsret{\bfcode{MakeResults\_Kob}}{\emph{PyrolProgram}, \emph{File}, \emph{Fit}}{}
 Generates the results for Kobayashi Rate.
 
 \end{fulllineitems}
 
-\index{ReadInputFiles() (Pyrolysis.MainProcess method)}
+\index{ReadInputFiles() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.ReadInputFiles}\pysiglinewithargsret{\bfcode{ReadInputFiles}}{}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.ReadInputFiles}\pysiglinewithargsret{\bfcode{ReadInputFiles}}{}{}
 get parameters from input files
 
 \end{fulllineitems}
 
-\index{SpeciesEnergy() (Pyrolysis.MainProcess method)}
+\index{SpeciesEnergy() (PKP.MainProcess method)}
 
 \begin{fulllineitems}
-\phantomsection\label{MainProgramCode:Pyrolysis.MainProcess.SpeciesEnergy}\pysiglinewithargsret{\bfcode{SpeciesEnergy}}{\emph{PyrolProgram}, \emph{File}}{}
+\phantomsection\label{MainProgramCode:PKP.MainProcess.SpeciesEnergy}\pysiglinewithargsret{\bfcode{SpeciesEnergy}}{\emph{PyrolProgram}, \emph{File}}{}
 Carries out the species and Energy balance.
 
 \end{fulllineitems}

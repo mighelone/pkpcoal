@@ -1,14 +1,9 @@
 \begin{thebibliography}{1}
 
-\bibitem{Ferraris_1}
-G.~Buzzi-Ferraris and F.~Manenti.
-\newblock {Kinetic models analysis}.
-\newblock {\em Chemical Engineering Science}, (64):1061--1074, 2009.
-
-\bibitem{Ferraris_2}
-G.~Buzzi-Ferraris and F.~Manenti.
-\newblock {Better reformulation of kinetic models}.
-\newblock {\em Computers and Chemical Engineering}, (34):1904--1906, 2010.
+\bibitem{FGDVC_822}
+Advanced Fuel Research in 87 Church Street, East Hartford, CT 06108 USA.
+\newblock {\em {THE FG-DVC COAL PYROLYSIS MODEL, USER'S GUIDE, Version 8.2.2}},
+  2010.
 
 \bibitem{Cai_DAEM2}
 J.~Cai, C.~Jin, S.~Yang, and Y.~Chen.

@@ -113,11 +113,12 @@
 \indexentry{calcRate() (Models.Model method)|hyperpage}{14}
 \indexentry{deriveC() (Models.Model method)|hyperpage}{14}
 \indexentry{minLengthOfVectors() (Models.Model method)|hyperpage}{14}
+\indexentry{mkSimpleResultFiles() (Models.Model method)|hyperpage}{14}
 \indexentry{plot() (Models.Model method)|hyperpage}{14}
 \indexentry{pltRate() (Models.Model method)|hyperpage}{14}
 \indexentry{pltYield() (Models.Model method)|hyperpage}{14}
 \indexentry{setParamVector() (Models.Model method)|hyperpage}{14}
-\indexentry{ConstantRateModel (class in Models)|hyperpage}{14}
+\indexentry{ConstantRateModel (class in Models)|hyperpage}{15}
 \indexentry{ArrheniusModel (class in Models)|hyperpage}{15}
 \indexentry{ConvertKinFactors() (Models.ArrheniusModel method)|hyperpage}{15}
 \indexentry{calcMass() (Models.ArrheniusModel method)|hyperpage}{15}
@@ -130,9 +131,9 @@
 \indexentry{calcMass() (Models.Kobayashi method)|hyperpage}{15}
 \indexentry{KobayashiPCCL (class in Models)|hyperpage}{15}
 \indexentry{ConvertKinFactors() (Models.KobayashiPCCL method)|hyperpage}{15}
-\indexentry{E2Diff() (Models.KobayashiPCCL method)|hyperpage}{15}
-\indexentry{KobWeights() (Models.KobayashiPCCL method)|hyperpage}{15}
-\indexentry{calcMass() (Models.KobayashiPCCL method)|hyperpage}{15}
+\indexentry{E2Diff() (Models.KobayashiPCCL method)|hyperpage}{16}
+\indexentry{KobWeights() (Models.KobayashiPCCL method)|hyperpage}{16}
+\indexentry{calcMass() (Models.KobayashiPCCL method)|hyperpage}{16}
 \indexentry{setE2Diff() (Models.KobayashiPCCL method)|hyperpage}{16}
 \indexentry{setKobWeights() (Models.KobayashiPCCL method)|hyperpage}{16}
 \indexentry{ReadFile (class in InformationFiles)|hyperpage}{17}
@@ -147,52 +148,55 @@
 \indexentry{OperCondInput (class in InformationFiles)|hyperpage}{17}
 \indexentry{getTimePoints() (InformationFiles.OperCondInput method)|hyperpage}{17}
 \indexentry{writeFGDVCtTHist() (InformationFiles.OperCondInput method)|hyperpage}{18}
-\indexentry{Ui\_PKP (class in GUI)|hyperpage}{19}
-\indexentry{LoadTtFile1() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{LoadTtFile2() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{LoadTtFile3() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{LoadTtFile4() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{LoadTtFile5() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{Plot1() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{Plot2() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{Plot3() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{Plot4() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{Plot5() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{SaveInfos() (GUI.Ui\_PKP method)|hyperpage}{19}
-\indexentry{InfosFromGUI (class in GUI)|hyperpage}{20}
-\indexentry{ArrhSpec() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{ArrhSpecReverse() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{FGCoalProp() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{MwsHHV() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{OperCond() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{PA() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{RunPyrolProg() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{RunPyrolProgReverse() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{SetArrhSpec() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{SetRunPyrolProg() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{TimeHistories() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{UA() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{WeightYR() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setFGCoalProp() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setMwsHHV() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setOperCond() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setPA() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setTimeHistories() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setUA() (GUI.InfosFromGUI method)|hyperpage}{20}
-\indexentry{setWeightYR() (GUI.InfosFromGUI method)|hyperpage}{20}
+\indexentry{Ui\_PKP (class in PKPgui)|hyperpage}{19}
+\indexentry{LoadTtFile1() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile2() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile3() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile4() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{LoadTtFile5() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{OpenManual() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot1() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot2() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot3() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot4() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{Plot5() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{ReOpenResultWindow() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{SaveInfos() (PKPgui.Ui\_PKP method)|hyperpage}{19}
+\indexentry{WriteRun() (PKPgui.Ui\_PKP method)|hyperpage}{20}
+\indexentry{InfosFromGUI (class in PKPgui)|hyperpage}{20}
+\indexentry{ArrhSpec() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{ArrhSpecReverse() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{FGCoalProp() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{MwsHHV() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{OperCond() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{PA() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{RunPyrolProg() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{RunPyrolProgReverse() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{SetArrhSpec() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{SetRunPyrolProg() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{TimeHistories() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{UA() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{WeightYR() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setFGCoalProp() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setMwsHHV() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setOperCond() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setPA() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setTimeHistories() (PKPgui.InfosFromGUI method)|hyperpage}{20}
+\indexentry{setUA() (PKPgui.InfosFromGUI method)|hyperpage}{21}
+\indexentry{setWeightYR() (PKPgui.InfosFromGUI method)|hyperpage}{21}
 \indexentry{WriteCoalFile (class in writeInfoFiles)|hyperpage}{21}
 \indexentry{WriteCPDFile (class in writeInfoFiles)|hyperpage}{21}
 \indexentry{WriteFGFile (class in writeInfoFiles)|hyperpage}{21}
 \indexentry{WriteOCFile (class in writeInfoFiles)|hyperpage}{21}
-\indexentry{MainProcess (class in Pyrolysis)|hyperpage}{23}
-\indexentry{CheckFGdt() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{DAF() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_Arrh() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_ArrhNoB() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_CPD() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_CR() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_DEAM() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_FG() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{MakeResults\_Kob() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{ReadInputFiles() (Pyrolysis.MainProcess method)|hyperpage}{23}
-\indexentry{SpeciesEnergy() (Pyrolysis.MainProcess method)|hyperpage}{23}
+\indexentry{MainProcess (class in PKP)|hyperpage}{23}
+\indexentry{CheckFGdt() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{DAF() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_Arrh() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_ArrhNoB() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_CPD() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_CR() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_DEAM() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_FG() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{MakeResults\_Kob() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{ReadInputFiles() (PKP.MainProcess method)|hyperpage}{23}
+\indexentry{SpeciesEnergy() (PKP.MainProcess method)|hyperpage}{23}

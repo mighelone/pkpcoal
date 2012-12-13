@@ -27,8 +27,7 @@ The subdirectory \textit{src} includes the following Python files, \textit{Pyrol
  \item InformationFiles.py
  \item Models.py
 \end{itemize}
-Before running FG-DVC, the directories have to be defined, see the paragraph~\textbf{FGDVC.inp} in chapter~\ref{SS_Generate_Results}.
-
+Before running FG-DVC, the directories have to be defined, see the paragraph~\textbf{FGDVC.inp} in chapter~\ref{SS_Generate_Results}. There the  two information for ~\textbf{main directory FG-DVC:} and \textbf{print increment, writeValue:} must be defined. For CPD \textbf{print increment, writeValue:} must be defined. All these information are kept, also when using the GUI as input. So they just have to be defined once as long as they don't need to be changed.
 
 \subsection{Generate Results}\label{SS_Generate_Results}
 The output of the pyrolysis programs has to be individually modified for a further work with. Also the user of PKP should be aware of the following points:
@@ -62,7 +61,74 @@ The following subsections give mode detailed information and an overview on the 
 
 
 \subsubsection{Using the Graphical User Interface}\label{SSS_GUI}
-...
+\begin{figure}
+\centering
+\includegraphics[width=14cm,angle=0]{Figures/GUI}
+\caption{A screenshot of the Input GUI.}
+\label{F_GUI}
+\end{figure}
+
+When starting the graphical user interface, file \emph{PKPgui.py}, the central input windows opens, see figure~\ref{F_GUI}.
+As also visible in this figure, the general input structure is splitted into three parts: \emph{Pyrolysis Programs and Fitting}, \emph{Coal Properties} and~\emph{Operating Conditions}. The following selections can be done in the first of these:
+\begin{itemize}
+ \item \textbf{CPD}, \textbf{FG-DVC}, \textbf{PC Coal Lab}: These column boxes allow a selection, which of these detailed models shall be used and which kinetic parameter shall be fitted. The first two possible selections are here \emph{None}, for not running this model, \emph{Run} to just run it and make the species analysis. A fitting of kinetic parameter will not be carried out. Additional selections for fitting the results are \emph{constant~Rate}~(eq.~\ref{E_Reaction_g}), \emph{Arrhenius}~(eq.~\ref{E_Arrhenius_g}), \emph{Arrhenius~no~B}~(eq.~\ref{E_Arrhenius_g_noB}), \emph{Kobayashi}~(eq.~\ref{E_Kobayashi}) and \emph{DAEM}~(eq.~\ref{E_DAEM}). Here the fitting and the species analysis will be done.
+ \item \textbf{selected Fit Species (Arrhenius)} is only important if one of the selected models to fit is \emph{Arrhenius} or \emph{Arrhenius~no~B}. This column box allows which species shall be fitted. Possible options to choose are here:
+ \begin{itemize}
+  \item \emph{Total}: only the overall yield is fitted
+  \item \emph{Main Species}: the yield curves of the overall yields, tar and gas~(the sum of the light gases) are fitted
+  \item \emph{all Species}: the kinetic parameter for all species outputted by the detailed model are fitted
+ \end{itemize}
+ \item \textbf{Weight Parameter} Enter the parameter for the fitting procedure. The text line Weight Parameter Yields sets the factor $\mathrm{a_0}$ in equation~\ref{E_Weight_Param1}, Rates sets $\mathrm{a_1}$ in equation~\ref{E_Weight_Param2}.
+\end{itemize}
+The second section of the GUI, the information about the coal can be entered. All properties refer to the coal in the as received state.
+\begin{itemize}
+ \item \textbf{Ultimate Analysis in ~\%} Sets the ultimate analysis of the coal. Values should be in percent.
+ \item \textbf{Proximate Analysis in~\%} Sets the proximate analysis of the coal. Values should be in percent.
+ \item \textbf{Molecule Weight Tar}: define the molecule weight of the tar. Required for the species analysis.
+ \item \textbf{Higher Veating Value} Enter here the higher heating value of the coal in $\mathrm{\frac{MJ}{kg}}$.
+ \item \textbf{FG-DVC Coal \#} FG-DVC needs an information whether the coal property file should be interpolated using the van-Krevelen~Diagram (option \emph{0-Interpolate}) or if a library coal should be used (1-8). If the selected coal is out of the range of the library coals, the closest library coal has to be selected. The generation of the coal file is also done automatically by PKP.\footnote{Using the FG-DVC \emph{coalsd.exe}. For more information see the FG-DVC manual.}
+ \item \textbf{FG-DVC tar cracking} Defines the FG-DVC modeling of the tar cracking. Possible selections are:
+ \begin{itemize}
+  \item \emph{0.0} No tar cracking is modeled.\footnote{The option recommended by the FG-DVC manual~\cite{FGDVC_822}.}
+  \item When entering a time in seconds, e.g. '0.01', defines the holding time of the tar in the coal molecule. The tar is cracked during this time frame.
+  \item A negative number, e.g. '-1', sets the full tar cracking.
+ \end{itemize}
+\end{itemize}
+
+The last section in the GUI allows the input of the operating conditions:
+\begin{itemize}
+ \item \textbf{Pressure in atm} Defines the pressure where the devolatilization occurs.
+ \item \textbf{numerical time step} Sets the time step. For FG-DVC the constant value, for CPD the maximum.
+ \item \textbf{Temperature History} With the spin box on the left, the numbers of temperature histories to apply is defined. If this is set to '3', three runs are carried out using the first three temperature histories. These temperature histories can be imported via the five text fields on the right. There the temperature histories can be entered manually or also be imported using the 'open' buttons in below. Additionally they can be plotted (button 'plot'). Using this option also saves the temperature history in a file~\emph{TempHist1.dat}.Where the number stands for the current field. These saved temperature histories can be re-imported using the 'open' button.\\
+ All the temperature histories have to be entered in two columns, just separated by spaces. The time is in seconds, the temperature in Kelvin.
+\end{itemize}
+
+The head menu contains under File following options:
+\begin{center}
+\begin{tabular}{ll}
+Write into Table & Ctrl+S\\
+Write and Run & Ctrl+R\\
+Load saved state & Ctrl+O\\
+Show generated Results & Ctrl+T\\
+Exit & Ctrl+Q\\
+\end{tabular}
+\end{center}
+Where the Write saved all information into the \emph{.inp} files and the \emph{TempHist\#.dat} in the main directory. 'Load saved state' transfer this information into the current GUI.\\
+The 'Write and Run' is identical with the button 'Launch' in the lower right of the GUI.\\
+The file menu 'Help' offers to open this manual.\\
+
+Please do not forget to make the general settings in the input files, before using PKP the first time, see chapter~\ref{SS_1stSteps}.\\
+
+After running the result windows opens, figure~\ref{F_GUIDone}. It lists all calculated species in the column bar. With 'Show results' the yields over time for the detailed model output and the fitted equation are plotted. 'Open Species analysis' opens the textiles with the species analysis results for each run. Open kinetic parameter opens the text file with the results of the fitting, one file for each detailed model. If this window was closed, it can be reopened by the option 'Show generated Results'~(Ctrl+T) in the Main window. \\
+All results are located in the Result directory. When starting a new run, its content is deleted.\\
+
+\begin{figure}
+\centering
+\includegraphics[width=4cm,angle=0]{Figures/GUI_Done}
+\caption{A screenshot of the Result GUI.}
+\label{F_GUIDone}
+\end{figure}
+
 \subsubsection{Using the input files}\label{SSS_inp}
 The manual user input is managed by the four \emph{*.inp} files, \emph{Coal.inp, CPD.inp} \emph{FGDVC.inp} and \emph{OperCond.inp}.\\
 The information you want to insert into these files have to be in the line below the line asking for the information. For example:\\
@@ -116,7 +182,7 @@ Firstly you will get a short overview into these files and the values to enter i
   \item \textbf{pressure in atm:} Sets the constant pressure in atmospheres.
  \item \textbf{FG-DVC: constant (numerical) time step; CPD: maximum time step}: Enter here the numerical time step, the constant for \FGDVC and the maximum value for \texttt{CPD}.
  \item \textbf{Number of Temperature Histories to include:} Defines, how many runs of the pyrolysis  models should be carried out. The different temperature history will be defined with the help of the next point:
- \item \textbf{Start Time History 1:} This line have to follow two columns, defining the temperature history for the first run of the pyrolysis models. The first column lists the time in seconds, the second one the temperature in K. The last time point is automatically selected as the final pyrolysis time. The end of the time-tempoerature array has to be labeled by the term \emph{End Time History 1}. Here one example:\\
+ \item \textbf{Start Time History 1:} This line have to follow two columns, defining the temperature history for the first run of the pyrolysis models. The first column lists the time in seconds, the second one the temperature in K. The last time point is automatically selected as the final pyrolysis time. The end of the time-temperature array has to be labeled by the term \emph{End Time History 1}. Here one example:\\
 \emph{Start Time History 1\\
 0, 293\\
 0.05, 1000\\

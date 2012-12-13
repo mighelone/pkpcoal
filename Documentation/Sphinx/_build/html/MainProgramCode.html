@@ -51,72 +51,72 @@
 <h1>The Main Class<a class="headerlink" href="#the-main-class" title="Permalink to this headline">¶</a></h1>
 <p>This is the class controlling the whole process. It initialize the other classes and use their methods. If accesed as main file, it launches itself the whole process. But it is also connetced by the GUI, there the GUI tells to apply the MainProcess&#8217; methods.</p>
 <dl class="class">
-<dt id="Pyrolysis.MainProcess">
-<em class="property">class </em><tt class="descclassname">Pyrolysis.</tt><tt class="descname">MainProcess</tt><a class="headerlink" href="#Pyrolysis.MainProcess" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess">
+<em class="property">class </em><tt class="descclassname">PKP.</tt><tt class="descname">MainProcess</tt><a class="headerlink" href="#PKP.MainProcess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Controls the whole process of generating input files, fitting etc.</p>
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.CheckFGdt">
-<tt class="descname">CheckFGdt</tt><big>(</big><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.CheckFGdt" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.CheckFGdt">
+<tt class="descname">CheckFGdt</tt><big>(</big><big>)</big><a class="headerlink" href="#PKP.MainProcess.CheckFGdt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 (which is FG-DVC not able to read):</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.DAF">
-<tt class="descname">DAF</tt><big>(</big><em>PAFC_asRecieved</em>, <em>PAVM_asRecieved</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.DAF" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.DAF">
+<tt class="descname">DAF</tt><big>(</big><em>PAFC_asRecieved</em>, <em>PAVM_asRecieved</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.DAF" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculates PAFC, PAVM  from the as recieved state to the daf state of coal</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_Arrh">
-<tt class="descname">MakeResults_Arrh</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_Arrh" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_Arrh">
+<tt class="descname">MakeResults_Arrh</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_Arrh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the results for Arrhenius Rate.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_ArrhNoB">
-<tt class="descname">MakeResults_ArrhNoB</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_ArrhNoB" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_ArrhNoB">
+<tt class="descname">MakeResults_ArrhNoB</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_ArrhNoB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the results for Arrhenius Rate with no correction term T**b.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_CPD">
-<tt class="descname">MakeResults_CPD</tt><big>(</big><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_CPD" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_CPD">
+<tt class="descname">MakeResults_CPD</tt><big>(</big><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_CPD" title="Permalink to this definition">¶</a></dt>
 <dd><p>generates the result for CPD</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_CR">
-<tt class="descname">MakeResults_CR</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_CR" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_CR">
+<tt class="descname">MakeResults_CR</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_CR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the results for constant Rate.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_DEAM">
-<tt class="descname">MakeResults_DEAM</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_DEAM" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_DEAM">
+<tt class="descname">MakeResults_DEAM</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_DEAM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the results for DAEM model.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_FG">
-<tt class="descname">MakeResults_FG</tt><big>(</big><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_FG" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_FG">
+<tt class="descname">MakeResults_FG</tt><big>(</big><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_FG" title="Permalink to this definition">¶</a></dt>
 <dd><p>generates the result for FG-DVC</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.MakeResults_Kob">
-<tt class="descname">MakeResults_Kob</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.MakeResults_Kob" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.MakeResults_Kob">
+<tt class="descname">MakeResults_Kob</tt><big>(</big><em>PyrolProgram</em>, <em>File</em>, <em>Fit</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.MakeResults_Kob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the results for Kobayashi Rate.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.ReadInputFiles">
-<tt class="descname">ReadInputFiles</tt><big>(</big><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.ReadInputFiles" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.ReadInputFiles">
+<tt class="descname">ReadInputFiles</tt><big>(</big><big>)</big><a class="headerlink" href="#PKP.MainProcess.ReadInputFiles" title="Permalink to this definition">¶</a></dt>
 <dd><p>get parameters from input files</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="Pyrolysis.MainProcess.SpeciesEnergy">
-<tt class="descname">SpeciesEnergy</tt><big>(</big><em>PyrolProgram</em>, <em>File</em><big>)</big><a class="headerlink" href="#Pyrolysis.MainProcess.SpeciesEnergy" title="Permalink to this definition">¶</a></dt>
+<dt id="PKP.MainProcess.SpeciesEnergy">
+<tt class="descname">SpeciesEnergy</tt><big>(</big><em>PyrolProgram</em>, <em>File</em><big>)</big><a class="headerlink" href="#PKP.MainProcess.SpeciesEnergy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Carries out the species and Energy balance.</p>
 </dd></dl>
 
