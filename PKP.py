@@ -637,10 +637,10 @@ class MainProcess(object):
         elif self.CPD_FittingKineticParameter_Select==None:
             currentDict={'CPD':'None'}
             for Species in CPDFit[0].SpeciesNames():
+                M=Models.Model()
+                M.mkSimpleResultFiles(CPDFit,Species)
                 if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
                     self.SpeciesToConsider.append(Species)
-                    M=Models.Model()
-                    M.mkSimpleResultFiles(CPDFit,Species)
         else:
             print 'unspecified CPD_FittingKineticParameter_Select'
             currentDict={}
@@ -757,10 +757,10 @@ class MainProcess(object):
         elif self.FG_FittingKineticParameter_Select==None:
             currentDict={'FGDVC':'None'}
             for Species in FGFit[0].SpeciesNames():
+                M=Models.Model()
+                M.mkSimpleResultFiles(FGFit,Species)
                 if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
                     self.SpeciesToConsider.append(Species)
-                    M=Models.Model()
-                    M.mkSimpleResultFiles(FGFit,Species)
         else:
             print 'uspecified FG_FittingKineticParameter_Select'
             currentDict={}

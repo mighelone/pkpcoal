@@ -143,7 +143,7 @@ class Ui_Dialog(QWidget):
             for PyrolPr in self.PyrModelsD:
                 for i in range(4):
                     if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
-                        Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out')
+                        Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
                             plt.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
                             plt.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
