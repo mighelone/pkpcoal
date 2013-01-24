@@ -296,7 +296,8 @@ class MainProcess(object):
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+                LS.setTolerance(1.e-3)
+                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             elif UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Arr.plot(Fit,Species)
@@ -412,7 +413,8 @@ class MainProcess(object):
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+                LS.setTolerance(1.e-3)
+                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Solution=Arr.ParamVector()
@@ -468,7 +470,8 @@ class MainProcess(object):
                 Kob.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                #Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
+                LS.setTolerance(1.e-3)
+                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             Solution=Kob.ParamVector()
@@ -532,7 +535,8 @@ class MainProcess(object):
                 DAEM.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                #DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
+                LS.setTolerance(1.e-3)
+                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
             if UseGlobalOpt==False:
                 DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
             Solution=DAEM.ParamVector()
