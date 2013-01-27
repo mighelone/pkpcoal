@@ -752,7 +752,7 @@ class Ui_PKP(QMainWindow):
         ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
         #
         self.Done=Done.Ui_Dialog()
-        self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD)
+        self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD,(self.sB_Nr_THist.value()))
         self.Done.show()
         self.TheCalculationsAreDone=True
         #

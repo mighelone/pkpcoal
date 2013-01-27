@@ -1,3 +1,4 @@
+### PART OF MANY POINT OPTIMIZATION
 #The number of runs and the range to get the global optimum can be defined in this file
 #the general shape is:
 # IndexToOptimize=[2,3]       to optimize Parameter number 2 and 3 in the list
@@ -37,8 +38,8 @@ DAEMBoundaries = [[14e3,25e3],[1e3,7e3]] # one less pair; the range is set from 
 DAEMNrOfRuns = [0,3,3,3]
 #
 #
-################################
-#For generic algorithm:
+#
+### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
 NrOfGeneration = 100
 # size of population
@@ -55,7 +56,7 @@ EvAKobMax=[50000.,20000,100000000,50000,0.5,1.]
 EvAKobInit=[100157.0037,5849.84292004,85011813.05,12648.7543183,0.45,0.65]
 #
 #For Kobayashi:
-EvADAEMMin=[1e4, 12e3, 1e3] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
+EvADAEMMin=[1e8, 12e3, 1e3] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
 EvADAEMMax=[1e14,25e3, 7e3] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
 EvADAEMInit=[2e10,20e3,5e3]
 #
