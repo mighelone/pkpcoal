@@ -20,6 +20,7 @@ import shutil
 #
 #Use Global Optimizer? select 'Evolve' for a generic algorithm or 'ManyPoints' to use many starting points combined with a local optimization
 UseGlobalOpt= 'Evolve'
+#UseGlobalOpt= False
 #UseGlobalOpt= GlobalOptParam.GlobalOptimizeMethod
 #Which operating Sytem?
 oSystem=platform.system()
@@ -81,6 +82,7 @@ class MainProcess(object):
         self.MTar=CoalInput.getValue(InformationFiles.M_MTar)
         self.WeightY=CoalInput.getValue(InformationFiles.M_Weight[0])
         self.WeightR=CoalInput.getValue(InformationFiles.M_Weight[1])
+        self.densityDryCoal = CoalInput.getValue(InformationFiles.M_density)
         #
         #CPD Properties:
         #
@@ -296,7 +298,7 @@ class MainProcess(object):
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             elif UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Arr.plot(Fit,Species)
@@ -554,10 +556,10 @@ class MainProcess(object):
         for runNr in range(self.NrOfRuns):
             if PyrolProgram=='CPD':
                 print 'CPD energy and mass balance...'
-                Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,runNr)
+                Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
             if PyrolProgram=='FGDVC':    
                 print 'FG-DVC energy and mass balance...'
-                Compos_and_Energy.FGDVC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,runNr)
+                Compos_and_Energy.FGDVC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
                 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
 #
 #

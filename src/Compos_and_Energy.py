@@ -21,6 +21,8 @@ hfO2 = -847.6404
 hfN2 = 1429.881
 hfH2 = 2448.595
 hfChar = -101.268
+
+rhoH2O = 1000.0
 ######################################
 
 class SpeciesBalance(object):
@@ -29,7 +31,18 @@ class SpeciesBalance(object):
     def SpeciesIndex(self,species):
         """Returns the column number of the input species."""
         return self.Yields2Cols[species]
-        
+
+    def moistureVolumeFraction(self):
+        """
+        calculate volume fraction of moisture
+        """
+        volMoist = self.PAmoist/rhoH2O
+        volDry = (1.-self.PAmoist)/self.densityDryCoal
+        return volMoist/(volMoist+volDry)
+
+
+        return self.densityDryCoal
+
     def Dulong(self):
         """Uses the Dulong formular to calculate the Higher heating value. The output is in J/kg."""
         #HHV = 32.79 MJ/kg fC + 150.4 (fH - fO/8) + 9.26 fS + 4.97 fO + 2.42 fN
@@ -52,10 +65,11 @@ class SpeciesBalance(object):
 
 class CPD_SpeciesBalance(SpeciesBalance):
     """This class calculates the Species and the Energy balance for CPD. See the manual for the formulas and more details."""
-    def __init__(self,CPD_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,RunNr):
+    def __init__(self,CPD_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,densityDryCoal,RunNr):
         #imports the dictionaries for the species defined in 'CPD_Fit_one_run.py' -> CPD_Result()
         self.Yields2Cols=CPD_ResultObject.DictYields2Cols()
         self.Cols2Yields=CPD_ResultObject.DictCols2Yields()
+        self.densityDryCoal = densityDryCoal
         #imports final yield composition defined in CPD_Fit_one_run.py' -> CPD_Result()
         self.Yields=CPD_ResultObject.FinalYields()
         #0:'Time', 1:'Temp', 2:'Tar', 3:'Gas', 4:'Solid', 5:'Total', 6:'H2O', 7:'CO2', 8:'CH4', 9:'CO', 10:'Other'
@@ -87,6 +101,9 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.CPDBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
         self.CPDBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
         self.CPDBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
+        self.CPDBalanceFile.write('Moisture volume fraction: '+str('%6.3f\n\n' %self.moistureVolumeFraction()))
+
+
         #if sum Yields != 1.0: scales every Yield up
         self.__correctYields()
         #print "Sum of Yields, input" ,( self.Yields[self.SpeciesIndex('Solid')]+self.Yields[self.SpeciesIndex('Tar')]+self.Yields[self.SpeciesIndex('CO')]+self.Yields[self.SpeciesIndex('CO2')]+self.Yields[self.SpeciesIndex('H2O')]+self.Yields[self.SpeciesIndex('CH4')] + self.Yields[self.SpeciesIndex('Other')])
@@ -316,8 +333,9 @@ class CPD_SpeciesBalance(SpeciesBalance):
 
 class FGDVC_SpeciesBalance(SpeciesBalance):
     """This class calculates the Species and the Energy balance for FG-DVC. See the manual for the formulars and more details."""
-    def __init__(self,FGDVC_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,RunNr):
+    def __init__(self,FGDVC_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,densityDryCoal,RunNr):
         #imports the dictionaries for the species defined in 'CPD_Fit_one_run.py' -> CPD_Result()
+        self.densityDryCoal = densityDryCoal
         self.Yields2Cols=FGDVC_ResultObject.DictYields2Cols()
         self.Cols2Yields=FGDVC_ResultObject.DictCols2Yields()
         #imports final yield composition defined in CPD_Fit_one_run.py' -> CPD_Result()
@@ -351,6 +369,8 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.FGBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
         self.FGBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
         self.FGBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
+        self.FGBalanceFile.write('Moisture volume fraction: '+str('%6.3f\n\n' %self.moistureVolumeFraction()))
+    #self.FGBalanceFile.write('Moisture volume fraction ='+str(self.moistureVolumeFraction()))
         #considered yields: char, tar, CO, CO2, H2O, CH4, N2, H2, O2
         self.__correctYields()
         #the missing of the UA is included into carbon
