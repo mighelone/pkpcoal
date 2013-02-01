@@ -101,7 +101,6 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.CPDBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
         self.CPDBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
         self.CPDBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
-        self.CPDBalanceFile.write('Moisture volume fraction: '+str('%6.3f\n\n' %self.moistureVolumeFraction()))
 
 
         #if sum Yields != 1.0: scales every Yield up
@@ -186,7 +185,8 @@ class CPD_SpeciesBalance(SpeciesBalance):
 
 	self.CPDBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %vol))
 	self.CPDBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %char))
-	self.CPDBalanceFile.write('Ash fraction:                '+ str('%7.3f\n\n' %ash))
+	self.CPDBalanceFile.write('Ash fraction:                '+ str('%7.3f\n' %ash))
+        self.CPDBalanceFile.write('Moisture volume fraction:    '+ str('%7.3f\n\n' %self.moistureVolumeFraction()))
 
            
     def __TarComp(self): #saves [m,n,o] from C_m H_n O_o
@@ -369,7 +369,6 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.FGBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
         self.FGBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
         self.FGBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
-        self.FGBalanceFile.write('Moisture volume fraction: '+str('%6.3f\n\n' %self.moistureVolumeFraction()))
     #self.FGBalanceFile.write('Moisture volume fraction ='+str(self.moistureVolumeFraction()))
         #considered yields: char, tar, CO, CO2, H2O, CH4, N2, H2, O2
         self.__correctYields()
@@ -445,7 +444,8 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
 	
 	self.FGBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %char))
 	self.FGBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %vol))
-	self.FGBalanceFile.write('Ash fraction:                '+ str('%7.3f\n\n' %ash))
+	self.FGBalanceFile.write('Ash fraction:                '+ str('%7.3f\n' %ash))
+        self.FGBalanceFile.write('Moisture volume fraction:    '+ str('%7.3f\n\n' %self.moistureVolumeFraction()))
 
         self.FGBalanceFile.write('== Tar ==\n=== Atomic composition ===\n')
         self.FGBalanceFile.write(str('C_%5.3f ' %self.TarC)+str('H_%5.3f ' %self.TarH)+str('O_%5.3f ' %self.TarO)+str('N_%5.3f ' %self.TarN)+str('S_%5.3f\n' %self.TarS))
