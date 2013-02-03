@@ -59,12 +59,12 @@ class Model(object):
             print 'Models: Operating Platform cannot be specified.'
         plt.clf(),plt.cla()
         
-    def minLengthOfVectors(self,fgdvc_list):
+    def maxLengthOfVectors(self,fgdvc_list):
         """Returns the minimum lenght of a all vectors from the several runs."""
         Len_tPointsL=[]
         for i in range(len(fgdvc_list)):
             Len_tPointsL.append(len(fgdvc_list[i].Time()))
-        Len_tPoints=min(Len_tPointsL)
+        Len_tPoints=max(Len_tPointsL)
         return Len_tPoints
 
     def plot(self,fgdvc_list,Species):
@@ -72,26 +72,27 @@ class Model(object):
         #plots:
         colors=['r','b','g','black','purple']
         #Yields to compare
-        Len_tPoints=self.minLengthOfVectors(fgdvc_list)
-        u=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        v=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
+        u=[] #line index, time, column index: runned case
+        v=[] #line index, time, column index: runned case
         for runnedCaseNr in range(len(fgdvc_list)):
-            u[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Yield(Species)[:Len_tPoints]
-            v[:,runnedCaseNr]=self.calcMass(fgdvc_list[runnedCaseNr],fgdvc_list[runnedCaseNr].Time(),fgdvc_list[runnedCaseNr].Interpolate('Temp'),Species)[:Len_tPoints]
+            u_=fgdvc_list[runnedCaseNr].Yield(Species)
+            v_=self.calcMass(fgdvc_list[runnedCaseNr],fgdvc_list[runnedCaseNr].Time(),fgdvc_list[runnedCaseNr].Interpolate('Temp'),Species)
+            u.append(u_)
+            v.append(v_)
         if type(Species)==int:
             SpeciesForTitle=fgdvc_list[0].SpeciesName(Species)
         if type(Species)==str:
             SpeciesForTitle=Species
         if SpeciesForTitle=='Solid':
             for runnedCaseNr in range(len(fgdvc_list)):
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u)],u[:,runnedCaseNr],'-',color=colors[runnedCaseNr],label=fgdvc_list[0].Name()+' '+str(runnedCaseNr))
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v)],v[:,runnedCaseNr],'--',color=colors[runnedCaseNr],label='fit')
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u)],(1.-u[:,runnedCaseNr]),'-',color=colors[runnedCaseNr],label='Sum yields'+' '+str(runnedCaseNr))
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v)],(1.-v[:,runnedCaseNr]),'--',color=colors[runnedCaseNr],label='fit')
+                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u[runnedCaseNr])],u[runnedCaseNr],'-',color=colors[runnedCaseNr],label=fgdvc_list[0].Name()+' '+str(runnedCaseNr))
+                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v[runnedCaseNr])],v[runnedCaseNr],'--',color=colors[runnedCaseNr],label='fit')
+                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u[runnedCaseNr])],(1.-u[runnedCaseNr]),'-',color=colors[runnedCaseNr],label='Sum yields'+' '+str(runnedCaseNr))
+                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v[runnedCaseNr])],(1.-v[runnedCaseNr]),'--',color=colors[runnedCaseNr],label='fit')
         else:
             for runnedCaseNr in range(len(fgdvc_list)):
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u)],u[:,runnedCaseNr],'-',color=colors[runnedCaseNr],label=fgdvc_list[0].Name()+' '+str(runnedCaseNr))
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v)],v[:,runnedCaseNr],'--',color=colors[runnedCaseNr],label='fit')            
+                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u[runnedCaseNr])],u[runnedCaseNr],'-',color=colors[runnedCaseNr],label=fgdvc_list[0].Name()+' '+str(runnedCaseNr))
+                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v[runnedCaseNr])],v[runnedCaseNr],'--',color=colors[runnedCaseNr],label='fit')            
         plt.title(SpeciesForTitle)
         plt.xlabel('t in s')
         plt.ylabel('yield fraction in kg/kg_coal')
@@ -110,8 +111,8 @@ class Model(object):
         for runnedCaseNr in range(len(fgdvc_list)):
             ur=fgdvc_list[runnedCaseNr].Rate(Species)
             plt.plot(fgdvc_list[runnedCaseNr].Time(),ur,'-',color=colors[runnedCaseNr],label=fgdvc_list[runnedCaseNr].Name()+' '+str(runnedCaseNr))
-            w=self.deriveC(fgdvc_list[runnedCaseNr],v[:,runnedCaseNr],Len_tPoints)
-            plt.plot(fgdvc_list[runnedCaseNr].Time()[:Len_tPoints],w[:Len_tPoints],'--',color=colors[runnedCaseNr],label='fit')
+            w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
+            plt.plot(fgdvc_list[runnedCaseNr].Time(),w,'--',color=colors[runnedCaseNr],label='fit')
         if type(Species)==int:
             SpeciesForTitle=fgdvc_list[0].SpeciesName(Species)
         if type(Species)==str:
@@ -134,7 +135,7 @@ class Model(object):
         for runnedCaseNr in range(len(fgdvc_list)):
             t=fgdvc_list[runnedCaseNr].Yield('Time')
             T=fgdvc_list[runnedCaseNr].Yield('Temp')
-            w=self.deriveC(fgdvc_list[runnedCaseNr],v[:,runnedCaseNr],Len_tPoints)
+            w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
             if oSystem=='Linux':
                 resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
@@ -142,22 +143,15 @@ class Model(object):
             else:
                 print 'Models: Operating Platform cannot be specified.'
             resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
-            for i in range(len(v)):
-                resultFile.write('%7e  %11e %7e %8e %7e %8e \n' % (t[i], T[i], v[i,runnedCaseNr], w[i], u[i,runnedCaseNr], ur[i]))
+            for i in range(len(v[runnedCaseNr])):
+                resultFile.write('%7e  %11e %7e %8e %7e %8e \n' % (t[i], T[i], v[runnedCaseNr][i], w[i], u[runnedCaseNr][i], ur[i]))
             resultFile.close()
 
-    def deriveC(self,fgdvc,yVector,maxVectorLenght=None):
+    def deriveC(self,fgdvc,yVector):
         """Returns a CDS of the inputted yVector."""
         dt=fgdvc.Dt()
-        if maxVectorLenght==None:
-            yDot=np.zeros(fgdvc.NPoints())
-        else:
-            yDot=np.zeros(maxVectorLenght)
+        yDot=np.zeros(fgdvc.NPoints())
         yDot[0]=(yVector[1]-yVector[0])/dt[0]
-#        print (yVector[2:]-yVector[:-2])
-#        print (2*dt[1:-1])
-        if maxVectorLenght!=None:
-            dt=dt[:maxVectorLenght]
         yDot[1:-1]=(yVector[2:]-yVector[:-2])/(2*dt[1:-1])
         yDot[-1]=(yVector[-1]-yVector[-2])/dt[-1]
         return yDot
@@ -201,11 +195,11 @@ class Model(object):
         for runnedCaseNr in range(len(fgdvc_list)):
             t=fgdvc_list[runnedCaseNr].Yield('Time')
             T=fgdvc_list[runnedCaseNr].Yield('Temp')
-            Len_tPoints=self.minLengthOfVectors(fgdvc_list)
-            u=np.zeros([(Len_tPoints),len(fgdvc_list)])
+            u=[]
             for Nr in range(len(fgdvc_list)):
-                u[:,Nr]=fgdvc_list[Nr].Yield(Species)[:Len_tPoints]
-            w=self.deriveC(fgdvc_list[runnedCaseNr],u[:,runnedCaseNr],Len_tPoints)
+                u_=fgdvc_list[Nr].Yield(Species)
+                u.append(u_)
+            w=self.deriveC(fgdvc_list[runnedCaseNr],u[runnedCaseNr])
             if oSystem=='Linux':
                 resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
@@ -214,7 +208,7 @@ class Model(object):
                 print 'Models: Operating Platform cannot be specified.'
             resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
             for i in range(len(u)):
-                resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], u[i,runnedCaseNr], w[i]))
+                resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], u[runnedCaseNr][i], w[i]))
             resultFile.close()
 
 ################childrenclasses####################

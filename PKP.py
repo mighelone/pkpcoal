@@ -470,7 +470,7 @@ class MainProcess(object):
                 Kob.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                #Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
+#                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             if UseGlobalOpt==False:
                 Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
             Solution=Kob.ParamVector()
