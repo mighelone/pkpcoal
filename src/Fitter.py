@@ -65,31 +65,36 @@ class LeastSquarsEstimator(object):
         Optimized_a=Optimized_a1[0]
         return Optimized_a
     
-    def minLengthOfVectors(self,fgdvc_list):
+    def maxLengthOfVectors(self,fgdvc_list):
         """Returns the minimum lenght of a all vectors from the several runs."""
         Len_tPointsL=[]
         for i in range(len(fgdvc_list)):
             Len_tPointsL.append(len(fgdvc_list[i].Time()))
-        Len_tPoints=min(Len_tPointsL)
+        Len_tPoints=max(Len_tPointsL)
         return Len_tPoints
         
         
 
     def estimate_T(self,fgdvc_list,model,Parameter_Vector,Name,preLoopNumber=0):
         """The main optimization method. Optimizes the Fitting curve using the Least Squares for the weighted Yields and the weighted Rates considering the temperatur history. Requires at input: The corresponding Fit_one_run object, the Model object, the kinetic parameter list, a name (e.g. the species). preLoopNumber is the number of running the  improve_E and improve_a routines. So the standard setting of preLoopNumber is equal zero. It may be used if there is only a very bad convergence when optimize all three parameter."""
-        Len_tPoints=self.minLengthOfVectors(fgdvc_list)
-        t=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        dt=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        T=list()
-        u=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        uDot=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        v=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
-        vDot=np.zeros([(Len_tPoints),len(fgdvc_list)]) #line index, time, column index: runned case
+        maxLen=self.maxLengthOfVectors(fgdvc_list)
+        t=[] #line index, time, column index: runned case
+        dt=[] #line index, time, column index: runned case
+        T=[]
+        u=[] #line index, time, column index: runned case
+        uDot=[] #line index, time, column index: runned case
+        v=[] #line index, time, column index: runned case
+        vDot=[] #line index, time, column index: runned case
+        # this are the main array, containing sublists
+        # in the following, each subelement in every list is indicated with an underscore, see next loop
         for runnedCaseNr in range(len(fgdvc_list)):
-            t[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Time()[:Len_tPoints]
-            dt[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Dt()[:Len_tPoints]
+            t_=fgdvc_list[runnedCaseNr].Time()
+            dt_=fgdvc_list[runnedCaseNr].Dt()
+            u_=fgdvc_list[runnedCaseNr].Yield(Name)
             T.append(fgdvc_list[runnedCaseNr].Interpolate('Temp'))
-            u[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Yield(Name)[:Len_tPoints]
+            t.append(t_)
+            dt.append(dt_)
+            u.append(u_)
         #updated Vector: CurrentVector
         #####improve all parameters
         w0=self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
@@ -105,24 +110,28 @@ class LeastSquarsEstimator(object):
             model.setParamVector(Parameter)
 #            print model.ParamVector()
             for runnedCaseNr in range(len(fgdvc_list)):
-                v[:,runnedCaseNr]=model.calcMass(fgdvc_list[runnedCaseNr],t[:,runnedCaseNr],T[runnedCaseNr],Name)[:Len_tPoints]
-                uDot[:,runnedCaseNr]=fgdvc_list[runnedCaseNr].Rate(Name)[:Len_tPoints]
-                vDot[:,runnedCaseNr]=model.deriveC(fgdvc_list[runnedCaseNr],v[:,runnedCaseNr],Len_tPoints)
+                v_=model.calcMass(fgdvc_list[runnedCaseNr],t[runnedCaseNr],T[runnedCaseNr],Name)
+                uDot_=fgdvc_list[runnedCaseNr].Rate(Name)
+                vDot_=model.deriveC(fgdvc_list[runnedCaseNr],v_)
+                v.append(v_)
+                uDot.append(uDot_)
+                vDot.append(vDot_)
             if self.selectedOptimizer=='leastsq':
-                Dot1=np.zeros([(Len_tPoints),len(fgdvc_list)],dtype='d')
-                Dot2=np.zeros([(Len_tPoints),len(fgdvc_list)],dtype='d')
+                Error=np.zeros(maxLen,dtype='d')
                 for runnedCaseNr in range(len(fgdvc_list)):
-                    Dot2[:,runnedCaseNr]=w1*(((uDot[:,runnedCaseNr]-vDot[:,runnedCaseNr])**2)*dt[:,runnedCaseNr]) #the rate term
-                    Dot1[:,runnedCaseNr]=w0*(((u[:,runnedCaseNr]-v[:,runnedCaseNr])**2)*dt[:,runnedCaseNr])        #the yield term
-                Error=np.zeros((Len_tPoints),dtype='d')
-                #makes a long array, containing both, the rates and yields
-                Error[:]=np.sum(Dot1+Dot2,axis=1)
+                    Dot2_=w1*(((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2)*dt[runnedCaseNr]) #the rate term
+                    Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
+                    #makes a long array, containing both, the rates and yields                
+                    Error[:len(Dot1_)]+=np.sum(Dot1_+Dot2_,axis=1)
 #                print np.sum(Error)
             else:
-                sumYields_vec=(u-v)**2
+                sumYields_vec=np.zeros(maxLen)
+                sumRates_vec=np.zeros(maxLen)
+                for runnedCaseNr in range(len(fgdvc_list)):
+                    sumYields_vec[:len(u[runnedCaseNr])]+=(u[runnedCaseNr]-v[runnedCaseNr])**2
+                    sumRates_vec[:len(u[runnedCaseNr])]+=(uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
                 SumYields=np.sum(sumYields_vec*dt)
-                SumRates_vec=(uDot-vDot)**2
-                SumRates=np.sum(SumRates_vec*dt)
+                SumRates=np.sum(sumRates_vec*dt)
                 Error= w0*SumYields+w1*SumRates
 #                print Error
             return Error
