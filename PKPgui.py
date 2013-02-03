@@ -783,6 +783,7 @@ class Ui_PKP(QMainWindow):
         # scale ultimate analysis
         HHV=str(CoalInput.getValue(InformationFiles.M_HHV)*1e-6)
         MTar=CoalInput.getText(InformationFiles.M_MTar)
+        DryDens=CoalInput.getText(InformationFiles.M_density)
         WeightY=CoalInput.getText(InformationFiles.M_Weight[0])
         WeightR=CoalInput.getText(InformationFiles.M_Weight[1])
         #
@@ -969,7 +970,14 @@ class InfosFromGUI(object):
     def TimeHistories(self):
         """Returns the number of time history."""
         return self.__nrT
-
+    
+    def setCoalDens(self,CoalDensity):
+        """Saves the Coal Density"""
+        self.__CoalDens = CoalDensity
+        
+    def CoalDens(self):
+        """Returns the Coal Density"""
+        return self.__CoalDens
 
 if __name__ == "__main__":
     import sys

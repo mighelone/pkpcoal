@@ -14,13 +14,15 @@ class WriteCoalFile(object):
     """Writes the Coal.inp file using the output of the GUI."""
     def __init__(self,InfosFromGUIObject):
         self.Info=InfosFromGUIObject
+        try:
+            Obj = InformationFiles.ReadFile('Coal.inp')
+            self.CoalDens= Obj.getText(InformationFiles.M_density)
+        except IOError:
+            print "Please put a information about the coal density into the 'Coal.inp'."
         CoalFile=open('Coal.inp','w')
         CoalFile.write(self.__mkstr())
         CoalFile.close()
-#        if OSys=='Linux':
-#            shutil.move('Coal.inp','../Coal.inp')
-#        elif OSys=='Windows':
-#            shutil.move('Coal.inp','..\\Coal.inp')
+        
     
     def __mkstr(self):
         """Writes the content of the coal file"""
@@ -57,6 +59,8 @@ class WriteCoalFile(object):
         FileStr+=InformationFiles.M_MTar+'\n'
         FileStr+=MTar+'\n'
         FileStr+='\n'
+        FileStr+=InformationFiles.M_density+'\n'
+        FileStr+= self.CoalDens+'\n'
         #
         WY,WR = self.Info.WeightYR()
         FileStr+=InformationFiles.M_Weight[0]+'\n'
