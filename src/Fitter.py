@@ -130,8 +130,8 @@ class LeastSquarsEstimator(object):
                 for runnedCaseNr in range(len(fgdvc_list)):
                     sumYields_vec[:len(u[runnedCaseNr])]+=(u[runnedCaseNr]-v[runnedCaseNr])**2
                     sumRates_vec[:len(u[runnedCaseNr])]+=(uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
-                SumYields=np.sum(sumYields_vec*dt)
-                SumRates=np.sum(sumRates_vec*dt)
+                SumYields=np.sum(sumYields_vec*dt[runnedCaseNr])
+                SumRates=np.sum(sumRates_vec*dt[runnedCaseNr])
                 Error= w0*SumYields+w1*SumRates
 #                print Error
             return Error
