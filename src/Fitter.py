@@ -122,7 +122,7 @@ class LeastSquarsEstimator(object):
                     Dot2_=w1*(((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2)*dt[runnedCaseNr]) #the rate term
                     Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
                     #makes a long array, containing both, the rates and yields                
-                    Error[:len(Dot1_)]+=np.sum(Dot1_+Dot2_,axis=1)
+                    Error[:len(Dot1_)]+=Dot1_+Dot2_
 #                print np.sum(Error)
             else:
                 sumYields_vec=np.zeros(maxLen)
