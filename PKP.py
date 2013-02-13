@@ -298,7 +298,7 @@ class MainProcess(object):
                 Arr.setParamVector(GenAlg.mkResults())
                 #
                 #use afterwards local optimization
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+#                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             elif UseGlobalOpt==False:
                 Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
             Arr.plot(Fit,Species)

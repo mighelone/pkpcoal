@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWindow.ui'
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 import pylab as plt
 import numpy as np
 import os
@@ -11,7 +11,8 @@ import sys
 import platform
 import shutil
 
-from PyQt4.Qt import QWidget, QMainWindow
+from PySide.QtCore import *#QWidget, QMainWindow
+from PySide.QtGui import *
 
 OSys=platform.system()
 sys.path.append('src')
@@ -25,9 +26,10 @@ try:
 except AttributeError:
     _fromUtf8 = lambda s: s
 
+#class Ui_PKP(QMainWindow):
 class Ui_PKP(QMainWindow):
     def setupUi(self, PKP, SaveInfoObj):
-        QMainWindow.__init__(self) #manually added
+        #QMainWindow.__init__(self) #manually added
         self.QWidgMain= QWidget(self) #manually added
         self.setCentralWidget(self.QWidgMain) #manually added
         self.TheCalculationsAreDone=False #manually added
@@ -68,7 +70,7 @@ class Ui_PKP(QMainWindow):
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.formLayout = QtGui.QFormLayout(self.layoutWidget)
         self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
-        self.formLayout.setMargin(0)
+        #self.formLayout.setContentsMargins (0)#setMargin(0)
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
         self.L_CPD = QtGui.QLabel(self.layoutWidget)
         self.L_CPD.setObjectName(_fromUtf8("L_CPD"))
@@ -114,7 +116,7 @@ class Ui_PKP(QMainWindow):
         self.layoutWidget1.setObjectName(_fromUtf8("layoutWidget1"))
         self.formLayout_2 = QtGui.QFormLayout(self.layoutWidget1)
         self.formLayout_2.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
-        self.formLayout_2.setMargin(0)
+        #self.formLayout_2.setMargin(0)
         self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))
         self.L_WeightParam = QtGui.QLabel(self.layoutWidget1)
         self.L_WeightParam.setObjectName(_fromUtf8("L_WeightParam"))
@@ -135,7 +137,7 @@ class Ui_PKP(QMainWindow):
         self.layoutWidget2.setGeometry(QtCore.QRect(570, 280, 154, 51))
         self.layoutWidget2.setObjectName(_fromUtf8("layoutWidget2"))
         self.gridLayout_4 = QtGui.QGridLayout(self.layoutWidget2)
-        self.gridLayout_4.setMargin(0)
+        #self.gridLayout_4.setMargin(0)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
         self.L_MW = QtGui.QLabel(self.layoutWidget2)
         self.L_MW.setObjectName(_fromUtf8("L_MW"))
@@ -150,7 +152,7 @@ class Ui_PKP(QMainWindow):
         self.layoutWidget3.setGeometry(QtCore.QRect(160, 450, 341, 53))
         self.layoutWidget3.setObjectName(_fromUtf8("layoutWidget3"))
         self.gridLayout_5 = QtGui.QGridLayout(self.layoutWidget3)
-        self.gridLayout_5.setMargin(0)
+        #self.gridLayout_5.setMargin(0)
         self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
         self.L_FGDVCcoal = QtGui.QLabel(self.layoutWidget3)
         self.L_FGDVCcoal.setObjectName(_fromUtf8("L_FGDVCcoal"))
@@ -254,7 +256,7 @@ class Ui_PKP(QMainWindow):
         self.layoutWidget4.setGeometry(QtCore.QRect(31, 281, 202, 159))
         self.layoutWidget4.setObjectName(_fromUtf8("layoutWidget4"))
         self.formLayout_3 = QtGui.QFormLayout(self.layoutWidget4)
-        self.formLayout_3.setMargin(0)
+        #self.formLayout_3.setMargin(0)
         self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
         self.L_UA = QtGui.QLabel(self.layoutWidget4)
         self.L_UA.setObjectName(_fromUtf8("L_UA"))
@@ -293,7 +295,7 @@ class Ui_PKP(QMainWindow):
         self.layoutWidget5.setGeometry(QtCore.QRect(281, 281, 253, 134))
         self.layoutWidget5.setObjectName(_fromUtf8("layoutWidget5"))
         self.verticalLayout = QtGui.QVBoxLayout(self.layoutWidget5)
-        self.verticalLayout.setMargin(0)
+        #self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.L_PA = QtGui.QLabel(self.layoutWidget5)
         self.L_PA.setObjectName(_fromUtf8("L_PA"))
@@ -600,35 +602,35 @@ class Ui_PKP(QMainWindow):
     def LoadTtFile1(self):
         """Loads the temperature history nr 1 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
-        file1=open(filename)
+        file1=open(filename[0],'r')
         data = file1.read()
         self.tE_THist_1.setText(data)
         file1.close()
     def LoadTtFile2(self):
         """Loads the temperature history nr 2 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
-        file2=open(filename)
+        file2=open(filename[0],'r')
         data = file2.read()
         self.tE_THist_2.setText(data)
         file2.close()
     def LoadTtFile3(self):
         """Loads the temperature history nr 3 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
-        file3=open(filename)
+        file3=open(filename[0],'r')
         data = file3.read()
         self.tE_THist_3.setText(data)
         file3.close()
     def LoadTtFile4(self):
         """Loads the temperature history nr 4 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
-        file4=open(filename)
+        file4=open(filename[0],'r')
         data = file4.read()
         self.tE_THist_4.setText(data)
         file4.close()
     def LoadTtFile5(self):
         """Loads the temperature history nr 5 file via file browser"""
         filename = QtGui.QFileDialog.getOpenFileName()
-        file5=open(filename)
+        file5=open(filename[0],'r')
         data = file5.read()
         self.tE_THist_5.setText(data)
         file5.close()

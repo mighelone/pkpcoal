@@ -136,6 +136,7 @@ class Model(object):
             t=fgdvc_list[runnedCaseNr].Yield('Time')
             T=fgdvc_list[runnedCaseNr].Yield('Temp')
             w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
+            ur=fgdvc_list[runnedCaseNr].Rate(Species)
             if oSystem=='Linux':
                 resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
@@ -143,7 +144,7 @@ class Model(object):
             else:
                 print 'Models: Operating Platform cannot be specified.'
             resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
-            for i in range(len(v[runnedCaseNr])):
+            for i in range(len(t)):
                 resultFile.write('%7e  %11e %7e %8e %7e %8e \n' % (t[i], T[i], v[runnedCaseNr][i], w[i], u[runnedCaseNr][i], ur[i]))
             resultFile.close()
 
