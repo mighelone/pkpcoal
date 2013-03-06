@@ -11,20 +11,23 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 
-from PySide import QtCore, QtGui
+#from PySide import QtCore#, QtGui
+#from PySide import *
+#try:
+#    _fromUtf8 = fromUtf8
+#except AttributeError:
+_fromUtf8 = lambda s: s
 
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 OSys=platform.system()
 
 
 
 #class MainWindow(QMainWindow):
-class Ui_Dialog(QtGui.QWidget):#QMainWindow):
+class Ui_Dialog(QWidget):#QMainWindow):
     #def __init__(self):
     def setupUi(self, SpeciesList,RunnedPyrolPrList,PyrolModelDict, NrOfRuns):
 	# main stuff
@@ -32,110 +35,110 @@ class Ui_Dialog(QtGui.QWidget):#QMainWindow):
         self.PyrolPrL = RunnedPyrolPrList
         self.PyrModelsD = PyrolModelDict
         self.NrRuns = NrOfRuns
-        self.tab_Main = QtGui.QTabWidget()
+        self.tab_Main = QTabWidget()
         self.tab_Main.setObjectName(_fromUtf8("tab_Main"))
-	vbox = QtGui.QVBoxLayout()
+        vbox = QVBoxLayout()
         vbox.addWidget(self.tab_Main)
         self.setLayout(vbox)
-	self.setGeometry(900, 500, 250, 150)
-	self.showMaximized()
-        self.tab_ResKin = QtGui.QWidget()
+        self.setGeometry(900, 500, 250, 150)
+        self.showMaximized()
+        self.tab_ResKin = QWidget()
         self.tab_ResKin.setObjectName(_fromUtf8("tab_ResKin"))
         self.tab_Main.addTab(self.tab_ResKin, _fromUtf8(""))
-        self.tab_ResSpec = QtGui.QWidget()
+        self.tab_ResSpec = QWidget()
         self.tab_ResSpec.setObjectName(_fromUtf8("tab_ResSpec"))
         self.tab_Main.addTab(self.tab_ResSpec, _fromUtf8(""))
-        self.tab_Plots = QtGui.QWidget()
+        self.tab_Plots = QWidget()
         self.tab_Plots.setObjectName(_fromUtf8("tab_Plots"))
         self.tab_Main.addTab(self.tab_Plots, _fromUtf8(""))
-	# kinetic tab
-        self.gridLayout_2 = QtGui.QGridLayout(self.tab_ResKin)
+        # kinetic tab
+        self.gridLayout_2 = QGridLayout(self.tab_ResKin)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
-        self.cB_Kin = QtGui.QComboBox(self.tab_ResKin)
+        self.cB_Kin = QComboBox(self.tab_ResKin)
         self.cB_Kin.setObjectName(_fromUtf8("cB_Kin"))
         for PyrolPr in range(len(self.PyrolPrL)):       #manually added
             self.cB_Kin.addItem(_fromUtf8(""))  #manually added
-        self.tE_Kin = QtGui.QTextEdit(self.tab_ResKin)
+        self.tE_Kin = QTextEdit(self.tab_ResKin)
         self.tE_Kin.setObjectName(_fromUtf8("tE_Kin"))
-        self.l_NRKin = QtGui.QLabel(self.tab_ResKin)
+        self.l_NRKin = QLabel(self.tab_ResKin)
         self.l_NRKin.setObjectName(_fromUtf8("l_NRKin"))
-        self.B_Kin = QtGui.QPushButton(self.tab_ResKin)
+        self.B_Kin = QPushButton(self.tab_ResKin)
         self.B_Kin.setObjectName(_fromUtf8("B_Kin"))
         self.gridLayout_2.addWidget(self.tE_Kin, 0, 0, 10, 6)
         self.gridLayout_2.addWidget(self.cB_Kin, 4, 10, 1, 1)
         self.gridLayout_2.addWidget(self.l_NRKin, 3, 10, 1, 1)
         self.gridLayout_2.addWidget(self.B_Kin, 6, 10, 1, 1)
-	# species calc tab
-        self.gridLayout_4 = QtGui.QGridLayout(self.tab_ResSpec)
+        # species calc tab
+        self.gridLayout_4 = QGridLayout(self.tab_ResSpec)
         self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
-        self.tE_Spec = QtGui.QTextEdit(self.tab_ResSpec)
+        self.tE_Spec = QTextEdit(self.tab_ResSpec)
         self.tE_Spec.setObjectName(_fromUtf8("tE_Spec"))
-        self.l_NRSpec = QtGui.QLabel(self.tab_ResSpec)
+        self.l_NRSpec = QLabel(self.tab_ResSpec)
         self.l_NRSpec.setObjectName(_fromUtf8("l_NRSpec"))
-        self.sB_Spec = QtGui.QSpinBox(self.tab_ResSpec)
+        self.sB_Spec = QSpinBox(self.tab_ResSpec)
         self.sB_Spec.setObjectName(_fromUtf8("sB_Spec"))
-	self.sB_Spec.setMinimum(1)
+        self.sB_Spec.setMinimum(1)
         self.sB_Spec.setMaximum(self.NrRuns)
-        self.cB_Spec = QtGui.QComboBox(self.tab_ResSpec)
+        self.cB_Spec = QComboBox(self.tab_ResSpec)
         self.cB_Spec.setObjectName(_fromUtf8("cB_Spec"))
         for PyrolPr in range(len(self.PyrolPrL)):       #manually added
             self.cB_Spec.addItem(_fromUtf8(""))  #manually added
-        self.B_Spec = QtGui.QPushButton(self.tab_ResSpec)
+        self.B_Spec = QPushButton(self.tab_ResSpec)
         self.B_Spec.setObjectName(_fromUtf8("B_Spec"))
         self.gridLayout_4.addWidget(self.tE_Spec, 0, 0, 10, 8)
         self.gridLayout_4.addWidget(self.l_NRSpec, 3, 10, 1, 1)
         self.gridLayout_4.addWidget(self.sB_Spec, 4, 10, 1, 1)
         self.gridLayout_4.addWidget(self.cB_Spec, 5, 10, 1, 1)
         self.gridLayout_4.addWidget(self.B_Spec, 7, 10, 1, 1)
-	# Plot tab
-        self.l_Plot = QtGui.QLabel(self.tab_Plots)
+        # Plot tab
+        self.l_Plot = QLabel(self.tab_Plots)
         self.l_Plot.setObjectName(_fromUtf8("l_Plot"))
-        self.cB_Plot = QtGui.QComboBox(self.tab_Plots)
+        self.cB_Plot = QComboBox(self.tab_Plots)
         self.cB_Plot.setObjectName(_fromUtf8("cB_Plot"))
         for SpecNr in range(len(self.SpecL)):       #manually added
             self.cB_Plot.addItem(_fromUtf8(""))  #manually added
-        self.B_Plot = QtGui.QPushButton(self.tab_Plots)
+        self.B_Plot = QPushButton(self.tab_Plots)
         self.B_Plot.setObjectName(_fromUtf8("B_Plot"))
-	#plotting
+        #plotting
         self.fig = Figure()
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.setParent(self)
+        self.canvas.setParent(self.tab_Plots) 
         self.ax = self.fig.add_subplot(111)
-	self.gridLayout_3 = QtGui.QGridLayout(self.tab_Plots)
+        self.gridLayout_3 = QGridLayout(self.tab_Plots)
         self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
-	self.gridLayout_3.addWidget(self.canvas, 0, 0, 10, 10)
-	self.gridLayout_3.addWidget(self.cB_Plot, 4, 10, 1, 1)
-	self.gridLayout_3.addWidget(self.l_Plot, 3, 10, 1, 1)
-	self.gridLayout_3.addWidget(self.B_Plot, 6, 10, 1, 1)
+        self.gridLayout_3.addWidget(self.canvas, 0, 0, 10, 10)
+        self.gridLayout_3.addWidget(self.cB_Plot, 4, 10, 1, 1)
+        self.gridLayout_3.addWidget(self.l_Plot, 3, 10, 1, 1)
+        self.gridLayout_3.addWidget(self.B_Plot, 6, 10, 1, 1)
         self.retranslateUi()
         self.tab_Main.setCurrentIndex(1)
-        QtCore.QObject.connect(self.B_Spec, QtCore.SIGNAL(_fromUtf8("clicked()")), self.OpenSpecAnalysis)  #manually added
-        QtCore.QObject.connect(self.B_Kin, QtCore.SIGNAL(_fromUtf8("clicked()")), self.OpenKinParam)  #manually added
-        QtCore.QObject.connect(self.B_Plot, QtCore.SIGNAL('clicked()'), self.PlotFunc)   #manually added
-        QtCore.QMetaObject.connectSlotsByName(self)
-	# to close window
-	exitAction = QtGui.QAction('&Exit', self)
+        QObject.connect(self.B_Spec, SIGNAL(_fromUtf8("clicked()")), self.OpenSpecAnalysis)  #manually added
+        QObject.connect(self.B_Kin, SIGNAL(_fromUtf8("clicked()")), self.OpenKinParam)  #manually added
+        QObject.connect(self.B_Plot, SIGNAL('clicked()'), self.PlotFunc)   #manually added
+        QMetaObject.connectSlotsByName(self)
+        # to close window
+        exitAction = QAction('&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
-	exitAction.triggered.connect(self.close)
+        exitAction.triggered.connect(self.close)
 
 
     def retranslateUi(self):
-        self.setWindowTitle(QtGui.QApplication.translate("Dialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.l_NRKin.setText(QtGui.QApplication.translate("Dialog", "Program", None, QtGui.QApplication.UnicodeUTF8))
-        self.B_Kin.setText(QtGui.QApplication.translate("Dialog", "Open", None, QtGui.QApplication.UnicodeUTF8))
-        self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_ResKin), QtGui.QApplication.translate("Dialog", "Results - Kinetics", None, QtGui.QApplication.UnicodeUTF8))
-        self.l_NRSpec.setText(QtGui.QApplication.translate("Dialog", "Run,Program", None, QtGui.QApplication.UnicodeUTF8))
-        self.B_Spec.setText(QtGui.QApplication.translate("Dialog", "Open", None, QtGui.QApplication.UnicodeUTF8))
-        self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_ResSpec), QtGui.QApplication.translate("Dialog", "Results - Species", None, QtGui.QApplication.UnicodeUTF8))
-        self.l_Plot.setText(QtGui.QApplication.translate("Dialog", "<html><head/><body><p align=\"center\">Select Species</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.cB_Plot.setItemText(0, QtGui.QApplication.translate("Dialog", "Total", None, QtGui.QApplication.UnicodeUTF8))
-        self.B_Plot.setText(QtGui.QApplication.translate("Dialog", "Show Results", None, QtGui.QApplication.UnicodeUTF8))
-        self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_Plots), QtGui.QApplication.translate("Dialog", "Plots", None, QtGui.QApplication.UnicodeUTF8))
+        self.setWindowTitle(QApplication.translate("Dialog", "Dialog", None, QApplication.UnicodeUTF8))
+        self.l_NRKin.setText(QApplication.translate("Dialog", "Program", None, QApplication.UnicodeUTF8))
+        self.B_Kin.setText(QApplication.translate("Dialog", "Open", None, QApplication.UnicodeUTF8))
+        self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_ResKin), QApplication.translate("Dialog", "Results - Kinetics", None, QApplication.UnicodeUTF8))
+        self.l_NRSpec.setText(QApplication.translate("Dialog", "Run,Program", None, QApplication.UnicodeUTF8))
+        self.B_Spec.setText(QApplication.translate("Dialog", "Open", None, QApplication.UnicodeUTF8))
+        self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_ResSpec), QApplication.translate("Dialog", "Results - Species", None, QApplication.UnicodeUTF8))
+        self.l_Plot.setText(QApplication.translate("Dialog", "<html><head/><body><p align=\"center\">Select Species</p></body></html>", None, QApplication.UnicodeUTF8))
+        self.cB_Plot.setItemText(0, QApplication.translate("Dialog", "Total", None, QApplication.UnicodeUTF8))
+        self.B_Plot.setText(QApplication.translate("Dialog", "Show Results", None, QApplication.UnicodeUTF8))
+        self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_Plots), QApplication.translate("Dialog", "Plots", None, QApplication.UnicodeUTF8))
         for specNr in range(len(self.SpecL)):#manually added
-            self.cB_Plot.setItemText(specNr, QtGui.QApplication.translate("Dialog", self.SpecL[specNr], None, QtGui.QApplication.UnicodeUTF8))#manually added
+            self.cB_Plot.setItemText(specNr, QApplication.translate("Dialog", self.SpecL[specNr], None, QApplication.UnicodeUTF8))#manually added
         for PyrolPr in range(len(self.PyrolPrL)):       #manually added
-            self.cB_Kin.setItemText(PyrolPr, QtGui.QApplication.translate("Dialog", self.PyrolPrL[PyrolPr], None, QtGui.QApplication.UnicodeUTF8))#manually added
-            self.cB_Spec.setItemText(PyrolPr, QtGui.QApplication.translate("Dialog", self.PyrolPrL[PyrolPr], None, QtGui.QApplication.UnicodeUTF8))#manually added
+            self.cB_Kin.setItemText(PyrolPr, QApplication.translate("Dialog", self.PyrolPrL[PyrolPr], None, QApplication.UnicodeUTF8))#manually added
+            self.cB_Spec.setItemText(PyrolPr, QApplication.translate("Dialog", self.PyrolPrL[PyrolPr], None, QApplication.UnicodeUTF8))#manually added
 
 
     def OpenSpecAnalysis(self):
@@ -185,7 +188,7 @@ class Ui_Dialog(QtGui.QWidget):#QMainWindow):
         Spec=self.SpecL[SpecNr]
         self.ax.clear()
         self.ax.grid()
-	self.ax.set_ylabel('Yields (mass fraction)')
+        self.ax.set_ylabel('Yields (mass fraction)')
         self.ax.set_xlabel('Time in s')
         self.ax.set_title(Spec)
         if OSys=='Linux':
@@ -217,12 +220,11 @@ class Ui_Dialog(QtGui.QWidget):#QMainWindow):
 
 
 
-
-
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
-    myapp = GUIForm()
-    myapp.show()
+    app = QApplication(sys.argv)
+    myapp = Ui_Dialog()
+    myapp.setupUi(['H2','O2'],['CPD','PCCL'],{'CPD':'aa'}, 3)
+#    myapp.show()
     sys.exit(app.exec_())
 
 
