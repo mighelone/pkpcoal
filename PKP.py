@@ -26,7 +26,8 @@ UseGlobalOpt= 'Evolve'
 #UseGlobalOpt= False
 #UseGlobalOpt= GlobalOptParam.GlobalOptimizeMethod
 #Which operating Sytem?
-oSystem=platform.system()
+#oSystem=platform.system()
+oSystem = 'Linux'
 #Directories:
 #gets the current directory:
 workingDir=os.getcwd()+'/'
@@ -820,25 +821,59 @@ class MainProcess(object):
             print 'Composition outside of triangle of definition'
             sys.exit()
         # organize TimeTemp
-
+        PMSKDFile=[]
+        PMSKDFit=[]
         for runNr in range(self.NrOfRuns):
-            print runNr
-            print coal._coalCantera
+            print 'Running PMSKD n. '+str(runNr)
             #print self.timeHR[runNr]
             #print self.temperatureHR[runNr]
             #set heating rate
             coal.setHeatingRate(self.timeHR[runNr],self.temperatureHR[runNr])
             coal.setTimeStep(self.PMSKD_npoint)
             coal.solvePyrolysis()
+            #plt.figure(runNr)
+            #plt.plot(coal.getTemperature(),coal.getVolatile())
+            #read result:
+            #CurrentPMSKDFile=Coal
+            # creates object, required for fitting procedures
+            CurrentPMSKDFit=FitInfo.Fit_one_run(coal)
+            #PMSKDFile.append(CurrentFGFile)
+            PMSKDFit.append(CurrentPMSKDFit)
+            #print coal.Yields_all()
 
-            print coal.getVolatile()
-            plt.figure(runNr)
-            plt.plot(coal.getTemperature(),coal.getVolatile())
             coal.reset()
             #print coal.timeHR
             #print coal.temperatureHR
 
-        plt.show()
+        if self.PMSKD_FittingKineticParameter_Select=='constantRate':
+            self.MakeResults_CR('PMSKD','',PMSKDFit)
+            currentDict={'PMSKD':'constantRate'}
+        elif self.PMSKD_FittingKineticParameter_Select=='Arrhenius':
+            self.MakeResults_Arrh('PMSKD','',PMSKDFit)
+            currentDict={'PMSKD':'Arrhenius'}
+        elif self.PMSKD_FittingKineticParameter_Select=='ArrheniusNoB':
+            self.MakeResults_ArrhNoB('PMSKD','',PMSKDFit)
+            currentDict={'PMSKD':'ArrheniusNoB'}
+        elif self.PMSKD_FittingKineticParameter_Select=='Kobayashi':
+            self.MakeResults_Kob('PMSKD','',PMSKDFit)
+            currentDict={'PMSKD':'Kobayashi'}
+        elif self.PMSKD_FittingKineticParameter_Select=='DAEM':
+            self.MakeResults_DEAM('PMSKD','',PMSKDFit)
+            currentDict={'PMSKD':'DAEM'}
+        elif self.PMSKD_FittingKineticParameter_Select==None:
+            currentDict={'PMSKD':'None'}
+            for Species in PMSKDFit[0].SpeciesNames():
+                M=Models.Model()
+                M.mkSimpleResultFiles(PMSKDFit,Species)
+                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                    self.SpeciesToConsider.append(Species)
+        else:
+            print 'undefined PMSKD_FittingKineticParameter_Select'
+            currentDict={}
+            #
+        self.ProgramModelDict.update(currentDict)
+        #
+        #self.SpeciesEnergy('PMSKD',FGFile)
 
 
 

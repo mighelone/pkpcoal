@@ -7,7 +7,8 @@ import platform
 #
 PngResolution=100
 #
-oSystem=platform.system()
+#oSystem=platform.system()
+oSystem = 'Linux'
 #the general parent class
 class Model(object):
     """Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models."""
@@ -138,6 +139,7 @@ class Model(object):
             w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
             ur=fgdvc_list[runnedCaseNr].Rate(Species)
             if oSystem=='Linux':
+                print fgdvc_list[runnedCaseNr]
                 resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
                 resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')

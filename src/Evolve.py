@@ -66,7 +66,7 @@ class GenericOpt(object):
 #                    error += w0*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2) + w1*np.sum((ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
                     yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
                     error += np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
-            return error
+            return 100.*error
         # scales parameter using the initialParameters
         self.__ParameterSc = (self.__ParamInit-self.__ParamMin)/(self.__ParamMax-self.__ParamMin)
         #

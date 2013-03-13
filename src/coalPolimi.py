@@ -205,10 +205,14 @@ class coalPolimi(coal):
         #sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-4,atol=1e-2)
         sol.set_initial_value(m0,0)
         self._y = [m0]
+        self._r = [dmidt(0,m0)]
         for t in self.time[1:]:
             sol.integrate(t)
             self._y=np.concatenate((self._y, [sol.y]))
+            self._r=np.concatenate((self._y, [dmidt(sol.t,sol.y)]))
             #print 'coal0='+str(sol.y[iCoal3])
+
+        del(sol)
 
     def _updateReactor(self,t,m):
         ''' update reactor '''
@@ -303,4 +307,61 @@ class coalPolimi(coal):
 
     def getTemperature(self):
         return self._getInterpTemperature(self.time)
+
+
+    def _calculateYields(self):
+        '''
+        return yields as daf fraction
+        using format required by PKP
+        '''
+        self.__yields=np.zeros(( int(len(self.time)),14) )  #shapes new Matrix containing all necessary information;
+        self.__yields[:,0]=self.time
+        self.__yields[:,1]=self.getTemperature() # temp
+        self.__yields[:,2]=self.getTAR() # total volatile yield
+        self.__yields[:,3]=self.getLightGases()
+        self.__yields[:,5]=self.getVolatile()
+        self.__yields[:,4]=1.-self.__yields[:,5]
+        self.__yields[:,6]=self.getH2O()
+        self.__yields[:,7]=self.getCO2()
+        self.__yields[:,8]=self.getCH4()
+        self.__yields[:,9]=self.getCO()
+        self.__yields[:,10]=self.getH2()
+        self.__yields[:,11]=self._y[:,self._coalCantera.speciesIndex('CH2')]
+        self.__yields[:,12]=self._y[:,self._coalCantera.speciesIndex('CH3O')]
+        self.__yields[:,13]=self._y[:,self._coalCantera.speciesIndex('BTX2')]
+        self.Yields2Cols={'Time':0,'Temp':1,'Tar':2,'Gas':3,'Solid':4,'Total':5,
+                          'H2O':6,'CO2':7,'CH4':8,'CO':9,'H2':10,
+                          'CH2':11,'CH3O':12,'BTX2':13}
+        self.Cols2Yields={0:'Time',1:'Temp',2:'Tar',3:'Gas',4:'Solid',5:'Total',
+                          6:'H2O',7:'CO2',8:'CH4',9:'CO',10:'H2',
+                          11:'CH2',12:'CH3O',13:'BTX2'}
+
+    def Yields_all(self):
+        """Returns the whole result matrix of the yields."""
+        self._calculateYields()
+        return self.__yields
+
+    def Rates_all(self):
+        """Returns the whole result matrix of the rates"""
+        self.__rates=np.zeros(( int(len(self.time)),14) )  #shapes new Matrix containing all necessary information;
+        return self.__rates
+
+    def DictYields2Cols(self):
+        """Returns the whole Dictionary Yield names to Columns of the matrix"""
+        return self.Yields2Cols
+
+    def DictCols2Yields(self):
+        """Returns the whole Dictionary Columns of the matrix to Yield names"""
+        return self.Cols2Yields
+
+    def FinalYields(self):
+        """Returns the last line of the Array, containing the yields at the time=time_End"""
+        return self.__yields[-1,:]
+
+    def Name(self):
+        """returns 'CPD' as the name of the Program"""
+        return 'PMSKD'
+
+
+
 
