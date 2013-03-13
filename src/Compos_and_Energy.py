@@ -244,7 +244,7 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.CPDBalanceFile.write('== Heating value ==\n')
         self.CPDBalanceFile.write('|   | ar MJ/kg|daf MJ/kg|\n') 
         self.CPDBalanceFile.write('|HHV|'+str('%9.3f|' %(self.HHV/1e6))+str('%9.3f|\n' %(HHVdaf/1e6)))
-        self.CPDBalanceFile.write('|LHV|'+str('%9.3f|' %(LHVar/1e6))+str('%9.3f|\n\n' %(HHVdaf/1e6)))
+        self.CPDBalanceFile.write('|LHV|'+str('%9.3f|' %(LHVar/1e6))+str('%9.3f|\n\n' %(LHVdaf/1e6)))
         
     def __hfRaw(self):
         """Calculates the heat of formation of the coal molecule and writes it into the output file."""

@@ -1,0 +1,306 @@
+__author__ = 'vascella'
+
+__author__ = 'vascella'
+
+import numpy as np
+from coal import coal
+import sys
+#sys.path.append('/usr/local/lib/python2.7/site-packages/')
+from Cantera import *
+from scipy.integrate import odeint,ode
+
+
+class triangle(object):
+    '''
+    calculate properties of coal
+    using triangolation
+    '''
+    def __init__(self,x0=np.array([0,0]),x1=np.array([1,0]),x2=np.array([0,1])):
+        self.x0 = x0
+        self.x1 = x1
+        self.x2 = x2
+
+    def _coeff(self,x=np.array([0,0])):
+        '''
+        calculate coefficient of linear combination of x
+        x-x0 = a*(x1-x0)+b*(x2-x0)
+        '''
+        v1 = self.x1-self.x0
+        v2 = self.x2-self.x0
+        v = x-self.x0
+        matr=np.transpose(np.array([v1,v2]))
+        return np.linalg.solve(matr,v)
+
+    def isInside(self,x=np.array([0,0])):
+        '''
+        verify is point x is inside the triangle
+        '''
+        coeff = self._coeff(x)
+        if (coeff[0]>=0 and coeff[1] >=0 and sum(coeff)<=1):
+            return True
+        else:
+            return False
+
+class compositionError(Exception):
+    pass
+
+class coalPolimi(coal):
+    '''
+    coal class customized for polimi model
+    inherit methods from general coal class
+
+    No N and S are assigned for this coal
+    '''
+    def __init__(self,name='',c=0.8,h=0.05,o=0.15,n=0,s=0,file='COAL.xml'):
+        '''
+        init class
+        '''
+        coal.__init__(self,name=name,c=c,h=h,o=o,n=0.,s=0.)
+        self._calculateCoalComposition()
+        self._setCanteraObject(file=file)
+
+        # define default parameter for pyrolysis
+        self.setHeatingRate()
+        self.setTimeStep()
+
+    def reset(self):
+        '''
+        reset object to the initial condition
+        '''
+        self._coalCantera.set(Y=self._compositionString)
+
+
+    def _referenceCoals(self):
+        '''
+        define the composition of the reference coals
+        '''
+
+        self._coal1 = coal(name='COAL1',c=12*self._Mc,h=11*self._Mh,o=0,n=0,s=0)
+        self._coal2 = coal(name='COAL2',c=14*self._Mc,h=10*self._Mh,o=1*self._Mo,n=0,s=0)
+        self._coal3 = coal(name='COAL3',c=12*self._Mc,h=12*self._Mh,o=5*self._Mo,n=0,s=0)
+        self._char  = coal(name='CHAR',c=1*self._Mc,h=0,o=0,n=0,s=0)
+
+    def _calculateCoalComposition(self):
+        '''
+        calculate the composition of the actual coal according to the reference coals
+        '''
+        self._referenceCoals()
+        # determine in which triangle the coal lies
+        # out means outside
+        self._inside = 'out'
+        # triangle 012
+        t012=triangle(x0=self._char.getVanKravelen(),x1=self._coal1.getVanKravelen(),x2=self._coal2.getVanKravelen())
+        if t012.isInside(self.getVanKravelen()):
+            self._inside = '012'
+            self.triangle = t012
+            self._interpolateCoal()
+            return
+        t023=triangle(x0=self._char.getVanKravelen(),x1=self._coal2.getVanKravelen(),x2=self._coal3.getVanKravelen())
+        if t023.isInside(self.getVanKravelen()):
+            self._inside = '023'
+            self.triangle = t023
+            self._interpolateCoal()
+            return
+        t123=triangle(x0=self._coal1.getVanKravelen(),x1=self._coal2.getVanKravelen(),x2=self._coal3.getVanKravelen())
+        if t123.isInside(self.getVanKravelen()):
+            self._inside = '123'
+            self.triangle = t123
+            self._interpolateCoal()
+            return
+        raise compositionError('Composition outside of triangle!')
+
+    def _interpolateCoal(self):
+        '''
+        interpolate coal using reference
+        '''
+        if self._inside == '012':
+            c0 = self._char
+            c1 = self._coal1
+            c2 = self._coal2
+        elif self._inside == '023':
+            c0 = self._char
+            c1 = self._coal2
+            c2 = self._coal3
+        elif self._inside == '123':
+            c0 = self._coal1
+            c1 = self._coal2
+            c2 = self._coal3
+        else:
+            print 'composition outside of triangle'
+            compositionError('Composition outside of triangle!')
+
+        matrix = np.array(
+            [[c0._c,c1._c,c2._c],
+             [c0._h,c1._h,c2._h],
+             [c0._o,c1._o,c2._o]])
+
+        b = np.array([self._c,self._h,self._o])
+        composition = np.linalg.solve(matrix,b)
+        # define string
+        if self._inside == '012':
+            self._coalComposition = np.append(composition,0.)
+            self._compositionString = 'CHAR:'+str(composition[0])+',COAL1:'+str(composition[1])+',COAL2:'+str(composition[2])
+        elif self._inside == '023':
+            self._coalComposition = np.array([composition[0],0.0,composition[1],composition[2]])
+            self._compositionString = 'CHAR:'+str(composition[0])+',COAL2:'+str(composition[1])+',COAL3:'+str(composition[2])
+        elif self._inside == '123':
+            self._coalComposition = np.append(0.0,composition)
+            self._compositionString = 'COAL1:'+str(composition[0])+',COAL2:'+str(composition[1])+',COAL3:'+str(composition[2])
+
+    def _setCanteraObject(self,file='COAL.xml'):
+        '''
+        set cantera solution object
+        '''
+        #self._coalCantera = IdealGasMix('COAL.xml')
+        self._coalCantera = IdealGasMix(file)
+        self._coalCantera.set(T=300,P=OneAtm,Y=self._compositionString)
+
+    def setHeatingRate(self,time=np.array([0,0.1]),temperature=np.array([400,1000])):
+        '''
+        define heating rate during pyrolysis
+        using two NP array for time and temperature
+        '''
+        self.timeHR = time
+        self.temperatureHR = temperature
+
+    #def setTimeStep(self,dt=1e-3):
+    #    '''
+    #    define time step for printing results of pyrolysis
+    #    '''
+    #    self.dt = dt
+    #    self.time = np.linspace(min(self.timeHR),max(self.timeHR))
+    def setTimeStep(self,npoint=100):
+        '''
+        define time step for printing results of pyrolysis
+        '''
+        self.time = np.linspace(min(self.timeHR),max(self.timeHR),npoint)
+        self.dt = self.time[1]-self.time[0]
+
+    def _getInterpTemperature(self,t):
+        '''
+        get the interpolated temperature for a given time
+        using the heating rate
+        '''
+        # check if the time is inside the range
+        temp = np.interp(t,self.timeHR,self.temperatureHR)
+        return temp
+
+    def solvePyrolysis(self):
+        '''
+        solve pyrolysis
+        '''
+        def dmidt(t,m):
+            '''
+            calculate the derivative of the mass of each species i
+            dm_i/dt = omega_i * Mw_i
+            '''
+            self._updateReactor(t,m)
+            return self._coalCantera.netProductionRates() * self._Mw * self._rhoDry
+
+        self._Mw = self._coalCantera.molarMasses()
+        m0=self._coalCantera.massFractions()
+        #sol = ode(dydt).set_integrator('dopri5',rtol=1e-9,atol=1e-6) #, method='bdf')
+        #sol = ode(dydt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-6)
+        sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-5)
+        #sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-4,atol=1e-2)
+        sol.set_initial_value(m0,0)
+        self._y = [m0]
+        for t in self.time[1:]:
+            sol.integrate(t)
+            self._y=np.concatenate((self._y, [sol.y]))
+            #print 'coal0='+str(sol.y[iCoal3])
+
+    def _updateReactor(self,t,m):
+        ''' update reactor '''
+        temp = self._getInterpTemperature(t)
+        #print 'temp='+str(temp)
+        pressure=self._coalCantera.pressure()
+        self._coalCantera.set(T=temp,P=pressure,Y=m)
+
+    def __repr__(self):
+        out = coal.__repr__(self)
+        out += '\nCHAR:'+str(self._coalComposition[0])
+        out += '\nCOAL1:'+str(self._coalComposition[1])
+        out += '\nCOAL2:'+str(self._coalComposition[2])
+        out += '\nCOAL3:'+str(self._coalComposition[3])+'\n'
+        return out
+
+
+    def getCoalComposition(self):
+        return self._coalComposition
+
+
+    def getRawCoal(self):
+        return self._y[:,self._coalCantera.speciesIndex('COAL1')] + \
+               self._y[:,self._coalCantera.speciesIndex('COAL2')] + \
+               self._y[:,self._coalCantera.speciesIndex('COAL3')]
+
+    def getCharCoal(self):
+        return self._y[:,self._coalCantera.speciesIndex('CHAR')] +\
+               self._y[:,self._coalCantera.speciesIndex('CHARH')] +\
+               self._y[:,self._coalCantera.speciesIndex('CHARG')]
+
+    def getCH4(self):
+        return self._y[:,self._coalCantera.speciesIndex('CH4')]
+
+    def getH2(self):
+        return self._y[:,self._coalCantera.speciesIndex('H2')]
+
+    def getH2O(self):
+        return self._y[:,self._coalCantera.speciesIndex('H2O')]
+
+
+    def getCO(self):
+        return self._y[:,self._coalCantera.speciesIndex('CO')]
+    def getCO2(self):
+        return self._y[:,self._coalCantera.speciesIndex('CO2')]
+    def getCH2(self):
+        return self._y[:,self._coalCantera.speciesIndex('CH2')]
+
+    def getTAR(self):
+        return self._y[:,self._coalCantera.speciesIndex('VTAR1')]+ \
+               self._y[:,self._coalCantera.speciesIndex('VTAR2')]+ \
+               self._y[:,self._coalCantera.speciesIndex('VTAR3')]
+
+    def getLightGases(self):
+        return self.getCO() + \
+               self.getCO2() + \
+               self.getH2O() + \
+               self.getH2() + \
+               self.getCH4() + \
+               self.getCH2() + \
+               self._y[:,self._coalCantera.speciesIndex('CH3O')] + \
+               self._y[:,self._coalCantera.speciesIndex('BTX2')]
+
+    def getMetaplast(self):
+        metaplast = self._y[:,self._coalCantera.speciesIndex('GCH2')] +\
+               self._y[:,self._coalCantera.speciesIndex('TAR1')] +\
+               self._y[:,self._coalCantera.speciesIndex('GBTX2')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCH4')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCOH2')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCO2S')] +\
+               self._y[:,self._coalCantera.speciesIndex('GH2O')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCOL')] +\
+               self._y[:,self._coalCantera.speciesIndex('TAR2')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCO2TS')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCOAL3')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCO2')] +\
+               self._y[:,self._coalCantera.speciesIndex('TAR3')] +\
+               self._y[:,self._coalCantera.speciesIndex('GCOLS')]
+        return metaplast
+
+
+    def getVolatile(self):
+        """
+
+        :rtype : object
+        """
+        return self.getTAR() + self.getLightGases()
+
+
+    def getTime(self):
+        return self.time
+
+    def getTemperature(self):
+        return self._getInterpTemperature(self.time)
+

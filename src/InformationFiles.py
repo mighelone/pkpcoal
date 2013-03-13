@@ -16,6 +16,10 @@ MC_sel='useCPD?:'
 M_selFit="selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:"
 M_selArrhSpec="Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'"
 MC_dt=['initial time step in s:','print increment, writeValue:']
+#Markers for the Reading procedure of the PMSKD input file:
+MP_sel='usePMSKD?:'
+MP_npoint='number of step:'
+MP_mechfile = 'Mechanism file:'
 #Markers for the Reading procedure of the coal input file:
 MF_sel='use FG-DVC?:'
 MF_CoalSel='Choose Coal: 0 interpolate between library coals and generate own coal. Set 1 to 8 for a library coal.'

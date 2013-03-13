@@ -16,6 +16,9 @@ import os
 import numpy as np
 import platform
 import shutil
+import coalPolimi
+
+import pylab as plt
 #
 #
 #Use Global Optimizer? select 'Evolve' for a generic algorithm or 'ManyPoints' to use many starting points combined with a local optimization
@@ -108,6 +111,22 @@ class MainProcess(object):
         self.FG_DirOut=FGDVCInput.getText(InformationFiles.MF_dir[1])
         self.FG_TarCacking=FGDVCInput.getValue(InformationFiles.MF_TarCr)
         #
+        # Polimi PMSKD model Properties
+        # Predictive Multi-Step Kinetic Devolatilization
+        #
+        print 'Reading PMSKD.inp ...'
+        PMSKDInput = InformationFiles.ReadFile(workingDir+'PMSKD.inp')
+        self.PMSKD_select = PMSKDInput.UsePyrolProgr(InformationFiles.MP_sel)
+        self.PMSKD_FittingKineticParameter_Select=PMSKDInput.Fitting(InformationFiles.M_selFit)
+        self.PMSKD_ArrhSpec=PMSKDInput.getText(InformationFiles.M_selArrhSpec)
+        self.PMSKD_npoint = PMSKDInput.getText(InformationFiles.MP_npoint)
+        self.PMSKD_mechfile = PMSKDInput.getText(InformationFiles.MP_mechfile)
+        #self.PMSKD_npoint=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
+        #print self.PMSKD_select
+        #print self.PMSKD_FittingKineticParameter_Select
+        #print self.PMSKD_ArrhSpec
+        #print self.PMSKD_npoint
+        #print self.PMSKD_mechfile
         #
         #Operating Condition File:
         #
@@ -117,20 +136,37 @@ class MainProcess(object):
         self.FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
         #Number of FG-DVC/CPD/PCCL runs:
         self.NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
-        self.CPD_TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
-        self.CPD_TimeTemp2=OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
-        self.CPD_TimeTemp3=OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
-        self.CPD_TimeTemp4=OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
-        self.CPD_TimeTemp5=OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
+        self.TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
+        self.TimeTemp2=OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
+        self.TimeTemp3=OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
+        self.TimeTemp4=OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
+        self.TimeTemp5=OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
+        # organize time temp for Polimi model
+        self.timeHR = [self.TimeTemp1[:,0],
+                       self.TimeTemp2[:,0],
+                       self.TimeTemp3[:,0],
+                       self.TimeTemp4[:,0],
+                       self.TimeTemp5[:,0]]
+        self.temperatureHR = [self.TimeTemp1[:,1],
+                       self.TimeTemp2[:,1],
+                       self.TimeTemp3[:,1],
+                       self.TimeTemp4[:,1],
+                       self.TimeTemp5[:,1]]
         self.CPDdt[2]=OpCondInp.getValue(InformationFiles.M_dt)
         self.FG_dt=OpCondInp.getValue(InformationFiles.M_dt)
         self.FG_T_t_History=self.FG_MainDir+'tTHistory.txt'
+
+        self.CPD_TimeTemp1 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
+        self.CPD_TimeTemp2 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
+        self.CPD_TimeTemp3 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
+        self.CPD_TimeTemp4 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
+        self.CPD_TimeTemp5 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
         #makes for CPD time in milliseconds:
-        self.CPD_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e3
-        self.CPD_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e3
-        self.CPD_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e3
-        self.CPD_TimeTemp4[:,0]=self.CPD_TimeTemp4[:,0]*1.e3
-        self.CPD_TimeTemp5[:,0]=self.CPD_TimeTemp5[:,0]*1.e3
+        self.CPD_TimeTemp1[:,0] *= 1.e3
+        self.CPD_TimeTemp2[:,0]=self.TimeTemp2[:,0]*1.e3
+        self.CPD_TimeTemp3[:,0]=self.TimeTemp3[:,0]*1.e3
+        self.CPD_TimeTemp4[:,0]=self.TimeTemp4[:,0]*1.e3
+        self.CPD_TimeTemp5[:,0]=self.TimeTemp5[:,0]*1.e3
         self.CPD_t_max1=self.CPD_TimeTemp1[-1,0]*1.e-3 #tmax in s, not ms
         self.CPD_t_max2=self.CPD_TimeTemp2[-1,0]*1.e-3 #tmax in s, not ms
         self.CPD_t_max3=self.CPD_TimeTemp3[-1,0]*1.e-3 #tmax in s, not ms
@@ -772,6 +808,39 @@ class MainProcess(object):
         self.SpeciesEnergy('FGDVC',FGFile)
             #
 
+    def RunPMSKD(self):
+        '''
+        run PMSKD
+        '''
+        # create object
+
+        try:
+            coal = coalPolimi.coalPolimi(name = 'COAL', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.PMSKD_mechfile)
+        except coalPolimi.compositionError:
+            print 'Composition outside of triangle of definition'
+            sys.exit()
+        # organize TimeTemp
+
+        for runNr in range(self.NrOfRuns):
+            print runNr
+            print coal._coalCantera
+            #print self.timeHR[runNr]
+            #print self.temperatureHR[runNr]
+            #set heating rate
+            coal.setHeatingRate(self.timeHR[runNr],self.temperatureHR[runNr])
+            coal.setTimeStep(self.PMSKD_npoint)
+            coal.solvePyrolysis()
+
+            print coal.getVolatile()
+            plt.figure(runNr)
+            plt.plot(coal.getTemperature(),coal.getVolatile())
+            coal.reset()
+            #print coal.timeHR
+            #print coal.temperatureHR
+
+        plt.show()
+
+
 
 #Main Part starting
 if __name__ == "__main__":
@@ -782,5 +851,7 @@ if __name__ == "__main__":
     if Case.FG_select==True:
         Case.CheckFGdt()
         Case.MakeResults_FG()
+    if Case.PMSKD_select==True:
+        Case.RunPMSKD()
     print 'calculated Species: ',Case.SpeciesToConsider
         

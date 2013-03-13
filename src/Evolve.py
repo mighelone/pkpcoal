@@ -71,7 +71,7 @@ class GenericOpt(object):
         self.__ParameterSc = (self.__ParamInit-self.__ParamMin)/(self.__ParamMax-self.__ParamMin)
         #
         genome = G1DList.G1DList(len(self.__ParameterSc))
-        genome.setParams(rangemin=0, rangemax=1)
+        genome.setParams(rangemin=0, rangemax=1, bestRawScore=0.00000, roundDecimal=2)
         genome.initializator.set(Initializators.G1DListInitializatorReal)
         genome.mutator.set(Mutators.G1DListMutatorRealRange)
         # The evaluator function (objective function)
@@ -86,6 +86,9 @@ class GenericOpt(object):
         # Set the Roulette Wheel selector method, the number of generations and the termination criteria
         ga.selector.set(Selectors.GRouletteWheel)
         ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
+
+	ga.setMutationRate(0.20)
+
         # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
         # the database and erase all data every run, you should use this flag
         # just in the first time, after the pyevolve.db was created, you can
@@ -100,4 +103,5 @@ class GenericOpt(object):
         self.__ParameterSc=best[0:len(self.__ParameterSc)]
         #update the non-scaled parameterrs
         self.__UpdateParam()
+        print "Best individual score: %.8f" % best.getRawScore()
         return self.__ParameterNonSc
