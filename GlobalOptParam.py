@@ -41,7 +41,7 @@ DAEMNrOfRuns = [0,3,3,3]
 #
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 100
+NrOfGeneration = 10
 # size of population
 NrOfPopulation = 100
 #minimum for Arrhenius equation:[A,E]

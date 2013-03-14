@@ -111,6 +111,21 @@ class Ui_PKP(QMainWindow):
         self.cB_PCCL.addItem(_fromUtf8(""))
         self.cB_PCCL.addItem(_fromUtf8(""))
         self.formLayout.setWidget(2, QFormLayout.FieldRole, self.cB_PCCL)
+        # add from here
+        self.L_PMSKD = QLabel(self.layoutWidget)
+        self.L_PMSKD.setObjectName(_fromUtf8("L_PMSKD"))
+        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.L_PMSKD)
+        self.cB_PMSKD = QComboBox(self.layoutWidget)
+        self.cB_PMSKD.setObjectName(_fromUtf8("cB_PMSKD"))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.cB_PMSKD.addItem(_fromUtf8(""))
+        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.cB_PMSKD)
+        # added until here
         self.layoutWidget1 = QWidget(self.centralwidget)
         self.layoutWidget1.setGeometry(QRect(540, 100, 201, 81))
         self.layoutWidget1.setObjectName(_fromUtf8("layoutWidget1"))
@@ -327,7 +342,7 @@ class Ui_PKP(QMainWindow):
         self.lE_PAAsh.setObjectName(_fromUtf8("lE_PAAsh"))
         self.gridLayout.addWidget(self.lE_PAAsh, 3, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
-	self.cB_ArrhSpec = QComboBox(self.centralwidget)                         
+        self.cB_ArrhSpec = QComboBox(self.centralwidget)
         self.cB_ArrhSpec.setGeometry(QRect(330, 160, 118, 24))                  
         self.cB_ArrhSpec.setObjectName(_fromUtf8("cB_ArrhSpec"))                       
         self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
@@ -463,6 +478,14 @@ class Ui_PKP(QMainWindow):
         self.cB_PCCL.setItemText(4, QApplication.translate("PKP", "Arrhenius No B", None, QApplication.UnicodeUTF8))
         self.cB_PCCL.setItemText(5, QApplication.translate("PKP", "Kobayashi", None, QApplication.UnicodeUTF8))
         self.cB_PCCL.setItemText(6, QApplication.translate("PKP", "DAEM", None, QApplication.UnicodeUTF8))
+        self.L_PMSKD.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">PC Coal Lab</span></p></body></html>", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(0, QApplication.translate("PKP", "None", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(1, QApplication.translate("PKP", "Run", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(2, QApplication.translate("PKP", "constant Rate", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(3, QApplication.translate("PKP", "Arrhenius", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(4, QApplication.translate("PKP", "Arrhenius No B", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(5, QApplication.translate("PKP", "Kobayashi", None, QApplication.UnicodeUTF8))
+        self.cB_PMSKD.setItemText(6, QApplication.translate("PKP", "DAEM", None, QApplication.UnicodeUTF8))
         self.L_WeightParam.setText(QApplication.translate("PKP", "<html><head/><body><p align=\"center\"><span style=\" font-size:14pt;\">Weight Parameter</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_Yweight.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Yields</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.lE_Yweight.setText(QApplication.translate("PKP", "1", None, QApplication.UnicodeUTF8))
@@ -529,7 +552,7 @@ class Ui_PKP(QMainWindow):
     def OpenManual(self):
         """Opens the manual."""
         if OSys=='Linux':
-            os.system('okular Documentation/Manual/PKPDocumentation.pdf')
+            os.system('xdg-open Documentation/Manual/PKPDocumentation.pdf')
         elif OSys=='Windows':
             os.system('Documentation\\Manual\\PKPDocumentation.pdf')
     
@@ -539,7 +562,8 @@ class Ui_PKP(QMainWindow):
         CPDsel = self.cB_CPD.currentIndex()
         FGsel  = self.cB_FGDVC.currentIndex()
         PCCLsel= self.cB_PCCL.currentIndex()
-        self.svInfo.SetRunPyrolProg(CPDsel,FGsel,PCCLsel)
+        PMSKDsel = self.cB_PMSKD.currentIndex()
+        self.svInfo.SetRunPyrolProg(CPDsel,FGsel,PCCLsel,PMSKDsel)
         #saves the Species for Arrhenius to fit
         ArrSpec=self.cB_ArrhSpec.currentIndex()
         self.svInfo.SetArrhSpec(ArrSpec)
@@ -598,7 +622,10 @@ class Ui_PKP(QMainWindow):
         writeInfoFiles.WriteCPDFile(self.svInfo)
         writeInfoFiles.WriteFGFile(self.svInfo)
         writeInfoFiles.WriteOCFile(self.svInfo)
-        
+
+    def grabKeyboard(self, *args, **kwargs):
+        super(Ui_PKP, self).grabKeyboard(*args, **kwargs)
+
     def LoadTtFile1(self):
         """Loads the temperature history nr 1 file via file browser"""
         filename = QFileDialog.getOpenFileName()
@@ -875,12 +902,13 @@ class Ui_PKP(QMainWindow):
 class InfosFromGUI(object):
     """Saves the information from the GUI."""
     
-    def SetRunPyrolProg(self,CPDIndex,FGDVCIndex,PCCLIndex):
+    def SetRunPyrolProg(self,CPDIndex,FGDVCIndex,PCCLIndex,PMSKDIndex):
         """Saves which options of the three Pyrolysis programs are used."""
         FitDict={0:'None',1:'Run',2:'constantRate',3:'Arrhenius',4:'ArrheniusNoB',5:'Kobayashi',6:'DAEM'}
         self.__CPDsel = FitDict[CPDIndex]
         self.__FGsel  = FitDict[FGDVCIndex]
         self.__PCCLsel= FitDict[PCCLIndex]
+        self.__PMSKDsel = FitDict[PMSKDIndex]
         
     def RunPyrolProgReverse(self,ModelName):
         """Returns the GUI column bar index of the models selected."""
@@ -889,7 +917,7 @@ class InfosFromGUI(object):
 
     def RunPyrolProg(self):
         """Returns which options of the three Pyrolysis programs are used."""
-        return self.__CPDsel, self.__FGsel, self.__PCCLsel
+        return self.__CPDsel, self.__FGsel, self.__PCCLsel, self.__PMSKDsel
 
     def SetArrhSpec(self,SpeciesIndex):
         """Sets which species shall be fitted for Arrhenius."""
