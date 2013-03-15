@@ -22,7 +22,8 @@ _fromUtf8 = lambda s: s
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-OSys=platform.system()
+#OSys=platform.system()
+OSys = 'Linux'
 
 
 
@@ -145,7 +146,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
         """Opens the species analysis file in the TextEditor."""
         Nr=str(self.sB_Spec.value()-1) #number from SpinBox
         PyrolPr=self.PyrolPrL[self.cB_Spec.currentIndex()]
-        if OSys=='Linux':
+        if OSys is 'Linux':
           if os.path.exists('Result/'+PyrolPr+'-BalanceResults'+Nr+'.txt'):
             SpecFileName='Result/'+PyrolPr+'-BalanceResults'+Nr+'.txt'
           else:

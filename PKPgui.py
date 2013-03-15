@@ -621,6 +621,7 @@ class Ui_PKP(QMainWindow):
         writeInfoFiles.WriteCoalFile(self.svInfo)
         writeInfoFiles.WriteCPDFile(self.svInfo)
         writeInfoFiles.WriteFGFile(self.svInfo)
+        writeInfoFiles.WritePMSKDFile(self.svInfo)
         writeInfoFiles.WriteOCFile(self.svInfo)
 
     def grabKeyboard(self, *args, **kwargs):
@@ -770,13 +771,18 @@ class Ui_PKP(QMainWindow):
         Case=PKP.MainProcess()
         Case.ReadInputFiles()
         ProgramL=[]
-        if Case.CPDselect==True:
+        if Case.CPDselect is True:
             Case.MakeResults_CPD()
             ProgramL.append('CPD')
-        if Case.FG_select==True:
+        if Case.FG_select is True:
             Case.CheckFGdt()
             Case.MakeResults_FG()
             ProgramL.append('FGDVC')
+        if Case.PMSKD_select is True:
+            Case.RunPMSKD()
+            #Case.CheckFGdt()
+            #Case.MakeResults_FG()
+            ProgramL.append('PMSKD')
         SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
         ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
         #

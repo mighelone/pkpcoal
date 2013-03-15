@@ -96,7 +96,7 @@ class WriteCPDFile(object):
         """Writes the content of the CPD file"""
         FileStr=InformationFiles.MC_sel+'\n'
         #FitDict={0:'None',1:'Run',2:'constantRate',3:'Arrhenius',4:'ArrheniusNoB',5:'Kobayashi',6:'DAEM'}
-        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        CPDsel, FGsel, PCCLsel, PMSKDsel = self.Info.RunPyrolProg()
         if CPDsel=='None':
             FileStr+='No'+'\n'
         else:
@@ -143,7 +143,7 @@ class WriteFGFile(object):
     def __mkstr(self):
         """Writes the content of the FGDVC file"""
         FileStr=InformationFiles.MF_sel+'\n'
-        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        CPDsel, FGsel, PCCLsel, PMSKDsel = self.Info.RunPyrolProg()
         if FGsel=='None':
             FileStr+='No'+'\n'
         else:
@@ -166,7 +166,60 @@ class WriteFGFile(object):
         FileStr+= InformationFiles.MF_TarCr+'\n'
         FileStr+= FGTar+'\n'
         return FileStr
-        
+
+class WritePMSKDFile(object):
+    """Writes the PMSKD.inp file using the output of the GUI. The filepaths are imorted from the previous version of PMSKD.inp."""
+    def __init__(self,InfosFromGUIObject):
+        self.Info=InfosFromGUIObject
+        #get directories for FGDVC
+        try:
+            Obj = InformationFiles.ReadFile('PMSKD.inp')
+            #            if OSys=='Linux':
+            #                Obj = InformationFiles.ReadFile('../FGDVC.inp')
+            #            elif OSys=='Windows':
+            #                Obj = InformationFiles.ReadFile('..\\FGDVC.inp')
+            #self.DirMain= Obj.getText(InformationFiles.MF_dir[0])
+            #self.DirOut= Obj.getText(InformationFiles.MF_dir[1])
+            self.npoint = Obj.getText(InformationFiles.MP_npoint)
+            self.mechfile = Obj.getText(InformationFiles.MP_mechfile)
+
+        except IOError:
+            print 'Please put a PMSKD.inp file in the directory to allow the program to read the FG-DVC directories.'
+        FGFile=open('PMSKD.inp','w')
+        FGFile.write(self.__mkstr())
+        FGFile.close()
+    #        if OSys=='Linux':
+    #            shutil.move('FGDVC.inp','../FGDVC.inp')
+    #        elif OSys=='Windows':
+    #            shutil.move('FGDVC.inp','..\\FGDVC.inp')
+
+    def __mkstr(self):
+        """Writes the content of the PMSKD file"""
+        FileStr=InformationFiles.MP_sel+'\n'
+        print FileStr
+        CPDsel, FGsel, PCCLsel, PMSKDsel = self.Info.RunPyrolProg()
+        if PMSKDsel=='None':
+            FileStr+='No'+'\n'
+        else:
+            FileStr+='Yes'+'\n'
+        FileStr+=InformationFiles.M_selFit+'\n'
+        if PMSKDsel=='Run':
+            FileStr+='None'+'\n'
+        else:
+            FileStr+=PMSKDsel+'\n'
+        FileStr+='\n'
+        FileStr+=InformationFiles.M_selArrhSpec+'\n'
+        FileStr+=self.Info.ArrhSpec()+'\n\n'
+        FileStr+='number of step:\n'
+        FileStr+=self.npoint
+        FileStr+='\nMechanism file:\n'
+        FileStr+=self.mechfile
+
+        return FileStr
+
+    def __repr__(self):
+        return super(WritePMSKDFile, self).__repr__()
+
 
 class WriteOCFile(object):     
     """Writes the OperCond.inp file using the output of the GUI."""
