@@ -1,6 +1,13 @@
 import sys
 sys.path.append('src')
+import os
 #
+
+os.environ['QT_API'] = 'pyside'
+import matplotlib
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
+
 import CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
 import FGDVC_SetAndLaunch       #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
 import FGDVC_Result             #contains the information of the FG-DVC output file
@@ -12,7 +19,6 @@ import Compos_and_Energy        #Species balance and energy balance for CPD and 
 import InformationFiles         #reads the user input files, writes FG-DVC coalsd.exe coal generation file
 import GlobalOptParam           #contains the Information of the Number Of Runs for the Global Optimum search
 import Evolve                   #contains the generic algortihm optimizer
-import os
 import numpy as np
 import platform
 import shutil
