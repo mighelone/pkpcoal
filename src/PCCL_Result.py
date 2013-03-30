@@ -7,7 +7,7 @@ import scipy.interpolate
 #
 class PCCL_Result(object):
     """Reads the PC Coal Lab input and saves the values in one array. The results include the yields of the species. The rates for all species are calculated using a CDS. This class also contains the dictionaries for the columns in the array - the name of the species. These dictionaries might be PC Coal Lab - Version dependent and the only thing which has to be changed for the case of a new release of FG-DVC with a new order of species in the result files (this was made for Version 4.1)."""
-    def __init__(self,FilePath,NrOfRun,dt,OrderOfInterpolation=1): 
+    def __init__(self,FilePath,NrOfRun): 
         if float(NrOfRun) > 5:
             print 'Only a maximum nr of Runs of five is possible for PC Coal Lab.'
             sys.exit()
@@ -41,20 +41,6 @@ class PCCL_Result(object):
         self.Yields2Cols={'Time':0,'Temp':1,'Total':2,'Gas':3,'Tar':4,'Char':5,'CO2':6,'H2O':7,'CO':8,'Hydrocarbons':9,'HCN':10,'CH4':11,'C2H4':12,'C2H6':13,'C3H6':14,'C3H8':15,'H2':16,'H2S':17}
         self.Cols2Yields={0:'Time',1:'Temp',2:'Total',3:'Gas',4:'Tar',5:'Char',6:'CO2',7:'H2O',8:'CO',9:'Hydrocarbons',10:'HCN',11:'CH4',12:'C2H4',13:'C2H6',14:'C3H6',15:'C3H8',16:'H2',17:'H2S'}
         #
-        # Interpolation
-        # when appending or deleting species: change the array size of self.__yields and self.__rates
-#        NPoints = int(self.__yields[-1,0]/dt + 1) # =FinalTime/dt
-#        self.__yields = np.zeros([NPoints,NSpec]) # the final array with interpolation points
-#        #over the temperature, which is linear ramp or constant value -> first order fir is exact solution
-#        Interplt=scipy.interpolate.interp1d(yieldsSmall[:,0],yieldsSmall[:,1], kind=1, axis=-1, copy=True, bounds_error=True,fill_value=np.nan) #interpol Obj
-#        for j in range(NPoints): #over all Points
-#            self.__yields[j,1] = Interplt(j*dt) # defines Temp
-#            self.__yields[j,0] = j*dt           # defines Time
-#        for i in range(2,NSpec,1): #over all Species
-#            Interplt=scipy.interpolate.interp1d(yieldsSmall[:,0],yieldsSmall[:,i], kind=OrderOfInterpolation, axis=-1, copy=True, bounds_error=True,fill_value=np.nan) #interpol Obj
-#            for j in range(NPoints): #over all Points
-#                self.__yields[j,i] = Interplt(j*dt)
-#        #
         # get the rates:
         self.__rates = np.zeros(np.shape(self.__yields))
         self.__rates[:,0] = self.__yields[:,0]  #Time
