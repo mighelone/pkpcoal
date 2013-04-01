@@ -98,7 +98,6 @@ class MainProcess(object):
         CPDInput=InformationFiles.ReadFile(workingDir+'CPD.inp')
         self.CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
         self.CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
-        self.CPD_ArrhSpec=CPDInput.getText(InformationFiles.M_selArrhSpec)
         self.CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
         self.CPDdt[0]=(CPDInput.getValue(InformationFiles.MC_dt[0]))
         self.CPDdt[1]=(CPDInput.getValue(InformationFiles.MC_dt[1]))
@@ -110,7 +109,6 @@ class MainProcess(object):
         FGDVCInput=InformationFiles.ReadFile(workingDir+'FGDVC.inp')
         self.FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
         self.FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
-        self.FG_ArrhSpec=FGDVCInput.getText(InformationFiles.M_selArrhSpec)
         self.FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
         self.FG_MainDir=FGDVCInput.getText(InformationFiles.MF_dir[0])
         self.FG_DirOut=FGDVCInput.getText(InformationFiles.MF_dir[1])
@@ -123,7 +121,6 @@ class MainProcess(object):
         PCCLInput=InformationFiles.ReadFile(workingDir+'PCCL.inp')
         self.PCCL_select=PCCLInput.UsePyrolProgr(InformationFiles.MP_sel)
         self.PCCL_FittingKineticParameter_Select=PCCLInput.Fitting(InformationFiles.M_selFit)
-        self.PCCL_ArrhSpec=PCCLInput.getText(InformationFiles.M_selArrhSpec)
         self.PCCL_Path=PCCLInput.getText(InformationFiles.MP_dir)
         self.PCCL_Exe=PCCLInput.getText(InformationFiles.MP_exe)
         try:
@@ -139,6 +136,7 @@ class MainProcess(object):
         OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
         self.CPD_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
         self.FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
+        self.ArrhSpec=OpCondInp.getText(InformationFiles.M_selArrhSpec)
         #Number of FG-DVC/CPD/PCCL runs:
         self.NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
         self.CPD_TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
@@ -239,30 +237,11 @@ class MainProcess(object):
         #######
         #makes Species list which contains alls species to fit:
         SpeciesList=[]
-        if self.CPD_ArrhSpec=='Total' and PyrolProgram=='CPD':
+        if self.ArrhSpec=='Total':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             if 'Total' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Total')
-        elif self.CPD_ArrhSpec=='MainSpecies' and PyrolProgram=='CPD':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-            if 'Tar' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Tar')
-            if 'Gas' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Gas')
-        elif self.CPD_ArrhSpec=='allSpecies' and PyrolProgram=='CPD':
-            for i in range(2,len(Fit[0].SpeciesNames()),1):
-                if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
-                SpeciesList.append(i)
-        elif self.FG_ArrhSpec=='Total' and PyrolProgram=='FGDVC':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-        elif self.FG_ArrhSpec=='MainSpecies' and PyrolProgram=='FGDVC':
+        elif self.ArrhSpec=='MainSpecies':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
             SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
@@ -272,26 +251,7 @@ class MainProcess(object):
                 self.SpeciesToConsider.append('Tar')
             if 'Gas' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Gas')
-        elif self.FG_ArrhSpec=='allSpecies' and PyrolProgram=='FGDVC':
-            for i in range(2,len(Fit[0].SpeciesNames()),1):
-                if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
-                SpeciesList.append(i)
-        elif self.FG_ArrhSpec=='Total' and PyrolProgram=='PCCL':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-        elif self.FG_ArrhSpec=='MainSpecies' and PyrolProgram=='PCCL':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-            if 'Tar' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Tar')
-            if 'Gas' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Gas')
-        elif self.FG_ArrhSpec=='allSpecies' and PyrolProgram=='PCCL':
+        elif self.ArrhSpec=='allSpecies':
             for i in range(2,len(Fit[0].SpeciesNames()),1):
                 if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
                     self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
@@ -381,30 +341,11 @@ class MainProcess(object):
         ##The single species:
         #makes Species list which contains alls species to fit:
         SpeciesList=[]
-        if self.CPD_ArrhSpec=='Total' and PyrolProgram=='CPD':
+        if self.ArrhSpec=='Total':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             if 'Total' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Total')
-        elif self.CPD_ArrhSpec=='MainSpecies' and PyrolProgram=='CPD':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-            if 'Tar' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Tar')
-            if 'Gas' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Gas')
-        elif self.CPD_ArrhSpec=='allSpecies' and PyrolProgram=='CPD':
-            for i in range(2,len(Fit[0].SpeciesNames()),1):
-                if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
-                SpeciesList.append(i)
-        elif self.FG_ArrhSpec=='Total' and PyrolProgram=='FGDVC':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-        elif self.FG_ArrhSpec=='MainSpecies' and PyrolProgram=='FGDVC':
+        elif self.ArrhSpec=='MainSpecies':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
             SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
@@ -414,26 +355,7 @@ class MainProcess(object):
                 self.SpeciesToConsider.append('Tar')
             if 'Gas' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Gas')
-        elif self.FG_ArrhSpec=='allSpecies' and PyrolProgram=='FGDVC':
-            for i in range(2,len(Fit[0].SpeciesNames()),1):
-                if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
-                SpeciesList.append(i)
-        elif self.FG_ArrhSpec=='Total' and PyrolProgram=='PCCL':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-        elif self.FG_ArrhSpec=='MainSpecies' and PyrolProgram=='PCCL':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-            if 'Tar' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Tar')
-            if 'Gas' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Gas')
-        elif self.FG_ArrhSpec=='allSpecies' and PyrolProgram=='PCCL':
+        elif self.ArrhSpec=='allSpecies':
             for i in range(2,len(Fit[0].SpeciesNames()),1):
                 if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
                     self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
@@ -726,16 +648,21 @@ class MainProcess(object):
     def MakeResults_FG(self):
         """generates the result for FG-DVC"""
         #writes Time-Temperature file
-        FG_TimeTemp1=self.CPD_TimeTemp1
-        FG_TimeTemp2=self.CPD_TimeTemp2
-        FG_TimeTemp3=self.CPD_TimeTemp3
-        FG_TimeTemp4=self.CPD_TimeTemp4
-        FG_TimeTemp5=self.CPD_TimeTemp5
+        FG_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1))
+        FG_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2))
+        FG_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3))
+        FG_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4))
+        FG_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5))
         FG_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e-3
         FG_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e-3
         FG_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e-3
         FG_TimeTemp4[:,0]=self.CPD_TimeTemp4[:,0]*1.e-3
         FG_TimeTemp5[:,0]=self.CPD_TimeTemp5[:,0]*1.e-3
+        FG_TimeTemp1[:,1]=self.CPD_TimeTemp1[:,1]
+        FG_TimeTemp2[:,1]=self.CPD_TimeTemp2[:,1]
+        FG_TimeTemp3[:,1]=self.CPD_TimeTemp3[:,1]
+        FG_TimeTemp4[:,1]=self.CPD_TimeTemp4[:,1]
+        FG_TimeTemp5[:,1]=self.CPD_TimeTemp5[:,1]
         #initialize the launching object
         FGDVC=FGDVC_SetAndLaunch.SetterAndLauncher()
         #set and writes Coal Files:
@@ -846,16 +773,21 @@ class MainProcess(object):
     def MakeResults_PCCL(self):
         """generates the result for PC Coal Lab"""
         #writes Time-Temperature file
-        PCCL_TimeTemp1=self.CPD_TimeTemp1
-        PCCL_TimeTemp2=self.CPD_TimeTemp2
-        PCCL_TimeTemp3=self.CPD_TimeTemp3
-        PCCL_TimeTemp4=self.CPD_TimeTemp4
-        PCCL_TimeTemp5=self.CPD_TimeTemp5
+        PCCL_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1))
+        PCCL_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2))
+        PCCL_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3))
+        PCCL_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4))
+        PCCL_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5))
         PCCL_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e-3
         PCCL_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e-3
         PCCL_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e-3
         PCCL_TimeTemp4[:,0]=self.CPD_TimeTemp4[:,0]*1.e-3
         PCCL_TimeTemp5[:,0]=self.CPD_TimeTemp5[:,0]*1.e-3
+        PCCL_TimeTemp1[:,1]=self.CPD_TimeTemp1[:,1]
+        PCCL_TimeTemp2[:,1]=self.CPD_TimeTemp2[:,1]
+        PCCL_TimeTemp3[:,1]=self.CPD_TimeTemp3[:,1]
+        PCCL_TimeTemp4[:,1]=self.CPD_TimeTemp4[:,1]
+        PCCL_TimeTemp5[:,1]=self.CPD_TimeTemp5[:,1]
         #initialize the launching object
         PCCL=PCCL_SetAndLaunch.SetterAndLauncher()
         #set and writes Coal Files:

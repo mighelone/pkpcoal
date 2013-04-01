@@ -22,7 +22,7 @@ class PCCL_Result(object):
         self.__yields[:,0]  = WTyields[:,0] # time
         self.__yields[:,1]  = WTyields[:,1]+273. # temperature, T in K instead degree C
         self.__yields[:,2]  = WTyields[:,2]/100. # total yields
-        self.__yields[:,3]  = WTyields[:,3] # gas
+        self.__yields[:,3]  = WTyields[:,3]/100. # gas
         self.__yields[:,4]  = WTyields[:,4]/100. # tar
         self.__yields[:,5]  = WTyields[:,5]/100. # char
         self.__yields[:,6]  = NGyields[:,4]/100. # CO2
@@ -80,7 +80,7 @@ class PCCL_Result(object):
 
     def Name(self):
         """returns 'FG-DVC' as the name of the Program"""
-        return 'FGDVC'
+        return 'PCCL'
 
 if __name__ == "__main__":
     PR = PCCL_Result('C:\\Users\\MaP\\PCCL\\',1,1e-3,2)

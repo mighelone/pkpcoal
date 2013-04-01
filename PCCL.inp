@@ -1,22 +1,14 @@
 use PC Coal Lab?:
-No
-
+Yes
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-None
-
-Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
-MainSpecies
-
+Kobayashi
 
 PC Coal Lab Main Path:
 C:\Users\MaP\PCCL\
-
 PC Coal Lab executable name:
 PCCoV41M1to7Par.exe
 
 Known PC Coal Lab Coal Calibration Factor? None or Value(float):
 None
-
 Particle Size in micrometer:
 100.
-

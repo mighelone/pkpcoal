@@ -180,7 +180,8 @@ class Ui_Dialog(QWidget):#QMainWindow):
         KinFile.close()
 
     def PlotFunc(self):
-        colors=['g','b','r','purple','c','m','y','b','purple','r','b','g','c','y','m']
+        colors=['g','b','r','k','purple','c','m','y','b','purple','r','b','g','c','y','m',]
+        linewidths=[1.,1.,1.,1.,1.,1.,1.,2.,2.,2.,2.,2.,2.,2.,2.,]
         colorIndex=0
         #
 	#plotting
@@ -197,11 +198,11 @@ class Ui_Dialog(QWidget):#QMainWindow):
                     if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
                         Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
-                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' fit '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
                             colorIndex+=1
                         elif np.shape(Y)[1]==4:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
                             colorIndex+=1
         elif OSys=='Windows':
             for PyrolPr in self.PyrModelsD:
@@ -209,11 +210,11 @@ class Ui_Dialog(QWidget):#QMainWindow):
                     if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
                         Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
-                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' fit '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
                             colorIndex+=1
                         elif np.shape(Y)[1]==4:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
                             colorIndex+=1
         self.ax.legend(loc='lower right')#'4')
         self.canvas.draw()

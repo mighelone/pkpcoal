@@ -327,7 +327,7 @@ class Ui_PKP(QMainWindow):
         self.lE_PAAsh.setObjectName(_fromUtf8("lE_PAAsh"))
         self.gridLayout.addWidget(self.lE_PAAsh, 3, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
-	self.cB_ArrhSpec = QComboBox(self.centralwidget)                         
+        self.cB_ArrhSpec = QComboBox(self.centralwidget)                         
         self.cB_ArrhSpec.setGeometry(QRect(330, 160, 118, 24))                  
         self.cB_ArrhSpec.setObjectName(_fromUtf8("cB_ArrhSpec"))                       
         self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
@@ -438,7 +438,7 @@ class Ui_PKP(QMainWindow):
         self.Header3.setText(QApplication.translate("PKP", "<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:600;\">Operating Conditions</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_pressure.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Pressure in atm</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.lE_pressure.setText(QApplication.translate("PKP", "1", None, QApplication.UnicodeUTF8))
-        self.L_THist.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Temperature History</span></p><p><span style=\" font-size:10pt;\">t in s    T in K</span></p></body></html>", None, QApplication.UnicodeUTF8))
+        self.L_THist.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Temperature History</span></p><p><span style=\" font-size:10pt;\">t in s ,   T in K</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_CPD.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">CPD</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.cB_CPD.setItemText(0, QApplication.translate("PKP", "None", None, QApplication.UnicodeUTF8))
         self.cB_CPD.setItemText(1, QApplication.translate("PKP", "Run", None, QApplication.UnicodeUTF8))
@@ -507,7 +507,7 @@ class Ui_PKP(QMainWindow):
         self.L_PAVM.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Volatile Matter</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_PAMoi.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Moisture</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_PAAsh.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Ash</span></p></body></html>", None, QApplication.UnicodeUTF8))
- 	self.cB_ArrhSpec.setItemText(0, QApplication.translate("PKP", "Total", None, QApplication.UnicodeUTF8))
+        self.cB_ArrhSpec.setItemText(0, QApplication.translate("PKP", "Total", None, QApplication.UnicodeUTF8))
         self.cB_ArrhSpec.setItemText(1, QApplication.translate("PKP", "Main Species", None, QApplication.UnicodeUTF8))
         self.cB_ArrhSpec.setItemText(2, QApplication.translate("PKP", "all Species", None, QApplication.UnicodeUTF8))
         self.L_ArrhSpec.setText(QApplication.translate("PKP", "<html><head/><body><p align=\"center\"><span style=\" font-size:14pt;\">selected Fit Species<br/>(Arrhenius)</span></p></body></html>", None, QApplication.UnicodeUTF8))
@@ -565,6 +565,10 @@ class Ui_PKP(QMainWindow):
         FGCoal = str(self.cB_FGDVCcoal.currentIndex())  # information FG-DVC coal interpolation
         FGTar  = self.lE_FGDVCtarCr.text()         # information FG-DVC tar cracking
         self.svInfo.setFGCoalProp(FGCoal,FGTar)
+        # !!!Update!!!
+        PCCLParticleDiam = '100.'
+        self.svInfo.setPCCLParticleSize(PCCLParticleDiam)
+        # !!!End Update!!!
         #operating condition
         pressure = str(self.lE_pressure.text()) # operating pressure
         dt = str(self.lE_numTimeStep.text()) # numerical time step
@@ -597,6 +601,7 @@ class Ui_PKP(QMainWindow):
         writeInfoFiles.WriteCoalFile(self.svInfo)
         writeInfoFiles.WriteCPDFile(self.svInfo)
         writeInfoFiles.WriteFGFile(self.svInfo)
+        writeInfoFiles.WritePCCLFile(self.svInfo)
         writeInfoFiles.WriteOCFile(self.svInfo)
         
     def LoadTtFile1(self):
@@ -750,6 +755,9 @@ class Ui_PKP(QMainWindow):
             Case.CheckFGdt()
             Case.MakeResults_FG()
             ProgramL.append('FGDVC')
+        if Case.PCCL_select==True:
+            Case.MakeResults_PCCL()
+            ProgramL.append('PCCL')
         SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
         ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
         #
@@ -793,7 +801,6 @@ class Ui_PKP(QMainWindow):
         CPDInput=InformationFiles.ReadFile('CPD.inp')
 #        CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
         CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
-        CPD_ArrhSpec=CPDInput.getText(InformationFiles.M_selArrhSpec)
         CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
         CPDdt[0]=(CPDInput.getText(InformationFiles.MC_dt[0]))
         CPDdt[1]=(CPDInput.getText(InformationFiles.MC_dt[1]))
@@ -806,9 +813,13 @@ class Ui_PKP(QMainWindow):
         FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
         FG_TarCacking=FGDVCInput.getText(InformationFiles.MF_TarCr)
         #
+        # PCCL Properties
+        # !!! Update
+        #
         #
         #Operating Condition File:
         OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
+        ArrhSpec=OpCondInp.getText(InformationFiles.M_selArrhSpec)
         CPD_pressure=OpCondInp.getText(InformationFiles.M_Pressure)
         #Number of FG-DVC/CPD/PCCL runs:
         NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
@@ -826,7 +837,7 @@ class Ui_PKP(QMainWindow):
         self.cB_FGDVC.setCurrentIndex(self.svInfo.RunPyrolProgReverse(FG_FittingKineticParameter_Select))
 #        self.cB_PCCL.setCurrentIndex(self.svInfo.RunPyrolProgReverse(PCCL_FittingKineticParameter_Select))
         #
-        self.cB_ArrhSpec.setCurrentIndex(self.svInfo.ArrhSpecReverse(CPD_ArrhSpec))
+        self.cB_ArrhSpec.setCurrentIndex(self.svInfo.ArrhSpecReverse(ArrhSpec))
         #saves the WeightParameter
         self.lE_Yweight.setText(WeightY)
         self.lE_Rweight.setText(WeightR)
@@ -980,6 +991,28 @@ class InfosFromGUI(object):
     def CoalDens(self):
         """Returns the Coal Density"""
         return self.__CoalDens
+        
+#    def setPCCLCoalCalibrFactor(self,CoalCalibrFactor):
+#        """Sets the PC Coal Lab coal Calibration Factor. If input is float or string of float then it is saved as str(float). Otherwise (e.g. input None or False) is saved as None."""
+#        try:
+#            self.__PCCLCoalCalibr = str(float(CoalCalibrFactor))
+#        except ValueError:
+#            self.__PCCLCoalCalibr = 'None'
+#        
+#    def PCCLCoalCalibrFactor(self):
+#        """Returns the PC Coal Lab coal Calibration Factor."""
+#        return self.__PCCLCoalCalibr
+    
+    def setPCCLParticleSize(self,ParticleDiamInMicrometer):
+        """Defines the Pc Coal Lab Particle Size. Input is in microMeter"""
+        self.__PCCLParticleDiam = ParticleDiamInMicrometer
+    
+    def PCCLParticleSize(self):
+        """Returns the Pc Coal Lab Particle Size. Output is in microMeter"""
+        return self.__PCCLParticleDiam
+        
+        
+        
 
 if __name__ == "__main__":
     import sys

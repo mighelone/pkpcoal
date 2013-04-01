@@ -208,7 +208,7 @@ class Model(object):
                 resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
             else:
                 print 'Models: Operating Platform cannot be specified.'
-            resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
+            resultFile.write('    Time       Temperature Yields(original) Rates(original) \n')
             for i in range(len(u[runnedCaseNr])):
                 resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], u[runnedCaseNr][i], w[i]))
             resultFile.close()
