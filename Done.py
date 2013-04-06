@@ -123,7 +123,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
 
 
     def retranslateUi(self):
-        self.setWindowTitle(QApplication.translate("Dialog", "Dialog", None, QApplication.UnicodeUTF8))
+        self.setWindowTitle(QApplication.translate("Dialog", "Pyrolysis Kinetic Preprocessor - Results", None, QApplication.UnicodeUTF8))
         self.l_NRKin.setText(QApplication.translate("Dialog", "Program", None, QApplication.UnicodeUTF8))
         self.B_Kin.setText(QApplication.translate("Dialog", "Open", None, QApplication.UnicodeUTF8))
         self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_ResKin), QApplication.translate("Dialog", "Results - Kinetics", None, QApplication.UnicodeUTF8))
