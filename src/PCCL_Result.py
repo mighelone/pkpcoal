@@ -18,7 +18,7 @@ class PCCL_Result(object):
         HCyields = np.genfromtxt(self.__path+'FDC1HC'+self.__nrRun+'.RPT',skip_header=28)
         NSpec = 18 #number of reported species
         # transform this into an own array
-        self.__yields = np.zeros([len(WTyields[:,0]),NSpec])
+        self.__yields = np.zeros([len(WTyields[:,0]),NSpec],order='F')
         self.__yields[:,0]  = WTyields[:,0] # time
         self.__yields[:,1]  = WTyields[:,1]+273. # temperature, T in K instead degree C
         self.__yields[:,2]  = WTyields[:,2]/100. # total yields
@@ -42,7 +42,7 @@ class PCCL_Result(object):
         self.Cols2Yields={0:'Time',1:'Temp',2:'Total',3:'Gas',4:'Tar',5:'Char',6:'CO2',7:'H2O',8:'CO',9:'Hydrocarbons',10:'HCN',11:'CH4',12:'C2H4',13:'C2H6',14:'C3H6',15:'C3H8',16:'H2',17:'H2S'}
         #
         # get the rates:
-        self.__rates = np.zeros(np.shape(self.__yields))
+        self.__rates = np.zeros(np.shape(self.__yields),order='F')
         self.__rates[:,0] = self.__yields[:,0]  #Time
         self.__rates[:,1] = self.__yields[:,1]  #Temperature
         #calculates rate of Totals as in the gasrate.txt only the solid yields are reported:

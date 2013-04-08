@@ -56,7 +56,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.cB_Kin = QComboBox(self.tab_ResKin)
         self.cB_Kin.setObjectName(_fromUtf8("cB_Kin"))
-        for PyrolPr in range(len(self.PyrolPrL)):       #manually added
+        for PyrolPr in (self.PyrolPrL):       #manually added
             self.cB_Kin.addItem(_fromUtf8(""))  #manually added
         self.tE_Kin = QTextEdit(self.tab_ResKin)
         self.tE_Kin.setObjectName(_fromUtf8("tE_Kin"))
@@ -174,15 +174,18 @@ class Ui_Dialog(QWidget):#QMainWindow):
             KinFileName='Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'
           else:
             print 'File cannot be found: ','Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'
+        print 'try open', KinFileName
         KinFile=open(KinFileName,'r')
         data = KinFile.read()
         self.tE_Kin.setText(data)
         KinFile.close()
 
     def PlotFunc(self):
-        colors=['g','b','r','k','purple','c','m','y','b','purple','r','b','g','c','y','m',]
-        linewidths=[1.,1.,1.,1.,1.,1.,1.,2.,2.,2.,2.,2.,2.,2.,2.,]
-        colorIndex=0
+        colors    = ['g','b','r','k']
+        styles    = ['d','x','_','+','o']
+        linewidths= [0.7, 1., 1., 1., 0.7 ]
+        Index1=0
+        Index2=0
         #
 	#plotting
         SpecNr=self.cB_Plot.currentIndex()
@@ -194,28 +197,32 @@ class Ui_Dialog(QWidget):#QMainWindow):
         self.ax.set_title(Spec)
         if OSys=='Linux':
             for PyrolPr in self.PyrModelsD:
+                Index2=0
+                Index1+=1
                 for i in range(self.NrRuns):
-                    if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
-                        Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
+                    if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out'):
+                        Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' fit '+str(i))
-                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5,label=PyrolPr+' fit '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,4],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
                         elif np.shape(Y)[1]==4:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
         elif OSys=='Windows':
             for PyrolPr in self.PyrModelsD:
+                Index2=0
+                Index1+=1
                 for i in range(self.NrRuns):
-                    if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
-                        Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
+                    if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out'):
+                        Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' fit '+str(i))
-                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5,label=PyrolPr+' fit '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,4],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
                         elif np.shape(Y)[1]==4:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],linewidth=linewidths[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
         self.ax.legend(loc='lower right')#'4')
         self.canvas.draw()
 

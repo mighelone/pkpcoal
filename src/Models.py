@@ -139,9 +139,9 @@ class Model(object):
             w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
             ur=fgdvc_list[runnedCaseNr].Rate(Species)
             if oSystem=='Linux':
-                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
-                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
             else:
                 print 'Models: Operating Platform cannot be specified.'
             resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
@@ -203,9 +203,9 @@ class Model(object):
                 u.append(u_)
             w=self.deriveC(fgdvc_list[runnedCaseNr],u[runnedCaseNr])
             if oSystem=='Linux':
-                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
-                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+str(runnedCaseNr)+'.out','w')
+                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
             else:
                 print 'Models: Operating Platform cannot be specified.'
             resultFile.write('    Time       Temperature Yields(original) Rates(original) \n')

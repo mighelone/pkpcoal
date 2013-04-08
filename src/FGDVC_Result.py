@@ -7,9 +7,13 @@ class FGDVC_Result(object):
     """Reads the FG-DVC input and saves the values in one array. The results include the yields (from 'gasyields.txt') and the rates. The rates for all species except the solids (here a CDS is used) are imported from 'gasrates.txt'. The H_2 yields were calculated by subtract all other species except parafins and olefins from the total yields (see FG-DVC manual). This H_2-yield curve was smoothed and derived using a CDS to generate the H_2 rates. The parafins and olefins are added into the tar. This class also contains the dictionaries for the columns in the array - the name of the species. These dictionaries are FG-DVC-Version dependent and the only thing which has to be changed for the case of a new release of FG-DVC with a new order of species in the result files (this was made for Versions 8.2.2. and 8.2.3.)."""
     def __init__(self,FilePath): #for FG-DVC Version 8.2.2 and 8.2.3
         self.__path=FilePath
-        self.__yields=(np.genfromtxt(self.__path+'gasyield.txt',skip_header=2))   #,names=True??
+        yields = (np.genfromtxt(self.__path+'gasyield.txt',skip_header=2))
+        rates  = (np.genfromtxt(self.__path+'gasrate.txt',skip_header=2))
+        self.__yields = np.zeros(np.shape(yields),order='F')
+        self.__yields = yields
         self.__yields[:,1]=self.__yields[:,1]+273.15            #T in K instead degree C
-        self.__rates=(np.genfromtxt(self.__path+'gasrate.txt',skip_header=2))     #,names=True??
+        self.__rates = np.zeros(np.shape(rates),order='F')
+        self.__rates = rates
         self.__rates[:,3:]=self.__rates[:,3:]*(1./60.)          #rate in 1/s instead 1/min
         self.__rates[:,1]=self.__rates[:,1]+273.15              #T in K instead degree C
         #use absolute instead of percentage values:

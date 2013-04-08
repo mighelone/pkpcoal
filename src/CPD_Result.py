@@ -10,13 +10,13 @@ class CPD_Result(object):
         #assembles relevant columns from the two files 'CPD_Result1.dat' and 'CPD_Result4.dat' to one Matrix:
         yields1=(np.genfromtxt(path1,skip_header=1,skip_footer=1))  #last line is twice in this file
         yields4=(np.genfromtxt(path4,skip_header=1))
-        self.__yields=np.zeros(( int(len(yields1[:,0])),11) )  #shapes new Matrix containing all necessary information; Files have the same number of lines, 12 because 12 relevant species
+        self.__yields=np.zeros(( int(len(yields1[:,0])),11),order='F' )  #shapes new Matrix containing all necessary information; Files have the same number of lines, 12 because 12 relevant species
         self.__yields[:,0:2]=yields1[:,0:2] #  0=Time   1=Temperature
         self.__yields[:,2:6]=yields1[:,4:8] #  4=ftar    5=fgas   6=fsolid   7=ftot
         self.__yields[:,6:11]=yields4[:,2:7]#   2=fh2O     3=fco2     4=fch4     5=fco     6=fother
         self.__yields[:,0]=self.__yields[:,0]*1.E-3            #t in s instead of ms
         #calculate rates:
-        self.__rates=np.zeros(np.shape(self.__yields))      #same dimension
+        self.__rates=np.zeros(np.shape(self.__yields),order='F')      #same dimension
         #cp time and temperature into rates matrix:
         self.__rates[:,0]=self.__yields[:,0];self.__rates[:,1]=self.__yields[:,1]
         for col in range(2,11,1):

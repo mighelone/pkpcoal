@@ -613,6 +613,11 @@ class MainProcess(object):
             else:
                 print "The name of the operating system couldn't be found."
         #####
+        M=Models.Model()
+        for Species in CPDFit[0].SpeciesNames():
+            M.mkSimpleResultFiles(CPDFit,Species)
+            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                self.SpeciesToConsider.append(Species)
         if self.CPD_FittingKineticParameter_Select=='constantRate':
             self.MakeResults_CR('CPD',CPDFile,CPDFit)
             currentDict={'CPD':'constantRate'}
@@ -630,11 +635,6 @@ class MainProcess(object):
             currentDict={'CPD':'DAEM'}
         elif self.CPD_FittingKineticParameter_Select==None:
             currentDict={'CPD':'None'}
-            for Species in CPDFit[0].SpeciesNames():
-                M=Models.Model()
-                M.mkSimpleResultFiles(CPDFit,Species)
-                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-                    self.SpeciesToConsider.append(Species)
         else:
             print 'unspecified CPD_FittingKineticParameter_Select'
             currentDict={}
@@ -648,11 +648,11 @@ class MainProcess(object):
     def MakeResults_FG(self):
         """generates the result for FG-DVC"""
         #writes Time-Temperature file
-        FG_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1))
-        FG_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2))
-        FG_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3))
-        FG_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4))
-        FG_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5))
+        FG_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1),order='F')
+        FG_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2),order='F')
+        FG_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3),order='F')
+        FG_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4),order='F')
+        FG_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5),order='F')
         FG_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e-3
         FG_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e-3
         FG_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e-3
@@ -738,6 +738,11 @@ class MainProcess(object):
                 shutil.copyfile(self.FG_DirOut+'gasyield.txt', 'Result\\gasyield_'+str(runNr)+'.txt')
                 shutil.copyfile(self.FG_DirOut+'gasrate.txt', 'Result\\gasrate_'+str(runNr)+'.txt')
         #####
+        M=Models.Model()
+        for Species in FGFit[0].SpeciesNames():
+            M.mkSimpleResultFiles(FGFit,Species)
+            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                self.SpeciesToConsider.append(Species)
         if self.FG_FittingKineticParameter_Select=='constantRate':
             self.MakeResults_CR('FGDVC',FGFile,FGFit)
             currentDict={'FGDVC':'constantRate'}
@@ -755,11 +760,6 @@ class MainProcess(object):
             currentDict={'FGDVC':'DAEM'}
         elif self.FG_FittingKineticParameter_Select==None:
             currentDict={'FGDVC':'None'}
-            for Species in FGFit[0].SpeciesNames():
-                M=Models.Model()
-                M.mkSimpleResultFiles(FGFit,Species)
-                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-                    self.SpeciesToConsider.append(Species)
         else:
             print 'uspecified FG_FittingKineticParameter_Select'
             currentDict={}
@@ -773,11 +773,11 @@ class MainProcess(object):
     def MakeResults_PCCL(self):
         """generates the result for PC Coal Lab"""
         #writes Time-Temperature file
-        PCCL_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1))
-        PCCL_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2))
-        PCCL_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3))
-        PCCL_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4))
-        PCCL_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5))
+        PCCL_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1),order='F')
+        PCCL_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2),order='F')
+        PCCL_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3),order='F')
+        PCCL_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4),order='F')
+        PCCL_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5),order='F')
         PCCL_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e-3
         PCCL_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e-3
         PCCL_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e-3
@@ -829,6 +829,11 @@ class MainProcess(object):
                 shutil.copyfile(self.PCCL_Path+'FDC1NG'+str(runNr)+'.RPT', 'Result/PCCL_gasyield_ng_'+str(runNr)+'.txt')
                 shutil.copyfile(self.PCCL_Path+'FDC1HC'+str(runNr)+'.RPT', 'Result/PCCL_gasyield_hc_'+str(runNr)+'.txt')
         #####
+        M=Models.Model()
+        for Species in PCCLFit[0].SpeciesNames():
+            M.mkSimpleResultFiles(PCCLFit,Species)
+            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                self.SpeciesToConsider.append(Species)
         if self.PCCL_FittingKineticParameter_Select=='constantRate':
             self.MakeResults_CR('PCCL',PCCLFile,PCCLFit)
             currentDict={'PCCL':'constantRate'}
@@ -846,11 +851,6 @@ class MainProcess(object):
             currentDict={'PCCL':'DAEM'}
         elif self.PCCL_FittingKineticParameter_Select==None:
             currentDict={'PCCL':'None'}
-            for Species in PCCLFit[0].SpeciesNames():
-                M=Models.Model()
-                M.mkSimpleResultFiles(PCCLFit,Species)
-                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-                    self.SpeciesToConsider.append(Species)
         else:
             print 'uspecified PCCL_FittingKineticParameter_Select'
             currentDict={}
