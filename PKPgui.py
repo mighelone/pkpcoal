@@ -830,14 +830,14 @@ class Ui_PKP(QMainWindow):
         """Writes the *.inp files and launch the process."""
         # checks whether the input is consistent
         InpIsOk = self.__checkInput()
+        PCCLIsOk = self.__PCCLInputIsOk()
         if InpIsOk != 'True':
             self.RaiseError(InpIsOk)
         # checks whether PCCL input is ok, raise otherwise error
-        elif self.cB_PCCL.currentIndex()!=0:
-            PCCLIsOk = self.__PCCLInputIsOk()
-            if PCCLIsOk != 'True':
+        elif (self.cB_PCCL.currentIndex()!=0) and (PCCLIsOk != 'True'):
                 self.RaiseError('Please insert for PC Coal Lab\n-a linear heating ramp\n-with a const. hold temperature.\nError in Temperature input '+PCCLIsOk)
         else:
+            print 'Checked Input in GUI. Was ok'
             self.SaveInfos()
             #removes date from Result directory
             for filename in os.listdir('Result'):
@@ -959,8 +959,8 @@ class Ui_PKP(QMainWindow):
                 isOk = 'Temperture history #'+str(i+1)+':Please use no comma, only a space character to separate time and temperature.'
             elif float(tT[0])!=0.0: # t_{i} != 0
                 isOk = 'Temperture history #'+str(i+1)+': first time must be zero'
-            elif False in (map(lambda j: float(tT[j])>float(tT[j-2]) , range(2,len(tT),2))): # t_{i} < t_{i-2} -> False
-                isOk = 'Temperture history #'+str(i+1)+': time in line'+str((j+1)/2+2)+' > '+str((j+3)/2+2)
+            elif False in (map(lambda j: float(tT[j])>=float(tT[j-2]) , range(2,len(tT),2))): # t_{i} < t_{i-2} -> False
+                isOk = 'Temperture history #'+str(i+1)+': time in line '+str((j+1)/2+2)+' > '+str((j+3)/2+2)
                 return isOk
         return isOk
           
