@@ -228,11 +228,4 @@ class Ui_Dialog(QWidget):#QMainWindow):
 
 
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    myapp = Ui_Dialog()
-    myapp.setupUi(['H2','O2'],['CPD','PCCL'],{'CPD':'aa'}, 3)
-#    myapp.show()
-    sys.exit(app.exec_())
-
 

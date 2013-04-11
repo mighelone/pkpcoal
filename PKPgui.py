@@ -14,6 +14,7 @@ OSys=platform.system()
 sys.path.append('src')
 import PKP
 import InformationFiles
+import GUI_ErrorPrompt
 
 import Done   #second GUI
 
@@ -661,10 +662,8 @@ class Ui_PKP(QMainWindow):
         FGCoal = str(self.cB_FGDVCcoal.currentIndex())  # information FG-DVC coal interpolation
         FGTar  = self.lE_FGDVCtarCr.text()         # information FG-DVC tar cracking
         self.svInfo.setFGCoalProp(FGCoal,FGTar)
-        # !!!Update!!!
-        PCCLParticleDiam = '100.'
+        PCCLParticleDiam = str(self.lE_PartDia.text())
         self.svInfo.setPCCLParticleSize(PCCLParticleDiam)
-        # !!!End Update!!!
         #operating condition
         pressure = str(self.lE_pressure.text()) # operating pressure
         dt = str(self.lE_numTimeStep.text()) # numerical time step
@@ -829,41 +828,161 @@ class Ui_PKP(QMainWindow):
 
     def WriteRun(self):
         """Writes the *.inp files and launch the process."""
-        self.SaveInfos()
-        #os.system('python Pyrolysis.py')
-        #print 'START executable'
-        #
-        #removes date from Result directory
-        for filename in os.listdir('Result'):
-            filepath = os.path.join('Result', filename)
-            try:
-                shutil.rmtree(filepath)
-            except OSError:
-                    os.remove(filepath)
-        #
-        Case=PKP.MainProcess()
-        Case.ReadInputFiles()
-        ProgramL=[]
-        if Case.CPDselect==True:
-            Case.MakeResults_CPD()
-            ProgramL.append('CPD')
-        if Case.FG_select==True:
-            Case.CheckFGdt()
-            Case.MakeResults_FG()
-            ProgramL.append('FGDVC')
-        if Case.PCCL_select==True:
-            Case.MakeResults_PCCL()
-            ProgramL.append('PCCL')
-        SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
-        ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
-        #
-        self.Done=Done.Ui_Dialog()
-        self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD,(self.sB_Nr_THist.value()))
-        self.Done.show()
-        self.TheCalculationsAreDone=True
-        #
-#        os.system('python Done.py')
-#        self.actionExit
+        # checks whether the input is consistent
+        InpIsOk = self.__checkInput()
+        if InpIsOk != 'True':
+            self.RaiseError(InpIsOk)
+        # checks whether PCCL input is ok, raise otherwise error
+        elif self.cB_PCCL.currentIndex()!=0:
+            PCCLIsOk = self.__PCCLInputIsOk()
+            if PCCLIsOk != 'True':
+                self.RaiseError('Please insert for PC Coal Lab\n-a linear heating ramp\n-with a const. hold temperature.\nError in Temperature input '+PCCLIsOk)
+        else:
+            self.SaveInfos()
+            #removes date from Result directory
+            for filename in os.listdir('Result'):
+                filepath = os.path.join('Result', filename)
+                try:
+                    shutil.rmtree(filepath)
+                except OSError:
+                        os.remove(filepath)
+            #
+            Case=PKP.MainProcess()
+            Case.ReadInputFiles()
+            ProgramL=[]
+            if Case.CPDselect==True:
+                Case.MakeResults_CPD()
+                ProgramL.append('CPD')
+            if Case.FG_select==True:
+                Case.CheckFGdt()
+                Case.MakeResults_FG()
+                ProgramL.append('FGDVC')
+            if Case.PCCL_select==True:
+                Case.MakeResults_PCCL()
+                ProgramL.append('PCCL')
+            SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
+            ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
+            #
+            self.Done=Done.Ui_Dialog()
+            self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD,(self.sB_Nr_THist.value()))
+            self.Done.show()
+            self.TheCalculationsAreDone=True
+            #
+    #        os.system('python Done.py')
+    #        self.actionExit
+        
+    def RaiseError(self,ErrorMassage):
+        """Raise an Window with the Error massage inputted"""
+        GUI_ErrorPrompt.PromptError(ErrorMassage)
+    
+    def __checkInput(self):
+        """Checks wheather the general input is ok. If not returns the wrong T-t input field info."""
+        isOk = 'True'
+        # checks input fields:
+        try:
+            float(str(self.lE_Yweight.text()))
+        except ValueError:
+            return 'No valid input for Weight-Parameter (Yields).'
+        try:
+            float(str(self.lE_Rweight.text()))
+        except ValueError:
+            return 'No valid input for Weight-Parameter (Rates).'
+        try:
+            float(str(self.lE_UAC.text()))
+        except ValueError:
+            return 'No valid input for Ultimate Analysis (Carbon).'
+        try:
+            float(str(self.lE_UAH.text()))
+        except ValueError:
+            return 'No valid input for Ultimate Analysis (Hydrogen).'
+        try:
+            float(str(self.lE_UAN.text()))
+        except ValueError:
+            return 'No valid input for Ultimate Analysis (Nitrogen).'
+        try:
+            float(str(self.lE_UAO.text()))
+        except ValueError:
+            return 'No valid input for Ultimate Analysis (Oxygen).'
+        try:
+            float(str(self.lE_UAS.text()))
+        except ValueError:
+            return 'No valid input for Ultimate Analysis (Sulfur).'
+        try:
+            float(str(self.lE_PAFC.text()))
+        except ValueError:
+            return 'No valid input for Proximate Analysis (Fixed Carbon).'
+        try:
+            float(str(self.lE_PAVM.text()))
+        except ValueError:
+            return 'No valid input for Proximate Analysis (Volatile Matter).'
+        try:
+            float(str(self.lE_PAMoi.text()))
+        except ValueError:
+            return 'No valid input for Proximate Analysis (Moisture).'
+        try:
+            float(str(self.lE_PAAsh.text()))
+        except ValueError:
+            return 'No valid input for Proximate Analysis (Ash).'
+        try:
+            float(str(self.lE_MWTar.text()))
+        except ValueError:
+            return 'No valid input for Tar Molecule Weight.'
+        try:
+            float(str(self.lE_HHV.text()))
+        except ValueError:
+            return 'No valid input for Higher Heating Value.'
+        try:
+            float(str(self.lE_FGDVCtarCr.text()))
+        except ValueError:
+            return 'No valid input for FG-DVC Tar cracking option. Enter -1 for Full, 0 for no tar cracking and a value larger zero for the tar residence time.'
+        try:
+            float(str(self.lE_PartDia.text()))
+        except ValueError:
+            return 'No valid input for Particle Diameter.'
+        try:
+            float(str(self.lE_pressure.text()))
+        except ValueError:
+            return 'No valid input for pressure.'
+        try:
+            float(str(self.lE_numTimeStep.text()))
+        except ValueError:
+            return 'No valid input for numerical time step.'
+        # checks temperature histories
+        i = 0 ; j = 0
+        L = [self.tE_THist_1,self.tE_THist_2,self.tE_THist_3,self.tE_THist_4,self.tE_THist_5]
+        for i in range(self.sB_Nr_THist.value()):
+            tT = str(L[i].toPlainText()).split() #e.g. ['0.0', '300', '0.01', '1500', '0.08', '1500']
+            if len(tT)%2 != 0:
+                isOk = 'Temperture history #'+str(i+1)+':Odd number of input values.Please Input t[s] T[K] linewise separated by space.'
+                return isOk
+            elif True in map(lambda j: ',' in tT[j] , range(len(tT))): # checks wheather comma is in input
+                isOk = 'Temperture history #'+str(i+1)+':Please use no comma, only a space character to separate time and temperature.'
+            elif float(tT[0])!=0.0: # t_{i} != 0
+                isOk = 'Temperture history #'+str(i+1)+': first time must be zero'
+            elif False in (map(lambda j: float(tT[j])>float(tT[j-2]) , range(2,len(tT),2))): # t_{i} < t_{i-2} -> False
+                isOk = 'Temperture history #'+str(i+1)+': time in line'+str((j+1)/2+2)+' > '+str((j+3)/2+2)
+                return isOk
+        return isOk
+          
+    def __PCCLInputIsOk(self):
+        """Checks wheather the input is ok for PC Coal Lab. If not returns the wrong input field info."""
+        isOk = 'True'
+        i = 0
+        L = [self.tE_THist_1,self.tE_THist_2,self.tE_THist_3,self.tE_THist_4,self.tE_THist_5]
+        for i in range(self.sB_Nr_THist.value()):
+            tT = str(L[i].toPlainText()).split() #e.g. ['0.0', '300', '0.01', '1500', '0.08', '1500']
+            if (len(tT)>6):
+                isOk = str(i+1)+':\n Too many data points.'
+                return isOk
+            elif  len(tT)<4:
+                isOk = str(i+1)+':\n Too few data points.'
+                return isOk
+            elif len(tT)>3:
+                if tT[3] != tT[5]:
+                    isOk = str(i+1)+':\n No constant hold temperature.'
+                    return isOk
+        return isOk
+
         
     def ReOpenResultWindow(self):
         """If the calculation were done once, the window showing the results can be opened again."""
@@ -1115,6 +1234,7 @@ class InfosFromGUI(object):
         
         
         
+
 
 if __name__ == "__main__":
     import sys
