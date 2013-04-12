@@ -38,8 +38,8 @@ class PCCL_Result(object):
         self.__yields[:,16] = HCyields[:,9]/100. # H2
         self.__yields[:,17] = HCyields[:,10]/100. # H2S
         # Yields2Cols
-        self.Yields2Cols={'Time':0,'Temp':1,'Total':2,'Gas':3,'Tar':4,'Char':5,'CO2':6,'H2O':7,'CO':8,'Hydrocarbons':9,'HCN':10,'CH4':11,'C2H4':12,'C2H6':13,'C3H6':14,'C3H8':15,'H2':16,'H2S':17}
-        self.Cols2Yields={0:'Time',1:'Temp',2:'Total',3:'Gas',4:'Tar',5:'Char',6:'CO2',7:'H2O',8:'CO',9:'Hydrocarbons',10:'HCN',11:'CH4',12:'C2H4',13:'C2H6',14:'C3H6',15:'C3H8',16:'H2',17:'H2S'}
+        self.Yields2Cols={'Time':0,'Temp':1,'Total':2,'Gas':3,'Tar':4,'Solid':5,'CO2':6,'H2O':7,'CO':8,'Hydrocarbons':9,'HCN':10,'CH4':11,'C2H4':12,'C2H6':13,'C3H6':14,'C3H8':15,'H2':16,'H2S':17}
+        self.Cols2Yields={0:'Time',1:'Temp',2:'Total',3:'Gas',4:'Tar',5:'Solid',6:'CO2',7:'H2O',8:'CO',9:'Hydrocarbons',10:'HCN',11:'CH4',12:'C2H4',13:'C2H6',14:'C3H6',15:'C3H8',16:'H2',17:'H2S'}
         #
         # get the rates:
         self.__rates = np.zeros(np.shape(self.__yields),order='F')

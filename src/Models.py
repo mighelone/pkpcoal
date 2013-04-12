@@ -234,7 +234,7 @@ class ConstantRateModel(Model):
     def __init__(self,InitialParameterVector):
         print 'Constant rate initialized'
         self._ParamVector=InitialParameterVector
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
 
     def calcMass(self,fgdvc,t,T,SpeciesToCalc):
         ParamVector=self.ParamVector()
@@ -257,7 +257,7 @@ class ArrheniusModel(Model):
         print 'Arrhenuis Model initialized'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
  
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
@@ -275,19 +275,12 @@ class ArrheniusModel(Model):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            #A=parameter[0]
-            #b=parameter[1]
-            #E=parameter[2]
             if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
                 dmdt_out=-ParamVec[0]*(T(t)**ParamVec[1])*np.exp(-ParamVec[2]/(T(t)))*(m-m_s0)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
             else:
                 dmdt_out= ParamVec[0]*(T(t)**ParamVec[1])*np.exp(-ParamVec[2]/(T(t)))*(m_s0-m)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
-                #print 'ParamVec[0]',ParamVec[0]
-                #print '(T(t)**ParamVec[1])',(T(t)**ParamVec[1])
-                #print 'np.exp(-ParamVec[2]/(T(t)))', np.exp(-ParamVec[2]/(T(t)))
-                #print '(m_s0-m)',(m_s0-m)
             return dmdt_out
         InitialCondition=[u[0]]
         m_out=sp.integrate.odeint(dmdt,InitialCondition,timeInt,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax) 
@@ -312,7 +305,7 @@ class ArrheniusModelNoB(Model):
         print 'Arrhenuis Model initialized'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
  
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
@@ -330,19 +323,12 @@ class ArrheniusModelNoB(Model):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            #A=parameter[0]
-            #b=parameter[1]
-            #E=parameter[2]
             if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
                 dmdt_out=-ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m-m_s0)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
             else:
                 dmdt_out= ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m_s0-m)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
-                #print 'ParamVec[0]',ParamVec[0]
-                #print '(T(t)**ParamVec[1])',(T(t)**ParamVec[1])
-                #print 'np.exp(-ParamVec[2]/(T(t)))', np.exp(-ParamVec[2]/(T(t)))
-                #print '(m_s0-m)',(m_s0-m)
             return dmdt_out
         InitialCondition=[u[0]]
         m_out=sp.integrate.odeint(dmdt,InitialCondition,timeInt,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax) 
@@ -367,7 +353,7 @@ class ArrheniusModelAlternativeNotation1(ArrheniusModel):
         print 'Arrhenuis Model class initialized'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
@@ -387,9 +373,6 @@ class ArrheniusModelAlternativeNotation1(ArrheniusModel):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            #k0=parameter[0]
-            #n=0
-            #a=parameter[1]
             if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
                 dmdt_out=-np.exp( ParamVec[0]  - ParamVec[1]*( self.T0/T(t) - 1 ))*(m-m_s0) #-ParamVec[0]*( (T(t)/self.T0)**ParamVec[1] )*np.exp( -ParamVec[2]*(self.T0/(T(t))-1) )*(m)    #IC
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cuase problem(nan)
@@ -433,7 +416,7 @@ class ArrheniusModelAlternativeNotation2(ArrheniusModel):
         self._ParamVector=InitialParameterVector
         self.T_min=300
         self.T_max=1500
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
     def setMinMaxTemp(self,Tmin,Tmax):
         """Sets the temperature constants, see the equation."""
@@ -460,8 +443,6 @@ class ArrheniusModelAlternativeNotation2(ArrheniusModel):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            #b1=parameter[0]
-            #b2=parameter[1]
             if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
                 dmdt_out= -np.exp( self.c*( ParamVec[0]*(1./T(t)-1./self.T_min) - ParamVec[1]*(1./T(t)-1./self.T_max) ) )*(m-m_s0)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problem(nan)
@@ -509,7 +490,7 @@ class Kobayashi(Model):
         print 'Kobayashi Model initialized'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation. The input Vector is [A1,E1,A2,E2,alpha1,alpha2]"""
@@ -548,21 +529,6 @@ class Kobayashi(Model):
         else: #returns the short, interpolated list (e.g. for PCCL)
             return self._mkInterpolatedRes(m_out,time)
         
-        
-
-#    def ConvertKinFactors(self,ParameterVector):
-#        """Outputs the Arrhenius equation factors in the shape [A1,E1,A2,E2]. Here where the real Arrhenius model is in use only a dummy function."""
-#        P=self.ParamVector()
-#        return [P[0],P[1],P[2],P[3]]
-#    
-#    def setKobWeights(self,alpha1,alpha2):
-#        """Sets the two Kobayashi weights alpha1 and alpha2."""
-#        self.__alpha1=alpha1
-#        self.__alpha2=alpha2
-#        
-#    def KobWeights(self):
-#        """Returns the two Kobayashi weights alpha1 and alpha2."""
-#        return self.__alpha1, self.__alpha2
 
 class KobayashiPCCL(Model):
     """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation. The fitting parameter are as in PCCL A1,A2,E1,alpha1. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE."""
@@ -570,7 +536,7 @@ class KobayashiPCCL(Model):
         print 'Kobayashi Model initialized'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
@@ -637,7 +603,7 @@ class KobayashiA2(Model):
         print 'Kobayashi Model initialized'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
 
     def calcMass(self,fgdvc,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
@@ -706,7 +672,7 @@ class DAEM(Model):
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
         self.NrOfActivationEnergies=50
-        self.constDt = False # if set to false not interpolation of the output result will be carried out
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
     
     def setNrOfActivationEnergies(self,NrOfE):
         """Define for how many activation energies of the range of the whole distribution the integral shall be solved (using Simpson Rule)."""
