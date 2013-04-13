@@ -3,10 +3,6 @@ sys.path.append('src')
 import os
 #
 
-os.environ['QT_API'] = 'pyside'
-import matplotlib
-matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
 
 import CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
 import FGDVC_SetAndLaunch       #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)

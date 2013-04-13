@@ -1,8 +1,5 @@
 import os
-os.environ['QT_API'] = 'pyside'
-import matplotlib
-matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
+
 import pylab as plt
 import numpy as np
 import writeInfoFiles
@@ -740,13 +737,9 @@ class Ui_PKP(QMainWindow):
         file1=open('TempHist1.dat','w')
         file1.write(self.tE_THist_1.toPlainText())
         file1.close()
-#        plt.clf(),plt.cla()
         Tt=np.genfromtxt('TempHist1.dat')
-#        figT1=plt.figure()
-#        figTt1=figT1.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
-        plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
             plt.plot(Tt[:,0],Tt[:,1],'-x')
@@ -759,17 +752,13 @@ class Ui_PKP(QMainWindow):
         file2.write(self.tE_THist_2.toPlainText())
         file2.close()
         Tt=np.genfromtxt('TempHist2.dat')
-#        plt.clf(),plt.cla()
-#        figT2=plt.figure()
-#        figTt2=figT2.add_subplot(111)
-        plt.ylabel('Temperature in K')
-        plt.xlabel('Time in s')
-        plt.legend()
-        plt.grid()
         if len(Tt[:,0])<50:
             plt.plot(Tt[:,0],Tt[:,1],'-x')
         else:
             plt.plot(Tt[:,0],Tt[:,1],'-')
+        plt.ylabel('Temperature in K')
+        plt.xlabel('Time in s')
+        plt.grid()
         plt.show()
     def Plot3(self):
         """Plots the temperature over time history (temperature history nr 3) and saves temperatuer history in "TempHist3.dat"."""
@@ -777,12 +766,8 @@ class Ui_PKP(QMainWindow):
         file3.write(self.tE_THist_3.toPlainText())
         file3.close()
         Tt=np.genfromtxt('TempHist3.dat')
-#        plt.clf(),plt.cla()
-#        figT3=plt.figure()
-#        figTt3=figT3.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
-        plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
             plt.plot(Tt[:,0],Tt[:,1],'-x')
@@ -795,12 +780,8 @@ class Ui_PKP(QMainWindow):
         file4.write(self.tE_THist_4.toPlainText())
         file4.close()
         Tt=np.genfromtxt('TempHist4.dat')
-#        plt.clf(),plt.cla()
-#        figT4=plt.figure()
-#        figTt4=figT4.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
-        plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
             plt.plot(Tt[:,0],Tt[:,1],'-x')
@@ -813,12 +794,8 @@ class Ui_PKP(QMainWindow):
         file5.write(self.tE_THist_5.toPlainText())
         file5.close()
         Tt=np.genfromtxt('TempHist5.dat')
-#        plt.clf(),plt.cla()
-#        figT5=plt.figure()
-#        figTt5=figT5.add_subplot(111)
         plt.ylabel('Temperature in K')
         plt.xlabel('Time in s')
-        plt.legend()
         plt.grid()
         if len(Tt[:,0])<50:
             plt.plot(Tt[:,0],Tt[:,1],'-x')
