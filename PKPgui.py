@@ -1,5 +1,8 @@
 import os
-
+os.environ['QT_API'] = 'pyside'
+import matplotlib
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
 import pylab as plt
 import numpy as np
 import writeInfoFiles
