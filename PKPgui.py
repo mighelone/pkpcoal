@@ -1,9 +1,9 @@
 import os
 os.environ['QT_API'] = 'pyside'
 import matplotlib
+import matplotlib.pyplot as plt
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
-import pylab as plt
 import numpy as np
 import writeInfoFiles
 import sys
@@ -741,13 +741,16 @@ class Ui_PKP(QMainWindow):
         file1.write(self.tE_THist_1.toPlainText())
         file1.close()
         Tt=np.genfromtxt('TempHist1.dat')
-        plt.ylabel('Temperature in K')
-        plt.xlabel('Time in s')
-        plt.grid()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
         if len(Tt[:,0])<50:
-            plt.plot(Tt[:,0],Tt[:,1],'-x')
+            ax.plot(Tt[:,0],Tt[:,1],'-x')
         else:
-            plt.plot(Tt[:,0],Tt[:,1],'-')
+            ax.plot(Tt[:,0],Tt[:,1],'-')
+        ax.set_title('Temperature History')
+        ax.set_xlabel('Time in s')
+        ax.set_ylabel('Temperature in K')
+        ax.grid()
         plt.show()
     def Plot2(self):
         """Plots the temperature over time history (temperature history nr 2) and saves temperatuer history in "TempHist2.dat"."""
@@ -755,13 +758,16 @@ class Ui_PKP(QMainWindow):
         file2.write(self.tE_THist_2.toPlainText())
         file2.close()
         Tt=np.genfromtxt('TempHist2.dat')
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
         if len(Tt[:,0])<50:
-            plt.plot(Tt[:,0],Tt[:,1],'-x')
+            ax.plot(Tt[:,0],Tt[:,1],'-x')
         else:
-            plt.plot(Tt[:,0],Tt[:,1],'-')
-        plt.ylabel('Temperature in K')
-        plt.xlabel('Time in s')
-        plt.grid()
+            ax.plot(Tt[:,0],Tt[:,1],'-')
+        ax.set_title('Temperature History')
+        ax.set_xlabel('Time in s')
+        ax.set_ylabel('Temperature in K')
+        ax.grid()
         plt.show()
     def Plot3(self):
         """Plots the temperature over time history (temperature history nr 3) and saves temperatuer history in "TempHist3.dat"."""
@@ -769,13 +775,16 @@ class Ui_PKP(QMainWindow):
         file3.write(self.tE_THist_3.toPlainText())
         file3.close()
         Tt=np.genfromtxt('TempHist3.dat')
-        plt.ylabel('Temperature in K')
-        plt.xlabel('Time in s')
-        plt.grid()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
         if len(Tt[:,0])<50:
-            plt.plot(Tt[:,0],Tt[:,1],'-x')
+            ax.plot(Tt[:,0],Tt[:,1],'-x')
         else:
-            plt.plot(Tt[:,0],Tt[:,1],'-')
+            ax.plot(Tt[:,0],Tt[:,1],'-')
+        ax.set_title('Temperature History')
+        ax.set_xlabel('Time in s')
+        ax.set_ylabel('Temperature in K')
+        ax.grid()
         plt.show()
     def Plot4(self):
         """Plots the temperature over time history (temperature history nr 4) and saves temperatuer history in "TempHist4.dat"."""
@@ -783,13 +792,16 @@ class Ui_PKP(QMainWindow):
         file4.write(self.tE_THist_4.toPlainText())
         file4.close()
         Tt=np.genfromtxt('TempHist4.dat')
-        plt.ylabel('Temperature in K')
-        plt.xlabel('Time in s')
-        plt.grid()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
         if len(Tt[:,0])<50:
-            plt.plot(Tt[:,0],Tt[:,1],'-x')
+            ax.plot(Tt[:,0],Tt[:,1],'-x')
         else:
-            plt.plot(Tt[:,0],Tt[:,1],'-')
+            ax.plot(Tt[:,0],Tt[:,1],'-')
+        ax.set_title('Temperature History')
+        ax.set_xlabel('Time in s')
+        ax.set_ylabel('Temperature in K')
+        ax.grid()
         plt.show()
     def Plot5(self):
         """Plots the temperature over time history (temperature history nr 5) and saves temperatuer history in "TempHist5.dat"."""
@@ -797,13 +809,16 @@ class Ui_PKP(QMainWindow):
         file5.write(self.tE_THist_5.toPlainText())
         file5.close()
         Tt=np.genfromtxt('TempHist5.dat')
-        plt.ylabel('Temperature in K')
-        plt.xlabel('Time in s')
-        plt.grid()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
         if len(Tt[:,0])<50:
-            plt.plot(Tt[:,0],Tt[:,1],'-x')
+            ax.plot(Tt[:,0],Tt[:,1],'-x')
         else:
-            plt.plot(Tt[:,0],Tt[:,1],'-')
+            ax.plot(Tt[:,0],Tt[:,1],'-')
+        ax.set_title('Temperature History')
+        ax.set_xlabel('Time in s')
+        ax.set_ylabel('Temperature in K')
+        ax.grid()
         plt.show()
 
     def WriteRun(self):
