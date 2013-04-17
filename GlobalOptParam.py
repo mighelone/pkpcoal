@@ -1,8 +1,8 @@
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 60#100
+NrOfGeneration = 10#100
 # size of population
-NrOfPopulation = 150#100
+NrOfPopulation = 30#100
 #minimum for Arrhenius equation:[A,E]
 EvAArrhMin=[1e3,-2,1e2]
 #maximum for Arrhenius equation:[A,E]
