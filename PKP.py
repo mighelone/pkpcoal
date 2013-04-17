@@ -25,10 +25,6 @@ import platform
 import shutil
 #
 #
-#Use Global Optimizer? select 'Evolve' for a generic algorithm or 'ManyPoints' to use many starting points combined with a local optimization
-UseGlobalOpt= 'Evolve'
-#UseGlobalOpt= False
-#UseGlobalOpt= GlobalOptParam.GlobalOptimizeMethod
 #Which operating Sytem?
 oSystem=platform.system()
 #Directories:
@@ -267,44 +263,28 @@ class MainProcess(object):
                 Arr.setDt4Intergrate(self.FG_dt)
             #
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Arr,Fit)
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.ArrhIndexToOptimize,[[min(m_final_predictionAll),max(m_final_predictionAll)]],GlobalOptParam.ArrhNrOfRuns)
-                #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
-            elif UseGlobalOpt=='Evolve':
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
-                GAArrhMinB = GlobalOptParam.EvAArrhMin[1]
-                GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
-                GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
-                GAArrhMaxB = GlobalOptParam.EvAArrhMax[1]
-                GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
-                GAArrhInit=GlobalOptParam.EvAArrhInit
-                if len(GAArrhInit)==3:
-                    GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
-                else:
-                    GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-                GenAlg.setParamRanges(GAArrhInit,[GAArrhMinA,GAArrhMinB,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxB,GAArrhMaxE,max(m_final_predictionAll)])
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                Arr.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-#                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            elif UseGlobalOpt==False:
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+            # init the Parameter for global optimization
+            m_final_predictionAll=[]
+            for i in range(len(Fit)):
+                m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+            GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
+            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
+            GAArrhMinB = GlobalOptParam.EvAArrhMin[1]
+            GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
+            GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
+            GAArrhMaxB = GlobalOptParam.EvAArrhMax[1]
+            GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
+            GAArrhInit=GlobalOptParam.EvAArrhInit
+            if len(GAArrhInit)==3:
+                GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+            else:
+                GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+            GenAlg.setParamRanges(GAArrhInit,[GAArrhMinA,GAArrhMinB,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxB,GAArrhMaxE,max(m_final_predictionAll)])
+            GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+            GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
+            Arr.setParamVector(GenAlg.mkResults())
+            #
             Arr.plot(Fit,Species)
             Solution=Arr.ParamVector()
             if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
@@ -368,42 +348,26 @@ class MainProcess(object):
                 Arr.setDt4Intergrate(self.FG_dt)
             #
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Arr,Fit)
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.ArrhNobIndexToOptimize,[[min(m_final_predictionAll),max(m_final_predictionAll)]],GlobalOptParam.ArrhNoBNrOfRuns)
-                #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
-                GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
-                GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
-                GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
-                GAArrhInit=GlobalOptParam.EvAArrhInit
-                if len(GAArrhInit)==3:
-                    GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
-                else:
-                    GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-                GenAlg.setParamRanges(GAArrhInit.pop(1),[GAArrhMinA,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxE,max(m_final_predictionAll)])
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                Arr.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            if UseGlobalOpt==False:
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
+            # optimization procedure
+            m_final_predictionAll=[]
+            for i in range(len(Fit)):
+                m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+            GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
+            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
+            GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
+            GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
+            GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
+            GAArrhInit=GlobalOptParam.EvAArrhInit
+            if len(GAArrhInit)==3:
+                GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
+            else:
+                GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+            GenAlg.setParamRanges(GAArrhInit.pop(1),[GAArrhMinA,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxE,max(m_final_predictionAll)])
+            GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+            GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
+            Arr.setParamVector(GenAlg.mkResults())
+            #
             Solution=Arr.ParamVector()
             Arr.plot(Fit,Species)
             if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
@@ -441,27 +405,14 @@ class MainProcess(object):
             self.SpeciesToConsider.append('Total')
         for Species in [Fit[0].SpeciesIndex('Total')]:
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Kob,Fit)
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.KobIndexToOptimize,GlobalOptParam.KobBoundaries,GlobalOptParam.KobNrOfRuns)
-                #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
-                GenAlg=Evolve.GenericOpt(Kob,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                GenAlg.setParamRanges(GlobalOptParam.EvAKobInit,GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax)
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                Kob.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-#                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
-            if UseGlobalOpt==False:
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
+            # optimization procedure
+            GenAlg=Evolve.GenericOpt(Kob,Fit,Species)
+            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GenAlg.setParamRanges(GlobalOptParam.EvAKobInit,GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax)
+            GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+            GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
+            Kob.setParamVector(GenAlg.mkResults())
+            #
             Solution=Kob.ParamVector()
             #
             Kob.plot(Fit,Species)
@@ -499,35 +450,20 @@ class MainProcess(object):
             m_final_predictionAll=[]
             for i in range(len(Fit)):
                 m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,DAEM,Fit)
-                LS.setTolerance(1e-2)
-                DAEMBdr=GlobalOptParam.DAEMBoundaries
-                DAEMBdr.append([min(m_final_predictionAll),max(m_final_predictionAll)])
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.DAEMIndexToOptimize,DAEMBdr,GlobalOptParam.DAEMNrOfRuns)
-                #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
-                GenAlg=Evolve.GenericOpt(DAEM,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                EvADAEMInit=GlobalOptParam.EvADAEMInit
-                EvADAEMMin=GlobalOptParam.EvADAEMMin
-                EvADAEMMax=GlobalOptParam.EvADAEMMax
-                EvADAEMInit.append((min(m_final_predictionAll)+max(m_final_predictionAll))/2.)
-                EvADAEMMin.append(min(m_final_predictionAll))
-                EvADAEMMax.append(max(m_final_predictionAll))
-                GenAlg.setParamRanges(EvADAEMInit,EvADAEMMin,EvADAEMMax)
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                DAEM.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-                #DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
-            if UseGlobalOpt==False:
-                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
+            # optimization procedure
+            GenAlg=Evolve.GenericOpt(DAEM,Fit,Species)
+            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            EvADAEMInit=GlobalOptParam.EvADAEMInit
+            EvADAEMMin=GlobalOptParam.EvADAEMMin
+            EvADAEMMax=GlobalOptParam.EvADAEMMax
+            EvADAEMInit.append((min(m_final_predictionAll)+max(m_final_predictionAll))/2.)
+            EvADAEMMin.append(min(m_final_predictionAll))
+            EvADAEMMax.append(max(m_final_predictionAll))
+            GenAlg.setParamRanges(EvADAEMInit,EvADAEMMin,EvADAEMMax)
+            GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+            GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
+            DAEM.setParamVector(GenAlg.mkResults())
+            #
             Solution=DAEM.ParamVector()
             #
             DAEM.plot(Fit,Species)
