@@ -182,8 +182,8 @@ class Ui_Dialog(QWidget):#QMainWindow):
 
     def PlotFunc(self):
         colors    = ['g','b','r','k']
-        styles    = ['d','x','_','+','o']
-        linewidths= [0.7, 1., 1., 1., 0.7 ]
+        styles    = ['d','x','1','+','o']
+        linewidths= [0.7, 1., 1., 1., 0.7 ] #size of the symbols in styles
         Index1=0
         Index2=0
         #
@@ -203,7 +203,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
                     if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out'):
                         Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5,label=PyrolPr+' fit '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5)
                             self.ax.plot(Y[:,0],Y[:,4],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
                             Index2+=1
                         elif np.shape(Y)[1]==4:
@@ -217,7 +217,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
                     if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out'):
                         Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5,label=PyrolPr+' fit '+str(i))
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5)
                             self.ax.plot(Y[:,0],Y[:,4],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
                             Index2+=1
                         elif np.shape(Y)[1]==4:
