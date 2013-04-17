@@ -832,6 +832,10 @@ class Ui_PKP(QMainWindow):
         elif (self.cB_PCCL.currentIndex()!=0) and (PCCLIsOk != 'True'):
                 self.RaiseError('Please insert for PC Coal Lab\n-a linear heating ramp\n-with a const. hold temperature.\nError in Temperature input '+PCCLIsOk)
         else:
+            # tells user if pressure for PCCL is too low
+            if self.cB_PCCL.currentIndex()!=0:
+                if float(str(self.lE_pressure.text())) < 0.101325:
+                    self.RaiseError('The selected pressure for PC Coal Lab is too low. Minimum input pressure is 0.01MPa (0.101325atm). Continue with this value.')
             print 'Checked Input in GUI. Was ok'
             self.SaveInfos()
             #removes date from Result directory
