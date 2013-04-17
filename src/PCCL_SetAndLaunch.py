@@ -23,8 +23,8 @@ class SetterAndLauncher(object):
         self.particleDiam = 100.0 # particle diameter in micrometer, F6.1
         # see page 4.8
         self.RS = ['Y','Y','Y','Y','Y','Y','Y','Y','Y','Y','N']  # all species reported, Burnout report not possible for wire grid (last entry)
-        self.RM = ['Y','N','N']                                  # all three [SFOR, DAEM, C2SM] are fitted
-        self.SA = ['Y','N','N','N','N','N','N','N','N','N']              # only the overall yields are fitted
+        self.RM = ['N','N','N']                                  # all three [SFOR, DAEM, C2SM] are fitted
+        self.SA = ['N','N','N','N','N','N','N','N','N','N']              # only the overall yields are fitted
         ### THE COAL PROPERTIES ###
         self.Fuel = 'CO '   #CO for Coal, PC for petroleeum coke and BM for BioMass
         self.CoalLable = 'TESTCOAL                                 '  #40 chars
@@ -93,8 +93,8 @@ class SetterAndLauncher(object):
         """Defines the pressure in atm"""
         atm2MPa = 1.01325e-1
         self.pressure = pressure*atm2MPa
-        if self.pressure < 0.1:
-            self.pressure = 0.1 #because otherwise with respect to the input format a pressure of 0.0 would be printed
+        if self.pressure < 0.01:
+            self.pressure = 0.01 #because otherwise with respect to the input format a pressure of 0.0 would be printed
             
     def SetParticleSize(self,DiameterinMicrons):
         """Defines the particle diameter. Input it in micrometer."""
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     sl.SetUACoalParameter(70,7,5,12)
 #    sl.SetCoalCalibrationFactor(0.5227)
     sl.THist(300.,0.03,1500.,0.1)
-    sl.SetPressure(13.)
+    sl.SetPressure(1.3)
     #
     sl.writeCoalFiles('C:\\Users\\MaP\\PCCL\\')
     sl.THist(400.,0.1,1200.,0.11)

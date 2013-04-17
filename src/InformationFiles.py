@@ -5,7 +5,7 @@ import sys
 ######
 #Markers for the input File:
 #Markers for the Reading procedure of the coal input file:
-M_PA=['Fixed Carbon:','Volatile Matter:','Moisture:','Ash:']
+M_PA   = ['Fixed Carbon:','Volatile Matter:','Moisture:','Ash:']
 M_UA=['UA Carbon:','UA Hydrogen:','UA Nitrogen:','UA Oxygen:','UA Sulphur:'] #for UA input
 M_HHV='Higher Heating Value, as recieved, in J/kg:'
 M_MTar='Tar Molecule weight, MTar:'
@@ -25,6 +25,12 @@ MF_sel='use FG-DVC?:'
 MF_CoalSel='Choose Coal: 0 interpolate between library coals and generate own coal. Set 1 to 8 for a library coal.'
 MF_dir=['main directory FG-DVC:','directory fgdvc-output:']
 MF_TarCr='Model tar cracking? If no, set tar residence time equal 0. For a partial tar cracking enter the tar residence time in s. For full tar cracking write -1.'
+#Markers for the Reading procedure of the PC COAL LAB input file:
+MPC_sel  = 'use PC Coal Lab?:'
+MPC_dir  = 'PC Coal Lab Main Path:'
+MPC_exe  = 'PC Coal Lab executable name:'
+MPC_CoalCal  = 'Known PC Coal Lab Coal Calibration Factor? None or Value(float):'
+MPC_partSize = 'Particle Size in micrometer:'
 #Markers for the Reading procedure of the operating condition input file:
 M_Pressure='pressure in atm:'
 M_NrRuns='Number of Temperature Histories to include:'

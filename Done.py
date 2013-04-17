@@ -57,7 +57,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.cB_Kin = QComboBox(self.tab_ResKin)
         self.cB_Kin.setObjectName(_fromUtf8("cB_Kin"))
-        for PyrolPr in range(len(self.PyrolPrL)):       #manually added
+        for PyrolPr in (self.PyrolPrL):       #manually added
             self.cB_Kin.addItem(_fromUtf8(""))  #manually added
         self.tE_Kin = QTextEdit(self.tab_ResKin)
         self.tE_Kin.setObjectName(_fromUtf8("tE_Kin"))
@@ -124,7 +124,7 @@ class Ui_Dialog(QWidget):#QMainWindow):
 
 
     def retranslateUi(self):
-        self.setWindowTitle(QApplication.translate("Dialog", "Dialog", None, QApplication.UnicodeUTF8))
+        self.setWindowTitle(QApplication.translate("Dialog", "Pyrolysis Kinetic Preprocessor - Results", None, QApplication.UnicodeUTF8))
         self.l_NRKin.setText(QApplication.translate("Dialog", "Program", None, QApplication.UnicodeUTF8))
         self.B_Kin.setText(QApplication.translate("Dialog", "Open", None, QApplication.UnicodeUTF8))
         self.tab_Main.setTabText(self.tab_Main.indexOf(self.tab_ResKin), QApplication.translate("Dialog", "Results - Kinetics", None, QApplication.UnicodeUTF8))
@@ -175,14 +175,18 @@ class Ui_Dialog(QWidget):#QMainWindow):
             KinFileName='Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'
           else:
             print 'File cannot be found: ','Result\\'+PyrolPr+'-Results_'+self.PyrModelsD[PyrolPr]+'.txt'
+        print 'try open', KinFileName
         KinFile=open(KinFileName,'r')
         data = KinFile.read()
         self.tE_Kin.setText(data)
         KinFile.close()
 
     def PlotFunc(self):
-        colors=['g','b','r','purple','c','m','y','b','purple','r','b','g','c','y','m']
-        colorIndex=0
+        colors    = ['g','b','r','k']
+        styles    = ['d','x','1','+','o']
+        linewidths= [0.7, 1., 1., 1., 0.7 ] #size of the symbols in styles
+        Index1=0
+        Index2=0
         #
 	#plotting
         SpecNr=self.cB_Plot.currentIndex()
@@ -194,38 +198,35 @@ class Ui_Dialog(QWidget):#QMainWindow):
         self.ax.set_title(Spec)
         if OSys=='Linux':
             for PyrolPr in self.PyrModelsD:
+                Index2=0
+                Index1+=1
                 for i in range(self.NrRuns):
-                    if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
-                        Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
+                    if os.path.exists('Result/'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out'):
+                        Y=np.genfromtxt('Result/'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
-                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5)
+                            self.ax.plot(Y[:,0],Y[:,4],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
                         elif np.shape(Y)[1]==4:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
         elif OSys=='Windows':
             for PyrolPr in self.PyrModelsD:
+                Index2=0
+                Index1+=1
                 for i in range(self.NrRuns):
-                    if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out'):
-                        Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+str(i)+'.out',skip_header=1)
+                    if os.path.exists('Result\\'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out'):
+                        Y=np.genfromtxt('Result\\'+PyrolPr+'-Fit_result_'+Spec+'_'+str(i)+'.out',skip_header=1)
                         if np.shape(Y)[1]==6:
-                            self.ax.plot(Y[:,0],Y[:,2],'--',color=colors[colorIndex],label=PyrolPr+' fit '+str(i))
-                            self.ax.plot(Y[:,0],Y[:,4],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[Index1],linewidth=1.5)
+                            self.ax.plot(Y[:,0],Y[:,4],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
                         elif np.shape(Y)[1]==4:
-                            self.ax.plot(Y[:,0],Y[:,2],'-',color=colors[colorIndex],label=PyrolPr+' original '+str(i))
-                            colorIndex+=1
+                            self.ax.plot(Y[:,0],Y[:,2],styles[Index2],color=colors[Index1],linewidth=linewidths[Index2],label=PyrolPr+' original '+str(i))
+                            Index2+=1
         self.ax.legend(loc='lower right')#'4')
         self.canvas.draw()
 
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    myapp = Ui_Dialog()
-    myapp.setupUi(['H2','O2'],['CPD','PCCL'],{'CPD':'aa'}, 3)
-#    myapp.show()
-    sys.exit(app.exec_())
 
 

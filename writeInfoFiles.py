@@ -101,14 +101,13 @@ class WriteCPDFile(object):
             FileStr+='No'+'\n'
         else:
             FileStr+='Yes'+'\n'
+        FileStr+='\n'
         FileStr+=InformationFiles.M_selFit+'\n'
         if CPDsel=='Run':
             FileStr+='None'+'\n'
         else:
             FileStr+=CPDsel+'\n'
-        FileStr+=InformationFiles.M_selArrhSpec+'\n'
-        FileStr+=self.Info.ArrhSpec()+'\n\n'
-        FileStr+='#numerical parameter for CPD:\n'
+        FileStr+='\n#numerical parameter for CPD:\n'
         FileStr+=InformationFiles.MC_dt[0]+'\n'
         p, dt = self.Info.OperCond()
         FileStr+=dt+'\n'
@@ -154,8 +153,6 @@ class WriteFGFile(object):
         else:
             FileStr+=FGsel+'\n'
         FileStr+='\n'
-        FileStr+=InformationFiles.M_selArrhSpec+'\n'
-        FileStr+=self.Info.ArrhSpec()+'\n\n'
         FileStr+= InformationFiles.MF_dir[0]+'\n'
         FileStr+=self.DirMain+'\n'
         FileStr+= InformationFiles.MF_dir[1]+'\n'
@@ -219,6 +216,57 @@ class WritePMSKDFile(object):
 
     def __repr__(self):
         return super(WritePMSKDFile, self).__repr__()
+        
+class WritePCCLFile(object):
+    """Writes the PCCL.inp file using the output of the GUI. The filepaths and exe name are imorted from the previous version of PCCL.inp."""
+    def __init__(self,InfosFromGUIObject):
+        self.Info=InfosFromGUIObject
+        #get directories for PCCL
+        try:
+            Obj = InformationFiles.ReadFile('PCCL.inp')
+#            if OSys=='Linux':
+#                Obj = InformationFiles.ReadFile('../FGDVC.inp')
+#            elif OSys=='Windows':
+#                Obj = InformationFiles.ReadFile('..\\FGDVC.inp')
+            self.DirMain= Obj.getText(InformationFiles.MPC_dir)
+            self.Exe = Obj.getText(InformationFiles.MPC_exe)
+            self.CalibrFactor = Obj.getText(InformationFiles.MPC_CoalCal)
+        except IOError:
+            print 'Please put a PCCL.inp file in the directory to allow the program to read the PC Coal Lab directories.'
+        PCCLFile=open('PCCL.inp','w')
+        PCCLFile.write(self.__mkstr())
+        PCCLFile.close()
+#        if OSys=='Linux':
+#            shutil.move('FGDVC.inp','../FGDVC.inp')
+#        elif OSys=='Windows':
+#            shutil.move('FGDVC.inp','..\\FGDVC.inp')
+    
+    def __mkstr(self):
+        """Writes the content of the PCCL file"""
+        FileStr=InformationFiles.MPC_sel+'\n'
+        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        if PCCLsel == 'None':
+            FileStr+='No'+'\n'
+        else:
+            FileStr+='Yes'+'\n'
+        FileStr+=InformationFiles.M_selFit+'\n'
+        if PCCLsel == 'Run':
+            FileStr+='None'+'\n'
+        else:
+            FileStr+=PCCLsel+'\n'
+        FileStr+='\n'
+        FileStr+= InformationFiles.MPC_dir+'\n'
+        FileStr+=self.DirMain+'\n'
+        FileStr+= InformationFiles.MPC_exe+'\n'
+        FileStr+=self.Exe+'\n\n'
+        FileStr+= InformationFiles.MPC_CoalCal+'\n'
+        CoalCalFactor=self.CalibrFactor
+        FileStr+= CoalCalFactor+'\n'
+        PaticleSize=self.Info.PCCLParticleSize()
+        FileStr+= InformationFiles.MPC_partSize+'\n'
+        FileStr+= PaticleSize+'\n'
+        return FileStr
+        
 
 
 class WriteOCFile(object):     
@@ -240,6 +288,8 @@ class WriteOCFile(object):
         FileStr+=p+'\n\n'
         FileStr+=InformationFiles.M_dt+'\n'
         FileStr+=dt+'\n\n'
+        FileStr+=InformationFiles.M_selArrhSpec+'\n'
+        FileStr+=self.Info.ArrhSpec()+'\n\n'
         FileStr+='Time History: first column time in seconds, second column: Temperature in K. Last point must contain the final time. The final time has to be equal in each case.\n'
         FileStr+=InformationFiles.M_NrRuns+'\n'
         nrT = self.Info.TimeHistories()
