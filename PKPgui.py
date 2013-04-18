@@ -839,7 +839,7 @@ class Ui_PKP(QMainWindow):
         writeInfoFiles.WriteCPDFile(self.svInfo)
         writeInfoFiles.WriteFGFile(self.svInfo)
 #<<<<<<< HEAD
-#        writeInfoFiles.WritePMSKDFile(self.svInfo)
+        writeInfoFiles.WritePMSKDFile(self.svInfo)
 #=======
         writeInfoFiles.WritePCCLFile(self.svInfo)
 #>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
@@ -1035,6 +1035,7 @@ class Ui_PKP(QMainWindow):
                         os.remove(filepath)
             #
             Case=PKP.MainProcess()
+            print 'readInputFile'
             Case.ReadInputFiles()
             ProgramL=[]
             if Case.CPDselect==True:
@@ -1047,6 +1048,9 @@ class Ui_PKP(QMainWindow):
             if Case.PCCL_select==True:
                 Case.MakeResults_PCCL()
                 ProgramL.append('PCCL')
+            if Case.PMSKD_select==True:
+                Case.RunPMSKD()
+                ProgramL.append('PMSKD')
             SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
             ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
             #
@@ -1319,7 +1323,7 @@ class InfosFromGUI(object):
 
     def RunPyrolProg(self):
         """Returns which options of the three Pyrolysis programs are used."""
-        return self.__CPDsel, self.__FGsel, self.__PCCLsel, self.__PMSKDsel
+        return self.__CPDsel, self.__FGsel, self.__PCCLsel, self.__Polimisel
 
     def SetArrhSpec(self,SpeciesIndex):
         """Sets which species shall be fitted for Arrhenius."""

@@ -244,7 +244,7 @@ class WritePCCLFile(object):
     def __mkstr(self):
         """Writes the content of the PCCL file"""
         FileStr=InformationFiles.MPC_sel+'\n'
-        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        CPDsel, FGsel, PCCLsel, Polimisel = self.Info.RunPyrolProg()
         if PCCLsel == 'None':
             FileStr+='No'+'\n'
         else:
