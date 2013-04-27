@@ -10,6 +10,9 @@ class GenericOpt(object):
         self.Species=Species
         self.__NrGenerations=100
         self.__NrPopulation=30
+        #the weights for optimization
+        self.__a0=1.
+        self.__a1=1.
         
     def setNrGenerations(self,NrOfGenerations):
         """Defines the number of generations for the generic optimization."""
@@ -29,9 +32,6 @@ class GenericOpt(object):
         self.__ParameterSc = np.zeros(np.shape(self.__ParamInit))
         #scales between every parameter between 0 and 1
         self.__ParameterSc = (self.__ParamInit-self.__ParamMin)/(self.__ParamMax-self.__ParamMin) #x
-        #the weights for optimization
-        self.__a0=1.
-        self.__a1=1.
         
     def setWeights(self,WeightY,WeightR):
         "Sets the yield and the weight rate for the optimization equation."""
@@ -55,18 +55,30 @@ class GenericOpt(object):
             self.__UpdateParam()
             self.kinModel.setParamVector(self.__ParameterNonSc[0:len(self.__ParameterSc)])
             error = 0
-            for runnedCaseNr in range(len(self.FitInfo)):
+            if self.__a1 == 0:
+                for runnedCaseNr in range(len(self.FitInfo)):
+                        # run models using CPD time history
+                        t=self.FitInfo[runnedCaseNr].Time()
+                        T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
+    #                    w0=self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
+    #                    w1=self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
+    #                    yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
+    #                    ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
+    #                    error += w0*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2) + w1*np.sum((ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
+                        yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
+                        error += np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
+                return error
+            else:
+                for runnedCaseNr in range(len(self.FitInfo)):
                     # run models using CPD time history
                     t=self.FitInfo[runnedCaseNr].Time()
                     T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
-#                    w0=self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
-#                    w1=self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
-#                    yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
-#                    ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
-#                    error += w0*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2) + w1*np.sum((ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
+                    w0=self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
+                    w1=self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
                     yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
-                    error += np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
-            return error
+                    ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
+                    error += np.sum( w0*(yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2 + w1*(ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
+                return error
         # scales parameter using the initialParameters
         self.__ParameterSc = (self.__ParamInit-self.__ParamMin)/(self.__ParamMax-self.__ParamMin)
         #

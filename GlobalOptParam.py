@@ -21,8 +21,3 @@ EvADAEMInit=[2e10,20e3,5e3]
 #
 #Nr Of activation Enrgies to solve the dE Integral for
 NrOFActivtionEnergies=50
-#
-#
-#the weights for yields and rates for optimization
-EvAWeightY=1.
-EvAWeightR=1.

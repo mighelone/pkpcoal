@@ -220,10 +220,6 @@ class MainProcess(object):
         """Generates the results for Arrhenius Rate."""
     ##ARRHENIUS RATE
 #    elif (CPD_FittingKineticParameter_Select=='Arrhenius' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='Arrhenius' and PyrolProgram=='FGDVC'): #Arr means Arrhenius
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-7)
-        LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusRate.txt', 'w')
         outfile.write("Species A [1/s]         b       E_a [K]    FinalYield\n\n")
         #select one of the follwoing notations: 
@@ -268,7 +264,7 @@ class MainProcess(object):
             for i in range(len(Fit)):
                 m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
             GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
-            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GenAlg.setWeights(self.WeightY,self.WeightR)
             GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
             GAArrhMinB = GlobalOptParam.EvAArrhMin[1]
             GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
@@ -310,10 +306,6 @@ class MainProcess(object):
     def MakeResults_ArrhNoB(self,PyrolProgram,File,Fit):
         """Generates the results for Arrhenius Rate with no correction term T**b."""
 #    elif (CPD_FittingKineticParameter_Select=='ArrheniusNoB' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='ArrheniusNoB' and PyrolProgram=='FGDVC'): #Arr means Arrhenius
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-7)
-        LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusNoBRate.txt', 'w')
         outfile.write("Species A [1/s]         E_a [K]   FinalYield\n\n")
         #######
@@ -353,7 +345,7 @@ class MainProcess(object):
             for i in range(len(Fit)):
                 m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
             GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
-            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GenAlg.setWeights(self.WeightY,self.WeightR)
             GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
             GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
             GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
@@ -389,11 +381,6 @@ class MainProcess(object):
 #        PredictionVKob0=[2e5,1.046e8/8314.33,1.3e7,1.674e8/8314.33,PAVM_daf/100.]
 # 	PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33]#,PAVM_daf/100.]
         PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33,0.4,0.9]
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-9)
-        LS.setMaxIter(2000)
-        LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_KobayashiRate.txt', 'w')
         outfile.write("Species A1 [1/s]         E_a1 [K]    A2 [1/s]      E_a2 [K]   alpha1  alpha2\n\n")
         Kob=Models.Kobayashi(PredictionVKob0)
@@ -407,7 +394,7 @@ class MainProcess(object):
             print Fit[0].SpeciesName(Species)
             # optimization procedure
             GenAlg=Evolve.GenericOpt(Kob,Fit,Species)
-            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GenAlg.setWeights(self.WeightY,self.WeightR)
             GenAlg.setParamRanges(GlobalOptParam.EvAKobInit,GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax)
             GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
             GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
@@ -430,11 +417,6 @@ class MainProcess(object):
         """Generates the results for DAEM model."""
 #    elif (CPD_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='FGDVC'):
         PredictionDAEM=[2e10,20e3,5e3,0.5]
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-9)
-        LS.setMaxIter(2000)
-        LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_DAEM.txt', 'w')
         outfile.write("Species   A1 [1/s]      E_a1 [K]     sigma [K] Final Yield\n\n")
         DAEM=Models.DAEM(PredictionDAEM)
@@ -452,7 +434,7 @@ class MainProcess(object):
                 m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
             # optimization procedure
             GenAlg=Evolve.GenericOpt(DAEM,Fit,Species)
-            GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
+            GenAlg.setWeights(self.WeightY,self.WeightR)
             EvADAEMInit=GlobalOptParam.EvADAEMInit
             EvADAEMMin=GlobalOptParam.EvADAEMMin
             EvADAEMMax=GlobalOptParam.EvADAEMMax
