@@ -236,12 +236,12 @@ class Ui_PKP(QMainWindow):
         self.cB_FGDVCcoal.addItem(_fromUtf8(""))
         self.cB_FGDVCcoal.addItem(_fromUtf8(""))
         self.cB_FGDVCcoal.addItem(_fromUtf8(""))
-        self.L_PartDia1 = QLabel(self.lW_Coal)
-        self.L_PartDia1.setObjectName(_fromUtf8("L_PartDia1"))
-        self.L_PartDia2 = QLabel(self.lW_Coal)
-        self.L_PartDia2.setObjectName(_fromUtf8("L_PartDia2"))
-        self.lE_PartDia = QLineEdit(self.lW_Coal)
-        self.lE_PartDia.setObjectName(_fromUtf8("lE_PartDia"))
+#        self.L_PartDia1 = QLabel(self.lW_Coal)
+#        self.L_PartDia1.setObjectName(_fromUtf8("L_PartDia1"))
+#        self.L_PartDia2 = QLabel(self.lW_Coal)
+#        self.L_PartDia2.setObjectName(_fromUtf8("L_PartDia2"))
+#        self.lE_PartDia = QLineEdit(self.lW_Coal)
+#        self.lE_PartDia.setObjectName(_fromUtf8("lE_PartDia"))
         # grid for Part 'Coal Properties'
         self.lW_Coal1 = QWidget(self.lW_Coal)
         self.lW_Coal1.setObjectName(_fromUtf8("lW_Coal1"))
@@ -253,7 +253,6 @@ class Ui_PKP(QMainWindow):
         self.lW_Coal4.setObjectName(_fromUtf8("lW_Coal4"))
         self.gL_Coal = QGridLayout(self.lW_Coal)
         self.gL_Coal1 = QGridLayout(self.lW_Coal1)
-#        self.gL_Coal2 = QGridLayout(self.lW_Coal2)
         self.gL_Coal3 = QGridLayout(self.lW_Coal3)
         self.gL_Coal4 = QGridLayout(self.lW_Coal4)
         self.gL_Coal1.addWidget(self.L_UA,1,1,1,2)
@@ -287,11 +286,10 @@ class Ui_PKP(QMainWindow):
         self.gL_Coal4.addWidget(self.L_FGDVCtarCr,2,1,1,2)
         self.gL_Coal4.addWidget(self.lE_FGDVCtarCr,2,3,1,2)
         self.gL_Coal4.setColumnMinimumWidth(5,50)
-        self.gL_Coal4.addWidget(self.L_PartDia1,1,6,1,2)
-        self.gL_Coal4.addWidget(self.L_PartDia2,2,6,1,1)
-        self.gL_Coal4.addWidget(self.lE_PartDia,2,7,1,1)
+#        self.gL_Coal4.addWidget(self.L_PartDia1,1,6,1,2)
+#        self.gL_Coal4.addWidget(self.L_PartDia2,2,6,1,1)
+#        self.gL_Coal4.addWidget(self.lE_PartDia,2,7,1,1)
         self.gL_Coal.addWidget(self.lW_Coal1,1,1,1,2)
-#        self.gL_Coal.addWidget(self.lW_Coal2,1,3,1,2)
         self.gL_Coal.addWidget(self.lW_Coal3,1,5,1,1)
         self.gL_Coal.addWidget(self.lW_Coal4,2,1,1,3)
         self.gL_Coal4.setColumnMinimumWidth(6,20)
@@ -495,8 +493,9 @@ class Ui_PKP(QMainWindow):
         PKP.setTabOrder(self.lE_MWTar, self.lE_HHV)
         PKP.setTabOrder(self.lE_HHV, self.cB_FGDVCcoal)
         PKP.setTabOrder(self.cB_FGDVCcoal, self.lE_FGDVCtarCr)
-        PKP.setTabOrder(self.lE_FGDVCtarCr, self.lE_PartDia)
-        PKP.setTabOrder(self.lE_PartDia, self.lE_pressure)
+#        PKP.setTabOrder(self.lE_FGDVCtarCr, self.lE_PartDia)
+#        PKP.setTabOrder(self.lE_PartDia, self.lE_pressure)
+        PKP.setTabOrder(self.lE_FGDVCtarCr, self.lE_pressure)
         PKP.setTabOrder(self.lE_pressure, self.lE_numTimeStep)
         PKP.setTabOrder(self.lE_numTimeStep, self.sB_Nr_THist)
         PKP.setTabOrder(self.sB_Nr_THist, self.B_Open1)
@@ -561,11 +560,11 @@ class Ui_PKP(QMainWindow):
         self.lE_Yweight.setText(QApplication.translate("PKP", "1", None, QApplication.UnicodeUTF8))
         self.L_Rweight.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Rates</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.lE_Rweight.setText(QApplication.translate("PKP", "1", None, QApplication.UnicodeUTF8))
-        self.lE_PartDia.setText(QApplication.translate("PKP", "100.", None, QApplication.UnicodeUTF8))
+#        self.lE_PartDia.setText(QApplication.translate("PKP", "100.", None, QApplication.UnicodeUTF8))
         self.L_MW.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Molecule Weight</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_MWTar.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Tar</span></p></body></html>", None, QApplication.UnicodeUTF8))
-        self.L_PartDia1.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Particle Diameter (PCCL)</span></p></body></html>", None, QApplication.UnicodeUTF8))
-        self.L_PartDia2.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:10pt;\">in micrometer</span></p></body></html>", None, QApplication.UnicodeUTF8))
+#        self.L_PartDia1.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Particle Diameter (PCCL)</span></p></body></html>", None, QApplication.UnicodeUTF8))
+#        self.L_PartDia2.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:10pt;\">in micrometer</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_FGDVCcoal.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">FG-DVC Coal #</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.cB_FGDVCcoal.setItemText(0, QApplication.translate("PKP", "0 - Interpolate", None, QApplication.UnicodeUTF8))
         self.cB_FGDVCcoal.setItemText(1, QApplication.translate("PKP", "1 - Beulah-Zap", None, QApplication.UnicodeUTF8))
@@ -662,7 +661,7 @@ class Ui_PKP(QMainWindow):
         FGCoal = str(self.cB_FGDVCcoal.currentIndex())  # information FG-DVC coal interpolation
         FGTar  = self.lE_FGDVCtarCr.text()         # information FG-DVC tar cracking
         self.svInfo.setFGCoalProp(FGCoal,FGTar)
-        PCCLParticleDiam = str(self.lE_PartDia.text())
+        PCCLParticleDiam =  '100.' #str(self.lE_PartDia.text())
         self.svInfo.setPCCLParticleSize(PCCLParticleDiam)
         #operating condition
         pressure = str(self.lE_pressure.text()) # operating pressure
@@ -934,10 +933,10 @@ class Ui_PKP(QMainWindow):
             float(str(self.lE_FGDVCtarCr.text()))
         except ValueError:
             return 'No valid input for FG-DVC Tar cracking option. Enter -1 for Full, 0 for no tar cracking and a value larger zero for the tar residence time.'
-        try:
-            float(str(self.lE_PartDia.text()))
-        except ValueError:
-            return 'No valid input for Particle Diameter.'
+#        try:
+#            float(str(self.lE_PartDia.text()))
+#        except ValueError:
+#            return 'No valid input for Particle Diameter.'
         try:
             float(str(self.lE_pressure.text()))
         except ValueError:
