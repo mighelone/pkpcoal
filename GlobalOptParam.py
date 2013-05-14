@@ -1,6 +1,6 @@
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 10#100
+NrOfGeneration = 100
 # size of population
 NrOfPopulation = 100
 #minimum for constant rate equation:[k,t_start]
@@ -12,7 +12,7 @@ EvACRInit=[100,5e-3]
 EvAArrhMin=[1e3,-2,1e2]
 #maximum for Arrhenius equation:[A,n,E]
 EvAArrhMax=[1e15,2,1e6]
-EvAArrhInit=[1e10,0,2e4]
+EvAArrhInit=[1e10,0,15e3]
 #
 #minimum For Kobayashi:
 EvAKobMin=[100.,1000,1000,5000,0.,0.5]
@@ -34,6 +34,6 @@ NrOFActivtionEnergies=50
 
 selectedGradBasedOpt = 'fmin' # see  http://docs.scipy.org/doc/scipy/reference/optimize.html#module-scipy.optimize
 # possible inputs: 'fmin' or 'leastsq' (recommended) ; 'fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp'
-Tolerance = 1e-2   # relative error to abort
+Tolerance = 5e-2   # relative error to abort
 MaxIter   = 1e3     # integer
 ScaleFactor = 1e4   # large values, gives better fittings

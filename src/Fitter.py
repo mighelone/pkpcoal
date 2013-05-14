@@ -34,8 +34,9 @@ class LeastSquarsEstimator(object):
         print 'Least Square initialized'
         self.Pre_Tolerance=1.e-5   #Tolerance used for the self.improve_? functions
         self.Fit_Tolerance=1.e-10  #Tolerance for main run
-        self.PreMaxIter=50       #Number of maximum iterations used for the self.improve_? functions
+        self.PreMaxIter=50         #Number of maximum iterations used for the self.improve_? functions
         self.MaxIter=1000          #Number of maximum iterations for main run
+        self.FinalY=False          #Final yield, not fitted if it has a value
 
     def improve_E(self,fgdvc,model,t,T,Parameter_Vector,Name,):
         """Additional option: Only the Activation Energy in the Arrhenius Equation is optimized. Actual not necessary."""
@@ -86,7 +87,7 @@ class LeastSquarsEstimator(object):
         uDot=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
         v=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
         vDot=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        # this are the main array, containing sublists
+        # this are the main arrays, containing sublists
         # in the following, each subelement in every list is indicated with an underscore, see next loop
         for runnedCaseNr in range(len(fgdvc_list)):
             t_=fgdvc_list[runnedCaseNr].Time()
@@ -96,20 +97,20 @@ class LeastSquarsEstimator(object):
             t[runnedCaseNr] = (t_)
             dt[runnedCaseNr] = (dt_)
             u[runnedCaseNr] = (u_)
-        #updated Vector: CurrentVector
-        #####improve all parameters
+        ##### scaled weight factor
         w0=GlobalOptParam.ScaleFactor*self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
-        print fgdvc_list[0].SpeciesName(Name)
-#        print 'a0: ', self.a0
-#        print 'w0: ', w0
         w1=GlobalOptParam.ScaleFactor*self.a1/(max( ((fgdvc_list[0].Rate(Name)))**2 ))
-#        print 'a1: ', self.a1
-#        print 'w1: ',w1
-        print 'start gradient based optimization'
+        print 'start gradient based optimization, species:',fgdvc_list[0].SpeciesName(Name)
         #
         def LeastSquareFunction(Parameter):
+            """ The function to optimize. Calculates the LS deviation for rates and yields."""
+            # adds the final yield to the vector:
+            if self.FinalY != False:
+                Parameter = list(Parameter)
+                Parameter.append(self.FinalY)
+                Parameter = np.array(Parameter)
+            #
             model.setParamVector(Parameter)
-#            print model.ParamVector()
             for runnedCaseNr in range(len(fgdvc_list)):
                 v_=model.calcMass(fgdvc_list[runnedCaseNr],t[runnedCaseNr],T[runnedCaseNr],Name)
                 uDot_=fgdvc_list[runnedCaseNr].Rate(Name)
@@ -122,7 +123,7 @@ class LeastSquarsEstimator(object):
                 for runnedCaseNr in range(len(fgdvc_list)):
                     Dot2_=w1*(((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2)*dt[runnedCaseNr]) #the rate term
                     Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
-                    #makes a long array, containing both, the rates and yields                
+                    #makes an array, containing both, the rates and yields                
                     Error[:len(Dot1_)]+=Dot1_+Dot2_
                 print np.sum(Error)
                 print '\t\t\t\t',Parameter
@@ -138,31 +139,69 @@ class LeastSquarsEstimator(object):
                 print Error
                 print '\t\t\t\t',Parameter
             return Error
-        model.setParamVector(Parameter_Vector)
+        #
+        #
         if self.selectedOptimizer=='fmin':
-            OptimizedVector=fmin(LeastSquareFunction,model.ParamVector(),ftol=self.Fit_Tolerance,maxiter=self.MaxIter)
-            self.FinalDeviation=LeastSquareFunction(model.ParamVector())
+            OptimizedVector=fmin(LeastSquareFunction,Parameter_Vector,ftol=self.Fit_Tolerance,maxiter=self.MaxIter) # calculates optimized vector
+            # saves now final deviation
+            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
+            # appends final yield
+            if self.FinalY != False:
+                OptimizedVector = list(OptimizedVector)
+                OptimizedVector.append(self.FinalY)
+                OptimizedVector = np.array(OptimizedVector)
             return OptimizedVector
         elif self.selectedOptimizer=='fmin_cg':
-            OptimizedVector=fmin_cg(LeastSquareFunction,model.ParamVector(),gtol=self.Fit_Tolerance,maxiter=self.MaxIter)
-            self.FinalDeviation=LeastSquareFunction(model.ParamVector())
+            OptimizedVector=fmin_cg(LeastSquareFunction,Parameter_Vector,gtol=self.Fit_Tolerance,maxiter=self.MaxIter) # calculates optimized vector
+            # saves now final deviation
+            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
+            # appends final yield
+            if self.FinalY != False:
+                OptimizedVector = list(OptimizedVector)
+                OptimizedVector.append(self.FinalY)
+                OptimizedVector = np.array(OptimizedVector)
             return OptimizedVector
         elif self.selectedOptimizer=='fmin_bfgs':
-            OptimizedVector=fmin_bfgs(LeastSquareFunction,model.ParamVector(),gtol=self.Fit_Tolerance,maxiter=self.MaxIter)
-            self.FinalDeviation=LeastSquareFunction(model.ParamVector())
+            OptimizedVector=fmin_bfgs(LeastSquareFunction,Parameter_Vector,gtol=self.Fit_Tolerance,maxiter=self.MaxIter) # calculates optimized vector
+            # saves now final deviation
+            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
+            # appends final yield
+            if self.FinalY != False:
+                OptimizedVector = list(OptimizedVector)
+                OptimizedVector.append(self.FinalY)
+                OptimizedVector = np.array(OptimizedVector)
             return OptimizedVector
         elif self.selectedOptimizer=='fmin_ncg':
-            OptimizedVector=fmin_ncg(LeastSquareFunction,model.ParamVector(),avextol=self.Fit_Tolerance)#,maxiter=self.MaxIter)
-            self.FinalDeviation=LeastSquareFunction(model.ParamVector())
+            OptimizedVector=fmin_ncg(LeastSquareFunction,Parameter_Vector,avextol=self.Fit_Tolerance) # calculates optimized vector
+            # saves now final deviation
+            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
+            # appends final yield
+            if self.FinalY != False:
+                OptimizedVector = list(OptimizedVector)
+                OptimizedVector.append(self.FinalY)
+                OptimizedVector = np.array(OptimizedVector)
             return OptimizedVector
         elif self.selectedOptimizer=='fmin_slsqp':
-            OptimizedVector=fmin_slsqp(LeastSquareFunction,model.ParamVector(),acc=self.Fit_Tolerance)#,maxiter=self.MaxIter)
-            self.FinalDeviation=LeastSquareFunction(model.ParamVector())
+            OptimizedVector=fmin_slsqp(LeastSquareFunction,Parameter_Vector,acc=self.Fit_Tolerance) # calculates optimized vector
+            # saves now final deviation
+            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
+            # appends final yield
+            if self.FinalY != False:
+                OptimizedVector = list(OptimizedVector)
+                OptimizedVector.append(self.FinalY)
+                OptimizedVector = np.array(OptimizedVector)
             return OptimizedVector
         elif self.selectedOptimizer=='leastsq':
-            OptimizedVector=leastsq(LeastSquareFunction,model.ParamVector(),ftol=self.Fit_Tolerance,maxfev=self.MaxIter)
-            self.FinalDeviation=LeastSquareFunction(model.ParamVector())
-            return OptimizedVector[0]
+            OptimizedVector=leastsq(LeastSquareFunction,Parameter_Vector,ftol=self.Fit_Tolerance,maxfev=self.MaxIter) # calculates optimized vector
+            OptimizedVector = OptimizedVector[0]
+            # saves now final deviation
+            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
+            # appends final yield
+            if self.FinalY != False:
+                OptimizedVector = list(OptimizedVector)
+                OptimizedVector.append(self.FinalY)
+                OptimizedVector = np.array(OptimizedVector)
+            return OptimizedVector
         else:
             print "\n\nNo Optimizer was selected. Please choose: 'fmin' or 'fmin_cg' or 'fmin_bfgs' or 'leastsq' or 'fmin_slsqp'\n\n"
         print  'Optm Vec:   ',OptimizedVector
@@ -170,7 +209,6 @@ class LeastSquarsEstimator(object):
     def Deviation(self):
         """Returns the Deviation after the optimization procedure."""
         return self.FinalDeviation
-        
 
     def setWeights(self,WeightMass,WeightRates):
         """Sets the weights for the yields and the rates for the fitting procedure. See manual for equation."""
@@ -196,6 +234,20 @@ class LeastSquarsEstimator(object):
     def setOptimizer(self,ChosenOptimizer):
         """Select one optimizer of the scipy.optimizer library: 'fmin','fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp' or 'leastsq'. According to experience 'fmin' (or also 'leastsq') generates at best the results."""
         self.selectedOptimizer=ChosenOptimizer
+
+    def setFinalYield(self,FinalYield):
+        """Sets the final yield for the ODE to optimize. Enter False if model is Kobayashi equation (independend of final yield,standard Setting). Must be applied for all models except the Kobayashi model."""
+        self.FinalY=FinalYield
+
+
+
+
+
+
+
+
+
+
 
 class GlobalOptimizer(object):
     """Makes runs over a defined range to look for global optimum. Local Optimizer is an LeastSquarsEstimator object, KineticModel is e.g. an constantRate model object, Fit_one_runObj is the List containing the Objects supporting the local fitting procedure with data."""
