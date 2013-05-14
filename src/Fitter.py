@@ -5,6 +5,7 @@ from scipy.optimize import fmin_bfgs
 from scipy.optimize import fmin_ncg
 from scipy.optimize import leastsq
 from scipy.optimize import fmin_slsqp
+import GlobalOptParam
 #
 #not really precise, just for tests (Analytical solution)
 class TwoPointEstimator(object):
@@ -97,11 +98,11 @@ class LeastSquarsEstimator(object):
             u[runnedCaseNr] = (u_)
         #updated Vector: CurrentVector
         #####improve all parameters
-        w0=self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
+        w0=GlobalOptParam.ScaleFactor*self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
         print fgdvc_list[0].SpeciesName(Name)
 #        print 'a0: ', self.a0
 #        print 'w0: ', w0
-        w1=self.a1/(max( ((fgdvc_list[0].Rate(Name)))**2 ))
+        w1=GlobalOptParam.ScaleFactor*self.a1/(max( ((fgdvc_list[0].Rate(Name)))**2 ))
 #        print 'a1: ', self.a1
 #        print 'w1: ',w1
         print 'start gradient based optimization'
@@ -163,7 +164,7 @@ class LeastSquarsEstimator(object):
             self.FinalDeviation=LeastSquareFunction(model.ParamVector())
             return OptimizedVector[0]
         else:
-            print "No Optimizer was selected. Please choose: 'fmin' or 'fmin_cg' or 'fmin_bfgs' or 'leastsq' or 'fmin_slsqp'\n"
+            print "\n\nNo Optimizer was selected. Please choose: 'fmin' or 'fmin_cg' or 'fmin_bfgs' or 'leastsq' or 'fmin_slsqp'\n\n"
         print  'Optm Vec:   ',OptimizedVector
         
     def Deviation(self):

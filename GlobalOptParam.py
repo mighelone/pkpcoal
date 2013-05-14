@@ -1,6 +1,6 @@
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 100
+NrOfGeneration = 10#100
 # size of population
 NrOfPopulation = 100
 #minimum for constant rate equation:[k,t_start]
@@ -27,10 +27,13 @@ EvADAEMInit=[2e10,20e3,5e3]
 #Nr Of activation Enrgies to solve the dE Integral for
 NrOFActivtionEnergies=50
 
+
 ### PART OF THE GRADIENT BASED OPTIMIZATION ####
+
+# initial guess vector of Gradient based optimization is the ...Init vector defined for the Evolutionary algorithm
 
 selectedGradBasedOpt = 'fmin' # see  http://docs.scipy.org/doc/scipy/reference/optimize.html#module-scipy.optimize
 # possible inputs: 'fmin' or 'leastsq' (recommended) ; 'fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp'
-Tolerance = 1e-20 # relative error to abort
-MaxIter   = 1e4 # integer
-ScaleFactor = 1e8
+Tolerance = 1e-2   # relative error to abort
+MaxIter   = 1e3     # integer
+ScaleFactor = 1e4   # large values, gives better fittings
