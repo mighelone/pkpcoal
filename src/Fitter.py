@@ -33,8 +33,8 @@ class LeastSquarsEstimator(object):
         print 'Least Square initialized'
         self.Pre_Tolerance=1.e-5   #Tolerance used for the self.improve_? functions
         self.Fit_Tolerance=1.e-10  #Tolerance for main run
-        self.PreMaxIter=None       #Number of maximum iterations used for the self.improve_? functions
-        self.MaxIter=None          #Number of maximum iterations for main run
+        self.PreMaxIter=50       #Number of maximum iterations used for the self.improve_? functions
+        self.MaxIter=1000          #Number of maximum iterations for main run
 
     def improve_E(self,fgdvc,model,t,T,Parameter_Vector,Name,):
         """Additional option: Only the Activation Energy in the Arrhenius Equation is optimized. Actual not necessary."""
@@ -78,23 +78,23 @@ class LeastSquarsEstimator(object):
     def estimate_T(self,fgdvc_list,model,Parameter_Vector,Name,preLoopNumber=0):
         """The main optimization method. Optimizes the Fitting curve using the Least Squares for the weighted Yields and the weighted Rates considering the temperatur history. Requires at input: The corresponding Fit_one_run object, the Model object, the kinetic parameter list, a name (e.g. the species). preLoopNumber is the number of running the  improve_E and improve_a routines. So the standard setting of preLoopNumber is equal zero. It may be used if there is only a very bad convergence when optimize all three parameter."""
         maxLen=self.maxLengthOfVectors(fgdvc_list)
-        t=[] #line index, time, column index: runned case
-        dt=[] #line index, time, column index: runned case
-        T=[]
-        u=[] #line index, time, column index: runned case
-        uDot=[] #line index, time, column index: runned case
-        v=[] #line index, time, column index: runned case
-        vDot=[] #line index, time, column index: runned case
+        t=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
+        dt=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
+        T=[[] for i in range(len(fgdvc_list))]
+        u=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
+        uDot=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
+        v=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
+        vDot=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
         # this are the main array, containing sublists
         # in the following, each subelement in every list is indicated with an underscore, see next loop
         for runnedCaseNr in range(len(fgdvc_list)):
             t_=fgdvc_list[runnedCaseNr].Time()
             dt_=fgdvc_list[runnedCaseNr].Dt()
             u_=fgdvc_list[runnedCaseNr].Yield(Name)
-            T.append(fgdvc_list[runnedCaseNr].Interpolate('Temp'))
-            t.append(t_)
-            dt.append(dt_)
-            u.append(u_)
+            T[runnedCaseNr] = (fgdvc_list[runnedCaseNr].Interpolate('Temp'))
+            t[runnedCaseNr] = (t_)
+            dt[runnedCaseNr] = (dt_)
+            u[runnedCaseNr] = (u_)
         #updated Vector: CurrentVector
         #####improve all parameters
         w0=self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
@@ -113,9 +113,9 @@ class LeastSquarsEstimator(object):
                 v_=model.calcMass(fgdvc_list[runnedCaseNr],t[runnedCaseNr],T[runnedCaseNr],Name)
                 uDot_=fgdvc_list[runnedCaseNr].Rate(Name)
                 vDot_=model.deriveC(fgdvc_list[runnedCaseNr],v_)
-                v.append(v_)
-                uDot.append(uDot_)
-                vDot.append(vDot_)
+                v[runnedCaseNr] = (v_)
+                uDot[runnedCaseNr] = (uDot_)
+                vDot[runnedCaseNr] = (vDot_)
             if self.selectedOptimizer=='leastsq':
                 Error=np.zeros(maxLen,dtype='d')
                 for runnedCaseNr in range(len(fgdvc_list)):
@@ -123,7 +123,8 @@ class LeastSquarsEstimator(object):
                     Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
                     #makes a long array, containing both, the rates and yields                
                     Error[:len(Dot1_)]+=Dot1_+Dot2_
-#                print np.sum(Error)
+                print np.sum(Error)
+                print '\t\t\t\t',Parameter
             else:
                 sumYields_vec=np.zeros(maxLen)
                 sumRates_vec=np.zeros(maxLen)
@@ -133,7 +134,8 @@ class LeastSquarsEstimator(object):
                 SumYields=np.sum(sumYields_vec*dt[runnedCaseNr])
                 SumRates=np.sum(sumRates_vec*dt[runnedCaseNr])
                 Error= w0*SumYields+w1*SumRates
-#                print Error
+                print Error
+                print '\t\t\t\t',Parameter
             return Error
         model.setParamVector(Parameter_Vector)
         if self.selectedOptimizer=='fmin':
