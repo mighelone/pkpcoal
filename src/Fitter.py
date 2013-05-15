@@ -6,6 +6,7 @@ from scipy.optimize import fmin_ncg
 from scipy.optimize import leastsq
 from scipy.optimize import fmin_slsqp
 import GlobalOptParam
+
 #
 #not really precise, just for tests (Analytical solution)
 class TwoPointEstimator(object):
@@ -125,8 +126,6 @@ class LeastSquarsEstimator(object):
                     Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
                     #makes an array, containing both, the rates and yields                
                     Error[:len(Dot1_)]+=Dot1_+Dot2_
-                print np.sum(Error)
-                print '\t\t\t\t',Parameter
             else:
                 sumYields_vec=np.zeros(maxLen)
                 sumRates_vec=np.zeros(maxLen)
@@ -136,8 +135,6 @@ class LeastSquarsEstimator(object):
                 SumYields=np.sum(sumYields_vec)
                 SumRates=np.sum(sumRates_vec)
                 Error= w0*SumYields+w1*SumRates
-                print Error
-                print '\t\t\t\t',Parameter
             return Error
         #
         #
