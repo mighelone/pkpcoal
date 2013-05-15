@@ -1,6 +1,6 @@
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 100
+NrOfGeneration = 15 #100
 # size of population
 NrOfPopulation = 100
 #minimum for constant rate equation:[k,t_start]
@@ -34,6 +34,9 @@ NrOFActivtionEnergies=50
 
 selectedGradBasedOpt = 'fmin' # see  http://docs.scipy.org/doc/scipy/reference/optimize.html#module-scipy.optimize
 # possible inputs: 'fmin' or 'leastsq' (recommended) ; 'fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp'
-Tolerance = 5e-2   # relative error to abort
+Tolerance = 1e0   # relative error to abort
 MaxIter   = 1e3     # integer
+
+### USED FOR BOTH ####
+
 ScaleFactor = 1e4   # large values, gives better fittings

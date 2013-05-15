@@ -1,6 +1,7 @@
 from pyevolve import G1DList, GSimpleGA, Selectors#, Statistics
 from pyevolve import Initializators, Mutators, Consts, DBAdapters
 import numpy as np
+import GlobalOptParam           #contains the Information of the Number Of Runs for the Global Optimum search
 
 class GenericOpt(object):
     """Class which uses the pyevolve module to search for the global optimum.To initialize use the Kinetic model (e.g. Kobayashi) and the Fit one run object list, which supports the fitting process with the informations."""
@@ -66,15 +67,15 @@ class GenericOpt(object):
     #                    ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
     #                    error += w0*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2) + w1*np.sum((ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
                         yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
-                        error += np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
+                        error += GlobalOptParam.ScaleFactor*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
                 return error
             else:
                 for runnedCaseNr in range(len(self.FitInfo)):
                     # run models using CPD time history
                     t=self.FitInfo[runnedCaseNr].Time()
                     T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
-                    w0=self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
-                    w1=self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
+                    w0=GlobalOptParam.ScaleFactor*self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
+                    w1=GlobalOptParam.ScaleFactor*self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
                     yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
                     ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
                     error += np.sum( w0*(yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2 + w1*(ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
