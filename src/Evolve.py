@@ -45,6 +45,9 @@ class GenericOpt(object):
         if self.kinModel._modelName == 'ArrheniusNoB':
             self.__ParameterNonSc[0:1] = self.__ParameterSc[0:1]*(np.log10(self.__ParamMax[0:1])-np.log10(self.__ParamMin[0:1])) + np.log10(self.__ParamMin[0:1])
             self.__ParameterNonSc[0:1] = 10.**self.__ParameterNonSc[0:1]
+    	elif self.kinModel._modelName == 'Kobayashi':
+            self.__ParameterNonSc[0:4] = self.__ParameterSc[0:1]*(np.log10(self.__ParamMax[0:4])-np.log10(self.__ParamMin[0:4])) + np.log10(self.__ParamMin[0:4])
+            self.__ParameterNonSc[0:4] = 10.**self.__ParameterNonSc[0:4]
             
         
     def setScaledParameter(self,Parameter):
