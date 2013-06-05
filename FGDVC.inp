@@ -1,7 +1,7 @@
 use FG-DVC?:
-Yes
+No
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-ArrheniusNoB
+None
 
 main directory FG-DVC:
 C:\Users\MaP\FGDVC_8-2-3\

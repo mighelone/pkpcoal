@@ -42,6 +42,10 @@ class GenericOpt(object):
     def __UpdateParam(self):
         """Updates the non-scaled Parameter. Updates the non-scaled parameter vector with the values of the sclaed vector"""
         self.__ParameterNonSc = self.__ParameterSc*(self.__ParamMax-self.__ParamMin) + self.__ParamMin
+        if self.kinModel._modelName == 'ArrheniusNoB':
+            self.__ParameterNonSc[0:1] = self.__ParameterSc[0:1]*(np.log10(self.__ParamMax[0:1])-np.log10(self.__ParamMin[0:1])) + np.log10(self.__ParamMin[0:1])
+            self.__ParameterNonSc[0:1] = 10.**self.__ParameterNonSc[0:1]
+            
         
     def setScaledParameter(self,Parameter):
         """Sets Sclaed Parameter equal to the input parameter."""
@@ -56,30 +60,47 @@ class GenericOpt(object):
             self.__UpdateParam()
             self.kinModel.setParamVector(self.__ParameterNonSc[0:len(self.__ParameterSc)])
             error = 0
-            if self.__a1 == 0:
-                for runnedCaseNr in range(len(self.FitInfo)):
-                        # run models using CPD time history
-                        t=self.FitInfo[runnedCaseNr].Time()
-                        T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
-    #                    w0=self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
-    #                    w1=self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
-    #                    yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
-    #                    ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
-    #                    error += w0*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2) + w1*np.sum((ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
-                        yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
-                        error += GlobalOptParam.ScaleFactor*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
-                return error
-            else:
-                for runnedCaseNr in range(len(self.FitInfo)):
-                    # run models using CPD time history
-                    t=self.FitInfo[runnedCaseNr].Time()
-                    T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
-                    w0=GlobalOptParam.ScaleFactor*self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
-                    w1=GlobalOptParam.ScaleFactor*self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
-                    yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
+            for runnedCaseNr in range(len(self.FitInfo)):
+                # run empirical models using time history from phenomenlog.
+                t=self.FitInfo[runnedCaseNr].Time()
+                T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
+                yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
+                deltaYield2 = ( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) - min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2.
+                nTime = len(t)
+                errori = (yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2.
+                #error += self.__a0 * np.sum(errori) 
+                error += self.__a0 * np.sum(errori) / nTime / deltaYield2
+                if self.__a1 != 0:
                     ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
-                    error += np.sum( w0*(yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2 + w1*(ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
-                return error
+                    deltaRate2 = ( max(self.FitInfo[runnedCaseNr].Rate(self.Species))  - min((self.FitInfo[runnedCaseNr].Rate(self.Species))) )**2.
+                    errori = (ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2.
+                    error += self.__a1 * np.sum(errori) / nTime / deltaRate2
+                    
+            
+            error /= len(self.FitInfo)
+            #error *= GlobalOptParam.ScaleFactor
+            return error
+                
+#            if self.__a1 == 0:
+#                for runnedCaseNr in range(len(self.FitInfo)):
+#                        # run models using CPD time history
+#                        t=self.FitInfo[runnedCaseNr].Time()
+#                        T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
+#                        yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
+#                        error += GlobalOptParam.ScaleFactor*np.sum((yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2)
+#                return error
+#            else:
+#                for runnedCaseNr in range(len(self.FitInfo)):
+#                    # run models using CPD time history
+#                    t=self.FitInfo[runnedCaseNr].Time()
+#                    T=self.FitInfo[runnedCaseNr].Interpolate('Temp')
+#                    w0=GlobalOptParam.ScaleFactor*self.__a0/(( max((self.FitInfo[runnedCaseNr].Yield(self.Species))) -min((self.FitInfo[runnedCaseNr].Yield(self.Species))) )**2)
+#                    w1=GlobalOptParam.ScaleFactor*self.__a1/(max( ((self.FitInfo[runnedCaseNr].Rate(self.Species)))**2 ))
+#                    yieldcalc = self.kinModel.calcMass(self.FitInfo[runnedCaseNr],t,T,self.Species)
+#                    ratecalc = self.kinModel.deriveC(self.FitInfo[runnedCaseNr],yieldcalc)
+#                    error += np.sum( w0*(yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2 + w1*(ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species))**2)
+#            return error                
+            
         # scales parameter using the initialParameters
         self.__ParameterSc = (self.__ParamInit-self.__ParamMin)/(self.__ParamMax-self.__ParamMin)
         #
@@ -92,13 +113,15 @@ class GenericOpt(object):
         # Genetic Algorithm Instance
         ga = GSimpleGA.GSimpleGA(genome)
         ga.setMinimax(Consts.minimaxType["minimize"])
-	# set the population size
-	ga.setPopulationSize(self.__NrPopulation)
-	# set the number of generation
+        # set the population size
+        ga.setPopulationSize(self.__NrPopulation)
+        # set the number of generation
         ga.setGenerations(self.__NrGenerations)
         # Set the Roulette Wheel selector method, the number of generations and the termination criteria
         ga.selector.set(Selectors.GRouletteWheel)
         ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
+        #parallel processing
+        #ga.setMultiProcessing(True)
         # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
         # the database and erase all data every run, you should use this flag
         # just in the first time, after the pyevolve.db was created, you can

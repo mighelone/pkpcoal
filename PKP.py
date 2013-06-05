@@ -177,6 +177,7 @@ class MainProcess(object):
         LS.setWeights(self.WeightY,self.WeightR)
         LS.setFinalYield(FinalYield)
         self.KinModel.setParamVector(LS.estimate_T(Fit,self.KinModel,ParameterVecInit,Species))
+	print 'Final error=',LS.Deviation()
 
     def OptGenAlgBased(self,Fit,ParameterVecInit,ParameterVecMin,ParameterVecMax,Species):
         """Starts a genetic algorithm and afterwards a gradient Based optimization. Sets the Final Fit result as the ParamVector in the Kinetic Model. Input are the Fit (Result Objects of the Detailed Models), the Parameter to initialize, the two Parameter vectors defining the range of the results and the Species index."""

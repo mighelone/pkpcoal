@@ -193,7 +193,8 @@ class Ui_Dialog(QWidget):#QMainWindow):
         self.ax.clear()
         self.ax.grid()
         self.ax.set_ylabel('Yields (mass fraction)')
-        self.ax.set_xlabel('Time in s')
+        #self.ax.set_xlabel('Time in s')
+        self.ax.set_xlabel('Temp in K')
         self.ax.set_title(Spec)
         if OSys=='Linux':
             for PyrolPr in self.PyrModelsD:

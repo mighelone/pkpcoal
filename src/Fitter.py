@@ -126,16 +126,28 @@ class LeastSquarsEstimator(object):
                     Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
                     #makes an array, containing both, the rates and yields                
                     Error[:len(Dot1_)]+=Dot1_+Dot2_
+		#print "deviation: ",np.sum(Error)
             else:
-                sumYields_vec=np.zeros(maxLen)
-                sumRates_vec=np.zeros(maxLen)
+                #sumYields_vec=np.zeros(maxLen)
+                #sumRates_vec=np.zeros(maxLen)
+		Error = 0.
                 for runnedCaseNr in range(len(fgdvc_list)):
-                    sumYields_vec[:len(u[runnedCaseNr])]+=dt[runnedCaseNr]*(u[runnedCaseNr]-v[runnedCaseNr])**2
-                    sumRates_vec[:len(u[runnedCaseNr])]+=dt[runnedCaseNr]*(uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
-                SumYields=np.sum(sumYields_vec)
-                SumRates=np.sum(sumRates_vec)
-                Error= w0*SumYields+w1*SumRates
-            return Error
+                    #sumYields_vec[:len(u[runnedCaseNr])]+=dt[runnedCaseNr]*(u[runnedCaseNr]-v[runnedCaseNr])**2
+                    #sumRates_vec[:len(u[runnedCaseNr])]+=dt[runnedCaseNr]*(uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
+		    ntime = len(u[runnedCaseNr])
+		    errori = (u[runnedCaseNr]-v[runnedCaseNr])**2
+		    deltaYield2 = ( max(u[runnedCaseNr]) - min(u[runnedCaseNr]) )**2.
+		    Error += np.sum(errori)/ntime * self.a0 / deltaYield2
+		    errori = (uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
+		    deltaRate2 = ( max(uDot[runnedCaseNr]) - min(uDot[runnedCaseNr]) )**2.
+		    Error += np.sum(errori)/ntime * self.a1 / deltaYield2
+		    #sumRatesec = np.sum((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2) /deltaYield2
+		    # new error see Evolve.py
+                #SumYields=np.sum(sumYields_vec)
+                #SumRates=np.sum(sumRates_vec)
+                Error= Error / len(fgdvc_list)
+		#print "deviation: ",Error
+            return Error / len(fgdvc_list)
         #
         #
         if self.selectedOptimizer=='fmin':

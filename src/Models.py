@@ -12,6 +12,13 @@ oSystem=platform.system()
 class Model(object):
     """Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE. If set TimeVectorToInterplt=[t0,t1,t2,t3,t4] (t: floats) then is the yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4], linear interploated."""
     
+    def getName(self):
+        """ return model name """
+        try:
+            return self._name
+        except:
+            print 'class Model: self._modelName not defined'
+            return 'empty model'
     def pltYield(self,fgdvc_list,xValueToPlot,yValueToPlot):
         """Plots the yields (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot)."""
         for runnedCaseNr in range(len(fgdvc_list)):
@@ -233,6 +240,7 @@ class ConstantRateModel(Model):
     """The model calculating the mass with m(t)=m_s0+(m_s0-m_s,e)*e**(-k*(t-t_start)) from the ODE dm/dt = -k*(m-m_s,e). The Parameter to optimize are k and t_start."""
     def __init__(self,InitialParameterVector):
         print 'Constant rate initialized'
+        self._modelName = 'ConstantRate'
         self._ParamVector=InitialParameterVector
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
 
@@ -255,6 +263,7 @@ class ArrheniusModel(Model):
     """The Arrhenius model in the standart notation: dm/dt=A*(T**b)*exp(-E/T)*(m_s-m) with the parameter a,b,E to optimize."""
     def __init__(self,InitialParameterVector):
         print 'Arrhenuis Model initialized'
+        self._modelName = 'Arrhenius'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
@@ -303,6 +312,7 @@ class ArrheniusModelNoB(Model):
     """The Arrhenius model in the standart notation: dm/dt=A*exp(-E/T)*(m_s-m) with the parameter a,b,E to optimize."""
     def __init__(self,InitialParameterVector):
         print 'Arrhenuis Model initialized'
+        self._modelName = 'ArrheniusNoB'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
@@ -488,6 +498,7 @@ class Kobayashi(Model):
     """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation."""
     def __init__(self,InitialParameterVector):
         print 'Kobayashi Model initialized'
+        self._modelName = 'Kobayashi'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
@@ -534,6 +545,7 @@ class KobayashiPCCL(Model):
     """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation. The fitting parameter are as in PCCL A1,A2,E1,alpha1. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE."""
     def __init__(self,InitialParameterVector):
         print 'Kobayashi Model initialized'
+        self._modelName = 'KobayashiPCCL'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
@@ -669,6 +681,7 @@ class DAEM(Model):
     """Calculates the devolatilization reaction using the Distributed Activation Energy Model."""
     def __init__(self,InitialParameterVector):
         print 'DAEM initialized'
+        self._modelName = 'DAEM'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
         self.NrOfActivationEnergies=50
