@@ -121,6 +121,38 @@ class Ui_PKP(QMainWindow):
         self.cB_PCCL.addItem(_fromUtf8(""))
         self.cB_PCCL.addItem(_fromUtf8(""))
         self.cB_PCCL.addItem(_fromUtf8(""))
+#<<<<<<< HEAD
+#        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.cB_PCCL)
+#        # add from here
+#        self.L_PMSKD = QLabel(self.layoutWidget)
+#        self.L_PMSKD.setObjectName(_fromUtf8("L_PMSKD"))
+#        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.L_PMSKD)
+#        self.cB_PMSKD = QComboBox(self.layoutWidget)
+#        self.cB_PMSKD.setObjectName(_fromUtf8("cB_PMSKD"))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.cB_PMSKD.addItem(_fromUtf8(""))
+#        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.cB_PMSKD)
+#        # added until here
+#        self.layoutWidget1 = QWidget(self.centralwidget)
+#        self.layoutWidget1.setGeometry(QRect(540, 100, 201, 81))
+#        self.layoutWidget1.setObjectName(_fromUtf8("layoutWidget1"))
+#        self.formLayout_2 = QFormLayout(self.layoutWidget1)
+#        self.formLayout_2.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+#        #self.formLayout_2.setMargin(0)
+#        self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))
+#        self.L_WeightParam = QLabel(self.layoutWidget1)
+#        self.L_WeightParam.setObjectName(_fromUtf8("L_WeightParam"))
+#        self.formLayout_2.setWidget(0, QFormLayout.SpanningRole, self.L_WeightParam)
+#        self.L_Yweight = QLabel(self.layoutWidget1)
+#        self.L_Yweight.setObjectName(_fromUtf8("L_Yweight"))
+#        self.formLayout_2.setWidget(1, QFormLayout.LabelRole, self.L_Yweight)
+#        self.lE_Yweight = QLineEdit(self.layoutWidget1)
+#=======
         self.cB_Polimi = QComboBox(self.lW_PyrolPrFit)
         self.cB_Polimi.setObjectName(_fromUtf8("cB_Polimi"))
         self.cB_Polimi.addItem(_fromUtf8(""))
@@ -136,6 +168,7 @@ class Ui_PKP(QMainWindow):
         self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
         self.cB_ArrhSpec.addItem(_fromUtf8(""))
         self.lE_Yweight = QLineEdit(self.lW_PyrolPrFit)
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         self.lE_Yweight.setObjectName(_fromUtf8("lE_Yweight"))
         self.lE_Rweight = QLineEdit(self.lW_PyrolPrFit)
         self.lE_Rweight.setObjectName(_fromUtf8("lE_Rweight"))
@@ -344,6 +377,96 @@ class Ui_PKP(QMainWindow):
         self.B_Open3.setObjectName(_fromUtf8("B_Open3"))
         self.B_Open1 = QPushButton(self.lW_OperCond)
         self.B_Open1.setObjectName(_fromUtf8("B_Open1"))
+#<<<<<<< HEAD
+#        self.Header1_2 = QLabel(self.centralwidget)
+#        self.Header1_2.setGeometry(QRect(170, 0, 721, 31))
+#        self.Header1_2.setObjectName(_fromUtf8("Header1_2"))
+#        self.layoutWidget4 = QWidget(self.centralwidget)
+#        self.layoutWidget4.setGeometry(QRect(31, 281, 202, 159))
+#        self.layoutWidget4.setObjectName(_fromUtf8("layoutWidget4"))
+#        self.formLayout_3 = QFormLayout(self.layoutWidget4)
+#        #self.formLayout_3.setMargin(0)
+#        self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
+#        self.L_UA = QLabel(self.layoutWidget4)
+#        self.L_UA.setObjectName(_fromUtf8("L_UA"))
+#        self.formLayout_3.setWidget(0, QFormLayout.SpanningRole, self.L_UA)
+#        self.L_UAC = QLabel(self.layoutWidget4)
+#        self.L_UAC.setObjectName(_fromUtf8("L_UAC"))
+#        self.formLayout_3.setWidget(1, QFormLayout.LabelRole, self.L_UAC)
+#        self.lE_UAC = QLineEdit(self.layoutWidget4)
+#        self.lE_UAC.setObjectName(_fromUtf8("lE_UAC"))
+#        self.formLayout_3.setWidget(1, QFormLayout.FieldRole, self.lE_UAC)
+#        self.L_UAH = QLabel(self.layoutWidget4)
+#        self.L_UAH.setObjectName(_fromUtf8("L_UAH"))
+#        self.formLayout_3.setWidget(2, QFormLayout.LabelRole, self.L_UAH)
+#        self.lE_UAH = QLineEdit(self.layoutWidget4)
+#        self.lE_UAH.setObjectName(_fromUtf8("lE_UAH"))
+#        self.formLayout_3.setWidget(2, QFormLayout.FieldRole, self.lE_UAH)
+#        self.L_UAN = QLabel(self.layoutWidget4)
+#        self.L_UAN.setObjectName(_fromUtf8("L_UAN"))
+#        self.formLayout_3.setWidget(3, QFormLayout.LabelRole, self.L_UAN)
+#        self.lE_UAN = QLineEdit(self.layoutWidget4)
+#        self.lE_UAN.setObjectName(_fromUtf8("lE_UAN"))
+#        self.formLayout_3.setWidget(3, QFormLayout.FieldRole, self.lE_UAN)
+#        self.L_UAO = QLabel(self.layoutWidget4)
+#        self.L_UAO.setObjectName(_fromUtf8("L_UAO"))
+#        self.formLayout_3.setWidget(4, QFormLayout.LabelRole, self.L_UAO)
+#        self.lE_UAO = QLineEdit(self.layoutWidget4)
+#        self.lE_UAO.setObjectName(_fromUtf8("lE_UAO"))
+#        self.formLayout_3.setWidget(4, QFormLayout.FieldRole, self.lE_UAO)
+#        self.L_UAS = QLabel(self.layoutWidget4)
+#        self.L_UAS.setObjectName(_fromUtf8("L_UAS"))
+#        self.formLayout_3.setWidget(5, QFormLayout.LabelRole, self.L_UAS)
+#        self.lE_UAS = QLineEdit(self.layoutWidget4)
+#        self.lE_UAS.setObjectName(_fromUtf8("lE_UAS"))
+#        self.formLayout_3.setWidget(5, QFormLayout.FieldRole, self.lE_UAS)
+#        self.layoutWidget5 = QWidget(self.centralwidget)
+#        self.layoutWidget5.setGeometry(QRect(281, 281, 253, 134))
+#        self.layoutWidget5.setObjectName(_fromUtf8("layoutWidget5"))
+#        self.verticalLayout = QVBoxLayout(self.layoutWidget5)
+#        #self.verticalLayout.setMargin(0)
+#        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+#        self.L_PA = QLabel(self.layoutWidget5)
+#        self.L_PA.setObjectName(_fromUtf8("L_PA"))
+#        self.verticalLayout.addWidget(self.L_PA)
+#        self.gridLayout = QGridLayout()
+#        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+#        self.L_PAFC = QLabel(self.layoutWidget5)
+#        self.L_PAFC.setObjectName(_fromUtf8("L_PAFC"))
+#        self.gridLayout.addWidget(self.L_PAFC, 0, 0, 1, 1)
+#        self.lE_PAFC = QLineEdit(self.layoutWidget5)
+#        self.lE_PAFC.setObjectName(_fromUtf8("lE_PAFC"))
+#        self.gridLayout.addWidget(self.lE_PAFC, 0, 1, 1, 2)
+#        self.L_PAVM = QLabel(self.layoutWidget5)
+#        self.L_PAVM.setObjectName(_fromUtf8("L_PAVM"))
+#        self.gridLayout.addWidget(self.L_PAVM, 1, 0, 1, 1)
+#        self.lE_PAVM = QLineEdit(self.layoutWidget5)
+#        self.lE_PAVM.setObjectName(_fromUtf8("lE_PAVM"))
+#        self.gridLayout.addWidget(self.lE_PAVM, 1, 1, 1, 2)
+#        self.L_PAMoi = QLabel(self.layoutWidget5)
+#        self.L_PAMoi.setObjectName(_fromUtf8("L_PAMoi"))
+#        self.gridLayout.addWidget(self.L_PAMoi, 2, 0, 1, 1)
+#        self.lE_PAMoi = QLineEdit(self.layoutWidget5)
+#        self.lE_PAMoi.setObjectName(_fromUtf8("lE_PAMoi"))
+#        self.gridLayout.addWidget(self.lE_PAMoi, 2, 2, 1, 1)
+#        self.L_PAAsh = QLabel(self.layoutWidget5)
+#        self.L_PAAsh.setObjectName(_fromUtf8("L_PAAsh"))
+#        self.gridLayout.addWidget(self.L_PAAsh, 3, 0, 1, 2)
+#        self.lE_PAAsh = QLineEdit(self.layoutWidget5)
+#        self.lE_PAAsh.setObjectName(_fromUtf8("lE_PAAsh"))
+#        self.gridLayout.addWidget(self.lE_PAAsh, 3, 2, 1, 1)
+#        self.verticalLayout.addLayout(self.gridLayout)
+#        self.cB_ArrhSpec = QComboBox(self.centralwidget)
+#        self.cB_ArrhSpec.setGeometry(QRect(330, 160, 118, 24))                  
+#        self.cB_ArrhSpec.setObjectName(_fromUtf8("cB_ArrhSpec"))                       
+#        self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
+#        self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
+#        self.cB_ArrhSpec.addItem(_fromUtf8(""))                                        
+#        self.L_ArrhSpec = QLabel(self.centralwidget)                             
+#        self.L_ArrhSpec.setGeometry(QRect(290, 110, 199, 41))                   
+#        self.L_ArrhSpec.setObjectName(_fromUtf8("L_ArrhSpec"))
+#        PKP.setCentralWidget(self.centralwidget)
+#=======
         self.B_Launch = QPushButton(self.lW_OperCond)
         self.B_Launch.setObjectName(_fromUtf8("B_Launch"))
         # grid for Part 'Operating Conditions'
@@ -405,6 +528,7 @@ class Ui_PKP(QMainWindow):
         #
         #
         # Menubar
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         self.menubar = QMenuBar(PKP)
 #        self.menubar.setGeometry(QRect(0, 0, 1033, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
@@ -547,6 +671,18 @@ class Ui_PKP(QMainWindow):
         self.cB_PCCL.setItemText(4, QApplication.translate("PKP", "Arrhenius No B", None, QApplication.UnicodeUTF8))
         self.cB_PCCL.setItemText(5, QApplication.translate("PKP", "Kobayashi", None, QApplication.UnicodeUTF8))
         self.cB_PCCL.setItemText(6, QApplication.translate("PKP", "DAEM", None, QApplication.UnicodeUTF8))
+#<<<<<<< HEAD
+#        self.L_PMSKD.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">PC Coal Lab</span></p></body></html>", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(0, QApplication.translate("PKP", "None", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(1, QApplication.translate("PKP", "Run", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(2, QApplication.translate("PKP", "constant Rate", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(3, QApplication.translate("PKP", "Arrhenius", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(4, QApplication.translate("PKP", "Arrhenius No B", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(5, QApplication.translate("PKP", "Kobayashi", None, QApplication.UnicodeUTF8))
+#        self.cB_PMSKD.setItemText(6, QApplication.translate("PKP", "DAEM", None, QApplication.UnicodeUTF8))
+#        self.L_WeightParam.setText(QApplication.translate("PKP", "<html><head/><body><p align=\"center\"><span style=\" font-size:14pt;\">Weight Parameter</span></p></body></html>", None, QApplication.UnicodeUTF8))
+#        self.L_Yweight.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:14pt;\">Yields</span></p></body></html>", None, QApplication.UnicodeUTF8))
+#=======
         self.L_Polimi.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Polimi</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.cB_Polimi.setItemText(0, QApplication.translate("PKP", "None", None, QApplication.UnicodeUTF8))
         self.cB_Polimi.setItemText(1, QApplication.translate("PKP", "Run", None, QApplication.UnicodeUTF8))
@@ -557,6 +693,7 @@ class Ui_PKP(QMainWindow):
         self.cB_Polimi.setItemText(6, QApplication.translate("PKP", "DAEM", None, QApplication.UnicodeUTF8))        
         self.L_WeightParam.setText(QApplication.translate("PKP", "<html><head/><body><p align=\"center\"><span style=\" font-size:13pt;\">Weight Parameter</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.L_Yweight.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Yields</span></p></body></html>", None, QApplication.UnicodeUTF8))
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         self.lE_Yweight.setText(QApplication.translate("PKP", "1", None, QApplication.UnicodeUTF8))
         self.L_Rweight.setText(QApplication.translate("PKP", "<html><head/><body><p><span style=\" font-size:13pt;\">Rates</span></p></body></html>", None, QApplication.UnicodeUTF8))
         self.lE_Rweight.setText(QApplication.translate("PKP", "1", None, QApplication.UnicodeUTF8))
@@ -624,7 +761,7 @@ class Ui_PKP(QMainWindow):
     def OpenManual(self):
         """Opens the manual."""
         if OSys=='Linux':
-            os.system('okular Documentation/Manual/PKPDocumentation.pdf')
+            os.system('xdg-open Documentation/Manual/PKPDocumentation.pdf')
         elif OSys=='Windows':
             os.system('Documentation\\Manual\\PKPDocumentation.pdf')
     
@@ -634,8 +771,13 @@ class Ui_PKP(QMainWindow):
         CPDsel = self.cB_CPD.currentIndex()
         FGsel  = self.cB_FGDVC.currentIndex()
         PCCLsel= self.cB_PCCL.currentIndex()
+#<<<<<<< HEAD
+#        PMSKDsel = self.cB_PMSKD.currentIndex()
+#        self.svInfo.SetRunPyrolProg(CPDsel,FGsel,PCCLsel,PMSKDsel)
+#=======
         Polimisel= self.cB_Polimi.currentIndex()
         self.svInfo.SetRunPyrolProg(CPDsel,FGsel,PCCLsel,Polimisel)
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         #saves the Species for Arrhenius to fit
         ArrSpec=self.cB_ArrhSpec.currentIndex()
         self.svInfo.SetArrhSpec(ArrSpec)
@@ -695,9 +837,16 @@ class Ui_PKP(QMainWindow):
         writeInfoFiles.WriteCoalFile(self.svInfo)
         writeInfoFiles.WriteCPDFile(self.svInfo)
         writeInfoFiles.WriteFGFile(self.svInfo)
+#<<<<<<< HEAD
+        writeInfoFiles.WritePMSKDFile(self.svInfo)
+#=======
         writeInfoFiles.WritePCCLFile(self.svInfo)
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         writeInfoFiles.WriteOCFile(self.svInfo)
-        
+
+    def grabKeyboard(self, *args, **kwargs):
+        super(Ui_PKP, self).grabKeyboard(*args, **kwargs)
+
     def LoadTtFile1(self):
         """Loads the temperature history nr 1 file via file browser"""
         filename = QFileDialog.getOpenFileName()
@@ -822,6 +971,45 @@ class Ui_PKP(QMainWindow):
 
     def WriteRun(self):
         """Writes the *.inp files and launch the process."""
+#<<<<<<< HEAD
+#        self.SaveInfos()
+#        #os.system('python Pyrolysis.py')
+#        #print 'START executable'
+#        #
+#        #removes date from Result directory
+#        for filename in os.listdir('Result'):
+#            filepath = os.path.join('Result', filename)
+#            try:
+#                shutil.rmtree(filepath)
+#            except OSError:
+#                    os.remove(filepath)
+#        #
+#        Case=PKP.MainProcess()
+#        Case.ReadInputFiles()
+#        ProgramL=[]
+#        if Case.CPDselect is True:
+#            Case.MakeResults_CPD()
+#            ProgramL.append('CPD')
+#        if Case.FG_select is True:
+#            Case.CheckFGdt()
+#            Case.MakeResults_FG()
+#            ProgramL.append('FGDVC')
+#        if Case.PMSKD_select is True:
+#            Case.RunPMSKD()
+#            #Case.CheckFGdt()
+#            #Case.MakeResults_FG()
+#            ProgramL.append('PMSKD')
+#        SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
+#        ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
+#        #
+#        self.Done=Done.Ui_Dialog()
+#        self.Done.setupUi(SpeciesL,ProgramL,ProgrFitD,(self.sB_Nr_THist.value()))
+#        self.Done.show()
+#        self.TheCalculationsAreDone=True
+#        #
+##        os.system('python Done.py')
+##        self.actionExit
+#=======
         # checks whether the input is consistent
         InpIsOk = self.__checkInput()
         PCCLIsOk = self.__PCCLInputIsOk()
@@ -846,6 +1034,7 @@ class Ui_PKP(QMainWindow):
                         os.remove(filepath)
             #
             Case=PKP.MainProcess()
+            print 'readInputFile'
             Case.ReadInputFiles()
             ProgramL=[]
             if Case.CPDselect==True:
@@ -858,6 +1047,9 @@ class Ui_PKP(QMainWindow):
             if Case.PCCL_select==True:
                 Case.MakeResults_PCCL()
                 ProgramL.append('PCCL')
+            if Case.PMSKD_select==True:
+                Case.RunPMSKD()
+                ProgramL.append('PMSKD')
             SpeciesL=Case.SpeciesToConsider #e.g. ["Total","Tar","Gas"]
             ProgrFitD=Case.ProgramModelDict #e.g. {'CPD':'ArrheniusRate'}
             #
@@ -981,6 +1173,7 @@ class Ui_PKP(QMainWindow):
                     return isOk
         return isOk
 
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         
     def ReOpenResultWindow(self):
         """If the calculation were done once, the window showing the results can be opened again."""
@@ -1104,6 +1297,15 @@ class Ui_PKP(QMainWindow):
 class InfosFromGUI(object):
     """Saves the information from the GUI."""
     
+#<<<<<<< HEAD
+#    def SetRunPyrolProg(self,CPDIndex,FGDVCIndex,PCCLIndex,PMSKDIndex):
+#        """Saves which options of the three Pyrolysis programs are used."""
+#        FitDict={0:'None',1:'Run',2:'constantRate',3:'Arrhenius',4:'ArrheniusNoB',5:'Kobayashi',6:'DAEM'}
+#        self.__CPDsel = FitDict[CPDIndex]
+#        self.__FGsel  = FitDict[FGDVCIndex]
+#        self.__PCCLsel= FitDict[PCCLIndex]
+#        self.__PMSKDsel = FitDict[PMSKDIndex]
+#=======
     def SetRunPyrolProg(self,CPDIndex,FGDVCIndex,PCCLIndex,PolimiIndex):
         """Saves which options of the three Pyrolysis programs are used."""
         FitDict={0:'None',1:'Run',2:'constantRate',3:'Arrhenius',4:'ArrheniusNoB',5:'Kobayashi',6:'DAEM'}
@@ -1111,6 +1313,7 @@ class InfosFromGUI(object):
         self.__FGsel     = FitDict[FGDVCIndex]
         self.__PCCLsel   = FitDict[PCCLIndex]
         self.__Polimisel = FitDict[PolimiIndex]
+#>>>>>>> 76a399728553a2a17101dd52911bd76b7d66de48
         
     def RunPyrolProgReverse(self,ModelName):
         """Returns the GUI column bar index of the models selected."""
@@ -1119,7 +1322,7 @@ class InfosFromGUI(object):
 
     def RunPyrolProg(self):
         """Returns which options of the three Pyrolysis programs are used."""
-        return self.__CPDsel, self.__FGsel, self.__PCCLsel
+        return self.__CPDsel, self.__FGsel, self.__PCCLsel, self.__Polimisel
 
     def SetArrhSpec(self,SpeciesIndex):
         """Sets which species shall be fitted for Arrhenius."""

@@ -96,7 +96,7 @@ class WriteCPDFile(object):
         """Writes the content of the CPD file"""
         FileStr=InformationFiles.MC_sel+'\n'
         #FitDict={0:'None',1:'Run',2:'constantRate',3:'Arrhenius',4:'ArrheniusNoB',5:'Kobayashi',6:'DAEM'}
-        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        CPDsel, FGsel, PCCLsel, PMSKDsel = self.Info.RunPyrolProg()
         if CPDsel=='None':
             FileStr+='No'+'\n'
         else:
@@ -142,7 +142,7 @@ class WriteFGFile(object):
     def __mkstr(self):
         """Writes the content of the FGDVC file"""
         FileStr=InformationFiles.MF_sel+'\n'
-        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        CPDsel, FGsel, PCCLsel, PMSKDsel = self.Info.RunPyrolProg()
         if FGsel=='None':
             FileStr+='No'+'\n'
         else:
@@ -163,6 +163,59 @@ class WriteFGFile(object):
         FileStr+= InformationFiles.MF_TarCr+'\n'
         FileStr+= FGTar+'\n'
         return FileStr
+
+class WritePMSKDFile(object):
+    """Writes the PMSKD.inp file using the output of the GUI. The filepaths are imorted from the previous version of PMSKD.inp."""
+    def __init__(self,InfosFromGUIObject):
+        self.Info=InfosFromGUIObject
+        #get directories for FGDVC
+        try:
+            Obj = InformationFiles.ReadFile('PMSKD.inp')
+            #            if OSys=='Linux':
+            #                Obj = InformationFiles.ReadFile('../FGDVC.inp')
+            #            elif OSys=='Windows':
+            #                Obj = InformationFiles.ReadFile('..\\FGDVC.inp')
+            #self.DirMain= Obj.getText(InformationFiles.MF_dir[0])
+            #self.DirOut= Obj.getText(InformationFiles.MF_dir[1])
+            self.npoint = Obj.getText(InformationFiles.MP_npoint)
+            self.mechfile = Obj.getText(InformationFiles.MP_mechfile)
+
+        except IOError:
+            print 'Please put a PMSKD.inp file in the directory to allow the program to read the FG-DVC directories.'
+        FGFile=open('PMSKD.inp','w')
+        FGFile.write(self.__mkstr())
+        FGFile.close()
+    #        if OSys=='Linux':
+    #            shutil.move('FGDVC.inp','../FGDVC.inp')
+    #        elif OSys=='Windows':
+    #            shutil.move('FGDVC.inp','..\\FGDVC.inp')
+
+    def __mkstr(self):
+        """Writes the content of the PMSKD file"""
+        FileStr=InformationFiles.MP_sel+'\n'
+        print FileStr
+        CPDsel, FGsel, PCCLsel, PMSKDsel = self.Info.RunPyrolProg()
+        if PMSKDsel=='None':
+            FileStr+='No'+'\n'
+        else:
+            FileStr+='Yes'+'\n'
+        FileStr+=InformationFiles.M_selFit+'\n'
+        if PMSKDsel=='Run':
+            FileStr+='None'+'\n'
+        else:
+            FileStr+=PMSKDsel+'\n'
+        FileStr+='\n'
+        FileStr+=InformationFiles.M_selArrhSpec+'\n'
+        FileStr+=self.Info.ArrhSpec()+'\n\n'
+        FileStr+='number of step:\n'
+        FileStr+=self.npoint
+        FileStr+='\nMechanism file:\n'
+        FileStr+=self.mechfile
+
+        return FileStr
+
+    def __repr__(self):
+        return super(WritePMSKDFile, self).__repr__()
         
 class WritePCCLFile(object):
     """Writes the PCCL.inp file using the output of the GUI. The filepaths and exe name are imorted from the previous version of PCCL.inp."""
@@ -175,9 +228,9 @@ class WritePCCLFile(object):
 #                Obj = InformationFiles.ReadFile('../FGDVC.inp')
 #            elif OSys=='Windows':
 #                Obj = InformationFiles.ReadFile('..\\FGDVC.inp')
-            self.DirMain= Obj.getText(InformationFiles.MP_dir)
-            self.Exe = Obj.getText(InformationFiles.MP_exe)
-            self.CalibrFactor = Obj.getText(InformationFiles.MP_CoalCal)
+            self.DirMain= Obj.getText(InformationFiles.MPC_dir)
+            self.Exe = Obj.getText(InformationFiles.MPC_exe)
+            self.CalibrFactor = Obj.getText(InformationFiles.MPC_CoalCal)
         except IOError:
             print 'Please put a PCCL.inp file in the directory to allow the program to read the PC Coal Lab directories.'
         PCCLFile=open('PCCL.inp','w')
@@ -190,8 +243,8 @@ class WritePCCLFile(object):
     
     def __mkstr(self):
         """Writes the content of the PCCL file"""
-        FileStr=InformationFiles.MP_sel+'\n'
-        CPDsel, FGsel, PCCLsel = self.Info.RunPyrolProg()
+        FileStr=InformationFiles.MPC_sel+'\n'
+        CPDsel, FGsel, PCCLsel, Polimisel = self.Info.RunPyrolProg()
         if PCCLsel == 'None':
             FileStr+='No'+'\n'
         else:
@@ -202,15 +255,15 @@ class WritePCCLFile(object):
         else:
             FileStr+=PCCLsel+'\n'
         FileStr+='\n'
-        FileStr+= InformationFiles.MP_dir+'\n'
+        FileStr+= InformationFiles.MPC_dir+'\n'
         FileStr+=self.DirMain+'\n'
-        FileStr+= InformationFiles.MP_exe+'\n'
+        FileStr+= InformationFiles.MPC_exe+'\n'
         FileStr+=self.Exe+'\n\n'
-        FileStr+= InformationFiles.MP_CoalCal+'\n'
+        FileStr+= InformationFiles.MPC_CoalCal+'\n'
         CoalCalFactor=self.CalibrFactor
         FileStr+= CoalCalFactor+'\n'
         PaticleSize=self.Info.PCCLParticleSize()
-        FileStr+= InformationFiles.MP_partSize+'\n'
+        FileStr+= InformationFiles.MPC_partSize+'\n'
         FileStr+= PaticleSize+'\n'
         return FileStr
         

@@ -10,13 +10,13 @@ Ash:
 
 #Ultimate Analysis (in percent):
 UA Carbon:
-61.78
+80
 UA Hydrogen:
 4.51
 UA Nitrogen:
 1.07
 UA Oxygen:
-31.26
+10
 UA Sulphur:
 1.29
 
@@ -26,7 +26,7 @@ Tar Molecule weight, MTar:
 50
 
 Coal dry density in kg/m3:
-600
+1400
 Weight-Parameter yields for fitting the kinetics:
 100
 Weight-Parameter rates for fitting the kinetics:

@@ -7,7 +7,8 @@ import platform
 #
 PngResolution=100
 #
-oSystem=platform.system()
+#oSystem=platform.system()
+oSystem = 'Linux'
 #the general parent class
 class Model(object):
     """Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE. If set TimeVectorToInterplt=[t0,t1,t2,t3,t4] (t: floats) then is the yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4], linear interploated."""
@@ -146,8 +147,10 @@ class Model(object):
             w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
             ur=fgdvc_list[runnedCaseNr].Rate(Species)
             if oSystem=='Linux':
+                print fgdvc_list[runnedCaseNr]
                 resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
             elif oSystem=='Windows':
+                print fgdvc_list[runnedCaseNr]
                 resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
             else:
                 print 'Models: Operating Platform cannot be specified.'

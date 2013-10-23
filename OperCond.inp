@@ -11,31 +11,31 @@ Time History: first column time in seconds, second column: Temperature in K. Las
 Number of Temperature Histories to include:
 1
 Start Time History 1
-0.0,  300.0
-0.02,  1500.0
-0.4,  1500.0
+0.0,  400.0
+0.01,  2400.0
+0.04,  2400.0
 End Time History 1
 
 Start Time History 2
-0.0,  300.0
-0.06,  1100.0
-0.4,  1100.0
+0.0,  400.0
+0.05,  2400.0
+0.14,  2400.0
 End Time History 2
 
 Start Time History 3
 0.0,  400.0
-0.05,  1800.0
-0.2,  1800.0
+0.01,  2400.0
+0.03,  2400.0
 End Time History 3
 
 Start Time History 4
 0.0,  400.0
-0.4,  2000.0
-0.5,  2000.0
+0.1,  2500.0
+0.5,  2500.0
 End Time History 4
 
 Start Time History 5
 0.0,  400.0
-0.5,  2000.0
-0.5,  2000.0
+0.3,  2100.0
+0.5,  2100.0
 End Time History 5

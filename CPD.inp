@@ -1,5 +1,5 @@
 useCPD?:
-Yes
+No
 
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
 None
@@ -8,4 +8,4 @@ None
 initial time step in s:
 1.e-3
 print increment, writeValue:
-2
+1

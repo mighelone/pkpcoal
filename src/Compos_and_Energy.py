@@ -244,7 +244,7 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.CPDBalanceFile.write('== Heating value ==\n')
         self.CPDBalanceFile.write('|   | ar MJ/kg|daf MJ/kg|\n') 
         self.CPDBalanceFile.write('|HHV|'+str('%9.3f|' %(self.HHV/1e6))+str('%9.3f|\n' %(HHVdaf/1e6)))
-        self.CPDBalanceFile.write('|LHV|'+str('%9.3f|' %(LHVar/1e6))+str('%9.3f|\n\n' %(HHVdaf/1e6)))
+        self.CPDBalanceFile.write('|LHV|'+str('%9.3f|' %(LHVar/1e6))+str('%9.3f|\n\n' %(LHVdaf/1e6)))
         
     def __hfRaw(self):
         """Calculates the heat of formation of the coal molecule and writes it into the output file."""
@@ -253,8 +253,8 @@ class CPD_SpeciesBalance(SpeciesBalance):
         muHRaw=self.UAH*(MRaw/MH)
         muORaw=self.UAO*(MRaw/MO)
         muNRaw=self.UAN*(MRaw/MN)
-	muSRaw=self.UAS*(MRaw/MS)
-        # eq. (13) in Michele's report:
+        muSRaw=self.UAS*(MRaw/MS)
+# eq. (13) in Michele's report:
 #        print 'Q_React =',self.Q_react/1e6,'MJ/kg'
 #        print 'muCRaw =',muCRaw
 #        print 'muHRaw =',muHRaw
@@ -264,7 +264,7 @@ class CPD_SpeciesBalance(SpeciesBalance):
         muCO2 = muCRaw
         muH2O = 0.5*muHRaw
         muN2 = 0.5*muNRaw
-	muSO2 = muSRaw
+        muSO2 = muSRaw
         muO2 = 0.5*(2*muCO2 + muH2O + 2*muSO2 - muORaw)
 #        print 'muCO2=',muCO2
 #        print 'muH2O=',muH2O
