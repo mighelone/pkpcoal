@@ -4,8 +4,11 @@ No
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
 None
 
+Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
+Total
+
 #numerical parameter for CPD:
 initial time step in s:
-1.e-3
+1.e-5
 print increment, writeValue:
 1
