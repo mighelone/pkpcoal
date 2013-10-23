@@ -133,7 +133,6 @@ pip-log.txt
 *.out
 *.txt
 *.log
-*.inp
 *~
 Result/*
 /*.zip
