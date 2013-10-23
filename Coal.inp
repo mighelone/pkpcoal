@@ -1,24 +1,24 @@
 #Proximate Analysis (in percent, as recieved):
 Fixed Carbon:
-43.5
+39.8
 Volatile Matter:
-39.4
+35.1
 Moisture:
-6.7
+19
 Ash:
-10.4
+6.1
 
 #Ultimate Analysis (in percent):
 UA Carbon:
-75.34
+61.78
 UA Hydrogen:
-5.29
+4.51
 UA Nitrogen:
-1.57
+1.07
 UA Oxygen:
-12.95
+31.26
 UA Sulphur:
-4.84
+1.29
 
 Higher Heating Value, as recieved, in J/kg:
 25560000.0
@@ -28,6 +28,6 @@ Tar Molecule weight, MTar:
 Coal dry density in kg/m3:
 600
 Weight-Parameter yields for fitting the kinetics:
-1.0
+100
 Weight-Parameter rates for fitting the kinetics:
-0.0
+0

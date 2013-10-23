@@ -1,0 +1,71 @@
+\hypertarget{classFitter_1_1GlobalOptimizer}{\section{\-Fitter.\-Global\-Optimizer \-Class \-Reference}
+\label{classFitter_1_1GlobalOptimizer}\index{\-Fitter.\-Global\-Optimizer@{\-Fitter.\-Global\-Optimizer}}
+}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFitter_1_1GlobalOptimizer_a02b8c24b29b93dcc5f787e7dfa7e6cb7}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classFitter_1_1GlobalOptimizer_a02b8c24b29b93dcc5f787e7dfa7e6cb7}
+
+\item 
+def \hyperlink{classFitter_1_1GlobalOptimizer_aa1ef78b64b9b251bd935376050c277eb}{set\-Param\-List}
+\item 
+def \hyperlink{classFitter_1_1GlobalOptimizer_a4410e98d47bb250ed5a9eabc53c4c015}{\-Param\-List}
+\item 
+def \hyperlink{classFitter_1_1GlobalOptimizer_adde2457cb87737417eac13ee32178ef1}{\-Generate\-Optima}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFitter_1_1GlobalOptimizer_a2a4f246967c95a49db6bcad8bc55b164}{{\bfseries \-Loc\-Opt}}\label{classFitter_1_1GlobalOptimizer_a2a4f246967c95a49db6bcad8bc55b164}
+
+\item 
+\hypertarget{classFitter_1_1GlobalOptimizer_a628a20f058a11e59bf310108612f5132}{{\bfseries \-Kin\-Model}}\label{classFitter_1_1GlobalOptimizer_a628a20f058a11e59bf310108612f5132}
+
+\item 
+\hypertarget{classFitter_1_1GlobalOptimizer_a676eeb80d9a67446c9d06bad0f2882f2}{{\bfseries \-Fit\-Info}}\label{classFitter_1_1GlobalOptimizer_a676eeb80d9a67446c9d06bad0f2882f2}
+
+\item 
+\hypertarget{classFitter_1_1GlobalOptimizer_afb280c57f6d69aa1f72a89d9b05436e2}{{\bfseries \-All\-Parameter\-List}}\label{classFitter_1_1GlobalOptimizer_afb280c57f6d69aa1f72a89d9b05436e2}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\begin{DoxyVerb}Makes runs over a defined range to look for global optimum. Local Optimizer is an LeastSquarsEstimator object, KineticModel is e.g. an constantRate model object, Fit_one_runObj is the List containing the Objects supporting the local fitting procedure with data.\end{DoxyVerb}
+ 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classFitter_1_1GlobalOptimizer_adde2457cb87737417eac13ee32178ef1}{\index{\-Fitter\-::\-Global\-Optimizer@{\-Fitter\-::\-Global\-Optimizer}!\-Generate\-Optima@{\-Generate\-Optima}}
+\index{\-Generate\-Optima@{\-Generate\-Optima}!Fitter::GlobalOptimizer@{\-Fitter\-::\-Global\-Optimizer}}
+\subsubsection[{\-Generate\-Optima}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fitter.\-Global\-Optimizer.\-Generate\-Optima} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Species, }
+\item[{}]{\-Index\-Listof\-Parameter\-To\-Optimize, }
+\item[{}]{\-Array\-Of\-Ranges, }
+\item[{}]{\-List\-Nr\-Runs}
+\end{DoxyParamCaption}
+)}}\label{classFitter_1_1GlobalOptimizer_adde2457cb87737417eac13ee32178ef1}
+\begin{DoxyVerb}This method makes a several number of runs and returns the Parameter having the lowest deviation of all local minima. The list contains 3 or 4 parameters. If e.g., the second and the third Parameter have to be optimized: IndexListofParameterToOptimize=[1,2]. If e.g. the range of the second is 10000 to 12000 and for the third 1 to 5,  ArrayOfRanges=[[10000,12000],[1,5]]. When ListNrRuns is e.g. [0,10,5,0] the the second Parameter will be optimizted eleven times between 10000 and 12000, the third six times between 1 and 5. Attention, the number of runs grows by NrRuns1*NrRuns2*NrRuns3*NrRuns4, which can lead to a very large number needing very much time!\end{DoxyVerb}
+ \hypertarget{classFitter_1_1GlobalOptimizer_a4410e98d47bb250ed5a9eabc53c4c015}{\index{\-Fitter\-::\-Global\-Optimizer@{\-Fitter\-::\-Global\-Optimizer}!\-Param\-List@{\-Param\-List}}
+\index{\-Param\-List@{\-Param\-List}!Fitter::GlobalOptimizer@{\-Fitter\-::\-Global\-Optimizer}}
+\subsubsection[{\-Param\-List}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fitter.\-Global\-Optimizer.\-Param\-List} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFitter_1_1GlobalOptimizer_a4410e98d47bb250ed5a9eabc53c4c015}
+\begin{DoxyVerb}Returns the Parameter list.\end{DoxyVerb}
+ \hypertarget{classFitter_1_1GlobalOptimizer_aa1ef78b64b9b251bd935376050c277eb}{\index{\-Fitter\-::\-Global\-Optimizer@{\-Fitter\-::\-Global\-Optimizer}!set\-Param\-List@{set\-Param\-List}}
+\index{set\-Param\-List@{set\-Param\-List}!Fitter::GlobalOptimizer@{\-Fitter\-::\-Global\-Optimizer}}
+\subsubsection[{set\-Param\-List}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fitter.\-Global\-Optimizer.\-set\-Param\-List} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Parameter\-List}
+\end{DoxyParamCaption}
+)}}\label{classFitter_1_1GlobalOptimizer_aa1ef78b64b9b251bd935376050c277eb}
+\begin{DoxyVerb}Sets the Parameter list.\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-Fitter.\-py\end{DoxyCompactItemize}

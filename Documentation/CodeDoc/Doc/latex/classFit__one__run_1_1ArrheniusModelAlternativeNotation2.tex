@@ -1,0 +1,211 @@
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2}{\section{\-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2 \-Class \-Reference}
+\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2}\index{\-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2}}
+}
+\-Inheritance diagram for \-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classFit__one__run_1_1ArrheniusModelAlternativeNotation2}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ab0e6cc19bc075aceb03286fdf1178b33}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ab0e6cc19bc075aceb03286fdf1178b33}
+
+\item 
+def \hyperlink{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ad2b7981d11c82b7fb90f476396655f3f}{calc\-Mass}
+\item 
+def \hyperlink{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a4f6e2eb68a60c1dbdbb6176ad7cf508a}{\-Convert\-Kin\-Factors}
+\item 
+def \hyperlink{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ac12a7c92f1991306e31ff67564de4126}{\-Convert\-Kin\-Factors\-To\-Own\-Notation}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_aa304b32155938a713c33f0dc03a135f3}{plt\-Yield}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_a9c28d95902adf00f5aaa642f0919fc61}{plt\-Rate}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_a26fc879ca33c9171ebb4a97bc4b0c46b}{min\-Length\-Of\-Vectors}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_a98159c954f1f1be2a34be3ea53d11493}{plot}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_ace9df4177c5ae753dbe190e2f8268149}{derive\-C}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_a07ae4534de2a6ef241d71facdffb227e}{calc\-Rate}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_a174aec9b05dbe01ec103f7ba75d6516c}{set\-Param\-Vector}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_a3c9239f0ac062fdae0bda395636c0372}{\-Param\-Vector}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_aa2bc4ba19704350fb2ff441734b51b10}{\-Error\-Yield}
+\item 
+def \hyperlink{classFit__one__run_1_1Model_aad63c345c343f0c7d1cf20135dc0a0e5}{\-Error\-Rate}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a5c8d99a0bfb1d0b09ece9a03e0e7d614}{{\bfseries \-T\-\_\-min}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a5c8d99a0bfb1d0b09ece9a03e0e7d614}
+
+\item 
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ae15bee9047ddc788c76d5f3d37da05b7}{{\bfseries \-T\-\_\-max}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ae15bee9047ddc788c76d5f3d37da05b7}
+
+\item 
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a1112181ab62d1cb3520fe048bd242324}{{\bfseries c}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a1112181ab62d1cb3520fe048bd242324}
+
+\item 
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a1b0fc9003a29db87bd8de0e86223b4cb}{{\bfseries \-O\-D\-E\-\_\-hmax}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a1b0fc9003a29db87bd8de0e86223b4cb}
+
+\item 
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a82c2af40105ee8082c9ce161fa743f9e}{{\bfseries fgdvc}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a82c2af40105ee8082c9ce161fa743f9e}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\begin{DoxyVerb}Arrhenius model with a notation having a better optimization behaviour: dm/dt=exp[c*(b1*(1/T(t)-1/T_min)-b2*(1/T(t)-1/T_max))]*(ms-m); with c=(1/T_max-1/Tmin)**(-1). See the documentation for the reference. The parameters to optimize are b1 and b2.\end{DoxyVerb}
+ 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ad2b7981d11c82b7fb90f476396655f3f}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!calc\-Mass@{calc\-Mass}}
+\index{calc\-Mass@{calc\-Mass}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{calc\-Mass}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2.\-calc\-Mass} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{time, }
+\item[{}]{\-T, }
+\item[{}]{\-Name}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ad2b7981d11c82b7fb90f476396655f3f}
+\begin{DoxyVerb}Outputs the mass(t) using the model specific equation.\end{DoxyVerb}
+ 
+
+\-Reimplemented from \hyperlink{classFit__one__run_1_1ArrheniusModel_aef95e08280a5f8628b63ea1300227aa7}{\-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model}.
+
+\hypertarget{classFit__one__run_1_1Model_a07ae4534de2a6ef241d71facdffb227e}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!calc\-Rate@{calc\-Rate}}
+\index{calc\-Rate@{calc\-Rate}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{calc\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-calc\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{time, }
+\item[{}]{\-T, }
+\item[{}]{\-Name}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_a07ae4534de2a6ef241d71facdffb227e}
+\begin{DoxyVerb}Generates the Rates using the yields vector and a CDS.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a4f6e2eb68a60c1dbdbb6176ad7cf508a}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!\-Convert\-Kin\-Factors@{\-Convert\-Kin\-Factors}}
+\index{\-Convert\-Kin\-Factors@{\-Convert\-Kin\-Factors}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{\-Convert\-Kin\-Factors}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2.\-Convert\-Kin\-Factors} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Parameter\-Vector}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_a4f6e2eb68a60c1dbdbb6176ad7cf508a}
+\begin{DoxyVerb}Converts the own kinetic factors back to the standard Arrhenius kinetic factors.\end{DoxyVerb}
+ 
+
+\-Reimplemented from \hyperlink{classFit__one__run_1_1ArrheniusModel_a2d145de8ceef61b26b3ab701618ebb9d}{\-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model}.
+
+\hypertarget{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ac12a7c92f1991306e31ff67564de4126}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!\-Convert\-Kin\-Factors\-To\-Own\-Notation@{\-Convert\-Kin\-Factors\-To\-Own\-Notation}}
+\index{\-Convert\-Kin\-Factors\-To\-Own\-Notation@{\-Convert\-Kin\-Factors\-To\-Own\-Notation}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{\-Convert\-Kin\-Factors\-To\-Own\-Notation}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Arrhenius\-Model\-Alternative\-Notation2.\-Convert\-Kin\-Factors\-To\-Own\-Notation} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Parameter\-Vector}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1ArrheniusModelAlternativeNotation2_ac12a7c92f1991306e31ff67564de4126}
+\begin{DoxyVerb}Converts the standard Arrhenius kinetic factors backk to the factors of the own notation.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_ace9df4177c5ae753dbe190e2f8268149}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!derive\-C@{derive\-C}}
+\index{derive\-C@{derive\-C}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{derive\-C}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-derive\-C} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{y\-Vector, }
+\item[{}]{max\-Vector\-Lenght = {\ttfamily \-None}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_ace9df4177c5ae753dbe190e2f8268149}
+\begin{DoxyVerb}Returns a CDS of the inputted yVector.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_aad63c345c343f0c7d1cf20135dc0a0e5}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!\-Error\-Rate@{\-Error\-Rate}}
+\index{\-Error\-Rate@{\-Error\-Rate}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{\-Error\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-Error\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_aad63c345c343f0c7d1cf20135dc0a0e5}
+\begin{DoxyVerb}Returns the absolute deviation per point between the fitted and the original rate curve.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_aa2bc4ba19704350fb2ff441734b51b10}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!\-Error\-Yield@{\-Error\-Yield}}
+\index{\-Error\-Yield@{\-Error\-Yield}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{\-Error\-Yield}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-Error\-Yield} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_aa2bc4ba19704350fb2ff441734b51b10}
+\begin{DoxyVerb}Returns the absolute deviation per point between the fitted and the original yield curve.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_a26fc879ca33c9171ebb4a97bc4b0c46b}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!min\-Length\-Of\-Vectors@{min\-Length\-Of\-Vectors}}
+\index{min\-Length\-Of\-Vectors@{min\-Length\-Of\-Vectors}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{min\-Length\-Of\-Vectors}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-min\-Length\-Of\-Vectors} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_a26fc879ca33c9171ebb4a97bc4b0c46b}
+\begin{DoxyVerb}Returns the minimum lenght of a all vectors from the several runs.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_a3c9239f0ac062fdae0bda395636c0372}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!\-Param\-Vector@{\-Param\-Vector}}
+\index{\-Param\-Vector@{\-Param\-Vector}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{\-Param\-Vector}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-Param\-Vector} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_a3c9239f0ac062fdae0bda395636c0372}
+\begin{DoxyVerb}Returns the Vector containing the kinetic parameter of the Model (refering to the child model).\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_a98159c954f1f1be2a34be3ea53d11493}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!plot@{plot}}
+\index{plot@{plot}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{plot}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-plot} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_a98159c954f1f1be2a34be3ea53d11493}
+\begin{DoxyVerb}Plot the yield and the rates over time with two curves: one is the original data, the other the fitting curve. Also file 'PyrolysisProgramName-Species.out' (e.g. 'CPD-CO2.out') containing the time (s), yields (kg/kg), rates (kg/(kg s)).\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_a9c28d95902adf00f5aaa642f0919fc61}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!plt\-Rate@{plt\-Rate}}
+\index{plt\-Rate@{plt\-Rate}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{plt\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-plt\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{x\-Value\-To\-Plot, }
+\item[{}]{y\-Value\-To\-Plot}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_a9c28d95902adf00f5aaa642f0919fc61}
+\begin{DoxyVerb}Plots the rates (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_aa304b32155938a713c33f0dc03a135f3}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!plt\-Yield@{plt\-Yield}}
+\index{plt\-Yield@{plt\-Yield}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{plt\-Yield}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-plt\-Yield} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{x\-Value\-To\-Plot, }
+\item[{}]{y\-Value\-To\-Plot}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_aa304b32155938a713c33f0dc03a135f3}
+\begin{DoxyVerb}Plots the yields (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1Model_a174aec9b05dbe01ec103f7ba75d6516c}{\index{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}!set\-Param\-Vector@{set\-Param\-Vector}}
+\index{set\-Param\-Vector@{set\-Param\-Vector}!Fit_one_run::ArrheniusModelAlternativeNotation2@{\-Fit\-\_\-one\-\_\-run\-::\-Arrhenius\-Model\-Alternative\-Notation2}}
+\subsubsection[{set\-Param\-Vector}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-Model.\-set\-Param\-Vector} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Parameter\-List}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classFit__one__run_1_1Model_a174aec9b05dbe01ec103f7ba75d6516c}
+\begin{DoxyVerb}Sets the Vector containing the kinetic parameter of the Model (refering to the child model).\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-Fit\-\_\-one\-\_\-run.\-py\end{DoxyCompactItemize}

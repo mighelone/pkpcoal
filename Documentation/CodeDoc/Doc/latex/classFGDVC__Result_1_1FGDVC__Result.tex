@@ -1,0 +1,100 @@
+\hypertarget{classFGDVC__Result_1_1FGDVC__Result}{\section{\-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result \-Class \-Reference}
+\label{classFGDVC__Result_1_1FGDVC__Result}\index{\-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result}}
+}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFGDVC__Result_1_1FGDVC__Result_a2214547494b8e49e33681f05d5560939}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classFGDVC__Result_1_1FGDVC__Result_a2214547494b8e49e33681f05d5560939}
+
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_a96334603fc6df5e0e13b0c63d69936eb}{\-Yields\-\_\-all}
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_a89d6e2a6ece5e2beb03187011fb5f4bb}{\-Rates\-\_\-all}
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_a81a8ca345a6d024a3c33568dbbcb119e}{\-Dict\-Yields2\-Cols}
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_a415f223456d256d52afea60b74916676}{\-Dict\-Cols2\-Yields}
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_ad3c91913db48efad9c33a0f2d87b9bfb}{\-Final\-Yields}
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_a778588f293b3b544482f26ab63fe3d57}{\-File\-Path}
+\item 
+def \hyperlink{classFGDVC__Result_1_1FGDVC__Result_ad85ce8419074dca37993ce9a4665dddd}{\-Name}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFGDVC__Result_1_1FGDVC__Result_aa52ef0bb67b48d181097912e5fe1741f}{{\bfseries \-Yields2\-Cols}}\label{classFGDVC__Result_1_1FGDVC__Result_aa52ef0bb67b48d181097912e5fe1741f}
+
+\item 
+\hypertarget{classFGDVC__Result_1_1FGDVC__Result_ab73aa267199cb6ea215b27776066daba}{{\bfseries \-Cols2\-Yields}}\label{classFGDVC__Result_1_1FGDVC__Result_ab73aa267199cb6ea215b27776066daba}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\begin{DoxyVerb}Reads the FG-DVC input and saves the values in one array. The results include the yields (from 'gasyields.txt') and the rates. The rates for all species except the solids (here a CDS is used) are imported from 'gasrates.txt'. The H_2 yields were calculated by subtract all other species except parafins and olefins from the total yields (see FG-DVC manual). This H_2-yield curve was smoothed and derived using a CDS to generate the H_2 rates. The parafins and olefins are added into the tar. This class also contains the dictionaries for the columns in the array - the name of the species. These dictionaries are FG-DVC-Version dependent and the only thing which has to be changed for the case of a new release of FG-DVC with a new order of species in the result files (this was made for Versions 8.2.2. and 8.2.3.).\end{DoxyVerb}
+ 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classFGDVC__Result_1_1FGDVC__Result_a415f223456d256d52afea60b74916676}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-Dict\-Cols2\-Yields@{\-Dict\-Cols2\-Yields}}
+\index{\-Dict\-Cols2\-Yields@{\-Dict\-Cols2\-Yields}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-Dict\-Cols2\-Yields}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-Dict\-Cols2\-Yields} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_a415f223456d256d52afea60b74916676}
+\begin{DoxyVerb}Returns the whole Dictionary Columns of the matrix to Yield names\end{DoxyVerb}
+ \hypertarget{classFGDVC__Result_1_1FGDVC__Result_a81a8ca345a6d024a3c33568dbbcb119e}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-Dict\-Yields2\-Cols@{\-Dict\-Yields2\-Cols}}
+\index{\-Dict\-Yields2\-Cols@{\-Dict\-Yields2\-Cols}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-Dict\-Yields2\-Cols}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-Dict\-Yields2\-Cols} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_a81a8ca345a6d024a3c33568dbbcb119e}
+\begin{DoxyVerb}Returns the whole Dictionary Yield names to Columns of the matrix\end{DoxyVerb}
+ \hypertarget{classFGDVC__Result_1_1FGDVC__Result_a778588f293b3b544482f26ab63fe3d57}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-File\-Path@{\-File\-Path}}
+\index{\-File\-Path@{\-File\-Path}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-File\-Path}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-File\-Path} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_a778588f293b3b544482f26ab63fe3d57}
+\begin{DoxyVerb}Returns the FG-DVC File path\end{DoxyVerb}
+ \hypertarget{classFGDVC__Result_1_1FGDVC__Result_ad3c91913db48efad9c33a0f2d87b9bfb}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-Final\-Yields@{\-Final\-Yields}}
+\index{\-Final\-Yields@{\-Final\-Yields}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-Final\-Yields}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-Final\-Yields} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_ad3c91913db48efad9c33a0f2d87b9bfb}
+\begin{DoxyVerb}Returns the last line of the Array, containing the yields at the time=time_End\end{DoxyVerb}
+ \hypertarget{classFGDVC__Result_1_1FGDVC__Result_ad85ce8419074dca37993ce9a4665dddd}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-Name@{\-Name}}
+\index{\-Name@{\-Name}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-Name}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-Name} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_ad85ce8419074dca37993ce9a4665dddd}
+\begin{DoxyVerb}returns 'FG-DVC' as the name of the Program\end{DoxyVerb}
+ \hypertarget{classFGDVC__Result_1_1FGDVC__Result_a89d6e2a6ece5e2beb03187011fb5f4bb}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-Rates\-\_\-all@{\-Rates\-\_\-all}}
+\index{\-Rates\-\_\-all@{\-Rates\-\_\-all}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-Rates\-\_\-all}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-Rates\-\_\-all} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_a89d6e2a6ece5e2beb03187011fb5f4bb}
+\begin{DoxyVerb}Returns the whole result matrix of the Rates.\end{DoxyVerb}
+ \hypertarget{classFGDVC__Result_1_1FGDVC__Result_a96334603fc6df5e0e13b0c63d69936eb}{\index{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}!\-Yields\-\_\-all@{\-Yields\-\_\-all}}
+\index{\-Yields\-\_\-all@{\-Yields\-\_\-all}!FGDVC_Result::FGDVC_Result@{\-F\-G\-D\-V\-C\-\_\-\-Result\-::\-F\-G\-D\-V\-C\-\_\-\-Result}}
+\subsubsection[{\-Yields\-\_\-all}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-F\-G\-D\-V\-C\-\_\-\-Result.\-F\-G\-D\-V\-C\-\_\-\-Result.\-Yields\-\_\-all} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFGDVC__Result_1_1FGDVC__Result_a96334603fc6df5e0e13b0c63d69936eb}
+\begin{DoxyVerb}Returns the whole result matrix of the yields.\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-F\-G\-D\-V\-C\-\_\-\-Result.\-py\end{DoxyCompactItemize}

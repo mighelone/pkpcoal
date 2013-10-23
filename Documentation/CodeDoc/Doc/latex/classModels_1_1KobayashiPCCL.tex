@@ -1,0 +1,252 @@
+\hypertarget{classModels_1_1KobayashiPCCL}{\section{\-Models.\-Kobayashi\-P\-C\-C\-L \-Class \-Reference}
+\label{classModels_1_1KobayashiPCCL}\index{\-Models.\-Kobayashi\-P\-C\-C\-L@{\-Models.\-Kobayashi\-P\-C\-C\-L}}
+}
+\-Inheritance diagram for \-Models.\-Kobayashi\-P\-C\-C\-L\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classModels_1_1KobayashiPCCL}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classModels_1_1KobayashiPCCL_a7b363dff31890fad701f0e752b533391}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classModels_1_1KobayashiPCCL_a7b363dff31890fad701f0e752b533391}
+
+\item 
+def \hyperlink{classModels_1_1KobayashiPCCL_a247e1886dafcb2629777bf6feb7d7f4c}{calc\-Mass}
+\item 
+def \hyperlink{classModels_1_1KobayashiPCCL_ad541181972142ac989d44d0a3b070847}{\-Convert\-Kin\-Factors}
+\item 
+def \hyperlink{classModels_1_1KobayashiPCCL_a1c7786daeb39d647abbe428adc0f6f03}{set\-Kob\-Weights}
+\item 
+def \hyperlink{classModels_1_1KobayashiPCCL_a038ff70977e6017b498f584d6a855be1}{\-Kob\-Weights}
+\item 
+def \hyperlink{classModels_1_1KobayashiPCCL_a30e2e0c8835c4b3cb9a9af52ca9b1fd5}{set\-E2\-Diff}
+\item 
+def \hyperlink{classModels_1_1KobayashiPCCL_ae26d3a16a364aae97be94e420c897fc4}{\-E2\-Diff}
+\item 
+def \hyperlink{classModels_1_1Model_a317ed848b969dbe3a96dd05e8b771900}{plt\-Yield}
+\item 
+def \hyperlink{classModels_1_1Model_aa35c741babf8f141df48c4021e0664e4}{plt\-Rate}
+\item 
+def \hyperlink{classModels_1_1Model_a3396d6ca1a7b7d66e55ada8c3c7a509e}{max\-Length\-Of\-Vectors}
+\item 
+def \hyperlink{classModels_1_1Model_ae404a691e48bfe4eafcdfdd09f1dae48}{plot}
+\item 
+def \hyperlink{classModels_1_1Model_a010945ed2adff59a7a5fce36025e7a97}{derive\-C}
+\item 
+def \hyperlink{classModels_1_1Model_a7c9280e33f9e0d46703cebc131008c65}{calc\-Rate}
+\item 
+def \hyperlink{classModels_1_1Model_a818f207e2a4bd0e9a3720ca611960e5a}{set\-Param\-Vector}
+\item 
+def \hyperlink{classModels_1_1Model_a13c76a0fe24d43cdc4d21fbc73fa96fa}{\-Param\-Vector}
+\item 
+def \hyperlink{classModels_1_1Model_ad3e627980d9e781bf7b2c9ff900ca06b}{\-Error\-Yield}
+\item 
+def \hyperlink{classModels_1_1Model_a3050eb39341f318d8d88b172f88bd240}{\-Error\-Rate}
+\item 
+def \hyperlink{classModels_1_1Model_adcb987bccae63a742490ea1e6d5f7a74}{mk\-Simple\-Result\-Files}
+\item 
+def \hyperlink{classModels_1_1Model_ac28252ae5cd6b5ecd4c5d006a0e6567d}{set\-Dt4\-Intergrate}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classModels_1_1KobayashiPCCL_a71167eaf1c943b108ca87c51ba8ba310}{{\bfseries \-O\-D\-E\-\_\-hmax}}\label{classModels_1_1KobayashiPCCL_a71167eaf1c943b108ca87c51ba8ba310}
+
+\item 
+\hypertarget{classModels_1_1KobayashiPCCL_aa6387b8966d48c2b1c827136ef4a931b}{{\bfseries const\-Dt}}\label{classModels_1_1KobayashiPCCL_aa6387b8966d48c2b1c827136ef4a931b}
+
+\item 
+\hypertarget{classModels_1_1KobayashiPCCL_a99a9c55bdcc2446d86ac8533566ec76f}{{\bfseries fgdvc}}\label{classModels_1_1KobayashiPCCL_a99a9c55bdcc2446d86ac8533566ec76f}
+
+\item 
+\hypertarget{classModels_1_1Model_a3f71983de5f8b86bec47929213b900ec}{{\bfseries const\-Dt\-Vec}}\label{classModels_1_1Model_a3f71983de5f8b86bec47929213b900ec}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\begin{DoxyVerb}Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation. The fitting parameter are as in PCCL A1,A2,E1,alpha1. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE.\end{DoxyVerb}
+ 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classModels_1_1KobayashiPCCL_a247e1886dafcb2629777bf6feb7d7f4c}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!calc\-Mass@{calc\-Mass}}
+\index{calc\-Mass@{calc\-Mass}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{calc\-Mass}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Kobayashi\-P\-C\-C\-L.\-calc\-Mass} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{time, }
+\item[{}]{\-T, }
+\item[{}]{\-Name}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1KobayashiPCCL_a247e1886dafcb2629777bf6feb7d7f4c}
+\begin{DoxyVerb}Outputs the mass(t) using the model specific equation.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a7c9280e33f9e0d46703cebc131008c65}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!calc\-Rate@{calc\-Rate}}
+\index{calc\-Rate@{calc\-Rate}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{calc\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-calc\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{time, }
+\item[{}]{\-T, }
+\item[{}]{\-Name}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a7c9280e33f9e0d46703cebc131008c65}
+\begin{DoxyVerb}Generates the Rates using the yields vector and a CDS.\end{DoxyVerb}
+ \hypertarget{classModels_1_1KobayashiPCCL_ad541181972142ac989d44d0a3b070847}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!\-Convert\-Kin\-Factors@{\-Convert\-Kin\-Factors}}
+\index{\-Convert\-Kin\-Factors@{\-Convert\-Kin\-Factors}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{\-Convert\-Kin\-Factors}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Kobayashi\-P\-C\-C\-L.\-Convert\-Kin\-Factors} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Parameter\-Vector}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1KobayashiPCCL_ad541181972142ac989d44d0a3b070847}
+\begin{DoxyVerb}Outputs the Arrhenius equation factors in the shape [A1,E1,A2,E2]. Here where the real Arrhenius model is in use only a dummy function.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a010945ed2adff59a7a5fce36025e7a97}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!derive\-C@{derive\-C}}
+\index{derive\-C@{derive\-C}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{derive\-C}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-derive\-C} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{y\-Vector}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a010945ed2adff59a7a5fce36025e7a97}
+\begin{DoxyVerb}Returns a CDS of the inputted yVector.\end{DoxyVerb}
+ \hypertarget{classModels_1_1KobayashiPCCL_ae26d3a16a364aae97be94e420c897fc4}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!\-E2\-Diff@{\-E2\-Diff}}
+\index{\-E2\-Diff@{\-E2\-Diff}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{\-E2\-Diff}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Kobayashi\-P\-C\-C\-L.\-E2\-Diff} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1KobayashiPCCL_ae26d3a16a364aae97be94e420c897fc4}
+\begin{DoxyVerb}Returns the dE in E2=E1+dE.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a3050eb39341f318d8d88b172f88bd240}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!\-Error\-Rate@{\-Error\-Rate}}
+\index{\-Error\-Rate@{\-Error\-Rate}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{\-Error\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-Error\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a3050eb39341f318d8d88b172f88bd240}
+\begin{DoxyVerb}Returns the absolute deviation per point between the fitted and the original rate curve.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_ad3e627980d9e781bf7b2c9ff900ca06b}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!\-Error\-Yield@{\-Error\-Yield}}
+\index{\-Error\-Yield@{\-Error\-Yield}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{\-Error\-Yield}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-Error\-Yield} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_ad3e627980d9e781bf7b2c9ff900ca06b}
+\begin{DoxyVerb}Returns the absolute deviation per point between the fitted and the original yield curve.\end{DoxyVerb}
+ \hypertarget{classModels_1_1KobayashiPCCL_a038ff70977e6017b498f584d6a855be1}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!\-Kob\-Weights@{\-Kob\-Weights}}
+\index{\-Kob\-Weights@{\-Kob\-Weights}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{\-Kob\-Weights}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Kobayashi\-P\-C\-C\-L.\-Kob\-Weights} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1KobayashiPCCL_a038ff70977e6017b498f584d6a855be1}
+\begin{DoxyVerb}Returns the two Kobayashi weights alpha2.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a3396d6ca1a7b7d66e55ada8c3c7a509e}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!max\-Length\-Of\-Vectors@{max\-Length\-Of\-Vectors}}
+\index{max\-Length\-Of\-Vectors@{max\-Length\-Of\-Vectors}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{max\-Length\-Of\-Vectors}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-max\-Length\-Of\-Vectors} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a3396d6ca1a7b7d66e55ada8c3c7a509e}
+\begin{DoxyVerb}Returns the minimum lenght of a all vectors from the several runs.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_adcb987bccae63a742490ea1e6d5f7a74}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!mk\-Simple\-Result\-Files@{mk\-Simple\-Result\-Files}}
+\index{mk\-Simple\-Result\-Files@{mk\-Simple\-Result\-Files}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{mk\-Simple\-Result\-Files}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-mk\-Simple\-Result\-Files} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_adcb987bccae63a742490ea1e6d5f7a74}
+\begin{DoxyVerb}Simple result file if no fitting is carried out. Writes only the transformed results into a file.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a13c76a0fe24d43cdc4d21fbc73fa96fa}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!\-Param\-Vector@{\-Param\-Vector}}
+\index{\-Param\-Vector@{\-Param\-Vector}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{\-Param\-Vector}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-Param\-Vector} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a13c76a0fe24d43cdc4d21fbc73fa96fa}
+\begin{DoxyVerb}Returns the Vector containing the kinetic parameter of the Model (refering to the child model).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_ae404a691e48bfe4eafcdfdd09f1dae48}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!plot@{plot}}
+\index{plot@{plot}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{plot}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-plot} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_ae404a691e48bfe4eafcdfdd09f1dae48}
+\begin{DoxyVerb}Plot the yield and the rates over time with two curves: one is the original data, the other the fitting curve. Also file 'PyrolysisProgramName-Species.out' (e.g. 'CPD-CO2.out') containing the time (s), yields (kg/kg), rates (kg/(kg s)).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_aa35c741babf8f141df48c4021e0664e4}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!plt\-Rate@{plt\-Rate}}
+\index{plt\-Rate@{plt\-Rate}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{plt\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-plt\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{x\-Value\-To\-Plot, }
+\item[{}]{y\-Value\-To\-Plot}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_aa35c741babf8f141df48c4021e0664e4}
+\begin{DoxyVerb}Plots the rates (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a317ed848b969dbe3a96dd05e8b771900}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!plt\-Yield@{plt\-Yield}}
+\index{plt\-Yield@{plt\-Yield}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{plt\-Yield}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-plt\-Yield} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{x\-Value\-To\-Plot, }
+\item[{}]{y\-Value\-To\-Plot}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a317ed848b969dbe3a96dd05e8b771900}
+\begin{DoxyVerb}Plots the yields (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_ac28252ae5cd6b5ecd4c5d006a0e6567d}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!set\-Dt4\-Intergrate@{set\-Dt4\-Intergrate}}
+\index{set\-Dt4\-Intergrate@{set\-Dt4\-Intergrate}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{set\-Dt4\-Intergrate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-set\-Dt4\-Intergrate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{constant\-Dt}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_ac28252ae5cd6b5ecd4c5d006a0e6567d}
+\begin{DoxyVerb}constantDt allows the option to define numerical time step to solve the ODE. The outputted results ever equal the imported time list (when applying method calcMass Time = [t0,t1,t2,t3,t4]. If these time steps are too large, then is this defined dt used to solve the ODE and the results are linear interploated that way that they correspond to the imported time vector. To reset it, just set constantDt to False.\end{DoxyVerb}
+ \hypertarget{classModels_1_1KobayashiPCCL_a30e2e0c8835c4b3cb9a9af52ca9b1fd5}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!set\-E2\-Diff@{set\-E2\-Diff}}
+\index{set\-E2\-Diff@{set\-E2\-Diff}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{set\-E2\-Diff}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Kobayashi\-P\-C\-C\-L.\-set\-E2\-Diff} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Difference\-E1\-E2}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1KobayashiPCCL_a30e2e0c8835c4b3cb9a9af52ca9b1fd5}
+\begin{DoxyVerb}Sets the dE in E2=E1+dE.\end{DoxyVerb}
+ \hypertarget{classModels_1_1KobayashiPCCL_a1c7786daeb39d647abbe428adc0f6f03}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!set\-Kob\-Weights@{set\-Kob\-Weights}}
+\index{set\-Kob\-Weights@{set\-Kob\-Weights}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{set\-Kob\-Weights}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Kobayashi\-P\-C\-C\-L.\-set\-Kob\-Weights} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{alpha2}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1KobayashiPCCL_a1c7786daeb39d647abbe428adc0f6f03}
+\begin{DoxyVerb}Sets the two Kobayashi weights alpha2.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a818f207e2a4bd0e9a3720ca611960e5a}{\index{\-Models\-::\-Kobayashi\-P\-C\-C\-L@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}!set\-Param\-Vector@{set\-Param\-Vector}}
+\index{set\-Param\-Vector@{set\-Param\-Vector}!Models::KobayashiPCCL@{\-Models\-::\-Kobayashi\-P\-C\-C\-L}}
+\subsubsection[{set\-Param\-Vector}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-set\-Param\-Vector} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Parameter\-List}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inherited\mbox{]}}}}\label{classModels_1_1Model_a818f207e2a4bd0e9a3720ca611960e5a}
+\begin{DoxyVerb}Sets the Vector containing the kinetic parameter of the Model (refering to the child model).\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-Models.\-py\end{DoxyCompactItemize}

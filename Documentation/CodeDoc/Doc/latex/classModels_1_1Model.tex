@@ -1,0 +1,176 @@
+\hypertarget{classModels_1_1Model}{\section{\-Models.\-Model \-Class \-Reference}
+\label{classModels_1_1Model}\index{\-Models.\-Model@{\-Models.\-Model}}
+}
+\-Inheritance diagram for \-Models.\-Model\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=0.777778cm]{classModels_1_1Model}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{classModels_1_1Model_a317ed848b969dbe3a96dd05e8b771900}{plt\-Yield}
+\item 
+def \hyperlink{classModels_1_1Model_aa35c741babf8f141df48c4021e0664e4}{plt\-Rate}
+\item 
+def \hyperlink{classModels_1_1Model_a3396d6ca1a7b7d66e55ada8c3c7a509e}{max\-Length\-Of\-Vectors}
+\item 
+def \hyperlink{classModels_1_1Model_ae404a691e48bfe4eafcdfdd09f1dae48}{plot}
+\item 
+def \hyperlink{classModels_1_1Model_a010945ed2adff59a7a5fce36025e7a97}{derive\-C}
+\item 
+def \hyperlink{classModels_1_1Model_a7c9280e33f9e0d46703cebc131008c65}{calc\-Rate}
+\item 
+def \hyperlink{classModels_1_1Model_a818f207e2a4bd0e9a3720ca611960e5a}{set\-Param\-Vector}
+\item 
+def \hyperlink{classModels_1_1Model_a13c76a0fe24d43cdc4d21fbc73fa96fa}{\-Param\-Vector}
+\item 
+def \hyperlink{classModels_1_1Model_ad3e627980d9e781bf7b2c9ff900ca06b}{\-Error\-Yield}
+\item 
+def \hyperlink{classModels_1_1Model_a3050eb39341f318d8d88b172f88bd240}{\-Error\-Rate}
+\item 
+def \hyperlink{classModels_1_1Model_adcb987bccae63a742490ea1e6d5f7a74}{mk\-Simple\-Result\-Files}
+\item 
+def \hyperlink{classModels_1_1Model_ac28252ae5cd6b5ecd4c5d006a0e6567d}{set\-Dt4\-Intergrate}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classModels_1_1Model_aa61209c0f4ac8888bc962fee2e8d688e}{{\bfseries const\-Dt}}\label{classModels_1_1Model_aa61209c0f4ac8888bc962fee2e8d688e}
+
+\item 
+\hypertarget{classModels_1_1Model_a3f71983de5f8b86bec47929213b900ec}{{\bfseries const\-Dt\-Vec}}\label{classModels_1_1Model_a3f71983de5f8b86bec47929213b900ec}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\begin{DoxyVerb}Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE. If set TimeVectorToInterplt=[t0,t1,t2,t3,t4] (t: floats) then is the yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4], linear interploated.\end{DoxyVerb}
+ 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classModels_1_1Model_a7c9280e33f9e0d46703cebc131008c65}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!calc\-Rate@{calc\-Rate}}
+\index{calc\-Rate@{calc\-Rate}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{calc\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-calc\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{time, }
+\item[{}]{\-T, }
+\item[{}]{\-Name}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a7c9280e33f9e0d46703cebc131008c65}
+\begin{DoxyVerb}Generates the Rates using the yields vector and a CDS.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a010945ed2adff59a7a5fce36025e7a97}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!derive\-C@{derive\-C}}
+\index{derive\-C@{derive\-C}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{derive\-C}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-derive\-C} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{y\-Vector}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a010945ed2adff59a7a5fce36025e7a97}
+\begin{DoxyVerb}Returns a CDS of the inputted yVector.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a3050eb39341f318d8d88b172f88bd240}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!\-Error\-Rate@{\-Error\-Rate}}
+\index{\-Error\-Rate@{\-Error\-Rate}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{\-Error\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-Error\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a3050eb39341f318d8d88b172f88bd240}
+\begin{DoxyVerb}Returns the absolute deviation per point between the fitted and the original rate curve.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_ad3e627980d9e781bf7b2c9ff900ca06b}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!\-Error\-Yield@{\-Error\-Yield}}
+\index{\-Error\-Yield@{\-Error\-Yield}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{\-Error\-Yield}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-Error\-Yield} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_ad3e627980d9e781bf7b2c9ff900ca06b}
+\begin{DoxyVerb}Returns the absolute deviation per point between the fitted and the original yield curve.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a3396d6ca1a7b7d66e55ada8c3c7a509e}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!max\-Length\-Of\-Vectors@{max\-Length\-Of\-Vectors}}
+\index{max\-Length\-Of\-Vectors@{max\-Length\-Of\-Vectors}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{max\-Length\-Of\-Vectors}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-max\-Length\-Of\-Vectors} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a3396d6ca1a7b7d66e55ada8c3c7a509e}
+\begin{DoxyVerb}Returns the minimum lenght of a all vectors from the several runs.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_adcb987bccae63a742490ea1e6d5f7a74}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!mk\-Simple\-Result\-Files@{mk\-Simple\-Result\-Files}}
+\index{mk\-Simple\-Result\-Files@{mk\-Simple\-Result\-Files}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{mk\-Simple\-Result\-Files}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-mk\-Simple\-Result\-Files} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_adcb987bccae63a742490ea1e6d5f7a74}
+\begin{DoxyVerb}Simple result file if no fitting is carried out. Writes only the transformed results into a file.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a13c76a0fe24d43cdc4d21fbc73fa96fa}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!\-Param\-Vector@{\-Param\-Vector}}
+\index{\-Param\-Vector@{\-Param\-Vector}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{\-Param\-Vector}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-Param\-Vector} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a13c76a0fe24d43cdc4d21fbc73fa96fa}
+\begin{DoxyVerb}Returns the Vector containing the kinetic parameter of the Model (refering to the child model).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_ae404a691e48bfe4eafcdfdd09f1dae48}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!plot@{plot}}
+\index{plot@{plot}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{plot}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-plot} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{\-Species}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_ae404a691e48bfe4eafcdfdd09f1dae48}
+\begin{DoxyVerb}Plot the yield and the rates over time with two curves: one is the original data, the other the fitting curve. Also file 'PyrolysisProgramName-Species.out' (e.g. 'CPD-CO2.out') containing the time (s), yields (kg/kg), rates (kg/(kg s)).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_aa35c741babf8f141df48c4021e0664e4}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!plt\-Rate@{plt\-Rate}}
+\index{plt\-Rate@{plt\-Rate}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{plt\-Rate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-plt\-Rate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{x\-Value\-To\-Plot, }
+\item[{}]{y\-Value\-To\-Plot}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_aa35c741babf8f141df48c4021e0664e4}
+\begin{DoxyVerb}Plots the rates (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a317ed848b969dbe3a96dd05e8b771900}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!plt\-Yield@{plt\-Yield}}
+\index{plt\-Yield@{plt\-Yield}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{plt\-Yield}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-plt\-Yield} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{fgdvc\-\_\-list, }
+\item[{}]{x\-Value\-To\-Plot, }
+\item[{}]{y\-Value\-To\-Plot}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a317ed848b969dbe3a96dd05e8b771900}
+\begin{DoxyVerb}Plots the yields (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot).\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_ac28252ae5cd6b5ecd4c5d006a0e6567d}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!set\-Dt4\-Intergrate@{set\-Dt4\-Intergrate}}
+\index{set\-Dt4\-Intergrate@{set\-Dt4\-Intergrate}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{set\-Dt4\-Intergrate}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-set\-Dt4\-Intergrate} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{constant\-Dt}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_ac28252ae5cd6b5ecd4c5d006a0e6567d}
+\begin{DoxyVerb}constantDt allows the option to define numerical time step to solve the ODE. The outputted results ever equal the imported time list (when applying method calcMass Time = [t0,t1,t2,t3,t4]. If these time steps are too large, then is this defined dt used to solve the ODE and the results are linear interploated that way that they correspond to the imported time vector. To reset it, just set constantDt to False.\end{DoxyVerb}
+ \hypertarget{classModels_1_1Model_a818f207e2a4bd0e9a3720ca611960e5a}{\index{\-Models\-::\-Model@{\-Models\-::\-Model}!set\-Param\-Vector@{set\-Param\-Vector}}
+\index{set\-Param\-Vector@{set\-Param\-Vector}!Models::Model@{\-Models\-::\-Model}}
+\subsubsection[{set\-Param\-Vector}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Models.\-Model.\-set\-Param\-Vector} (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{\-Parameter\-List}
+\end{DoxyParamCaption}
+)}}\label{classModels_1_1Model_a818f207e2a4bd0e9a3720ca611960e5a}
+\begin{DoxyVerb}Sets the Vector containing the kinetic parameter of the Model (refering to the child model).\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-Models.\-py\end{DoxyCompactItemize}

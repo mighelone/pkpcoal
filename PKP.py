@@ -1,10 +1,18 @@
 import sys
 sys.path.append('src')
+import os
 #
+os.environ['QT_API'] = 'pyside'
+import matplotlib
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
+
 import CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
 import FGDVC_SetAndLaunch       #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
+import PCCL_SetAndLaunch       #writes PCCL instruction file and alunches the exe
 import FGDVC_Result             #contains the information of the FG-DVC output file
-import CPD_Result               #contains the information of the FG-DVC output file
+import CPD_Result               #contains the information of the CPD output file
+import PCCL_Result               #contains the information of the PCCL output file
 import Fitter                   #The optimizer class
 import Models                   #the models like Arrhenius or Kobayashi
 import FitInfo                  #supports the Fitting with the yield information
@@ -12,16 +20,11 @@ import Compos_and_Energy        #Species balance and energy balance for CPD and 
 import InformationFiles         #reads the user input files, writes FG-DVC coalsd.exe coal generation file
 import GlobalOptParam           #contains the Information of the Number Of Runs for the Global Optimum search
 import Evolve                   #contains the generic algortihm optimizer
-import os
 import numpy as np
 import platform
 import shutil
 #
 #
-#Use Global Optimizer? select 'Evolve' for a generic algorithm or 'ManyPoints' to use many starting points combined with a local optimization
-UseGlobalOpt= 'Evolve'
-#UseGlobalOpt= False
-#UseGlobalOpt= GlobalOptParam.GlobalOptimizeMethod
 #Which operating Sytem?
 oSystem=platform.system()
 #Directories:
@@ -90,7 +93,6 @@ class MainProcess(object):
         CPDInput=InformationFiles.ReadFile(workingDir+'CPD.inp')
         self.CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
         self.CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
-        self.CPD_ArrhSpec=CPDInput.getText(InformationFiles.M_selArrhSpec)
         self.CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
         self.CPDdt[0]=(CPDInput.getValue(InformationFiles.MC_dt[0]))
         self.CPDdt[1]=(CPDInput.getValue(InformationFiles.MC_dt[1]))
@@ -102,11 +104,25 @@ class MainProcess(object):
         FGDVCInput=InformationFiles.ReadFile(workingDir+'FGDVC.inp')
         self.FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
         self.FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
-        self.FG_ArrhSpec=FGDVCInput.getText(InformationFiles.M_selArrhSpec)
         self.FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
         self.FG_MainDir=FGDVCInput.getText(InformationFiles.MF_dir[0])
         self.FG_DirOut=FGDVCInput.getText(InformationFiles.MF_dir[1])
         self.FG_TarCacking=FGDVCInput.getValue(InformationFiles.MF_TarCr)
+        #
+        #
+        #PC Coal Lab Properties:
+        #
+        print 'Reading PCCL.inp ...'
+        PCCLInput=InformationFiles.ReadFile(workingDir+'PCCL.inp')
+        self.PCCL_select=PCCLInput.UsePyrolProgr(InformationFiles.MP_sel)
+        self.PCCL_FittingKineticParameter_Select=PCCLInput.Fitting(InformationFiles.M_selFit)
+        self.PCCL_Path=PCCLInput.getText(InformationFiles.MP_dir)
+        self.PCCL_Exe=PCCLInput.getText(InformationFiles.MP_exe)
+        try:
+            self.PCCL_CoalCalFactor=float(PCCLInput.getText(InformationFiles.MP_CoalCal))
+        except ValueError:
+            self.PCCL_CoalCalFactor=False
+        self.PCCL_ParticleSize=PCCLInput.getValue(InformationFiles.MP_partSize)
         #
         #
         #Operating Condition File:
@@ -115,6 +131,7 @@ class MainProcess(object):
         OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
         self.CPD_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
         self.FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
+        self.ArrhSpec=OpCondInp.getText(InformationFiles.M_selArrhSpec)
         #Number of FG-DVC/CPD/PCCL runs:
         self.NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
         self.CPD_TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
@@ -150,45 +167,75 @@ class MainProcess(object):
         if ((self.FG_select==True) and (self.FG_dt<1e-4)):
             print "Please select for FG-DVC a time step greather equal 1e-4 in 'OperCond.inp'. FG-DVC would not be able to read the time history file for a dt<1e-4."
             sys.exit()
-            #
-            #
+
+    def OptGradBased(self,Fit,ParameterVecInit,FinalYield,Species):
+        """Starts a gradient Based Optimization. Sets the Final Fit result as the ParamVector in the Kinetic Model. Input are the Fit (Result Objects of the Detailed Models), the Parameter to initialize and the Final Yield (all dependent on the kinetic model). For Kobayashi Model set Final Yield to False (independent), for all other set a value. It will be excluded from the optimization. SPecies is the Species Index."""
+        LS=Fitter.LeastSquarsEstimator()
+        LS.setOptimizer(GlobalOptParam.selectedGradBasedOpt)
+        LS.setTolerance(GlobalOptParam.Tolerance)
+        LS.setMaxIter(GlobalOptParam.MaxIter)
+        LS.setWeights(self.WeightY,self.WeightR)
+        LS.setFinalYield(FinalYield)
+        self.KinModel.setParamVector(LS.estimate_T(Fit,self.KinModel,ParameterVecInit,Species))
+	print 'Final error=',LS.Deviation()
+
+    def OptGenAlgBased(self,Fit,ParameterVecInit,ParameterVecMin,ParameterVecMax,Species):
+        """Starts a genetic algorithm and afterwards a gradient Based optimization. Sets the Final Fit result as the ParamVector in the Kinetic Model. Input are the Fit (Result Objects of the Detailed Models), the Parameter to initialize, the two Parameter vectors defining the range of the results and the Species index."""
+        GenAlg=Evolve.GenericOpt(self.KinModel,Fit,Species)
+        GenAlg.setWeights(self.WeightY,self.WeightR)
+        GenAlg.setParamRanges(ParameterVecInit,ParameterVecMin,ParameterVecMax)
+        GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
+        GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
+        self.KinModel.setParamVector(GenAlg.mkResults())
+        # afterwards grad based optimization
+        self.OptGradBased(Fit,ParameterVecInit,False,Species)
+
     def MakeResults_CR(self,PyrolProgram,File,Fit):
         """Generates the results for constant Rate."""
-    #Array for the comparison of the sum of the individual species(t) with the (1-solid(t)); this part ([0]) has to be modified, when the assumption of same length of the array (e.g. when different final times are possible) is refused
-#    SumSingleYieldsCalc=np.zeros([len(Fit[0].Yield('Time')),NrOfRuns]) #Array initialized for the sum of the single yields (calculated)
-#    SumSingleYields=np.zeros([len(Fit[0].Yield('Time')),NrOfRuns])  #Array initialized for the sum of the single yields (CPD output)
-#    SolidYieldsCalc=np.zeros([len(Fit[0].Yield('Time')),NrOfRuns])     #Array initialized for the yields of the Solids (calculated)
-#    SolidYields=np.zeros([len(Fit[0].Yield('Time')),NrOfRuns])     #Array initialized for the yields of the Solids (CPD output)
-    ##CONSTANT RATE
-#    if (CPD_FittingKineticParameter_Select=='constantRate' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='constantRate' and PyrolProgram=='FGDVC'): #CR means ConstantRate
-        LS=Fitter.LeastSquarsEstimator() #LS means LeastSquares
-        LS.setOptimizer('fmin')
-        LS.setTolerance(1.e-18)
-        LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_const_rate.txt', 'w')
-        outfile.write("Species   k [1/s]  t_start [s] FinalYield\n\n")
-        for Spec in range(2,len(Fit[0].SpeciesNames()),1):
-            if Fit[0].SpeciesName(Spec) not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append(Fit[0].SpeciesName(Spec))
+        outfile.write("Species     k [1/s]     t_start [s]   FinalYield\n\n")
+        # init model
+        ParamInit = GlobalOptParam.EvACRInit
+        self.KinModel=Models.ConstantRateModel(ParamInit)
+        if PyrolProgram=='PCCL':
+                self.KinModel.setDt4Intergrate(self.FG_dt)
+        # uses for optimization gradient based (LS) optimizer if NrOfRuns is one ; for more runs use Evolutionary algorithm (GenAlg; global optimum)
+        if self.NrOfRuns == 1:
+            for Spec in range(2,len(Fit[0].SpeciesNames()),1):
+                #
+                if Fit[0].SpeciesName(Spec) not in self.SpeciesToConsider:
+                    self.SpeciesToConsider.append(Fit[0].SpeciesName(Spec))
+                #
+                self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Spec)[-1],Spec)
+                self.KinModel.plot(Fit,Spec)
+                Solution = self.KinModel.ParamVector()
+                if np.sum(Solution)!=np.sum(ParamInit):# if true nothing was optimized, no result to show
+                    outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+'%8.4f  %8.4f  %8.4f  ' %(Solution[0],Solution[1],Solution[2])+'\n')
+        else:
+            if len(ParamInit) == 2:
+                ParamInit.append(0.0)
+            ParamMin = GlobalOptParam.EvACRMin
+            if len(ParamMin) == 2:
+                ParamMin.append(0.0)
+            ParamMax = GlobalOptParam.EvACRMax
+            if len(ParamMax) == 2:
+                ParamMax.append(0.0)
+            for Spec in range(2,len(Fit[0].SpeciesNames()),1):
+                # max Yield, min Yield
+                m_final_predictionAll = []
+                for i in range(len(Fit)):
+                    m_final_predictionAll.append(Fit[i].Yield(Spec)[-1])
+                ParamInit[2]= (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+                ParamMin[2] = ( min(m_final_predictionAll) )
+                ParamMax[2] = ( max(m_final_predictionAll) )
+                #
+                self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Spec)
+                Solution = self.KinModel.ParamVector()
+                self.KinModel.plot(Fit,Spec)
+                if np.sum(Solution)!=np.sum(ParamInit):#if True nothing was optimized
+                    outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+'%8.4f  %8.4f  %8.4f  ' %(Solution[0],Solution[1],Solution[2])+'\n')
             #
-            m_final_prediction=Fit[0].Yield(Spec)[-1]
-            PredictionVector=[50,0.01,m_final_prediction] #first argument is k, second is t_start
-            CR=Models.ConstantRateModel(PredictionVector)
             #
-            CR.setParamVector(PredictionVector)
-            CR.setParamVector(LS.estimate_T(Fit,CR,PredictionVector,Spec))
-            CR.plot(Fit,Spec)
-            Solution=CR.ParamVector()
-            if np.sum(Solution)!=np.sum(PredictionVector):#str('%7.5f\n' %self.Yields[self.SpeciesIndex('Solid')])
-                outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+'%8.4f  %8.4f  %8.4f  ' %(Solution[0],Solution[1],Solution[2])+'\n')
-#            #for the comparison of the species sum with (1-Solid)
-#            for runNr in range(NrOfRuns):
-#                if Fit[runNr].SpeciesName(Spec)=='Solid':
-#                    SolidYieldsCalc[:,runNr]+=CRCPD.calcMass(Fit[runNr],Fit[runNr].Time(),Fit[runNr].Interpolate('Temp'),Spec)
-#                    SolidYields[:,runNr]+=Fit[runNr].Yield(Spec)
-#                elif Fit[runNr].SpeciesName(Spec)!='Solid' and Fit[runNr].SpeciesName(Spec)!='Temp' and Fit[runNr].SpeciesName(Spec)!='Time' and Fit[runNr].SpeciesName(Spec)!='Gas' and Fit[runNr].SpeciesName(Spec)!='Total':
-#                    SumSingleYieldsCalc[:,runNr]+=CRCPD.calcMass(Fit[runNr],Fit[runNr].Time(),Fit[runNr].Interpolate('Temp'),Spec)
-#                    SumSingleYields[:,runNr]+=Fit[runNr].Yield(Spec)
         outfile.close()
         if oSystem=='Linux':
             shutil.move(PyrolProgram+'-Results_const_rate.txt','Result/'+PyrolProgram+'-Results_constantRate.txt')
@@ -196,49 +243,19 @@ class MainProcess(object):
             shutil.move(PyrolProgram+'-Results_const_rate.txt','Result\\'+PyrolProgram+'-Results_constantRate.txt')
         else:
             print "The name of the operating system couldn't be found."
-#        Fit[0].plt_InputVectors(Fit[0].Time(),1.-SolidYieldsCalc,1.-SolidYields,SumSingleYieldsCalc,SumSingleYields,'1-Solid; fitted','1-Solid; CPD output','Sum Yields; fitted','Sum Yields; CPD output')
-#
-#
+
+
     def MakeResults_Arrh(self,PyrolProgram,File,Fit):
         """Generates the results for Arrhenius Rate."""
-    ##ARRHENIUS RATE
-#    elif (CPD_FittingKineticParameter_Select=='Arrhenius' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='Arrhenius' and PyrolProgram=='FGDVC'): #Arr means Arrhenius
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-7)
-        LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusRate.txt', 'w')
-        outfile.write("Species A [1/s]         b       E_a [K]    FinalYield\n\n")
-        #select one of the follwoing notations: 
-        #Arr=Models.ArrheniusModel(PredictionV0)
-        #Arr=Models.ArrheniusModelAlternativeNotation1(PredictionV1)
-        #######
+        outfile.write("Species                         A [1/s]         b               E_a [K]    FinalYield\n\n")
         #makes Species list which contains alls species to fit:
-        SpeciesList=[]
-        if self.CPD_ArrhSpec=='Total' and PyrolProgram=='CPD':
+        SpeciesList=[] # List containing the Species Index to fit
+        if self.ArrhSpec=='Total':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             if 'Total' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Total')
-        elif self.CPD_ArrhSpec=='MainSpecies' and PyrolProgram=='CPD':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-            if 'Tar' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Tar')
-            if 'Gas' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Gas')
-        elif self.CPD_ArrhSpec=='allSpecies' and PyrolProgram=='CPD':
-            for i in range(2,len(Fit[0].SpeciesNames()),1):
-                if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
-                SpeciesList.append(i)
-        elif self.FG_ArrhSpec=='Total' and PyrolProgram=='FGDVC':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-        elif self.FG_ArrhSpec=='MainSpecies' and PyrolProgram=='FGDVC':
+        elif self.ArrhSpec=='MainSpecies':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
             SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
@@ -248,7 +265,7 @@ class MainProcess(object):
                 self.SpeciesToConsider.append('Tar')
             if 'Gas' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Gas')
-        elif self.FG_ArrhSpec=='allSpecies' and PyrolProgram=='FGDVC':
+        elif self.ArrhSpec=='allSpecies':
             for i in range(2,len(Fit[0].SpeciesNames()),1):
                 if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
                     self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
@@ -258,61 +275,41 @@ class MainProcess(object):
             #
             m_final_prediction=Fit[0].Yield(Species)[-1]
             PredictionV0=[0.86e15,0.01,27700,m_final_prediction]  #for Standard Arrhenius
-#            PredictionV1=[10.,-20.,m_final_prediction]         #for Arrhenius notation #1
-#            PredictionV2=[10.,-18.,m_final_prediction]           #for Arrhenius notation #2
-            Arr=Models.ArrheniusModel(PredictionV0)
+            #
+            self.KinModel=Models.ArrheniusModel(PredictionV0)
+            if PyrolProgram=='PCCL':
+                self.KinModel.setDt4Intergrate(self.FG_dt)
             #
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Arr,Fit)
-                m_final_predictionAll=[]
+            ParamInit = GlobalOptParam.EvAArrhInit
+            if len(ParamInit) == 4:
+                ParamInit.pop(-1)
+            #
+            if self.NrOfRuns == 1:
+                self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
+            else:
+                # init the Parameter for global optimization
+                m_final_predictionAll=[] # final yields
                 for i in range(len(Fit)):
                     m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.ArrhIndexToOptimize,[[min(m_final_predictionAll),max(m_final_predictionAll)]],GlobalOptParam.ArrhNrOfRuns)
+                ParamMin = GlobalOptParam.EvAArrhMin
+                ParamMax = GlobalOptParam.EvAArrhMax
+                if len(ParamMin) == 3:
+                    ParamMin.append(0.0)
+                if len(ParamMax) == 3:
+                    ParamMax.append(0.0)
+                if len(ParamInit) == 3:
+                    ParamInit.append(0.0)
+                ParamInit[3] = (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+                ParamMin[3] = (min(m_final_predictionAll))
+                ParamMax[3] = (max(m_final_predictionAll))
                 #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
-            elif UseGlobalOpt=='Evolve':
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
-                GAArrhMinB = GlobalOptParam.EvAArrhMin[1]
-                GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
-                GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
-                GAArrhMaxB = GlobalOptParam.EvAArrhMax[1]
-                GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
-                GAArrhInit=GlobalOptParam.EvAArrhInit
-                if len(GAArrhInit)==3:
-                    GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
-                else:
-                    GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-                GenAlg.setParamRanges(GAArrhInit,[GAArrhMinA,GAArrhMinB,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxB,GAArrhMaxE,max(m_final_predictionAll)])
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                Arr.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            elif UseGlobalOpt==False:
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            Arr.plot(Fit,Species)
-            Solution=Arr.ParamVector()
-            if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
+                self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
+            #
+            self.KinModel.plot(Fit,Species)
+            Solution=self.KinModel.ParamVector()
+            if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
                 outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %6.4f  %11.4f  %7.4f  ' %(Solution[0],Solution[1],Solution[2],Solution[3])+'\n')
-            #for the comparison of the species sum with (1-Solid)
-#            for runNr in range(NrOfRuns):
-#                if Fit[runNr].SpeciesName(Species)=='Solid':
-#                    SolidYieldsCalc[:,runNr]+=ArrPCPD.calcMass(Fit[runNr],Fit[runNr].Time()[:len(Fit[0].Yield('Time'))],Fit[runNr].Interpolate('Temp'),Species)
-#                    SolidYields[:,runNr]+=Fit[runNr].Yield(Species)[:len(Fit[0].Yield('Time'))],Fit[runNr]
-#                elif Fit[runNr].SpeciesName(Species)!='Solid' and Fit[runNr].SpeciesName(Species)!='Temp' and Fit[runNr].SpeciesName(Species)!='Time' and Fit[runNr].SpeciesName(Species)!='Gas' and Fit[runNr].SpeciesName(Species)!='Total':
-#                    SumSingleYieldsCalc[:,runNr]+=ArrPCPD.calcMass(Fit[runNr],Fit[runNr].Time()[:len(Fit[0].Yield('Time'))],Fit[runNr].Interpolate('Temp'),Species)
-#                    SumSingleYields[:,runNr]+=Fit[runNr].Yield(Species)[:len(Fit[0].Yield('Time'))],Fit[runNr]
         outfile.close()
         if oSystem=='Linux':
             shutil.move(PyrolProgram+'-Results_ArrheniusRate.txt','Result/'+PyrolProgram+'-Results_Arrhenius.txt')
@@ -320,46 +317,19 @@ class MainProcess(object):
             shutil.move(PyrolProgram+'-Results_ArrheniusRate.txt','Result\\'+PyrolProgram+'-Results_Arrhenius.txt')
         else:
             print "The name of the operating system couldn't be found."
-#        Fit[0].plt_InputVectors(Fit[0].Time(),1.-SolidYieldsCalc,1.-SolidYields,SumSingleYieldsCalc,SumSingleYields,'1-Solid; fitted','1-Solid; CPD output','Sum Yields; fitted','Sum Yields; CPD output')
-#
-#
+
+
     def MakeResults_ArrhNoB(self,PyrolProgram,File,Fit):
         """Generates the results for Arrhenius Rate with no correction term T**b."""
-#    elif (CPD_FittingKineticParameter_Select=='ArrheniusNoB' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='ArrheniusNoB' and PyrolProgram=='FGDVC'): #Arr means Arrhenius
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-7)
-        LS.setWeights(self.WeightY,self.WeightR)
         outfile = open(PyrolProgram+'-Results_ArrheniusNoBRate.txt', 'w')
-        outfile.write("Species A [1/s]         E_a [K]   FinalYield\n\n")
-        #######
-        ##The single species:
+        outfile.write("Species               A [1/s]                E_a [K]      FinalYield\n\n")
         #makes Species list which contains alls species to fit:
         SpeciesList=[]
-        if self.CPD_ArrhSpec=='Total' and PyrolProgram=='CPD':
+        if self.ArrhSpec=='Total':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             if 'Total' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Total')
-        elif self.CPD_ArrhSpec=='MainSpecies' and PyrolProgram=='CPD':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
-            SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-            if 'Tar' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Tar')
-            if 'Gas' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Gas')
-        elif self.CPD_ArrhSpec=='allSpecies' and PyrolProgram=='CPD':
-            for i in range(2,len(Fit[0].SpeciesNames()),1):
-                if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
-                SpeciesList.append(i)
-        elif self.FG_ArrhSpec=='Total' and PyrolProgram=='FGDVC':
-            SpeciesList.append(Fit[0].SpeciesIndex('Total'))
-            if 'Total' not in self.SpeciesToConsider:
-                self.SpeciesToConsider.append('Total')
-        elif self.FG_ArrhSpec=='MainSpecies' and PyrolProgram=='FGDVC':
+        elif self.ArrhSpec=='MainSpecies':
             SpeciesList.append(Fit[0].SpeciesIndex('Total'))
             SpeciesList.append(Fit[0].SpeciesIndex('Tar'))
             SpeciesList.append(Fit[0].SpeciesIndex('Gas'))
@@ -369,7 +339,7 @@ class MainProcess(object):
                 self.SpeciesToConsider.append('Tar')
             if 'Gas' not in self.SpeciesToConsider:
                 self.SpeciesToConsider.append('Gas')
-        elif self.FG_ArrhSpec=='allSpecies' and PyrolProgram=='FGDVC':
+        elif self.ArrhSpec=='allSpecies':
             for i in range(2,len(Fit[0].SpeciesNames()),1):
                 if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
                     self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
@@ -377,49 +347,46 @@ class MainProcess(object):
         ##The single species:
         for Species in SpeciesList:
             m_final_prediction=Fit[0].Yield(Species)[-1]
-            PredictionV0=[0.86e15,27700,m_final_prediction]  #for Standard Arrhenius
-            Arr=Models.ArrheniusModelNoB(PredictionV0)
+            PredictionV0=[0.86e11,17700,m_final_prediction]  #for Standard Arrhenius
+            self.KinModel=Models.ArrheniusModelNoB(PredictionV0)
+            if PyrolProgram=='PCCL':
+                self.KinModel.setDt4Intergrate(self.FG_dt)
             #
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Arr,Fit)
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.ArrhNobIndexToOptimize,[[min(m_final_predictionAll),max(m_final_predictionAll)]],GlobalOptParam.ArrhNoBNrOfRuns)
+            # gets final yields for all runs
+            m_final_predictionAll=[]
+            for i in range(len(Fit)):
+                m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+            ParamInit = GlobalOptParam.EvAArrhInit
+            if len(ParamInit) == 4:
+                ParamInit.pop(-1)
+            if len(ParamInit) == 3:
+                ParamInit.pop(1)
+            # optimization procedure
+            if self.NrOfRuns == 1:
+                self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
+            else:
+                ParamMin = GlobalOptParam.EvAArrhMin
+                ParamMax = GlobalOptParam.EvAArrhMax
+                if len(ParamMin) == 3:
+                    ParamMin.pop(1)
+                    ParamMin.append(0.0)
+                if len(ParamMax) == 3:
+                    ParamMax.pop(1)
+                    ParamMax.append(0.0)
+                if len(ParamInit) == 3: # if final yield was appended
+                    ParamMax.pop(-1)
+                if len(ParamInit) == 2:
+                    ParamInit.append(0.0)
+                ParamInit[2] = (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+                ParamMin[2] = (min(m_final_predictionAll))
+                ParamMax[2] = (max(m_final_predictionAll))
                 #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
-                m_final_predictionAll=[]
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-                GenAlg=Evolve.GenericOpt(Arr,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                GAArrhMinA = GlobalOptParam.EvAArrhMin[0]
-                GAArrhMinE = GlobalOptParam.EvAArrhMin[2]
-                GAArrhMaxA = GlobalOptParam.EvAArrhMax[0]
-                GAArrhMaxE = GlobalOptParam.EvAArrhMax[2]
-                GAArrhInit=GlobalOptParam.EvAArrhInit
-                if len(GAArrhInit)==3:
-                    GAArrhInit.append((max(m_final_predictionAll)+min(m_final_predictionAll))/2.)
-                else:
-                    GAArrhInit[3]=(max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-                GenAlg.setParamRanges(GAArrhInit.pop(1),[GAArrhMinA,GAArrhMinE,min(m_final_predictionAll)],[GAArrhMaxA,GAArrhMaxE,max(m_final_predictionAll)])
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                Arr.setParamVector(GenAlg.mkResults())
+                self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
                 #
-                #use afterwards local optimization
-                #Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            if UseGlobalOpt==False:
-                Arr.setParamVector(LS.estimate_T(Fit,Arr,Arr.ParamVector(),Species))
-            Solution=Arr.ParamVector()
-            Arr.plot(Fit,Species)
-            if np.sum(Arr.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
+            Solution=self.KinModel.ParamVector()
+            self.KinModel.plot(Fit,Species)
+            if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
                 outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %7.4f  ' %(Solution[0],Solution[1],Solution[2])+'\n')
         outfile.close()
         if oSystem=='Linux':
@@ -432,50 +399,27 @@ class MainProcess(object):
     #
     def MakeResults_Kob(self,PyrolProgram,File,Fit):
         """Generates the results for Kobayashi Rate."""
-    ##KOBAYASHI RATE
-#    elif (CPD_FittingKineticParameter_Select=='Kobayashi' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='Kobayashi' and PyrolProgram=='FGDVC'): #Kob means Kobayashi
-#        PredictionVKob2=[10,-16,8,-20]           #for Arrhenius notation #2 [b11,b21,b12,b22] with the second indice as the reaction
-#        PredictionVKob0=[2e5,1.046e8/8314.33,1.3e7,1.674e8/8314.33,PAVM_daf/100.]
-# 	PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33]#,PAVM_daf/100.]
         PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33,0.4,0.9]
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-9)
-        LS.setMaxIter(2000)
-        LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_KobayashiRate.txt', 'w')
-        outfile.write("Species A1 [1/s]         E_a1 [K]    A2 [1/s]      E_a2 [K]   alpha1  alpha2\n\n")
-        Kob=Models.Kobayashi(PredictionVKob0)
+        outfile.write("Species              A1 [1/s]              E_a1 [K]             A2 [1/s]             E_a2 [K]      alpha1     alpha2\n\n")
+        self.KinModel=Models.Kobayashi(GlobalOptParam.EvAKobInit) #(PredictionVKob0)
+        if PyrolProgram=='PCCL':
+                self.KinModel.setDt4Intergrate(self.FG_dt)
         #######
         ##The single species:
         if 'Total' not in self.SpeciesToConsider:
             self.SpeciesToConsider.append('Total')
         for Species in [Fit[0].SpeciesIndex('Total')]:
+            # optimization procedure
             print Fit[0].SpeciesName(Species)
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,Kob,Fit)
-                LS.setTolerance(1e-2)
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.KobIndexToOptimize,GlobalOptParam.KobBoundaries,GlobalOptParam.KobNrOfRuns)
-                #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
-                GenAlg=Evolve.GenericOpt(Kob,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                GenAlg.setParamRanges(GlobalOptParam.EvAKobInit,GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax)
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                Kob.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-#                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
-            if UseGlobalOpt==False:
-                Kob.setParamVector(LS.estimate_T(Fit,Kob,Kob.ParamVector(),Species))
-            Solution=Kob.ParamVector()
+            if self.NrOfRuns == 1:
+                self.OptGradBased(Fit,self.KinModel.ParamVector(),False,Species)
+            else:
+                self.OptGenAlgBased(Fit,self.KinModel.ParamVector(),GlobalOptParam.EvAKobMin,GlobalOptParam.EvAKobMax,Species)
             #
-            Kob.plot(Fit,Species)
+            Solution=self.KinModel.ParamVector()
+            #
+            self.KinModel.plot(Fit,Species)
             outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %.6e  %11.4f  %6.4f  %6.4f  ' %(Solution[0],Solution[1],Solution[2],Solution[3],Solution[4],Solution[5])+'\n')
         outfile.close()
         if oSystem=='Linux':
@@ -490,16 +434,22 @@ class MainProcess(object):
         """Generates the results for DAEM model."""
 #    elif (CPD_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='FGDVC'):
         PredictionDAEM=[2e10,20e3,5e3,0.5]
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer('fmin')#('leastsq')   # 'leastsq' often faster, but if this does not work: 'fmin' is more reliable
-        LS.setTolerance(1.e-9)
-        LS.setMaxIter(2000)
-        LS.setWeights(1.0,1.0)
         outfile = open(PyrolProgram+'-Results_DAEM.txt', 'w')
-        outfile.write("Species   A1 [1/s]      E_a1 [K]     sigma [K] Final Yield\n\n")
-        DAEM=Models.DAEM(PredictionDAEM)
-        DAEM.setNrOfActivationEnergies(GlobalOptParam.NrOFActivtionEnergies)
+        outfile.write("Species                  A1 [1/s]               E_a1 [K]          sigma [K]   Final Yield\n\n")
+        self.KinModel=Models.DAEM(PredictionDAEM)
+        self.KinModel.setNrOfActivationEnergies(GlobalOptParam.NrOFActivtionEnergies)
+        if PyrolProgram=='PCCL':
+                self.KinModel.setDt4Intergrate(self.FG_dt)
         #######
+        ParamInit = GlobalOptParam.EvADAEMInit
+        if len(ParamInit) == 4:
+                ParamInit.pop(-1)
+        ParamMin = GlobalOptParam.EvADAEMMin
+        if len(ParamMin) == 3:
+            ParamMin.append(0.0)
+        ParamMax = GlobalOptParam.EvADAEMMax
+        if len(ParamMax) == 3:
+            ParamMax.append(0.0)
         ##The single species:
         if 'Total' not in self.SpeciesToConsider:
             self.SpeciesToConsider.append('Total')
@@ -508,38 +458,20 @@ class MainProcess(object):
             m_final_predictionAll=[]
             for i in range(len(Fit)):
                 m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-            if UseGlobalOpt=='ManyPoints':
-                #GlobalOptimize:
-                GlobalMin=Fitter.GlobalOptimizer(LS,DAEM,Fit)
-                LS.setTolerance(1e-2)
-                DAEMBdr=GlobalOptParam.DAEMBoundaries
-                DAEMBdr.append([min(m_final_predictionAll),max(m_final_predictionAll)])
-                ParamGlobalMin=GlobalMin.GenerateOptima(Species,GlobalOptParam.DAEMIndexToOptimize,DAEMBdr,GlobalOptParam.DAEMNrOfRuns)
-                #
-                LS.setTolerance(1.e-7)
-                print 'Final optimization Run:'
-                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,ParamGlobalMin,Species))
-            if UseGlobalOpt=='Evolve':
-                GenAlg=Evolve.GenericOpt(DAEM,Fit,Species)
-                GenAlg.setWeights(GlobalOptParam.EvAWeightY,GlobalOptParam.EvAWeightY)
-                EvADAEMInit=GlobalOptParam.EvADAEMInit
-                EvADAEMMin=GlobalOptParam.EvADAEMMin
-                EvADAEMMax=GlobalOptParam.EvADAEMMax
-                EvADAEMInit.append((min(m_final_predictionAll)+max(m_final_predictionAll))/2.)
-                EvADAEMMin.append(min(m_final_predictionAll))
-                EvADAEMMax.append(max(m_final_predictionAll))
-                GenAlg.setParamRanges(EvADAEMInit,EvADAEMMin,EvADAEMMax)
-                GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-                GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-                DAEM.setParamVector(GenAlg.mkResults())
-                #
-                #use afterwards local optimization
-                #DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
-            if UseGlobalOpt==False:
-                DAEM.setParamVector(LS.estimate_T(Fit,DAEM,DAEM.ParamVector(),Species))
-            Solution=DAEM.ParamVector()
+            # optimization procedure
+            if self.NrOfRuns == 1:
+                self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
+            else:
+                if len(ParamInit) == 3:
+                    ParamInit.append(0.0)
+                ParamInit[3]= ((min(m_final_predictionAll)+max(m_final_predictionAll))/2.)
+                ParamMin[3]= (min(m_final_predictionAll))
+                ParamMax[3]= (max(m_final_predictionAll))
+                self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
             #
-            DAEM.plot(Fit,Species)
+            Solution=self.KinModel.ParamVector()
+            #
+            self.KinModel.plot(Fit,Species)
             outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %11.4f  %6.4f  ' %(Solution[0],Solution[1],Solution[2],Solution[3])+'\n')
         outfile.close()
         if oSystem=='Linux':
@@ -621,6 +553,11 @@ class MainProcess(object):
             else:
                 print "The name of the operating system couldn't be found."
         #####
+        M=Models.Model()
+        for Species in CPDFit[0].SpeciesNames():
+            M.mkSimpleResultFiles(CPDFit,Species)
+            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                self.SpeciesToConsider.append(Species)
         if self.CPD_FittingKineticParameter_Select=='constantRate':
             self.MakeResults_CR('CPD',CPDFile,CPDFit)
             currentDict={'CPD':'constantRate'}
@@ -638,11 +575,6 @@ class MainProcess(object):
             currentDict={'CPD':'DAEM'}
         elif self.CPD_FittingKineticParameter_Select==None:
             currentDict={'CPD':'None'}
-            for Species in CPDFit[0].SpeciesNames():
-                M=Models.Model()
-                M.mkSimpleResultFiles(CPDFit,Species)
-                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-                    self.SpeciesToConsider.append(Species)
         else:
             print 'unspecified CPD_FittingKineticParameter_Select'
             currentDict={}
@@ -656,16 +588,21 @@ class MainProcess(object):
     def MakeResults_FG(self):
         """generates the result for FG-DVC"""
         #writes Time-Temperature file
-        FG_TimeTemp1=self.CPD_TimeTemp1
-        FG_TimeTemp2=self.CPD_TimeTemp2
-        FG_TimeTemp3=self.CPD_TimeTemp3
-        FG_TimeTemp4=self.CPD_TimeTemp4
-        FG_TimeTemp5=self.CPD_TimeTemp5
+        FG_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1),order='F')
+        FG_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2),order='F')
+        FG_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3),order='F')
+        FG_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4),order='F')
+        FG_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5),order='F')
         FG_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e-3
         FG_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e-3
         FG_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e-3
         FG_TimeTemp4[:,0]=self.CPD_TimeTemp4[:,0]*1.e-3
         FG_TimeTemp5[:,0]=self.CPD_TimeTemp5[:,0]*1.e-3
+        FG_TimeTemp1[:,1]=self.CPD_TimeTemp1[:,1]
+        FG_TimeTemp2[:,1]=self.CPD_TimeTemp2[:,1]
+        FG_TimeTemp3[:,1]=self.CPD_TimeTemp3[:,1]
+        FG_TimeTemp4[:,1]=self.CPD_TimeTemp4[:,1]
+        FG_TimeTemp5[:,1]=self.CPD_TimeTemp5[:,1]
         #initialize the launching object
         FGDVC=FGDVC_SetAndLaunch.SetterAndLauncher()
         #set and writes Coal Files:
@@ -741,6 +678,11 @@ class MainProcess(object):
                 shutil.copyfile(self.FG_DirOut+'gasyield.txt', 'Result\\gasyield_'+str(runNr)+'.txt')
                 shutil.copyfile(self.FG_DirOut+'gasrate.txt', 'Result\\gasrate_'+str(runNr)+'.txt')
         #####
+        M=Models.Model()
+        for Species in FGFit[0].SpeciesNames():
+            M.mkSimpleResultFiles(FGFit,Species)
+            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                self.SpeciesToConsider.append(Species)
         if self.FG_FittingKineticParameter_Select=='constantRate':
             self.MakeResults_CR('FGDVC',FGFile,FGFit)
             currentDict={'FGDVC':'constantRate'}
@@ -758,11 +700,6 @@ class MainProcess(object):
             currentDict={'FGDVC':'DAEM'}
         elif self.FG_FittingKineticParameter_Select==None:
             currentDict={'FGDVC':'None'}
-            for Species in FGFit[0].SpeciesNames():
-                M=Models.Model()
-                M.mkSimpleResultFiles(FGFit,Species)
-                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-                    self.SpeciesToConsider.append(Species)
         else:
             print 'uspecified FG_FittingKineticParameter_Select'
             currentDict={}
@@ -771,6 +708,98 @@ class MainProcess(object):
         #
         self.SpeciesEnergy('FGDVC',FGFile)
             #
+    
+    ####Pc Coal Lab####
+    def MakeResults_PCCL(self):
+        """generates the result for PC Coal Lab"""
+        #writes Time-Temperature file
+        PCCL_TimeTemp1=np.zeros(np.shape(self.CPD_TimeTemp1),order='F')
+        PCCL_TimeTemp2=np.zeros(np.shape(self.CPD_TimeTemp2),order='F')
+        PCCL_TimeTemp3=np.zeros(np.shape(self.CPD_TimeTemp3),order='F')
+        PCCL_TimeTemp4=np.zeros(np.shape(self.CPD_TimeTemp4),order='F')
+        PCCL_TimeTemp5=np.zeros(np.shape(self.CPD_TimeTemp5),order='F')
+        PCCL_TimeTemp1[:,0]=self.CPD_TimeTemp1[:,0]*1.e-3
+        PCCL_TimeTemp2[:,0]=self.CPD_TimeTemp2[:,0]*1.e-3
+        PCCL_TimeTemp3[:,0]=self.CPD_TimeTemp3[:,0]*1.e-3
+        PCCL_TimeTemp4[:,0]=self.CPD_TimeTemp4[:,0]*1.e-3
+        PCCL_TimeTemp5[:,0]=self.CPD_TimeTemp5[:,0]*1.e-3
+        PCCL_TimeTemp1[:,1]=self.CPD_TimeTemp1[:,1]
+        PCCL_TimeTemp2[:,1]=self.CPD_TimeTemp2[:,1]
+        PCCL_TimeTemp3[:,1]=self.CPD_TimeTemp3[:,1]
+        PCCL_TimeTemp4[:,1]=self.CPD_TimeTemp4[:,1]
+        PCCL_TimeTemp5[:,1]=self.CPD_TimeTemp5[:,1]
+        #initialize the launching object
+        PCCL=PCCL_SetAndLaunch.SetterAndLauncher()
+        #set and writes Coal Files:
+        PCCL.SetUACoalParameter(self.UAC,self.UAH,self.UAN,self.UAO,self.UAS)
+        PCCL.SetPACoalParameter(self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash)
+        if type(self.PCCL_CoalCalFactor)==float:
+            PCCL.SetCoalCalibrationFactor(self.PCCL_CoalCalFactor)
+        PCCL.SetPressure(self.FG_pressure)
+        PCCL.SetParticleSize(self.PCCL_ParticleSize)
+        #
+        PCCL.writeCoalFiles(self.PCCL_Path)
+        #
+        PCCL.THist(PCCL_TimeTemp1[0,1],PCCL_TimeTemp1[1,0],PCCL_TimeTemp1[-1,1],PCCL_TimeTemp1[-1,0])
+        PCCL.writeInstructFiles(self.PCCL_Path,mkNewFile=True)
+        PCCL.THist(PCCL_TimeTemp2[0,1],PCCL_TimeTemp2[1,0],PCCL_TimeTemp2[-1,1],PCCL_TimeTemp2[-1,0])
+        PCCL.writeInstructFiles(self.PCCL_Path,mkNewFile=False)
+        PCCL.THist(PCCL_TimeTemp3[0,1],PCCL_TimeTemp3[1,0],PCCL_TimeTemp3[-1,1],PCCL_TimeTemp3[-1,0])
+        PCCL.writeInstructFiles(self.PCCL_Path,mkNewFile=False)
+        PCCL.THist(PCCL_TimeTemp4[0,1],PCCL_TimeTemp4[1,0],PCCL_TimeTemp4[-1,1],PCCL_TimeTemp4[-1,0])
+        PCCL.writeInstructFiles(self.PCCL_Path,mkNewFile=False)
+        PCCL.THist(PCCL_TimeTemp5[0,1],PCCL_TimeTemp5[1,0],PCCL_TimeTemp5[-1,1],PCCL_TimeTemp5[-1,0])
+        PCCL.writeInstructFiles(self.PCCL_Path,mkNewFile=False)
+        PCCL.writeInstructFilesFinish()
+        #
+        PCCL.Run(self.PCCL_Path,self.PCCL_Exe)
+        #
+        PCCLFile=[]
+        PCCLFit=[]
+        for runNr in range(1,self.NrOfRuns+1,1):
+            #read result:
+            CurrentPCCLFile=PCCL_Result.PCCL_Result(self.PCCL_Path,runNr)
+            # creates object, required for fitting procedures
+            CurrentPCCLFit=FitInfo.Fit_one_run(CurrentPCCLFile)
+            PCCLFile.append(CurrentPCCLFile)
+            PCCLFit.append(CurrentPCCLFit)
+            #copies file:
+            if oSystem=='Windows':
+                shutil.copyfile(self.PCCL_Path+'FDC1WT'+str(runNr)+'.RPT', 'Result/PCCL_gasyield_wt_'+str(runNr)+'.txt')
+                shutil.copyfile(self.PCCL_Path+'FDC1NG'+str(runNr)+'.RPT', 'Result/PCCL_gasyield_ng_'+str(runNr)+'.txt')
+                shutil.copyfile(self.PCCL_Path+'FDC1HC'+str(runNr)+'.RPT', 'Result/PCCL_gasyield_hc_'+str(runNr)+'.txt')
+        #####
+        M=Models.Model()
+        for Species in PCCLFit[0].SpeciesNames():
+            M.mkSimpleResultFiles(PCCLFit,Species)
+            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                self.SpeciesToConsider.append(Species)
+        if self.PCCL_FittingKineticParameter_Select=='constantRate':
+            self.MakeResults_CR('PCCL',PCCLFile,PCCLFit)
+            currentDict={'PCCL':'constantRate'}
+        elif self.PCCL_FittingKineticParameter_Select=='Arrhenius':
+            self.MakeResults_Arrh('PCCL',PCCLFile,PCCLFit)
+            currentDict={'PCCL':'Arrhenius'}
+        elif self.PCCL_FittingKineticParameter_Select=='ArrheniusNoB':
+            self.MakeResults_ArrhNoB('PCCL',PCCLFile,PCCLFit)
+            currentDict={'PCCL':'ArrheniusNoB'}
+        elif self.PCCL_FittingKineticParameter_Select=='Kobayashi':
+            self.MakeResults_Kob('PCCL',PCCLFile,PCCLFit)
+            currentDict={'PCCL':'Kobayashi'}
+        elif self.PCCL_FittingKineticParameter_Select=='DAEM':
+            self.MakeResults_DEAM('PCCL',PCCLFile,PCCLFit)
+            currentDict={'PCCL':'DAEM'}
+        elif self.PCCL_FittingKineticParameter_Select==None:
+            currentDict={'PCCL':'None'}
+        else:
+            print 'uspecified PCCL_FittingKineticParameter_Select'
+            currentDict={}
+        #
+        self.ProgramModelDict.update(currentDict)
+        #
+        self.SpeciesEnergy('PCCL',PCCLFile)
+            #
+
 
 
 #Main Part starting
@@ -782,5 +811,7 @@ if __name__ == "__main__":
     if Case.FG_select==True:
         Case.CheckFGdt()
         Case.MakeResults_FG()
+    if Case.PCCL_select==True:
+        Case.MakeResults_PCCL()
     print 'calculated Species: ',Case.SpeciesToConsider
         

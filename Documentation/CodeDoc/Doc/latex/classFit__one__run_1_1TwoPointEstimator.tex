@@ -1,0 +1,45 @@
+\hypertarget{classFit__one__run_1_1TwoPointEstimator}{\section{\-Fit\-\_\-one\-\_\-run.\-Two\-Point\-Estimator \-Class \-Reference}
+\label{classFit__one__run_1_1TwoPointEstimator}\index{\-Fit\-\_\-one\-\_\-run.\-Two\-Point\-Estimator@{\-Fit\-\_\-one\-\_\-run.\-Two\-Point\-Estimator}}
+}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_aff13b1525a0b59ba050a81c0c443c94d}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classFit__one__run_1_1TwoPointEstimator_aff13b1525a0b59ba050a81c0c443c94d}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_a5f9a818ca3b95720ca35bad0de1943bf}{def {\bfseries estimate}}\label{classFit__one__run_1_1TwoPointEstimator_a5f9a818ca3b95720ca35bad0de1943bf}
+
+\end{DoxyCompactItemize}
+\subsection*{\-Static \-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_a6c39dcbb0080c491a71ac30396aa0645}{tuple {\bfseries t} = fgdvc.\-Time()}\label{classFit__one__run_1_1TwoPointEstimator_a6c39dcbb0080c491a71ac30396aa0645}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_ab3a7fb75aba8e43cffa61a1200b99544}{tuple {\bfseries \-Time\-Point} = int(\-Point\-Location$\ast$(fgdvc.\-N\-Points()))}\label{classFit__one__run_1_1TwoPointEstimator_ab3a7fb75aba8e43cffa61a1200b99544}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_a5e0e5ecac04d21f9621680204b95703e}{tuple {\bfseries \-V\-M\-\_\-s} = fgdvc.\-Mass\-V\-M\-\_\-s()}\label{classFit__one__run_1_1TwoPointEstimator_a5e0e5ecac04d21f9621680204b95703e}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_a1d81eb16e93c05a7b1b825dae06bcfd1}{list {\bfseries \-V\-M\-\_\-0} = \-V\-M\-\_\-s\mbox{[}0\mbox{]}}\label{classFit__one__run_1_1TwoPointEstimator_a1d81eb16e93c05a7b1b825dae06bcfd1}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_a801660f443434df295bc9c05e88bcef8}{tuple {\bfseries k\-\_\-\-V\-M} = (np.\-log(\-V\-M\-\_\-s\mbox{[}\-Time\-Point\mbox{]}/\-V\-M\-\_\-0))}\label{classFit__one__run_1_1TwoPointEstimator_a801660f443434df295bc9c05e88bcef8}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_abbd0ff8457dd988322c2cea1604a9a82}{tuple {\bfseries u} = fgdvc.\-Yield(\-Species)}\label{classFit__one__run_1_1TwoPointEstimator_abbd0ff8457dd988322c2cea1604a9a82}
+
+\item 
+\hypertarget{classFit__one__run_1_1TwoPointEstimator_a2e9224ae9f76276863605582c6950a3d}{list {\bfseries u\-\_\-0} = u\mbox{[}-\/1\mbox{]}}\label{classFit__one__run_1_1TwoPointEstimator_a2e9224ae9f76276863605582c6950a3d}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\begin{DoxyVerb}Solves the devolatilization reaction analytically using two arbitrary selected points and the constant rate model. Unprecise. Should only be used for tests.\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-Fit\-\_\-one\-\_\-run.\-py\end{DoxyCompactItemize}

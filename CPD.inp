@@ -1,12 +1,11 @@
 useCPD?:
 Yes
+
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-Kobayashi
-Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
-Total
+None
 
 #numerical parameter for CPD:
 initial time step in s:
 1.e-3
 print increment, writeValue:
-1
+2

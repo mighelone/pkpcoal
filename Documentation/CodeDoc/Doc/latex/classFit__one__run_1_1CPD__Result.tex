@@ -1,0 +1,97 @@
+\hypertarget{classFit__one__run_1_1CPD__Result}{\section{\-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result \-Class \-Reference}
+\label{classFit__one__run_1_1CPD__Result}\index{\-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result}}
+}
+
+
+general classes for reading the results and pass the results to the general fitting class  
+
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFit__one__run_1_1CPD__Result_a79774f90a1a500e2cadc7e1993e28aab}{def {\bfseries \-\_\-\-\_\-init\-\_\-\-\_\-}}\label{classFit__one__run_1_1CPD__Result_a79774f90a1a500e2cadc7e1993e28aab}
+
+\item 
+def \hyperlink{classFit__one__run_1_1CPD__Result_a302ae661ad8717abb085caa73d7dda33}{\-Yields\-\_\-all}
+\item 
+def \hyperlink{classFit__one__run_1_1CPD__Result_af2206424404d8c9d6bf6dd988be520f9}{\-Rates\-\_\-all}
+\item 
+def \hyperlink{classFit__one__run_1_1CPD__Result_ac012296d148679aaad341d1d19d8f4b5}{\-Dict\-Yields2\-Cols}
+\item 
+def \hyperlink{classFit__one__run_1_1CPD__Result_a08bb851efadd9490694d9dd21df04b6b}{\-Dict\-Cols2\-Yields}
+\item 
+def \hyperlink{classFit__one__run_1_1CPD__Result_a9f589508052e6360ee138fe99ceb3980}{\-Final\-Yields}
+\item 
+def \hyperlink{classFit__one__run_1_1CPD__Result_a4aa569a40c2187f9e9bec5448cc6ef6c}{\-Name}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classFit__one__run_1_1CPD__Result_a663d4278b97d96b812f6c3fa89135310}{{\bfseries \-Yields2\-Cols}}\label{classFit__one__run_1_1CPD__Result_a663d4278b97d96b812f6c3fa89135310}
+
+\item 
+\hypertarget{classFit__one__run_1_1CPD__Result_a74b00329532fd8cbb3e687b8cde1dc0d}{{\bfseries \-Cols2\-Yields}}\label{classFit__one__run_1_1CPD__Result_a74b00329532fd8cbb3e687b8cde1dc0d}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+general classes for reading the results and pass the results to the general fitting class 
+
+for \-C\-P\-D\-: \begin{DoxyVerb}Reads the CPD input and saves the values in one array. The results include the yields and the rates. The rates were calculated using a CDS. This class also contains the dictionaries for the columns in the array - the name of the species. These dictionaries are CPD-Version dependent and the only thing which has to be changed for the case of a new release of CPD with a new order of species in the result files.\end{DoxyVerb}
+ 
+
+\subsection{\-Member \-Function \-Documentation}
+\hypertarget{classFit__one__run_1_1CPD__Result_a08bb851efadd9490694d9dd21df04b6b}{\index{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}!\-Dict\-Cols2\-Yields@{\-Dict\-Cols2\-Yields}}
+\index{\-Dict\-Cols2\-Yields@{\-Dict\-Cols2\-Yields}!Fit_one_run::CPD_Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}}
+\subsubsection[{\-Dict\-Cols2\-Yields}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result.\-Dict\-Cols2\-Yields} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1CPD__Result_a08bb851efadd9490694d9dd21df04b6b}
+\begin{DoxyVerb}Returns the whole Dictionary Columns of the matrix to Yield names\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1CPD__Result_ac012296d148679aaad341d1d19d8f4b5}{\index{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}!\-Dict\-Yields2\-Cols@{\-Dict\-Yields2\-Cols}}
+\index{\-Dict\-Yields2\-Cols@{\-Dict\-Yields2\-Cols}!Fit_one_run::CPD_Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}}
+\subsubsection[{\-Dict\-Yields2\-Cols}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result.\-Dict\-Yields2\-Cols} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1CPD__Result_ac012296d148679aaad341d1d19d8f4b5}
+\begin{DoxyVerb}Returns the whole Dictionary Yield names to Columns of the matrix\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1CPD__Result_a9f589508052e6360ee138fe99ceb3980}{\index{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}!\-Final\-Yields@{\-Final\-Yields}}
+\index{\-Final\-Yields@{\-Final\-Yields}!Fit_one_run::CPD_Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}}
+\subsubsection[{\-Final\-Yields}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result.\-Final\-Yields} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1CPD__Result_a9f589508052e6360ee138fe99ceb3980}
+\begin{DoxyVerb}Returns the last line of the Array, containing the yields at the time=time_End\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1CPD__Result_a4aa569a40c2187f9e9bec5448cc6ef6c}{\index{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}!\-Name@{\-Name}}
+\index{\-Name@{\-Name}!Fit_one_run::CPD_Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}}
+\subsubsection[{\-Name}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result.\-Name} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1CPD__Result_a4aa569a40c2187f9e9bec5448cc6ef6c}
+\begin{DoxyVerb}returns 'CPD' as the name of the Program\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1CPD__Result_af2206424404d8c9d6bf6dd988be520f9}{\index{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}!\-Rates\-\_\-all@{\-Rates\-\_\-all}}
+\index{\-Rates\-\_\-all@{\-Rates\-\_\-all}!Fit_one_run::CPD_Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}}
+\subsubsection[{\-Rates\-\_\-all}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result.\-Rates\-\_\-all} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1CPD__Result_af2206424404d8c9d6bf6dd988be520f9}
+\begin{DoxyVerb}Returns the whole result matrix of the Rates.\end{DoxyVerb}
+ \hypertarget{classFit__one__run_1_1CPD__Result_a302ae661ad8717abb085caa73d7dda33}{\index{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}!\-Yields\-\_\-all@{\-Yields\-\_\-all}}
+\index{\-Yields\-\_\-all@{\-Yields\-\_\-all}!Fit_one_run::CPD_Result@{\-Fit\-\_\-one\-\_\-run\-::\-C\-P\-D\-\_\-\-Result}}
+\subsubsection[{\-Yields\-\_\-all}]{\setlength{\rightskip}{0pt plus 5cm}def {\bf \-Fit\-\_\-one\-\_\-run.\-C\-P\-D\-\_\-\-Result.\-Yields\-\_\-all} (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}}\label{classFit__one__run_1_1CPD__Result_a302ae661ad8717abb085caa73d7dda33}
+\begin{DoxyVerb}Returns the whole result matrix of the yields.\end{DoxyVerb}
+ 
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/map/git/pkp/src/\-Fit\-\_\-one\-\_\-run.\-py\end{DoxyCompactItemize}
