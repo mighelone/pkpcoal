@@ -1,6 +1,5 @@
 __author__ = 'vascella'
 
-__author__ = 'vascella'
 
 import numpy as np
 from coal import coal
@@ -8,6 +7,10 @@ import sys
 #sys.path.append('/usr/local/lib/python2.7/site-packages/')
 from Cantera import *
 from scipy.integrate import odeint,ode
+
+import warnings
+
+
 
 
 class triangle(object):
@@ -195,24 +198,51 @@ class coalPolimi(coal):
             dm_i/dt = omega_i * Mw_i
             '''
             self._updateReactor(t,m)
-            return self._coalCantera.netProductionRates() * self._Mw * self._rhoDry
+            omegai = self._coalCantera.netProductionRates()
+            dmdt = omegai * self._Mw / self._rhoDry
+            return dmdt
 
+        #self._Mw = self._coalCantera.molarMasses()
+        #m0=self._coalCantera.massFractions()
+        ##sol = ode(dydt).set_integrator('dopri5',rtol=1e-9,atol=1e-6) #, method='bdf')
+        ##sol = ode(dydt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-6)
+        #sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-5)
+        ##sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-4,atol=1e-2)
+        #sol.set_initial_value(m0,0)
+        #self._y = [m0]
+        #self._r = [dmidt(0,m0)]
+        #for t in self.time[1:]:
+        #    sol.integrate(t)
+        #    self._y=np.concatenate((self._y, [sol.y]))
+        #    self._r=np.concatenate((self._y, [dmidt(sol.t,sol.y)]))
+        #    #print 'coal0='+str(sol.y[iCoal3])
+        #
+        #del(sol)
+        backend = 'dopri5'
         self._Mw = self._coalCantera.molarMasses()
+        t0 = self.timeHR[0]
         m0=self._coalCantera.massFractions()
-        #sol = ode(dydt).set_integrator('dopri5',rtol=1e-9,atol=1e-6) #, method='bdf')
-        #sol = ode(dydt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-6)
-        sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-5)
-        #sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-4,atol=1e-2)
-        sol.set_initial_value(m0,0)
+        solver = ode(dmidt).set_integrator(backend, nsteps=1)
+        solver.set_initial_value(m0, t0)
+        solver._integrator.iwork[2] = -1
+        self.time = [t0]
         self._y = [m0]
-        self._r = [dmidt(0,m0)]
-        for t in self.time[1:]:
-            sol.integrate(t)
-            self._y=np.concatenate((self._y, [sol.y]))
-            self._r=np.concatenate((self._y, [dmidt(sol.t,sol.y)]))
-            #print 'coal0='+str(sol.y[iCoal3])
+        self._r = [dmidt(t0,m0)]
+        warnings.filterwarnings("ignore", category=UserWarning)
+        timeEnd = np.max(self.timeHR)
+        while solver.t < timeEnd:
+            solver.integrate(timeEnd, step=True)
+            self.time = np.concatenate((self.time, [solver.t]))
+            self._y=np.concatenate((self._y, [solver.y]))
+            self._r=np.concatenate((self._r, [dmidt(solver.t,solver.y)]))
 
-        del(sol)
+        warnings.resetwarnings()
+
+
+
+
+
+
 
     def _updateReactor(self,t,m):
         ''' update reactor '''
