@@ -116,7 +116,7 @@ class CPD_SpeciesBalance(SpeciesBalance):
         self.__hfTar()
         self.__QPyro()
         self.__closeResultFile()
-        if oSystem=='Linux':
+        if oSystem == 'Linux' or oSystem == 'Darwin':
             shutil.move('CPD-BalanceResults'+str(RunNr)+'.txt','Result/'+'CPD-BalanceResults'+str(RunNr)+'.txt')
         elif oSystem=='Windows':
             shutil.move('CPD-BalanceResults'+str(RunNr)+'.txt','Result\\'+'CPD-BalanceResults'+str(RunNr)+'.txt')

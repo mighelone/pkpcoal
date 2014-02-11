@@ -24,6 +24,9 @@ class CPD_Result(object):
             self.__rates[1:-1,col]=(self.__yields[2:,col]-self.__yields[:-2,col])/(self.__yields[2:,0]-self.__yields[:-2,0])
             self.__rates[-1,col]=(self.__yields[-1,col]-self.__yields[-2,col])/(self.__yields[-1,0]-self.__yields[-2,0])
         print '\nimported data-fields, size(rows,columns): ',self.__yields.shape,'\n'
+        self._setYieldsCols()
+
+    def _setYieldsCols(self):
         #Yields2Cols: updated for FG-DVC Version 8.2.2, one comment: 'Char_and_Ash' is actual the whole coal mass, but this part is named in the FG-DVC output file that way
         self.Yields2Cols={'Time':0,'Temp':1,'Tar':2,'Gas':3,'Solid':4,'Total':5,'H2O':6,'CO2':7,'CH4':8,'CO':9,'Other':10}
         self.Cols2Yields={0:'Time',1:'Temp',2:'Tar',3:'Gas',4:'Solid',5:'Total',6:'H2O',7:'CO2',8:'CH4',9:'CO',10:'Other'}    
@@ -51,3 +54,19 @@ class CPD_Result(object):
     def Name(self):
         """returns 'CPD' as the name of the Program"""
         return 'CPD'
+
+class CPD_ResultFake(CPD_Result):
+    '''
+    Fake CPD results object used for pr
+    '''
+    def __init__(self,yields):
+        self.__yields = np.array([])
+        self._finalYields = yields
+        self.__path = ''
+        self._setYieldsCols()
+
+    def FinalYields(self):
+        return self._finalYields
+
+
+
