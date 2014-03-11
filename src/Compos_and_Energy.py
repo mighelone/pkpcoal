@@ -1,5 +1,7 @@
 import shutil
 import platform
+import numpy
+from numpy.linalg import solve
 oSystem=platform.system()
 #PARAMETER:
 #Molecular weights [Formeln und Tabellen, Peatec, 8.Auflage] (g/mol):
@@ -160,12 +162,13 @@ class CPD_SpeciesBalance(SpeciesBalance):
             self.Yields[self.SpeciesIndex('CO')] =self.gamma*self.Yields[self.SpeciesIndex('CO')]
 
 
-    
+
     def __CheckOthers(self):
         """If the yield of nitrogen (is equal the UA of nitrogen) is lower than the species 'Other' the difference is set equal Methane."""
         if self.UAN < self.Yields[self.SpeciesIndex('Other')]:
             # eq. (6) in Michele's report:
             self.Yields[self.SpeciesIndex('CH4')]=self.Yields[self.SpeciesIndex('CH4')]+(self.Yields[self.SpeciesIndex('Other')]-self.UAN)
+        self.__CheckHydrogen()
         #Result File:
         self.CPDBalanceFile.write('== Final yields ==\n')
         self.CPDBalanceFile.write('Char '+ str('%7.5f\n' %self.Yields[self.SpeciesIndex('Solid')]))
@@ -178,15 +181,42 @@ class CPD_SpeciesBalance(SpeciesBalance):
         #self.CPDBalanceFile.write('Gas:  '+ str(self.Yields[self.SpeciesIndex('Gas')])+'\n\n')
         self.Yields[self.SpeciesIndex('Other')] = str(self.UAN)
         self.CPDBalanceFile.write('=== Fluent ===\n')
-	ashdry = self.PAash/(1-self.PAmoist)
-	char = self.Yields[self.SpeciesIndex('Solid')]*(1.-ashdry)*100.
-	vol = (1-self.Yields[self.SpeciesIndex('Solid')])*(1.-ashdry)*100.
-	ash = 100. - char - vol
+        ashdry = self.PAash/(1-self.PAmoist)
+        char = self.Yields[self.SpeciesIndex('Solid')]*(1.-ashdry)*100.
+        vol = (1-self.Yields[self.SpeciesIndex('Solid')])*(1.-ashdry)*100.
+        ash = 100. - char - vol
 
-	self.CPDBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %vol))
-	self.CPDBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %char))
-	self.CPDBalanceFile.write('Ash fraction:                '+ str('%7.3f\n' %ash))
+        self.CPDBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %vol))
+        self.CPDBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %char))
+        self.CPDBalanceFile.write('Ash fraction:                '+ str('%7.3f\n' %ash))
         self.CPDBalanceFile.write('Moisture volume fraction:    '+ str('%7.3f\n\n' %self.moistureVolumeFraction()))
+
+    def __CheckHydrogen(self):
+        '''
+        check the Hydrogen balance... last step
+        '''
+        H = self.UAH/MH #hydrogen content in the coal kmol H / kg DAF
+        HCH4 = self.Yields[self.SpeciesIndex('CH4')]*4./(MC+4.*MH) #H in CH4 kmol/kg DAF
+        HH2O = self.Yields[self.SpeciesIndex('H2O')]*2./(MO+2.*MH) #H in H2O kmol/kg DAF
+        if H < HCH4 + HH2O:
+            ratio = 1. #molar ratio C/H
+            A11 = 1./self.MTar
+            A12 = 1./(4.*MH + MC)
+            CCO = self.Yields[self.SpeciesIndex('CO')]/(MC+MO)
+            CCO2 = self.Yields[self.SpeciesIndex('CO2')]/(MC+2.*MO)
+            Cchar = self.Yields[self.SpeciesIndex('Solid')]/MC
+            B1 = self.UAC / MC - (Cchar+CCO+CCO2)
+            A21 = ratio * A11
+            A22 = 4./(MC+4.*MH)
+            B2 = H - HH2O
+            A = numpy.array([[A11,A12],[A21,A22]])
+            B = numpy.array([B1,B2])
+            res = solve(A,B)
+            TAR = self.Yields[self.SpeciesIndex('Tar')]
+            CH4 = self.Yields[self.SpeciesIndex('CH4')]
+            TAR += CH4 - res[1]
+            self.Yields[self.SpeciesIndex('Tar')] += TAR #set the new TAR yield
+            self.Yields[self.SpeciesIndex('CH4')] = res[1] # set the new CH4 yield
 
            
     def __TarComp(self): #saves [m,n,o] from C_m H_n O_o
