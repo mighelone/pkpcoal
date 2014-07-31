@@ -41,7 +41,7 @@ MaxIter   = 1e3     # integer
 
 ScaleFactor = 1e4   # large values, gives better fittings
 
-
+# set this parameter True for having a gradient-based optimization after the GA optimization
 optimizGrad = True
 
 #if optimizGrad == True:
