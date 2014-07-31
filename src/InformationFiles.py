@@ -134,11 +134,11 @@ class WriteFGDVCCoalFile(object):
         self.__S=Sulfur
         self.__Sp=SulfurPyrite
         
-    def write(self,CoalsDirectory,CoalResultFileName):
+    def write(self,CoalsDirectory,CoalResultFileName,option=0):
         """writes the FG-DVC coal generator input file"""
         self.__File = open(CoalsDirectory+self.__FileName, 'w')
         self.__File.write(str(self.__C)+' '+str(self.__H)+' '+str(self.__O)+' '+str(self.__N)+' '+str(self.__S)+' '+str(self.__Sp)+'\n')
-        self.__File.write('0\n4\n'+CoalResultFileName+'_com.dat\n'+CoalResultFileName+'_kin.dat\n'+CoalResultFileName+'_pol.dat\n'+'5')
+        self.__File.write(str(option)+'\n4\n'+CoalResultFileName+'_com.dat\n'+CoalResultFileName+'_kin.dat\n'+CoalResultFileName+'_pol.dat\n'+'5')
         self.__File.close()
         
 class OperCondInput(ReadFile):

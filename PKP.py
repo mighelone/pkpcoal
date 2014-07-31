@@ -29,8 +29,8 @@ import pylab as plt
 #
 #
 #Which operating Sytem?
-#oSystem=platform.system()
-oSystem = 'Linux'
+oSystem=platform.system()
+#oSystem = 'Linux'
 #Directories:
 #gets the current directory:
 workingDir=os.getcwd()+'/'
@@ -225,7 +225,8 @@ class MainProcess(object):
         GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
         self.KinModel.setParamVector(GenAlg.mkResults())
         # afterwards grad based optimization
-        self.OptGradBased(Fit,ParameterVecInit,False,Species)
+        if GlobalOptParam.optimizGrad == True:
+            self.OptGradBased(Fit,ParameterVecInit,False,Species)
 
     def MakeResults_CR(self,PyrolProgram,File,Fit):
         """Generates the results for constant Rate."""
@@ -649,7 +650,7 @@ class MainProcess(object):
             #generates coalsd.exe input file
             MakeCoalGenFile=InformationFiles.WriteFGDVCCoalFile(FG_CoalGenFileName)
             MakeCoalGenFile.setCoalComp(self.UAC,self.UAH,self.UAO,self.UAN,self.UAS,0)
-            MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName)
+            MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName,option=0)
             #makes new file
             try:
                 os.system('cd '+self.FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
@@ -659,6 +660,8 @@ class MainProcess(object):
             #tests weather the coal file was genearated:
             if os.path.exists(self.FG_MainDir+'\\'+FG_GenCoalDir+'\\'+FG_CoalName+'_com.dat')==False:
                 print 30*'*','\n','The coal is may outside the libraries coals. Select manually the closest library coal.',30*'*','\n'
+                MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName,option=10)
+                os.system('cd '+self.FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
             #sets generated file for instruct.ini
             FGDVC.set1CoalLocation(self.FG_MainDir+FG_GenCoalDir+'\\'+FG_CoalName+'_com.dat')
             FGDVC.set2KinLocation(self.FG_MainDir+FG_GenCoalDir+'\\'+FG_CoalName+'_kin.dat')

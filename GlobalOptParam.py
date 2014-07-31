@@ -1,13 +1,13 @@
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 15 #100
+NrOfGeneration = 100 #100
 # size of population
-NrOfPopulation = 100
+NrOfPopulation = 200
 #minimum for constant rate equation:[k,t_start]
 EvACRMin=[5,1e-5] #first argument is k, second is t_start, third final yield
 #maximum for constant rate equation:[k,t_start]
 EvACRMax=[1000,0.5]
-EvACRInit=[100,5e-3] 
+EvACRInit=[100,5e-3]
 #minimum for Arrhenius equation:[A,n,E]
 EvAArrhMin=[1e3,-2,1e2]
 #maximum for Arrhenius equation:[A,n,E]
@@ -15,8 +15,8 @@ EvAArrhMax=[1e15,2,1e6]
 EvAArrhInit=[1e10,0,15e3]
 #
 #minimum For Kobayashi:
-EvAKobMin=[100.,1000,1000,5000,0.,0.5]
-EvAKobMax=[50000.,20000,100000000,50000,0.5,1.]
+EvAKobMin=[100.,1000,1000,5000,0.05,0.1]
+EvAKobMax=[50000.,20000,100000000,50000,0.12,0.2]
 EvAKobInit=[100157.0037,5849.84292004,85011813.05,12648.7543183,0.45,0.65]
 #
 #For Kobayashi:
@@ -40,3 +40,14 @@ MaxIter   = 1e3     # integer
 ### USED FOR BOTH ####
 
 ScaleFactor = 1e4   # large values, gives better fittings
+
+
+optimizGrad = True
+
+#if optimizGrad == True:
+#    NrOfGeneration = 20
+#    NrOfPopulation = 100
+#else:
+#    NrOfGeneration = 100
+#    NrOfPopulation = 100
+#
