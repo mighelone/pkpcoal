@@ -30,6 +30,8 @@ import pylab as plt
 #
 #Which operating Sytem?
 oSystem=platform.system()
+if oSystem == 'Darwin':
+    oSystem = 'Linux'
 #Directories:
 #gets the current directory:
 workingDir=os.getcwd()+'/'
@@ -224,7 +226,8 @@ class MainProcess(object):
         GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
         self.KinModel.setParamVector(GenAlg.mkResults())
         # afterwards grad based optimization
-        self.OptGradBased(Fit,ParameterVecInit,False,Species)
+        if GlobalOptParam.optimizGrad == True:
+            self.OptGradBased(Fit,ParameterVecInit,False,Species)
 
     def MakeResults_CR(self,PyrolProgram,File,Fit):
         """Generates the results for constant Rate."""
@@ -527,8 +530,13 @@ class MainProcess(object):
                 Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
             if PyrolProgram=='FGDVC':    
                 print 'FG-DVC energy and mass balance...'
-                Compos_and_Energy.FGDVC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
+                Compos_and_Energy.FGPC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr,'FGDVC')
                 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
+#
+            if PyrolProgram=='PCCL':
+                print 'PCCL-Flashchain energy and mass balance...TO FINISH'
+                Compos_and_Energy.FGPC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr,'PCCL')
+
 
         # new implementation of species energy for Kobayashi model Michele Vascellari
         if FittingModel == 'Kobayashi':
@@ -540,6 +548,7 @@ class MainProcess(object):
         extrapolate the results of Detailed model to the alpha1/alpha2 parameters
         in the Kobayashi model
         It is required for species/energy calculation
+        TODO only CPD is working at the moment!!!
         '''
         yields = []
         lenFile = len(File)
@@ -591,7 +600,8 @@ class MainProcess(object):
 
 
 
-#
+
+
 #
 #
 ####CPD#####
@@ -712,7 +722,7 @@ class MainProcess(object):
             #generates coalsd.exe input file
             MakeCoalGenFile=InformationFiles.WriteFGDVCCoalFile(FG_CoalGenFileName)
             MakeCoalGenFile.setCoalComp(self.UAC,self.UAH,self.UAO,self.UAN,self.UAS,0)
-            MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName)
+            MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName,option=0)
             #makes new file
             try:
                 os.system('cd '+self.FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
@@ -722,6 +732,8 @@ class MainProcess(object):
             #tests weather the coal file was genearated:
             if os.path.exists(self.FG_MainDir+'\\'+FG_GenCoalDir+'\\'+FG_CoalName+'_com.dat')==False:
                 print 30*'*','\n','The coal is may outside the libraries coals. Select manually the closest library coal.',30*'*','\n'
+                MakeCoalGenFile.write(self.FG_MainDir+FG_GenCoalDir+'\\',FG_CoalName,option=10)
+                os.system('cd '+self.FG_MainDir+FG_GenCoalDir+' & '+'coalsd.exe < '+FG_CoalGenFileName+' > coalsd_pkp.log')
             #sets generated file for instruct.ini
             FGDVC.set1CoalLocation(self.FG_MainDir+FG_GenCoalDir+'\\'+FG_CoalName+'_com.dat')
             FGDVC.set2KinLocation(self.FG_MainDir+FG_GenCoalDir+'\\'+FG_CoalName+'_kin.dat')

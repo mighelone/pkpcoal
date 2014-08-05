@@ -1,13 +1,13 @@
 ### PART FOR GENERIC ALGORITH OPTIMIZATION
 # number of generations
-NrOfGeneration = 15 #100
+NrOfGeneration = 100 #100
 # size of population
-NrOfPopulation = 100
+NrOfPopulation = 200
 #minimum for constant rate equation:[k,t_start]
 EvACRMin=[5,1e-5] #first argument is k, second is t_start, third final yield
 #maximum for constant rate equation:[k,t_start]
 EvACRMax=[1000,0.5]
-EvACRInit=[100,5e-3] 
+EvACRInit=[100,5e-3]
 #minimum for Arrhenius equation:[A,n,E]
 EvAArrhMin=[1e3,-2,1e2]
 #maximum for Arrhenius equation:[A,n,E]
@@ -40,3 +40,14 @@ MaxIter   = 1e3     # integer
 ### USED FOR BOTH ####
 
 ScaleFactor = 1e4   # large values, gives better fittings
+
+# set this parameter True for having a gradient-based optimization after the GA optimization
+optimizGrad = True
+
+#if optimizGrad == True:
+#    NrOfGeneration = 20
+#    NrOfPopulation = 100
+#else:
+#    NrOfGeneration = 100
+#    NrOfPopulation = 100
+#

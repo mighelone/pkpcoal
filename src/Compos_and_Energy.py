@@ -361,9 +361,10 @@ class CPD_SpeciesBalance(SpeciesBalance):
 
 ###############FG-DVC specific class###########################
 
-class FGDVC_SpeciesBalance(SpeciesBalance):
-    """This class calculates the Species and the Energy balance for FG-DVC. See the manual for the formulars and more details."""
-    def __init__(self,FGDVC_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,densityDryCoal,RunNr):
+
+class FGPC_SpeciesBalance(SpeciesBalance):
+    """This class calculates the Species and the Energy balance for FG-DVC and PCCL. See the manual for the formulars and more details."""
+    def __init__(self,FGDVC_ResultObject,UAC,UAH,UAN,UAO,UAS,PAVM,PAFC,PAmoist,PAash,HHV,MTar,densityDryCoal,RunNr,fileprefix):
         #imports the dictionaries for the species defined in 'CPD_Fit_one_run.py' -> CPD_Result()
         self.densityDryCoal = densityDryCoal
         self.Yields2Cols=FGDVC_ResultObject.DictYields2Cols()
@@ -378,15 +379,15 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.UAS=UAS/100.
         self.PAVM=PAVM/100.
         self.PAFC=PAFC/100.
-	self.PAash=PAash/100.
-	self.PAmoist=PAmoist/100.
+        self.PAash=PAash/100.
+        self.PAmoist=PAmoist/100.
         if HHV==0:
             HHV=self.Dulong()
         self.HHV=HHV
         self.MTar=MTar
         #corrects UA, if UA<1: Sulfur -> Carbon
         self.correctUA()
-        self.FGBalanceFile=open('FGDVC-BalanceResults'+str(RunNr)+'.txt','w')
+        self.FGBalanceFile=open(fileprefix+'-BalanceResults'+str(RunNr)+'.txt','w')
         self.FGBalanceFile.write('= Coal Properties =\n==Ultimate Analysis==\n')
         self.FGBalanceFile.write('|C |'+str('%6.3f' %(self.UAC*100.))+'%|\n')
         self.FGBalanceFile.write('|H |'+str('%6.3f' %(self.UAH*100.))+'%|\n')
@@ -399,7 +400,7 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.FGBalanceFile.write('|FC |'+str('%6.3f|' %PAFC)+str('%6.3f|' %(100*PAFC/(100.-PAmoist)))+str('%6.3f|' %(100*PAFC/(100.-PAmoist-PAash)))+'\n')
         self.FGBalanceFile.write('|ash|'+str('%6.3f|' %PAash)+str('%6.3f|' %(100*PAash/(100.-PAmoist)))+str('%6.3f|' %0.0)+'\n')
         self.FGBalanceFile.write('|H2O|'+str('%6.3f|' %PAmoist)+str('%6.3f|' %0.0)+str('%6.3f|' %0.0)+'\n\n')
-    #self.FGBalanceFile.write('Moisture volume fraction ='+str(self.moistureVolumeFraction()))
+        #self.FGBalanceFile.write('Moisture volume fraction ='+str(self.moistureVolumeFraction()))
         #considered yields: char, tar, CO, CO2, H2O, CH4, N2, H2, O2
         self.__correctYields()
         #the missing of the UA is included into carbon
@@ -413,12 +414,12 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.__writeEnergyResults()
         self.__closeFile()
         if oSystem=='Linux':
-            shutil.move('FGDVC-BalanceResults'+str(RunNr)+'.txt','Result/'+'FGDVC-BalanceResults'+str(RunNr)+'.txt')
+            shutil.move(fileprefix+'-BalanceResults'+str(RunNr)+'.txt','Result/'+fileprefix+'-BalanceResults'+str(RunNr)+'.txt')
         elif oSystem=='Windows':
-            shutil.move('FGDVC-BalanceResults'+str(RunNr)+'.txt','Result\\'+'FGDVC-BalanceResults'+str(RunNr)+'.txt')
+            shutil.move(fileprefix+'-BalanceResults'+str(RunNr)+'.txt','Result\\'+fileprefix+'-BalanceResults'+str(RunNr)+'.txt')
         else:
             print "The name of the operating system couldn't be found."
-        
+
     def __correctYields(self):
         """Further, only the yields of char, tar, CO, CO2, H2O, CH4, N2, H2, O2 are considered. Modifies the yields, merge species like Olefins parafins, HCN to tar."""
         self.Char=1.0-self.Yields[self.SpeciesIndex('Total')]
@@ -428,11 +429,12 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.CH4=self.Yields[self.SpeciesIndex('CH4')]
         #self.N2=self.UAN  ?? elemental Nitrogen or all in Tar
         self.H2=self.Yields[self.SpeciesIndex('H2')]
-        self.Tar=self.Yields[self.SpeciesIndex('Tar')]
-        Sum=self.Char+self.CO+self.CO2+self.H2O+self.CH4+self.H2+self.Tar#+self.N2 # ??
-        self.Tar += 1.-Sum
+        #self.Tar=self.Yields[self.SpeciesIndex('Tar')]
+        Sum=self.Char+self.CO+self.CO2+self.H2O+self.CH4+self.H2
+        # Tar is the difference between 1 and the rest of species
+        self.Tar = 1.-Sum
         #print 'Sum of modified Species: ', self.Char+self.CO+self.CO2+self.H2O+self.CH4+self.H2+self.Tar#+self.N2 #??
-        
+
     def __TarComp(self):
         """Calculates the Tar composition using analyisis of the Ultimate Analysis."""
         #The species in tar (kg) per kg of coal
@@ -456,7 +458,7 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         self.TarN=(TarN*self.MTar)/(self.Tar*MN)
         self.TarS=(TarS*self.MTar)/(self.Tar*MS)
         #print "Mass Weight of Tar " ,  self.TarC*MC+self.TarH*MH +self.TarO*MO+self.TarN
-    
+
     def __writeSpeciesResults(self):
         """Writes the Species Balance results into the result file."""
         self.FGBalanceFile.write('== Final yields ==\n')
@@ -471,9 +473,9 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
 	char = self.Char*(1.-self.PAash)*100.
 	vol = (1-self.Char)*(1.-self.PAash)*100.
 	ash = 100. - char - vol
-	
-	self.FGBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %char))
-	self.FGBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %vol))
+
+	self.FGBalanceFile.write('Volatile component fraction: '+ str('%7.3f\n' %vol))
+	self.FGBalanceFile.write('Combustibile fraction:       '+ str('%7.3f\n' %char))
 	self.FGBalanceFile.write('Ash fraction:                '+ str('%7.3f\n' %ash))
         self.FGBalanceFile.write('Moisture volume fraction:    '+ str('%7.3f\n\n' %self.moistureVolumeFraction()))
 
@@ -486,7 +488,7 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         #self.FGBalanceFile.write('Hydrogen: '+str(self.TarH)+'\n')
         #self.FGBalanceFile.write('Oxygen:   '+str(self.TarO)+'\n')
         #self.FGBalanceFile.write('Nitrogen: '+str(self.TarN)+'\n\n\n')
-        
+
     def __EnergyBalance(self):
         """Calculates the heat of formation of tar."""
         #Reaction enthalpie (J/mol) for: (E..Energy, M...molar)
@@ -534,7 +536,7 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
 #        print 'H2O', nuH2O*hfH2O
 #        print 'N2', nuN2*hfN2
         self.hfTar=TarEM-nuO2*hfO2+nuCO2*hfCO2+nuH2O*hfH2O+nuN2*hfN2
-    
+
     def __writeEnergyResults(self):
         """Writes the Energy results into the result file."""
         #self.FGBalanceFile.write('The lower heating value of daf coal:\n')
@@ -542,8 +544,8 @@ class FGDVC_SpeciesBalance(SpeciesBalance):
         #self.FGBalanceFile.write('The enthalpie of foramtion for the tar:\n')
         #self.FGBalanceFile.write('hfTar: %.4f MJ/mol\n' % (self.hfTar*1.e-6))
         self.FGBalanceFile.write(str('=== Enthalpy of formation ===\nhf = %10.3f J/kmol\n' %self.hfTar))
-        
+
     def __closeFile(self):
         """Closes the FG-DVC Composition file."""
         self.FGBalanceFile.close()
-        
+
