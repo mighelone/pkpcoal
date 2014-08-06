@@ -30,8 +30,8 @@ import pylab as plt
 #
 #Which operating Sytem?
 oSystem=platform.system()
-if oSystem == 'Darwin':
-    oSystem = 'Linux'
+#if oSystem == 'Darwin':
+#    oSystem = 'Linux'
 #Directories:
 #gets the current directory:
 workingDir=os.getcwd()+'/'
