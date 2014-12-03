@@ -1,5 +1,12 @@
 #Proximate Analysis (in percent, as recieved):
-
+Fixed Carbon:
+36.12
+Volatile Matter:
+45.26
+Moisture:
+12.92
+Ash:
+5.70
 
 #Ultimate Analysis (in percent):
 UA Carbon:
@@ -13,18 +20,8 @@ UA Oxygen:
 UA Sulphur:
 0.456
 
-
-Fixed Carbon:
-36.12
-Volatile Matter:
-45.26
-Moisture:
-12.92
-Ash:
-5.70
-
 Higher Heating Value, as recieved, in J/kg:
-0.0
+21650000.0
 Tar Molecule weight, MTar:
 130
 
