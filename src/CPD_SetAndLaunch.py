@@ -138,12 +138,26 @@ class SetterAndLauncher(object):
         ini.write( str(self.nmax)+'           !nmax (maximum number of mers for tar molecular wt)\n')
         ini.close()
 
-    def Run(self,CPD_exe,Input_File,LogFile):
-        """Launches CPD_exe and inputs Input_File. If the CPD executable is in another directory than the Python script enter the whole path for CPD_exe."""
-        OScommand=str(CPD_exe)+' < '+str(Input_File)+' > '+str(LogFile) 
+    def Run(self, run_nr):
+        """Launches the CPD executable and inputs Input_File. 
+
+           TODO: If the CPD executable is in  another directory than the 
+           current working directory the script should use absolute path 
+           for the CPD_exe.
+        """
+        oSystem=platform.system() #FIXME replace by global variable
+        if oSystem=='Linux':
+            exe='./cpdnlg'
+        elif oSystem == 'Darwin':
+            exe='./cpdnlg.x'
+        elif oSystem=='Windows':
+            exe='./cpdnlg.exe'
+        else:
+            print "The name of the operating system couldn't be found."
+            return 
+
+        OScommand='{} < {} > CPD_{}_output.log'.format(exe,inp_file,run_nr)
         os.system(OScommand)
-
-
 
 
 ################################################################################

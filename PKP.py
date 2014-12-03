@@ -53,9 +53,12 @@ class MainProcess(object):
     def __init__(self):
         self.SpeciesToConsider=[] #for GUI
         self.ProgramModelDict={} #for GUI
+        #self.properties=ReadInputFiles()
     #
     def ReadInputFiles(self):
         """get parameters from input files"""
+        #FIXME: Probably switch to YAML
+        #       make it return something to ease unit tests
         #
         #Coal File:
         #
@@ -631,14 +634,9 @@ class MainProcess(object):
                 CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max5)
             CPD.writeInstructFile(workingDir)
             print 'Running CPD ...',runNr
-            if oSystem=='Linux':
-                CPD.Run('./'+'cpdnlg','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
-            elif oSystem == 'Darwin':
-                CPD.Run('./'+'cpdnlg.x','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
-            elif oSystem=='Windows':
-                CPD.Run('cpdnlg.exe','IN.dat','CPD_'+str(runNr)+'_output.log')   #first Arg: CPD-executeable, second: Input data containing CPD input file and the output files
-            else:
-                print "The name of the operating system couldn't be found."
+            #first Arg: CPD-executeable, 
+            #second: Input data containing CPD input file and the output files
+            CPD.Run(run_nr=runNr)
             #
             ###calibration of the kinetic parameter:
             #read result:
@@ -985,6 +983,9 @@ class MainProcess(object):
 if __name__ == "__main__":
     Case=MainProcess()
     Case.ReadInputFiles()
+    #FIXME: avoid long if cascades
+    #       either by case of statement
+    #       or factoring it out from main method
     if Case.CPDselect==True:
         Case.MakeResults_CPD()
     if Case.FG_select==True:
