@@ -6,6 +6,10 @@ import shutil
 from scipy.integrate import odeint
 import scipy.interpolate
 import Fit_one_run 
+import platform
+
+OS = platform.system()
+
 ################################
 R=1.0 #8.3144621 # Gas constant only =8.3... if E should not include R
 ################################
@@ -138,25 +142,23 @@ class SetterAndLauncher(object):
         ini.write( str(self.nmax)+'           !nmax (maximum number of mers for tar molecular wt)\n')
         ini.close()
 
-    def Run(self, run_nr):
+    def Run(self, run_nr, inp_file="IN.dat"):
         """Launches the CPD executable and inputs Input_File. 
 
            TODO: If the CPD executable is in  another directory than the 
            current working directory the script should use absolute path 
            for the CPD_exe.
         """
-        oSystem=platform.system() #FIXME replace by global variable
-        if oSystem=='Linux':
-            exe='./cpdnlg'
-        elif oSystem == 'Darwin':
-            exe='./cpdnlg.x'
-        elif oSystem=='Windows':
-            exe='./cpdnlg.exe'
+        if OS == 'Linux':
+            exe = './cpdnlg'
+        elif OS == 'Darwin':
+            exe = './cpdnlg.x'
+        elif OS == 'Windows':
+            exe = './cpdnlg.exe'
         else:
             print "The name of the operating system couldn't be found."
             return 
-
-        OScommand='{} < {} > CPD_{}_output.log'.format(exe,inp_file,run_nr)
+        OScommand='{} < {} > CPD_{}_output.log'.format(exe, inp_file, run_nr)
         os.system(OScommand)
 
 
