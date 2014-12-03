@@ -125,6 +125,7 @@ class GenericOpt(object):
         ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
         ga.setMutationRate(0.40)
         ga.setCrossoverRate(1.0)
+
         #parallel processing
         #ga.setMultiProcessing(True)
         # Sets the DB Adapter, the resetDB flag will make the Adapter recreate

@@ -440,7 +440,7 @@ class MainProcess(object):
         """Generates the results for Kobayashi Rate."""
         PredictionVKob0=[7e5,8e7/8314.33,2.3e8,1.6e8/8314.33,0.4,0.9]
         outfile = open(PyrolProgram+'-Results_KobayashiRate.txt', 'w')
-        outfile.write("Species              A1 [1/s]              E_a1 [K]             A2 [1/s]             E_a2 [K]      alpha1     alpha2\n\n")
+        outfile.write("Species              A1 [1/s]              E_a1 [kJ/mol]             A2 [1/s]             E_a2 [kJ/mol]      alpha1     alpha2\n\n")
         self.KinModel=Models.Kobayashi(GlobalOptParam.EvAKobInit) #(PredictionVKob0)
         if PyrolProgram=='PCCL':
                 self.KinModel.setDt4Intergrate(self.FG_dt)
@@ -459,7 +459,7 @@ class MainProcess(object):
             self.Solution=self.KinModel.ParamVector()
             #
             self.KinModel.plot(Fit,Species)
-            outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %.6e  %11.4f  %6.4f  %6.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2],self.Solution[3],self.Solution[4],self.Solution[5])+'\n')
+            outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %.6e  %11.4f  %6.4f  %6.4f  ' %(self.Solution[0],self.Solution[1]*8314.33/1e6,self.Solution[2],self.Solution[3]*8314.33/1e6,self.Solution[4],self.Solution[5])+'\n')
         outfile.close()
         if oSystem=='Linux'  or oSystem == 'Darwin':
             shutil.move(PyrolProgram+'-Results_KobayashiRate.txt','Result/'+PyrolProgram+'-Results_Kobayashi.txt')
