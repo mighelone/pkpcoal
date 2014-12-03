@@ -123,6 +123,8 @@ class GenericOpt(object):
         # Set the Roulette Wheel selector method, the number of generations and the termination criteria
         ga.selector.set(Selectors.GRouletteWheel)
         ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
+	ga.setMutationRate(0.4)
+	ga.setCrossoverRate(1.0)
         #parallel processing
         #ga.setMultiProcessing(True)
         # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
