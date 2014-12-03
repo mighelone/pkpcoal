@@ -101,45 +101,45 @@ class SetterAndLauncher(object):
     def writeInstructFile(self,Dirpath):
         """Writes the File 'CPD_input.dat' into the directory Dirpath."""
         ini=open(Dirpath+'CPD_input.dat','w')#Keywords:1-15,args:16-70
-        ini.write( str(self.p0)+'           !p0\n')
-        ini.write( str(self.c0)+'           !c0\n')
-        ini.write( str(self.sig)+'           !sig+1\n')
-        ini.write( str(self.mw)+'           !mw\n')
-        ini.write( str(self.mdel)+'           !mdel (7 will be subtracted internally to the CPD model\n\n')
-        ini.write( str(self.fcar/100.)+'           !fcar (daf mass fraction of carbon in unreacted coal)\n')
-        ini.write( str(self.fhyd/100.)+'           !fhyd (daf mass fraction of hydrogen in unreacted coal)\n')
-        ini.write( str(self.fnit/100.)+'           !fnit (daf mass fraction of nitrogen in unreacted coal)\n')
-        ini.write( str(self.foxy/100.)+'           !foxy (daf mass fraction of oxygen in unreacted coal)\n\n\n\n')
-        #
-        ini.write( str(self.ab)+'           !ab\n')
-        ini.write( str(self.eb)+'           !eb\n')
-        ini.write( str(self.ebsig)+'           !ebsig\n')
-        ini.write( str(self.ac)+'           !ac=rho\n')
-        ini.write( str(self.ec)+'           !ec\n')
-        ini.write( str(self.ag)+'           !ag\n')
-        ini.write( str(self.eg)+'           !eg\n')
-        ini.write( str(self.egsig)+'           !egsig\n')
-        ini.write( str(self.Acr)+'           !Acr (pre-exponential factor for crosslinking rate)\n')
-        ini.write( str(self.Ecr)+'           !Ecr (activation energy for crosslinking rate)\n\n')
-        #        
-        ini.write( str(self.arad)+'           !arad (pre-exponential factor for N attack by free radical)\n')
-        ini.write( str(self.erad)+'           !erad (activation energy for N attack by free radical, cal.)\n')
-        ini.write( str(self.fstable)+'           !fstable (initial frac. of MW decay with no radical N attack)\n')
-        ini.write( str(self.an)+'           !an (high T slow N release pre-exponential factor)\n')
-        ini.write( str(self.en)+'           !en (high T slow N release activation energy, calories)\n')
-        ini.write( str(self.ensig)+'           !ensig (deviation bound for distribution of en)\n\n\n')
-        #
-        ini.write( str(self.pressure)+'           !pressure (atm)\n\n')
-        ini.write( str(len(self.TP))+'           !number of time points\n')
-        ini.write( str(self.TP[0,0])+',' + str(self.TP[0,1]))
-        ini.write('           !time(ms),temp(K)\n')
-        for i in range(1,len(self.TP),1):
-            ini.write( str(self.TP[i,0])+','+str(self.TP[i,1])+'\n')
-        ini.write('\n\n\n\n\n\n\n\n\n\n\n')
-        #
-        ini.write( str(self.dt[0])+','+str(self.dt[1])+','+str(self.dt[2])+'   !dt (s),print increment,max dt (s)\n')
-        ini.write( str(self.timax)+'           !timax (maximum residence time [s] for calculations)\n')
-        ini.write( str(self.nmax)+'           !nmax (maximum number of mers for tar molecular wt)\n')
+        ini_str = """
+{p0}                           ! p0
+{c0}                           ! c0
+{sig}                          ! sig+1
+{mw}                           ! mw
+{mdel}                         ! mdel (7 will be subtracted internally to the CPD model
+{fcar/100.}                    ! fcar (daf mass fraction of carbon in unreacted coal)
+{fhyd/100.}                    ! fhyd (daf mass fraction of hydrogen in unreacted coal)
+{fnit/100.}                    ! fnit (daf mass fraction of nitrogen in unreacted coal)
+{foxy/100.}                    ! foxy (daf mass fraction of oxygen in unreacted coal)
+
+{ab}                           ! ab
+{eb}                           ! eb
+{ebsig}                        ! ebsig
+{ac}                           ! ac=rho
+{ec}                           ! ec
+{ag}                           ! ag
+{eg}                           ! eg
+{egsig}                        ! egsig
+{Acr}                          ! Acr (pre-exponential factor for crosslinking rate)
+{Ecr}                          ! Ecr (activation energy for crosslinking rate)
+#
+{arad}                         ! arad (pre-exponential factor for N attack by free radical)
+{erad}                         ! erad (activation energy for N attack by free radical, cal.)
+{fstable}                      ! fstable (initial frac. of MW decay with no radical N attack)
+{an}                           ! an (high T slow N release pre-exponential factor)
+{en}                           ! en (high T slow N release activation energy, calories)
+{ensig}                        ! ensig (deviation bound for distribution of en)
+
+{pressure}                     ! pressure (atm)
+{len(self.TP)}                 ! number of time points
+{TP[0,0]) {TP[0,1]}            ! time(ms),temp(K)
+    for i in range(1,len(self.TP),1):
+        ini.write( str(self.TP[i,0])+','+str(self.TP[i,1])+'\n')
+    #
+{dt[0]} {dt[1]} {dt[2]}        ! dt (s),print increment,max dt (s)\n')
+{self.timax}                   ! timax (maximum residence time [s] for calculations)\n')
+{str(self.nmax}                ! nmax (maximum number of mers for tar molecular wt)\n')
+""".format(self.__dict__)
         ini.close()
 
     def Run(self, run_nr, inp_file="IN.dat"):
