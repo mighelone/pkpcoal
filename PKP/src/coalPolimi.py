@@ -5,7 +5,10 @@ import numpy as np
 from coal import coal
 import sys
 #sys.path.append('/usr/local/lib/python2.7/site-packages/')
-from Cantera import *
+try:
+    from Cantera import *
+except:
+    pass
 from scipy.integrate import odeint,ode
 
 import warnings

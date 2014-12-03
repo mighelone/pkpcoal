@@ -50,150 +50,159 @@ FG_CoalName='GenCoal'
 #
 class MainProcess(object):
     """Controls the whole process of generating input files, fitting etc."""
-    def __init__(self):
-        self.SpeciesToConsider=[] #for GUI
-        self.ProgramModelDict={} #for GUI
-        #self.properties=ReadInputFiles()
+    def __init__(self, read_inp_files=True):
+        self.SpeciesToConsider = [] #for GUI
+        self.ProgramModelDict = {} #for GUI
+        if read_inp_files:
+            self.properties = self.ReadInputFiles()
     #
-    def ReadInputFiles(self):
+    def ReadInputFiles(self,inputs_folder='.'):
         """get parameters from input files"""
         #FIXME: Probably switch to YAML
         #       make it return something to ease unit tests
         #
         #Coal File:
         #
-        print 'Reading Coal.inp ...'
-        CoalInput=InformationFiles.ReadFile(workingDir+'Coal.inp')
-        self.PAFC_asrec=CoalInput.getValue(InformationFiles.M_PA[0])
-        self.PAVM_asrec=CoalInput.getValue(InformationFiles.M_PA[1])
-        self.PAmoist = CoalInput.getValue(InformationFiles.M_PA[2])
-        self.PAash = CoalInput.getValue(InformationFiles.M_PA[3])
-        # scale proximate analysis
-        sumPA = (self.PAFC_asrec+self.PAVM_asrec + self.PAmoist + self.PAash)/100.
-        self.PAFC_asrec/=sumPA
-        self.PAVM_asrec/=sumPA
-        self.PAmoist/=sumPA
-        self.PAash/=sumPA
+        import yaml
+        for fn in  ['Coal', 'CPD', 'FGDVC', 'PCCL',]
+            full_fn = inputs_folder + fn + '.inp'
+            print 'Reading: ' + full_fn
+            try:
+                file_stream = open(full_fn, 'r')
+                yaml.load(file_stream)
+            except Exception as e:
+                print e 
+        # CoalInput=InformationFiles.ReadFile(workingDir+'Coal.inp')
+        # self.PAFC_asrec=CoalInput.getValue(InformationFiles.M_PA[0])
+        # self.PAVM_asrec=CoalInput.getValue(InformationFiles.M_PA[1])
+        # self.PAmoist = CoalInput.getValue(InformationFiles.M_PA[2])
+        # self.PAash = CoalInput.getValue(InformationFiles.M_PA[3])
+        # # scale proximate analysis
+        # sumPA = (self.PAFC_asrec+self.PAVM_asrec + self.PAmoist + self.PAash)/100.
+        # self.PAFC_asrec/=sumPA
+        # self.PAVM_asrec/=sumPA
+        # self.PAmoist/=sumPA
+        # self.PAash/=sumPA
+        # #
+        # #gets daf values, as CPD needs daf as input:
+        # self.PAFC_daf, self.PAVM_daf = self.DAF(self.PAFC_asrec,self.PAVM_asrec)
+        # self.UAC=CoalInput.getValue(InformationFiles.M_UA[0])
+        # self.UAH=CoalInput.getValue(InformationFiles.M_UA[1])
+        # self.UAN=CoalInput.getValue(InformationFiles.M_UA[2])
+        # self.UAO=CoalInput.getValue(InformationFiles.M_UA[3])
+        # self.UAS=CoalInput.getValue(InformationFiles.M_UA[4])
+        # # scale ultimate analysis
+        # sumUA = self.UAC+self.UAH+self.UAN+self.UAO+self.UAS
+        # self.UAC=self.UAC/sumUA*100
+        # self.UAH=self.UAH/sumUA*100
+        # self.UAO=self.UAO/sumUA*100
+        # self.UAN=self.UAN/sumUA*100
+        # self.UAS=self.UAS/sumUA*100
+        # self.HHV=CoalInput.getValue(InformationFiles.M_HHV)
+        # self.MTar=CoalInput.getValue(InformationFiles.M_MTar)
+        # self.WeightY=CoalInput.getValue(InformationFiles.M_Weight[0])
+        # self.WeightR=CoalInput.getValue(InformationFiles.M_Weight[1])
+        # self.densityDryCoal = CoalInput.getValue(InformationFiles.M_density)
+        # #
+        # #CPD Properties:
+        # #
+        # print 'Reading CPD.inp ...'
+        # CPDInput=InformationFiles.ReadFile(workingDir+'CPD.inp')
+        # self.CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
+        # self.CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
+        # self.CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
+        # self.CPDdt[0]=(CPDInput.getValue(InformationFiles.MC_dt[0]))
+        # self.CPDdt[1]=(CPDInput.getValue(InformationFiles.MC_dt[1]))
+        # #
+        # #
+        # #FG-DVC Properties:
+        # #
+        # print 'Reading FGDVC.inp ...'
+        # FGDVCInput=InformationFiles.ReadFile(workingDir+'FGDVC.inp')
+        # self.FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
+        # self.FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
+        # self.FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
+        # self.FG_MainDir=FGDVCInput.getText(InformationFiles.MF_dir[0])
+        # self.FG_DirOut=FGDVCInput.getText(InformationFiles.MF_dir[1])
+        # self.FG_TarCacking=FGDVCInput.getValue(InformationFiles.MF_TarCr)
+        # #
+        # # Polimi PMSKD model Properties
+        # # Predictive Multi-Step Kinetic Devolatilization
+        # #
+        # print 'Reading PMSKD.inp ...'
+        # PMSKDInput = InformationFiles.ReadFile(workingDir+'PMSKD.inp')
+        # self.PMSKD_select = PMSKDInput.UsePyrolProgr(InformationFiles.MP_sel)
+        # self.PMSKD_FittingKineticParameter_Select=PMSKDInput.Fitting(InformationFiles.M_selFit)
+        # self.PMSKD_ArrhSpec=PMSKDInput.getText(InformationFiles.M_selArrhSpec)
+        # self.PMSKD_npoint = PMSKDInput.getText(InformationFiles.MP_npoint)
+        # self.PMSKD_mechfile = PMSKDInput.getText(InformationFiles.MP_mechfile)
+        # #self.PMSKD_npoint=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
+        # #print self.PMSKD_select
+        # #print self.PMSKD_FittingKineticParameter_Select
+        # #print self.PMSKD_ArrhSpec
+        # #print self.PMSKD_npoint
+        # #print self.PMSKD_mechfile
+        # #
+        # #PC Coal Lab Properties:
+        # #
+        # print 'Reading PCCL.inp ...'
+        # PCCLInput=InformationFiles.ReadFile(workingDir+'PCCL.inp')
+        # self.PCCL_select=PCCLInput.UsePyrolProgr(InformationFiles.MPC_sel)
+        # self.PCCL_FittingKineticParameter_Select=PCCLInput.Fitting(InformationFiles.M_selFit)
+        # self.PCCL_Path=PCCLInput.getText(InformationFiles.MPC_dir)
+        # self.PCCL_Exe=PCCLInput.getText(InformationFiles.MPC_exe)
+        # try:
+        #     self.PCCL_CoalCalFactor=float(PCCLInput.getText(InformationFiles.MPC_CoalCal))
+        # except ValueError:
+        #     self.PCCL_CoalCalFactor=False
+        # self.PCCL_ParticleSize=PCCLInput.getValue(InformationFiles.MPC_partSize)
+        # #
+        # #
+        # #Operating Condition File:
+        # #
+        # print 'Reading OperCond.inp ...'
+        # OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
+        # self.CPD_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
+        # self.FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
+        # self.ArrhSpec=OpCondInp.getText(InformationFiles.M_selArrhSpec)
+        # #Number of FG-DVC/CPD/PCCL runs:
+        # self.NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
+        # self.TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
+        # self.TimeTemp2=OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
+        # self.TimeTemp3=OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
+        # self.TimeTemp4=OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
+        # self.TimeTemp5=OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
+        # # organize time temp for Polimi model
+        # self.timeHR = [self.TimeTemp1[:,0],
+        #                self.TimeTemp2[:,0],
+        #                self.TimeTemp3[:,0],
+        #                self.TimeTemp4[:,0],
+        #                self.TimeTemp5[:,0]]
+        # self.temperatureHR = [self.TimeTemp1[:,1],
+        #                self.TimeTemp2[:,1],
+        #                self.TimeTemp3[:,1],
+        #                self.TimeTemp4[:,1],
+        #                self.TimeTemp5[:,1]]
+        # self.CPDdt[2]=OpCondInp.getValue(InformationFiles.M_dt)
+        # self.FG_dt=OpCondInp.getValue(InformationFiles.M_dt)
+        # self.FG_T_t_History=self.FG_MainDir+'tTHistory.txt'
         #
-        #gets daf values, as CPD needs daf as input:
-        self.PAFC_daf, self.PAVM_daf = self.DAF(self.PAFC_asrec,self.PAVM_asrec)
-        self.UAC=CoalInput.getValue(InformationFiles.M_UA[0])
-        self.UAH=CoalInput.getValue(InformationFiles.M_UA[1])
-        self.UAN=CoalInput.getValue(InformationFiles.M_UA[2])
-        self.UAO=CoalInput.getValue(InformationFiles.M_UA[3])
-        self.UAS=CoalInput.getValue(InformationFiles.M_UA[4])
-        # scale ultimate analysis
-        sumUA = self.UAC+self.UAH+self.UAN+self.UAO+self.UAS
-        self.UAC=self.UAC/sumUA*100
-        self.UAH=self.UAH/sumUA*100
-        self.UAO=self.UAO/sumUA*100
-        self.UAN=self.UAN/sumUA*100
-        self.UAS=self.UAS/sumUA*100
-        self.HHV=CoalInput.getValue(InformationFiles.M_HHV)
-        self.MTar=CoalInput.getValue(InformationFiles.M_MTar)
-        self.WeightY=CoalInput.getValue(InformationFiles.M_Weight[0])
-        self.WeightR=CoalInput.getValue(InformationFiles.M_Weight[1])
-        self.densityDryCoal = CoalInput.getValue(InformationFiles.M_density)
-        #
-        #CPD Properties:
-        #
-        print 'Reading CPD.inp ...'
-        CPDInput=InformationFiles.ReadFile(workingDir+'CPD.inp')
-        self.CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
-        self.CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
-        self.CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
-        self.CPDdt[0]=(CPDInput.getValue(InformationFiles.MC_dt[0]))
-        self.CPDdt[1]=(CPDInput.getValue(InformationFiles.MC_dt[1]))
-        #
-        #
-        #FG-DVC Properties:
-        #
-        print 'Reading FGDVC.inp ...'
-        FGDVCInput=InformationFiles.ReadFile(workingDir+'FGDVC.inp')
-        self.FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
-        self.FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
-        self.FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
-        self.FG_MainDir=FGDVCInput.getText(InformationFiles.MF_dir[0])
-        self.FG_DirOut=FGDVCInput.getText(InformationFiles.MF_dir[1])
-        self.FG_TarCacking=FGDVCInput.getValue(InformationFiles.MF_TarCr)
-        #
-        # Polimi PMSKD model Properties
-        # Predictive Multi-Step Kinetic Devolatilization
-        #
-        print 'Reading PMSKD.inp ...'
-        PMSKDInput = InformationFiles.ReadFile(workingDir+'PMSKD.inp')
-        self.PMSKD_select = PMSKDInput.UsePyrolProgr(InformationFiles.MP_sel)
-        self.PMSKD_FittingKineticParameter_Select=PMSKDInput.Fitting(InformationFiles.M_selFit)
-        self.PMSKD_ArrhSpec=PMSKDInput.getText(InformationFiles.M_selArrhSpec)
-        self.PMSKD_npoint = PMSKDInput.getText(InformationFiles.MP_npoint)
-        self.PMSKD_mechfile = PMSKDInput.getText(InformationFiles.MP_mechfile)
-        #self.PMSKD_npoint=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
-        #print self.PMSKD_select
-        #print self.PMSKD_FittingKineticParameter_Select
-        #print self.PMSKD_ArrhSpec
-        #print self.PMSKD_npoint
-        #print self.PMSKD_mechfile
-        #
-        #PC Coal Lab Properties:
-        #
-        print 'Reading PCCL.inp ...'
-        PCCLInput=InformationFiles.ReadFile(workingDir+'PCCL.inp')
-        self.PCCL_select=PCCLInput.UsePyrolProgr(InformationFiles.MPC_sel)
-        self.PCCL_FittingKineticParameter_Select=PCCLInput.Fitting(InformationFiles.M_selFit)
-        self.PCCL_Path=PCCLInput.getText(InformationFiles.MPC_dir)
-        self.PCCL_Exe=PCCLInput.getText(InformationFiles.MPC_exe)
-        try:
-            self.PCCL_CoalCalFactor=float(PCCLInput.getText(InformationFiles.MPC_CoalCal))
-        except ValueError:
-            self.PCCL_CoalCalFactor=False
-        self.PCCL_ParticleSize=PCCLInput.getValue(InformationFiles.MPC_partSize)
-        #
-        #
-        #Operating Condition File:
-        #
-        print 'Reading OperCond.inp ...'
-        OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
-        self.CPD_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
-        self.FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
-        self.ArrhSpec=OpCondInp.getText(InformationFiles.M_selArrhSpec)
-        #Number of FG-DVC/CPD/PCCL runs:
-        self.NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
-        self.TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
-        self.TimeTemp2=OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
-        self.TimeTemp3=OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
-        self.TimeTemp4=OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
-        self.TimeTemp5=OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
-        # organize time temp for Polimi model
-        self.timeHR = [self.TimeTemp1[:,0],
-                       self.TimeTemp2[:,0],
-                       self.TimeTemp3[:,0],
-                       self.TimeTemp4[:,0],
-                       self.TimeTemp5[:,0]]
-        self.temperatureHR = [self.TimeTemp1[:,1],
-                       self.TimeTemp2[:,1],
-                       self.TimeTemp3[:,1],
-                       self.TimeTemp4[:,1],
-                       self.TimeTemp5[:,1]]
-        self.CPDdt[2]=OpCondInp.getValue(InformationFiles.M_dt)
-        self.FG_dt=OpCondInp.getValue(InformationFiles.M_dt)
-        self.FG_T_t_History=self.FG_MainDir+'tTHistory.txt'
-
-        self.CPD_TimeTemp1 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
-        self.CPD_TimeTemp2 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
-        self.CPD_TimeTemp3 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
-        self.CPD_TimeTemp4 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
-        self.CPD_TimeTemp5 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
-        #makes for CPD time in milliseconds:
-        self.CPD_TimeTemp1[:,0] *= 1.e3
-        self.CPD_TimeTemp2[:,0]=self.TimeTemp2[:,0]*1.e3
-        self.CPD_TimeTemp3[:,0]=self.TimeTemp3[:,0]*1.e3
-        self.CPD_TimeTemp4[:,0]=self.TimeTemp4[:,0]*1.e3
-        self.CPD_TimeTemp5[:,0]=self.TimeTemp5[:,0]*1.e3
-        self.CPD_t_max1=self.CPD_TimeTemp1[-1,0]*1.e-3 #tmax in s, not ms
-        self.CPD_t_max2=self.CPD_TimeTemp2[-1,0]*1.e-3 #tmax in s, not ms
-        self.CPD_t_max3=self.CPD_TimeTemp3[-1,0]*1.e-3 #tmax in s, not ms
-        self.CPD_t_max4=self.CPD_TimeTemp4[-1,0]*1.e-3 #tmax in s, not ms
-        self.CPD_t_max5=self.CPD_TimeTemp5[-1,0]*1.e-3 #tmax in s, not ms
+        # self.CPD_TimeTemp1 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
+        # self.CPD_TimeTemp2 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
+        # self.CPD_TimeTemp3 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
+        # self.CPD_TimeTemp4 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
+        # self.CPD_TimeTemp5 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
+        # #makes for CPD time in milliseconds:
+        # self.CPD_TimeTemp1[:,0] *= 1.e3
+        # self.CPD_TimeTemp2[:,0]=self.TimeTemp2[:,0]*1.e3
+        # self.CPD_TimeTemp3[:,0]=self.TimeTemp3[:,0]*1.e3
+        # self.CPD_TimeTemp4[:,0]=self.TimeTemp4[:,0]*1.e3
+        # self.CPD_TimeTemp5[:,0]=self.TimeTemp5[:,0]*1.e3
+        # self.CPD_t_max1=self.CPD_TimeTemp1[-1,0]*1.e-3 #tmax in s, not ms
+        # self.CPD_t_max2=self.CPD_TimeTemp2[-1,0]*1.e-3 #tmax in s, not ms
+        # self.CPD_t_max3=self.CPD_TimeTemp3[-1,0]*1.e-3 #tmax in s, not ms
+        # self.CPD_t_max4=self.CPD_TimeTemp4[-1,0]*1.e-3 #tmax in s, not ms
+        # self.CPD_t_max5=self.CPD_TimeTemp5[-1,0]*1.e-3 #tmax in s, not ms
         #
         #
         #
@@ -981,7 +990,6 @@ class MainProcess(object):
 #Main Part starting
 if __name__ == "__main__":
     Case=MainProcess()
-    Case.ReadInputFiles()
     #FIXME: avoid long if cascades
     #       either by case of statement
     #       or factoring it out from main method

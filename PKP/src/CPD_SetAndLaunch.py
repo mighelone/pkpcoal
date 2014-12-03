@@ -133,13 +133,17 @@ class SetterAndLauncher(object):
 {pressure}                     ! pressure (atm)
 {len(self.TP)}                 ! number of time points
 {TP[0,0]) {TP[0,1]}            ! time(ms),temp(K)
-    for i in range(1,len(self.TP),1):
-        ini.write( str(self.TP[i,0])+','+str(self.TP[i,1])+'\n')
-    #
+""".format(**self.__dict__)
+        time_points_str = ""
+        for i in range(1,len(self.TP),1):
+            time_points_str += "{}, {} \n".format(self.TP[i,0],self.TP[i,1])
+
+        ini_str += """
 {dt[0]} {dt[1]} {dt[2]}        ! dt (s),print increment,max dt (s)\n')
 {self.timax}                   ! timax (maximum residence time [s] for calculations)\n')
 {str(self.nmax}                ! nmax (maximum number of mers for tar molecular wt)\n')
-""".format(self.__dict__)
+""".format(**self.__dict__)
+        print ini_str
         ini.close()
 
     def Run(self, run_nr, inp_file="IN.dat"):

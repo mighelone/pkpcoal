@@ -2,7 +2,7 @@ useCPD?:
 Yes
 
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
-Kobayashi
+None
 
 #numerical parameter for CPD:
 initial time step in s:
