@@ -7,19 +7,19 @@ import matplotlib
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
 
-import CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
-import FGDVC_SetAndLaunch       #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
-import PCCL_SetAndLaunch       #writes PCCL instruction file and alunches the exe
-import FGDVC_Result             #contains the information of the FG-DVC output file
-import CPD_Result               #contains the information of the CPD output file
-import PCCL_Result               #contains the information of the PCCL output file
-import Fitter                   #The optimizer class
-import Models                   #the models like Arrhenius or Kobayashi
-import FitInfo                  #supports the Fitting with the yield information
-import Compos_and_Energy        #Species balance and energy balance for CPD and FG-DVC
-import InformationFiles         #reads the user input files, writes FG-DVC coalsd.exe coal generation file
-import GlobalOptParam           #contains the Information of the Number Of Runs for the Global Optimum search
-import Evolve                   #contains the generic algortihm optimizer
+import CPD_SetAndLaunch   # writes CPD-instruct File, launches CPD
+import FGDVC_SetAndLaunch # writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
+import PCCL_SetAndLaunch  # writes PCCL instruction file and alunches the exe
+import FGDVC_Result       # contains the information of the FG-DVC output file
+import CPD_Result         # contains the information of the CPD output file
+import PCCL_Result        # contains the information of the PCCL output file
+import Fitter             # The optimizer class
+import Models             # the models like Arrhenius or Kobayashi
+import FitInfo            # supports the Fitting with the yield information
+import Compos_and_Energy  # Species balance and energy balance for CPD and FG-DVC
+import InformationFiles   # reads the user input files, writes FG-DVC coalsd.exe coal generation file
+import GlobalOptParam     # contains the Information of the Number Of Runs for the Global Optimum search
+import Evolve             # contains the generic algortihm optimizer
 import numpy as np
 import platform
 import shutil
