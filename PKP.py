@@ -634,8 +634,7 @@ class MainProcess(object):
                 CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max5)
             CPD.writeInstructFile(workingDir)
             print 'Running CPD ...',runNr
-            #first Arg: CPD-executeable, 
-            #second: Input data containing CPD input file and the output files
+            # run CPD executable
             CPD.Run(run_nr=runNr)
             #
             ###calibration of the kinetic parameter:
