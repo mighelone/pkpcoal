@@ -3,7 +3,7 @@ import os
 import platform
 import shutil
 #PKP imports
-import src.CPD_SetAndLaunch   # writes CPD-instruct File, launches CPD
+import src.CPD_SetAndLaunch as CPD_SetAndLaunch   # writes CPD-instruct File, launches CPD
 # import FGDVC_SetAndLaunch # writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
 # import PCCL_SetAndLaunch  # writes PCCL instruction file and alunches the exe
 # import FGDVC_Result       # contains the information of the FG-DVC output file
@@ -58,7 +58,7 @@ class BalancedComposition(object):
     def __getitem__(self,item):
         """ """
         try:
-             self.elems[item]
+            return self.elems[item]
         except:
             print """Warning trying to access {} which was not set in
             input file, assuming 0.0. 
@@ -79,17 +79,17 @@ class BalancedComposition(object):
 class MainProcess(object):
     """ Controls the whole process of generating input files, fitting etc. """
 
-    def __init__(self, read_inp_files=True):
+    def __init__(self, read_inp_files=True, inputs_folder=False):
         self.SpeciesToConsider = [] #for GUI
         self.ProgramModelDict = {} #for GUI
         if read_inp_files:
-            self.inputs = self.ReadInputFiles()
+            self.inputs = self.ReadInputFiles(inputs_folder)
         coal = self.inputs["Coal"]
         self.proxi_ana = BalancedComposition(coal["Proximate Analysis"])
         self.ultim_ana = BalancedComposition(coal["Ultimate Analysis"])
         self.daf = self.proxi_ana.remove_elems_rebalance(['Moisture','Ash'])
-        print self.__dict__
-    
+
+ 
     def ReadInputFiles(self, inputs_folder=False):
         """ Read params from input file and generate Input objects """
         import yaml
@@ -103,7 +103,8 @@ class MainProcess(object):
             print e 
 
 
-    def execute_solver(self):
+    def executeSolver(self):
+        pass
         # if Case.CPDselect==True:
         #     Case.MakeResults_CPD()
         # if Case.FG_select==True:
@@ -574,18 +575,22 @@ class MainProcess(object):
 
     def MakeResults_CPD(self):
         """generates the result for CPD"""
-        CPDFile=[]
-        CPDFit=[]
-        for run, temps in self.inputs['CPD']['Operation Conditions']).iteritems():
-            #launches CPD
-            CPD = CPD_SetAndLaunch.SetterAndLauncher(self.ultim_ana, self.daf)
-            
-            CPD.SetOperateCond(self.inputs['CPD']['pressure'], np.array(temps))
-            CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max1)
+        CPDFile = [] #TODO GO What are these god for?
+        CPDFit  = []
+        operatingConditions = self.inputs['OperatingConditions']
+        pressure = operatingConditions.pop('pressure') 
+        for run, temps in operatingConditions.iteritems():
+            # TODO type check if temps is an 2d array 
+            CPD = CPD_SetAndLaunch.SetterAndLauncher(
+                    self.ultim_ana, 
+                    self.daf,
+                    temps,
+                    pressure,
+                    self.inputs['CPD']['deltaT'] 
+                )
             CPD.writeInstructFile(workingDir)
             print 'Running CPD: ' + run
-            # run CPD executable
-            CPD.Run(run_nr=runNr)
+            CPD.Run()
         #     ###calibration of the kinetic parameter:
         #     #read result:
         #     CurrentCPDFile=CPD_Result.CPD_Result(workingDir)
@@ -915,9 +920,9 @@ class MainProcess(object):
             for Species in PMSKDFit[0].SpeciesNames():
                 M=Models.Model()
                 M.mkSimpleResultFiles(PMSKDFit,Species)
-                if (Species not in self.SpeciesToConsider) 
+                if ((Species not in self.SpeciesToConsider) 
                     and (Species!='Temp') 
-                    and (Species!='Time'):
+                    and (Species!='Time')):
                     self.SpeciesToConsider.append(Species)
         else:
             print 'undefined PMSKD_FittingKineticParameter_Select'

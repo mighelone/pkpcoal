@@ -14,60 +14,66 @@ OS = platform.system()
 R=1.0 #8.3144621 # Gas constant only =8.3... if E should not include R
 ################################
 
-class SetterAndLauncher(object):
+class SetAndLaunchBase(object):
+    runNr=0
+    printIntervall=1
+    writeIntervall=1
+
+class SetterAndLauncher(SetAndLaunchBase):
     """ This class is able to write the CPD input file and launch the CPD program. 
         Before writing the CPD input file (method 'writeInstructFile') set all parameter 
         using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam, 
         CalcCoalParam). After writing the instruct file, the .Run method can be used."""
 
-    self.cpd_constants = {
-        ab      : 2.602e15,
-        eb      : 55400,
-        ebsig   : 1800,
-        ac      : 0.9,
-        ec      : 0,
-        ag      : 3.0e15,
-        eg      : 69000,
-        egsig   : 8100,
-        Acr     : 3.0e15,
-        Ecr     : 65000,
-        arad    : 18.4,
-        erad    : 6000,
-        fstable : 0.03,
-        an      : 5.5e7,
-        en      : 90000,
-        ensig   : 0,
-        nmax    : 20,
+    cpd_constants = {
+           'ab'     : 2.602e15,
+           'eb'     : 55400,
+           'ebsig'  : 1800,
+           'ac'     : 0.9,
+           'ec'     : 0,
+           'ag'     : 3.0e15,
+           'eg'     : 69000,
+           'egsig'  : 8100,
+           'Acr'    : 3.0e15,
+           'Ecr'    : 65000,
+           'arad'   : 18.4,
+           'erad'   : 6000,
+           'fstable': 0.03,
+           'an'     : 5.5e7,
+           'en'     : 90000,
+           'ensig'  : 0,
+           'nmax'   : 20,
         }
 
-    def __init__(self, ultimate_analysis, proximate_analysis_daf, temp_profile):
-        self.temp_profile = self.time_temp_profile(temp_profile) # TODO give it a better name
-        self.ua  = ultimate_analysis
-        self.daf = proximate_analysis_daf
+    def __init__(self, 
+            ultimateAnalysis,
+            proximateAnalysisDaf,
+            tempProfile,
+            pressure,
+            deltaT,
+            inputs="/home/go/documents/code/pkp.git/inputs/"
+        ):
+        self.tempProfile = self.timeTempProfile(tempProfile) # TODO give it a better name
+        self.pressure=pressure
+        self.ua  = ultimateAnalysis
+        self.daf = proximateAnalysisDaf
         self.coal_param = self.CalcCoalParam()
         self.output_dict = {
-            'num_time': len(temp_profile)
+            'num_time' : len(tempProfile),
+            'pressure' : self.pressure,
+            'deltaT'   : deltaT,
+            'strTempProfile': self.tempProfile,
+            'printIntervall': self.printIntervall,
+            'writeIntervall': self.writeIntervall,
         }
         # for generating the output string 
         # all the dicts are merge into one
-        for _ in [self.__dict__]
-            if type(_) == dict:
-                self.output_dict.update(_)
-        
-        
-    def SetOperateCond(self,pressure,TimeTemp):  #TimeTemp is an 2D-Array: [time_i,temp_i]
-        """ Sets the operating condtions pressure and the time-temperature array. 
-            TimeTemp is an 2D-Array. One line of this array is [time_i,temp_i]. """
-        self.pressure=pressure
-        self.TP=np.array(TimeTemp)
-        
-      
-    def SetNumericalParam(self,dt,timax):       #dt: Vector [dt,increment,max dt]
-        """ Sets the numerical parameter and the maximum simulation time. 
-            dt is a vector with the following information: [dt_initial,print-increment,dt_max]
-        """
-        self.dt=dt
-        self.timax=timax
+        self.output_dict.update(self.cpd_constants)
+        self.output_dict.update(self.ua.elems)
+        self.output_dict.update(self.coal_param)
+        self.output_dict.update(self.daf.elems)
+        self.output_dict.update(self.__dict__)
+        self.inputs = inputs #TODO GO fix how input folder is defined
         
     def CalcCoalParam(self):
         """ Calculates the CPD coal parameter mdel, mw, p0, sig 
@@ -98,87 +104,92 @@ class SetterAndLauncher(object):
                 c0 = 0.0
 
         Y = np.zeros(int(len(c[1,:])))
-        for i,yi in enumerate(Y): 
-            Y[i] = c[1,i] 
-                 + c[2,i]*self.ua['Carbon'] 
-                 + c[3,i]*self.ua['Carbon']**2 
-                 + c[4,i]*self.ua['Hydrogen']
-                 + c[5,i]*self.ua['Hydrogen']**2 
-                 + c[6,i]*self.ua['Oxygen'] 
-                 + c[7,i]*self.ua['Oxygen']**2
-                 + c[8,i]*self.daf['Volatile Matter']
-                 + c[9,i]*self.daf['Volatile Matter']**2
+        for i, yi in enumerate(Y): 
+            Y[i] = (c[1,i] 
+                     + c[2,i]*self.ua['Carbon'] 
+                     + c[3,i]*self.ua['Carbon']**2 
+                     + c[4,i]*self.ua['Hydrogen']
+                     + c[5,i]*self.ua['Hydrogen']**2 
+                     + c[6,i]*self.ua['Oxygen'] 
+                     + c[7,i]*self.ua['Oxygen']**2
+                     + c[8,i]*self.daf['Volatile Matter']
+                     + c[9,i]*self.daf['Volatile Matter']**2)
 
-        return {'mdel': Y[0],
-                'mw':   Y[1],
-                'p0':   Y[2],
-                'sig':  Y[3]}
+        return {'c0'   : c0,
+                'mdel' : Y[0],
+                'mw'   : Y[1],
+                'p0'   : Y[2],
+                'sig'  : Y[3]}
         
     
 
-    def time_temp_profile(self):
+    def timeTempProfile(self,tempProfile):
         """ Returns a string from yaml read temp profile, basically reversing the yaml read function
             Probably there is a more direct way
         """
-        return '\n'.join(["{} {}".format(time, temp) for time, temp in temp_profile.iteritems()])
+        #return '\n'.join(["{} {}".format(time, temp) for time, temp in tempProfile.iteritems()])
+        return '\n'.join([' '.join(map(str,_)) for _ in tempProfile])
 
     def writeInstructFile(self,Dirpath):
         """Writes the File 'CPD_input.dat' into the directory Dirpath."""
-        ini=open(Dirpath+'CPD_input.dat','w')#Keywords:1-15,args:16-70
-        #TODO are newlines important for input file?
+        ini=open(self.inputs+'CPD_input.dat','w')#Keywords:1-15,args:16-70
+        #TODO GO is fcar,fhyd ... from daf or ua ?
+        #TODO GO where does timax and nmax come frome
         ini_str = """
-{p0}                    ! p0 #TODO difference to pressure?
-{c0}                    ! c0
-{sig}                   ! sig+1
-{mw}                    ! mw
-{mdel}                  ! mdel (7 will be subtracted internally to the CPD model
-{Carbon}                ! fcar (daf mass fraction of carbon in unreacted coal)
-{Hydrogen}              ! fhyd (daf mass fraction of hydrogen in unreacted coal)
-{Nitrogen}              ! fnit (daf mass fraction of nitrogen in unreacted coal)
-{Oxygen}                ! foxy (daf mass fraction of oxygen in unreacted coal)
-{ab}                    ! ab
-{eb}                    ! eb
-{ebsig}                 ! ebsig
-{ac}                    ! ac=rho
-{ec}                    ! ec
-{ag}                    ! ag
-{eg}                    ! eg
-{egsig}                 ! egsig
-{Acr}                   ! Acr (pre-exponential factor for crosslinking rate)
-{Ecr}                   ! Ecr (activation energy for crosslinking rate)
-{arad}                  ! arad (pre-exponential factor for N attack by free radical)
-{erad}                  ! erad (activation energy for N attack by free radical, cal.)
-{fstable}               ! fstable (initial frac. of MW decay with no radical N attack)
-{an}                    ! an (high T slow N release pre-exponential factor)
-{en}                    ! en (high T slow N release activation energy, calories)
-{ensig}                 ! ensig (deviation bound for distribution of en)
-{pressure}              ! pressure (atm)
-{num_times}             ! number of time points
-{str_temp_profile}
-{dt[0]} {dt[1]} {dt[2]} ! dt (s), print increment, max dt (s)\n')
-{self.timax}            ! timax (maximum residence time [s] for calculations)\n')
-{self.nmax}             ! nmax (maximum number of mers for tar molecular wt)\n')
+{p0:<20} ! p0
+{c0:<20} ! c0
+{sig:<20} ! sig+1
+{mw:<20} ! mw
+{mdel:<20} ! mdel (7 will be subtracted internally to the CPD model
+{Carbon:<20} ! fcar (daf mass fraction of carbon in unreacted coal)
+{Hydrogen:<20} ! fhyd (daf mass fraction of hydrogen in unreacted coal)
+{Nitrogen:<20} ! fnit (daf mass fraction of nitrogen in unreacted coal)
+{Oxygen:<20} ! foxy (daf mass fraction of oxygen in unreacted coal)
+{ab:<20} ! ab
+{eb:<20} ! eb
+{ebsig:<20} ! ebsig
+{ac:<20} ! ac=rho
+{ec:<20} ! ec
+{ag:<20} ! ag
+{eg:<20} ! eg
+{egsig:<20} ! egsig
+{Acr:<20} ! Acr (pre-exponential factor for crosslinking rate)
+{Ecr:<20} ! Ecr (activation energy for crosslinking rate)
+{arad:<20} ! arad (pre-exponential factor for N attack by free radical)
+{erad:<20} ! erad (activation energy for N attack by free radical, cal.)
+{fstable:<20} ! fstable (initial frac. of MW decay with no radical N attack)
+{an:<20} ! an (high T slow N release pre-exponential factor)
+{en:<20} ! en (high T slow N release activation energy, calories)
+{ensig:<20} ! ensig (deviation bound for distribution of en)
+{pressure:<20} ! pressure (atm)
+{num_time:<20} ! number of time points
+{strTempProfile}
+{deltaT} {printIntervall} {writeIntervall} ! dt (s), print increment, max dt (s))
+5                    ! timax (maximum residence time [s] for calculations))
+{nmax:<20} ! nmax (maximum number of mers for tar molecular wt))
 """.format(**self.output_dict)
-        print ini_str
-        #ini.close()
+        ini.write(ini_str)
+        ini.close()
 
-    def Run(self, run_nr, inp_file="IN.dat"):
+    def Run(self, inp_file="IN.dat"):
         """Launches the CPD executable and inputs Input_File. 
 
-           TODO: If the CPD executable is in  another directory than the 
-           current working directory the script should use absolute path 
-           for the CPD_exe.
         """
+        self.runNr += 1 
+        import PKP.bins
+        cpdExec =  os.path.dirname(PKP.bins.__file__)
         if OS == 'Linux':
-            exe = './cpdnlg'
+            exe = '{}/cpdnlg'.format(cpdExec)
         elif OS == 'Darwin':
-            exe = './cpdnlg.x'
+            exe = '{}/cpdnlg.x'.format(cpdExec)
         elif OS == 'Windows':
-            exe = './cpdnlg.exe'
+            exe = '{}cpdnlg.exe'.format(cpdExec)
         else:
             print "The name of the operating system couldn't be found."
             return 
-        OScommand='{} < {} > CPD_{}_output.log'.format(exe, inp_file, run_nr)
+        OScommand='{} < {}{} > {}CPD_{}_output.log'.format(
+                        exe, self.inputs, inp_file, self.inputs, self.runNr)
+        print OScommand
         os.system(OScommand)
 
 
