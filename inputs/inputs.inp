@@ -30,18 +30,8 @@ CPD:
     active      : true
     fit         : None
     delta_t     : 1e-4
-    write_value : 1 #?
-    pressure    : 1.0
-
-    Operation Conditions:
-        run1:
-            0:   500
-            1:   1000
-            2:   2000
-        run2:
-            0:   500
-            1:   2000
-            2:   2000
+    print_increment: 1
+    write_value : 1 
 
 FGDVC:
     active : false

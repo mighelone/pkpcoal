@@ -15,50 +15,63 @@ R=1.0 #8.3144621 # Gas constant only =8.3... if E should not include R
 ################################
 
 class SetterAndLauncher(object):
-    """This class is able to write the CPD input file and launch the CPD program. Before writing the CPD input file (method 'writeInstructFile') set all parameter using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam, CalcCoalParam). After writing the instruct file, the .Run method can be used."""
-    def __init__(self):
-        # in the following, rarely changed parameter are defined
-        self.ab=2.602e15
-        self.eb=55400
-        self.ebsig=1800
-        self.ac=0.9
-        self.ec=0
-        self.ag=3.0e15
-        self.eg=69000
-        self.egsig=8100
-        self.Acr=3.0e15
-        self.Ecr=65000
-        self.arad=18.4
-        self.erad=6000
-        self.fstable=0.03
-        self.an=5.5e7
-        self.en=90000
-        self.ensig=0
-        self.nmax=20
-        
-    
+    """ This class is able to write the CPD input file and launch the CPD program. 
+        Before writing the CPD input file (method 'writeInstructFile') set all parameter 
+        using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam, 
+        CalcCoalParam). After writing the instruct file, the .Run method can be used."""
 
-    def SetCoalParameter(self,fcar,fhyd,fnit,foxy,VMdaf):
-        """Set the mass fraction of carbon (UA), hydrogen  (UA), nitrogen (UA), oxygen (UA) and the daf fraction of volatile matter (PA)."""
-        self.fcar=fcar
-        self.fhyd=fhyd
-        self.fnit=fnit
-        self.foxy=foxy
-        self.VMdaf=VMdaf
+    self.cpd_constants = {
+        ab      : 2.602e15,
+        eb      : 55400,
+        ebsig   : 1800,
+        ac      : 0.9,
+        ec      : 0,
+        ag      : 3.0e15,
+        eg      : 69000,
+        egsig   : 8100,
+        Acr     : 3.0e15,
+        Ecr     : 65000,
+        arad    : 18.4,
+        erad    : 6000,
+        fstable : 0.03,
+        an      : 5.5e7,
+        en      : 90000,
+        ensig   : 0,
+        nmax    : 20,
+        }
+
+    def __init__(self, ultimate_analysis, proximate_analysis_daf, temp_profile):
+        self.temp_profile = self.time_temp_profile(temp_profile) # TODO give it a better name
+        self.ua  = ultimate_analysis
+        self.daf = proximate_analysis_daf
+        self.coal_param = self.CalcCoalParam()
+        self.output_dict = {
+            'num_time': len(temp_profile)
+        }
+        # for generating the output string 
+        # all the dicts are merge into one
+        for _ in [self.__dict__]
+            if type(_) == dict:
+                self.output_dict.update(_)
+        
         
     def SetOperateCond(self,pressure,TimeTemp):  #TimeTemp is an 2D-Array: [time_i,temp_i]
-        """Stes the operating condtions pressure and the time-temperature array. TimeTemp is an 2D-Array. One line of this array is [time_i,temp_i]."""
+        """ Sets the operating condtions pressure and the time-temperature array. 
+            TimeTemp is an 2D-Array. One line of this array is [time_i,temp_i]. """
         self.pressure=pressure
         self.TP=np.array(TimeTemp)
         
       
     def SetNumericalParam(self,dt,timax):       #dt: Vector [dt,increment,max dt]
-        """Sets the numerical parameter and the maximum simulation time. dt is a vector with the following information: [dt_initial,print-increment,dt_max]"""
+        """ Sets the numerical parameter and the maximum simulation time. 
+            dt is a vector with the following information: [dt_initial,print-increment,dt_max]
+        """
         self.dt=dt
         self.timax=timax
         
     def CalcCoalParam(self):
-        """Calculates the CPD coal parameter mdel, mw, p0, sig and sets the as an attribute of the class."""
+        """ Calculates the CPD coal parameter mdel, mw, p0, sig 
+            and sets the as an attribute of the class. """
         #uses equations from: http://www.et.byu.edu/~tom/cpd/correlation.html
         #c[0,0]=c0
         #c[1,Column]=c1
@@ -74,77 +87,80 @@ class SetterAndLauncher(object):
                [0.556772,1.36022,-0.0110498,0.00926097],
                [-0.00654575,-0.0313561,0.000100939,-0.0000826717]])
         # calculates c0:
-        if self.fcar>85.9:
-            c[0,0] = 0.1183*self.fcar - 10.16
-            if c[0,0]>0.36:
-                c[0,0]=0.0
-        elif self.foxy>12.5:
-            c[0,0] = 0.014*self.foxy - 0.175
-            if c[0,0]>0.15:
-                c[0,0]=0.0
-        else:
-            c[0,0]=0.0
-        #
-        self.c0=c[0,0]
-        #
-        #
-        Y=np.zeros(int(len(c[1,:])))
-        for i in range (int(len(c[1,:]))):
-            Y[i] = c[1,i]+c[2,i]*self.fcar+c[3,i]*self.fcar**2+c[4,i]*self.fhyd+c[5,i]*self.fhyd**2+c[6,i]*self.foxy+c[7,i]*self.foxy**2+c[8,i]*self.VMdaf+c[9,i]*self.VMdaf**2
-        self.mdel=Y[0]
-        self.mw=Y[1]
-        self.p0=Y[2]
-        self.sig=Y[3]
+        self.c0=0.0
+        if self.ua['Carbon'] > 85.9:
+            c0 = 0.1183*self.ua['Carbon'] - 10.16
+            if c0 > 0.36: #TODO does this make sense ??
+                c0 = 0.0
+        elif self.ua['Oxygen'] > 12.5:
+            c0 = 0.014*self.ua['Oxygen'] - 0.175
+            if c0 > 0.15:
+                c0 = 0.0
+
+        Y = np.zeros(int(len(c[1,:])))
+        for i,yi in enumerate(Y): 
+            Y[i] = c[1,i] 
+                 + c[2,i]*self.ua['Carbon'] 
+                 + c[3,i]*self.ua['Carbon']**2 
+                 + c[4,i]*self.ua['Hydrogen']
+                 + c[5,i]*self.ua['Hydrogen']**2 
+                 + c[6,i]*self.ua['Oxygen'] 
+                 + c[7,i]*self.ua['Oxygen']**2
+                 + c[8,i]*self.daf['Volatile Matter']
+                 + c[9,i]*self.daf['Volatile Matter']**2
+
+        return {'mdel': Y[0],
+                'mw':   Y[1],
+                'p0':   Y[2],
+                'sig':  Y[3]}
         
     
+
+    def time_temp_profile(self):
+        """ Returns a string from yaml read temp profile, basically reversing the yaml read function
+            Probably there is a more direct way
+        """
+        return '\n'.join(["{} {}".format(time, temp) for time, temp in temp_profile.iteritems()])
 
     def writeInstructFile(self,Dirpath):
         """Writes the File 'CPD_input.dat' into the directory Dirpath."""
         ini=open(Dirpath+'CPD_input.dat','w')#Keywords:1-15,args:16-70
+        #TODO are newlines important for input file?
         ini_str = """
-{p0}                           ! p0
-{c0}                           ! c0
-{sig}                          ! sig+1
-{mw}                           ! mw
-{mdel}                         ! mdel (7 will be subtracted internally to the CPD model
-{fcar/100.}                    ! fcar (daf mass fraction of carbon in unreacted coal)
-{fhyd/100.}                    ! fhyd (daf mass fraction of hydrogen in unreacted coal)
-{fnit/100.}                    ! fnit (daf mass fraction of nitrogen in unreacted coal)
-{foxy/100.}                    ! foxy (daf mass fraction of oxygen in unreacted coal)
-
-{ab}                           ! ab
-{eb}                           ! eb
-{ebsig}                        ! ebsig
-{ac}                           ! ac=rho
-{ec}                           ! ec
-{ag}                           ! ag
-{eg}                           ! eg
-{egsig}                        ! egsig
-{Acr}                          ! Acr (pre-exponential factor for crosslinking rate)
-{Ecr}                          ! Ecr (activation energy for crosslinking rate)
-#
-{arad}                         ! arad (pre-exponential factor for N attack by free radical)
-{erad}                         ! erad (activation energy for N attack by free radical, cal.)
-{fstable}                      ! fstable (initial frac. of MW decay with no radical N attack)
-{an}                           ! an (high T slow N release pre-exponential factor)
-{en}                           ! en (high T slow N release activation energy, calories)
-{ensig}                        ! ensig (deviation bound for distribution of en)
-
-{pressure}                     ! pressure (atm)
-{len(self.TP)}                 ! number of time points
-{TP[0,0]) {TP[0,1]}            ! time(ms),temp(K)
-""".format(**self.__dict__)
-        time_points_str = ""
-        for i in range(1,len(self.TP),1):
-            time_points_str += "{}, {} \n".format(self.TP[i,0],self.TP[i,1])
-
-        ini_str += """
-{dt[0]} {dt[1]} {dt[2]}        ! dt (s),print increment,max dt (s)\n')
-{self.timax}                   ! timax (maximum residence time [s] for calculations)\n')
-{str(self.nmax}                ! nmax (maximum number of mers for tar molecular wt)\n')
-""".format(**self.__dict__)
+{p0}                    ! p0 #TODO difference to pressure?
+{c0}                    ! c0
+{sig}                   ! sig+1
+{mw}                    ! mw
+{mdel}                  ! mdel (7 will be subtracted internally to the CPD model
+{Carbon}                ! fcar (daf mass fraction of carbon in unreacted coal)
+{Hydrogen}              ! fhyd (daf mass fraction of hydrogen in unreacted coal)
+{Nitrogen}              ! fnit (daf mass fraction of nitrogen in unreacted coal)
+{Oxygen}                ! foxy (daf mass fraction of oxygen in unreacted coal)
+{ab}                    ! ab
+{eb}                    ! eb
+{ebsig}                 ! ebsig
+{ac}                    ! ac=rho
+{ec}                    ! ec
+{ag}                    ! ag
+{eg}                    ! eg
+{egsig}                 ! egsig
+{Acr}                   ! Acr (pre-exponential factor for crosslinking rate)
+{Ecr}                   ! Ecr (activation energy for crosslinking rate)
+{arad}                  ! arad (pre-exponential factor for N attack by free radical)
+{erad}                  ! erad (activation energy for N attack by free radical, cal.)
+{fstable}               ! fstable (initial frac. of MW decay with no radical N attack)
+{an}                    ! an (high T slow N release pre-exponential factor)
+{en}                    ! en (high T slow N release activation energy, calories)
+{ensig}                 ! ensig (deviation bound for distribution of en)
+{pressure}              ! pressure (atm)
+{num_times}             ! number of time points
+{str_temp_profile}
+{dt[0]} {dt[1]} {dt[2]} ! dt (s), print increment, max dt (s)\n')
+{self.timax}            ! timax (maximum residence time [s] for calculations)\n')
+{self.nmax}             ! nmax (maximum number of mers for tar molecular wt)\n')
+""".format(**self.output_dict)
         print ini_str
-        ini.close()
+        #ini.close()
 
     def Run(self, run_nr, inp_file="IN.dat"):
         """Launches the CPD executable and inputs Input_File. 

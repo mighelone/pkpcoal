@@ -1,32 +1,31 @@
 import sys
-sys.path.append('src')
 import os
-#
-os.environ['QT_API'] = 'pyside'
-import matplotlib
-matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
-
-import CPD_SetAndLaunch   # writes CPD-instruct File, launches CPD
-import FGDVC_SetAndLaunch # writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
-import PCCL_SetAndLaunch  # writes PCCL instruction file and alunches the exe
-import FGDVC_Result       # contains the information of the FG-DVC output file
-import CPD_Result         # contains the information of the CPD output file
-import PCCL_Result        # contains the information of the PCCL output file
-import Fitter             # The optimizer class
-import Models             # the models like Arrhenius or Kobayashi
-import FitInfo            # supports the Fitting with the yield information
-import Compos_and_Energy  # Species balance and energy balance for CPD and FG-DVC
-import InformationFiles   # reads the user input files, writes FG-DVC coalsd.exe coal generation file
-import GlobalOptParam     # contains the Information of the Number Of Runs for the Global Optimum search
-import Evolve             # contains the generic algortihm optimizer
-import numpy as np
 import platform
 import shutil
-import coalPolimi
+#PKP imports
+import src.CPD_SetAndLaunch   # writes CPD-instruct File, launches CPD
+# import FGDVC_SetAndLaunch # writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
+# import PCCL_SetAndLaunch  # writes PCCL instruction file and alunches the exe
+# import FGDVC_Result       # contains the information of the FG-DVC output file
+# import CPD_Result         # contains the information of the CPD output file
+# import PCCL_Result        # contains the information of the PCCL output file
+# #import src.Fitter             # The optimizer class
+# import Models             # the models like Arrhenius or Kobayashi
+# import FitInfo            # supports the Fitting with the yield information
+# import Compos_and_Energy  # Species balance and energy balance for CPD and FG-DVC
+# import InformationFiles   # reads the user input files, writes FG-DVC coalsd.exe coal generation file
+#import src.GlobalOptParam     # contains the Information of the Number Of Runs for the Global Optimum search
+# import Evolve             # contains the generic algortihm optimizer
+#import coalPolimi
 
+import matplotlib
+import numpy as np
 import pylab as plt
 #
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
+os.environ['QT_API'] = 'pyside'
+sys.path.append('src')
 #
 #Which operating Sytem?
 oSystem=platform.system()
@@ -46,180 +45,91 @@ FG_CoalGenFileName='CoalGen_FGDVC.txt'
 #File name for generated coal file:
 FG_CoalName='GenCoal'
 #
-#
-#
+
+class BalancedComposition(object):
+    """ Class for compostion that ensures componenents sum up to a certain value """
+
+    def __init__(self, inp, target=100.00):
+        """ From a given input dictionary and a target sum a scaled dictionary is created """
+        scaling_factor = target/sum(inp.values())
+        self.elems = {key:value*scaling_factor for key,value in inp.iteritems()} 
+
+
+    def __getitem__(self,item):
+        """ """
+        try:
+             self.elems[item]
+        except:
+            print """Warning trying to access {} which was not set in
+            input file, assuming 0.0. 
+            """ 
+            return 0.0
+
+    def remove_elems_rebalance(self, elems_):
+        """ To compute daf composition elements can be removed 
+
+            Usage:  .remove_elems_rebalance(['Moisture','Ash'])
+        """
+        return BalancedComposition(
+            {key:elem for key,elem in self.elems.iteritems() if key not in elems_})
+
+    def __repr__(self):
+        return str(self.elems)
+
 class MainProcess(object):
-    """Controls the whole process of generating input files, fitting etc."""
+    """ Controls the whole process of generating input files, fitting etc. """
+
     def __init__(self, read_inp_files=True):
         self.SpeciesToConsider = [] #for GUI
         self.ProgramModelDict = {} #for GUI
         if read_inp_files:
-            self.properties = self.ReadInputFiles()
-    #
-    def ReadInputFiles(self,inputs_folder='.'):
-        """get parameters from input files"""
-        #FIXME: Probably switch to YAML
-        #       make it return something to ease unit tests
-        #
-        #Coal File:
-        #
+            self.inputs = self.ReadInputFiles()
+        coal = self.inputs["Coal"]
+        self.proxi_ana = BalancedComposition(coal["Proximate Analysis"])
+        self.ultim_ana = BalancedComposition(coal["Ultimate Analysis"])
+        self.daf = self.proxi_ana.remove_elems_rebalance(['Moisture','Ash'])
+        print self.__dict__
+    
+    def ReadInputFiles(self, inputs_folder=False):
+        """ Read params from input file and generate Input objects """
         import yaml
-        for fn in  ['Coal', 'CPD', 'FGDVC', 'PCCL',]
-            full_fn = inputs_folder + fn + '.inp'
-            print 'Reading: ' + full_fn
-            try:
-                file_stream = open(full_fn, 'r')
-                yaml.load(file_stream)
-            except Exception as e:
-                print e 
-        # CoalInput=InformationFiles.ReadFile(workingDir+'Coal.inp')
-        # self.PAFC_asrec=CoalInput.getValue(InformationFiles.M_PA[0])
-        # self.PAVM_asrec=CoalInput.getValue(InformationFiles.M_PA[1])
-        # self.PAmoist = CoalInput.getValue(InformationFiles.M_PA[2])
-        # self.PAash = CoalInput.getValue(InformationFiles.M_PA[3])
-        # # scale proximate analysis
-        # sumPA = (self.PAFC_asrec+self.PAVM_asrec + self.PAmoist + self.PAash)/100.
-        # self.PAFC_asrec/=sumPA
-        # self.PAVM_asrec/=sumPA
-        # self.PAmoist/=sumPA
-        # self.PAash/=sumPA
-        # #
-        # #gets daf values, as CPD needs daf as input:
-        # self.PAFC_daf, self.PAVM_daf = self.DAF(self.PAFC_asrec,self.PAVM_asrec)
-        # self.UAC=CoalInput.getValue(InformationFiles.M_UA[0])
-        # self.UAH=CoalInput.getValue(InformationFiles.M_UA[1])
-        # self.UAN=CoalInput.getValue(InformationFiles.M_UA[2])
-        # self.UAO=CoalInput.getValue(InformationFiles.M_UA[3])
-        # self.UAS=CoalInput.getValue(InformationFiles.M_UA[4])
-        # # scale ultimate analysis
-        # sumUA = self.UAC+self.UAH+self.UAN+self.UAO+self.UAS
-        # self.UAC=self.UAC/sumUA*100
-        # self.UAH=self.UAH/sumUA*100
-        # self.UAO=self.UAO/sumUA*100
-        # self.UAN=self.UAN/sumUA*100
-        # self.UAS=self.UAS/sumUA*100
-        # self.HHV=CoalInput.getValue(InformationFiles.M_HHV)
-        # self.MTar=CoalInput.getValue(InformationFiles.M_MTar)
-        # self.WeightY=CoalInput.getValue(InformationFiles.M_Weight[0])
-        # self.WeightR=CoalInput.getValue(InformationFiles.M_Weight[1])
-        # self.densityDryCoal = CoalInput.getValue(InformationFiles.M_density)
-        # #
-        # #CPD Properties:
-        # #
-        # print 'Reading CPD.inp ...'
-        # CPDInput=InformationFiles.ReadFile(workingDir+'CPD.inp')
-        # self.CPDselect=CPDInput.UsePyrolProgr(InformationFiles.MC_sel)
-        # self.CPD_FittingKineticParameter_Select=CPDInput.Fitting(InformationFiles.M_selFit)
-        # self.CPDdt=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
-        # self.CPDdt[0]=(CPDInput.getValue(InformationFiles.MC_dt[0]))
-        # self.CPDdt[1]=(CPDInput.getValue(InformationFiles.MC_dt[1]))
-        # #
-        # #
-        # #FG-DVC Properties:
-        # #
-        # print 'Reading FGDVC.inp ...'
-        # FGDVCInput=InformationFiles.ReadFile(workingDir+'FGDVC.inp')
-        # self.FG_select=FGDVCInput.UsePyrolProgr(InformationFiles.MF_sel)
-        # self.FG_FittingKineticParameter_Select=FGDVCInput.Fitting(InformationFiles.M_selFit)
-        # self.FG_CoalSelection=int(FGDVCInput.getValue(InformationFiles.MF_CoalSel))
-        # self.FG_MainDir=FGDVCInput.getText(InformationFiles.MF_dir[0])
-        # self.FG_DirOut=FGDVCInput.getText(InformationFiles.MF_dir[1])
-        # self.FG_TarCacking=FGDVCInput.getValue(InformationFiles.MF_TarCr)
-        # #
-        # # Polimi PMSKD model Properties
-        # # Predictive Multi-Step Kinetic Devolatilization
-        # #
-        # print 'Reading PMSKD.inp ...'
-        # PMSKDInput = InformationFiles.ReadFile(workingDir+'PMSKD.inp')
-        # self.PMSKD_select = PMSKDInput.UsePyrolProgr(InformationFiles.MP_sel)
-        # self.PMSKD_FittingKineticParameter_Select=PMSKDInput.Fitting(InformationFiles.M_selFit)
-        # self.PMSKD_ArrhSpec=PMSKDInput.getText(InformationFiles.M_selArrhSpec)
-        # self.PMSKD_npoint = PMSKDInput.getText(InformationFiles.MP_npoint)
-        # self.PMSKD_mechfile = PMSKDInput.getText(InformationFiles.MP_mechfile)
-        # #self.PMSKD_npoint=[0,1,2] #0:initila dt, 1: print increment, 2: dt max
-        # #print self.PMSKD_select
-        # #print self.PMSKD_FittingKineticParameter_Select
-        # #print self.PMSKD_ArrhSpec
-        # #print self.PMSKD_npoint
-        # #print self.PMSKD_mechfile
-        # #
-        # #PC Coal Lab Properties:
-        # #
-        # print 'Reading PCCL.inp ...'
-        # PCCLInput=InformationFiles.ReadFile(workingDir+'PCCL.inp')
-        # self.PCCL_select=PCCLInput.UsePyrolProgr(InformationFiles.MPC_sel)
-        # self.PCCL_FittingKineticParameter_Select=PCCLInput.Fitting(InformationFiles.M_selFit)
-        # self.PCCL_Path=PCCLInput.getText(InformationFiles.MPC_dir)
-        # self.PCCL_Exe=PCCLInput.getText(InformationFiles.MPC_exe)
-        # try:
-        #     self.PCCL_CoalCalFactor=float(PCCLInput.getText(InformationFiles.MPC_CoalCal))
-        # except ValueError:
-        #     self.PCCL_CoalCalFactor=False
-        # self.PCCL_ParticleSize=PCCLInput.getValue(InformationFiles.MPC_partSize)
-        # #
-        # #
-        # #Operating Condition File:
-        # #
-        # print 'Reading OperCond.inp ...'
-        # OpCondInp=InformationFiles.OperCondInput('OperCond.inp')
-        # self.CPD_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
-        # self.FG_pressure=OpCondInp.getValue(InformationFiles.M_Pressure)
-        # self.ArrhSpec=OpCondInp.getText(InformationFiles.M_selArrhSpec)
-        # #Number of FG-DVC/CPD/PCCL runs:
-        # self.NrOfRuns=int(OpCondInp.getValue(InformationFiles.M_NrRuns))
-        # self.TimeTemp1=OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
-        # self.TimeTemp2=OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
-        # self.TimeTemp3=OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
-        # self.TimeTemp4=OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
-        # self.TimeTemp5=OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
-        # # organize time temp for Polimi model
-        # self.timeHR = [self.TimeTemp1[:,0],
-        #                self.TimeTemp2[:,0],
-        #                self.TimeTemp3[:,0],
-        #                self.TimeTemp4[:,0],
-        #                self.TimeTemp5[:,0]]
-        # self.temperatureHR = [self.TimeTemp1[:,1],
-        #                self.TimeTemp2[:,1],
-        #                self.TimeTemp3[:,1],
-        #                self.TimeTemp4[:,1],
-        #                self.TimeTemp5[:,1]]
-        # self.CPDdt[2]=OpCondInp.getValue(InformationFiles.M_dt)
-        # self.FG_dt=OpCondInp.getValue(InformationFiles.M_dt)
-        # self.FG_T_t_History=self.FG_MainDir+'tTHistory.txt'
-        #
-        # self.CPD_TimeTemp1 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints1[0],InformationFiles.M_TimePoints1[1])
-        # self.CPD_TimeTemp2 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints2[0],InformationFiles.M_TimePoints2[1])
-        # self.CPD_TimeTemp3 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints3[0],InformationFiles.M_TimePoints3[1])
-        # self.CPD_TimeTemp4 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints4[0],InformationFiles.M_TimePoints4[1])
-        # self.CPD_TimeTemp5 = OpCondInp.getTimePoints(InformationFiles.M_TimePoints5[0],InformationFiles.M_TimePoints5[1])
-        # #makes for CPD time in milliseconds:
-        # self.CPD_TimeTemp1[:,0] *= 1.e3
-        # self.CPD_TimeTemp2[:,0]=self.TimeTemp2[:,0]*1.e3
-        # self.CPD_TimeTemp3[:,0]=self.TimeTemp3[:,0]*1.e3
-        # self.CPD_TimeTemp4[:,0]=self.TimeTemp4[:,0]*1.e3
-        # self.CPD_TimeTemp5[:,0]=self.TimeTemp5[:,0]*1.e3
-        # self.CPD_t_max1=self.CPD_TimeTemp1[-1,0]*1.e-3 #tmax in s, not ms
-        # self.CPD_t_max2=self.CPD_TimeTemp2[-1,0]*1.e-3 #tmax in s, not ms
-        # self.CPD_t_max3=self.CPD_TimeTemp3[-1,0]*1.e-3 #tmax in s, not ms
-        # self.CPD_t_max4=self.CPD_TimeTemp4[-1,0]*1.e-3 #tmax in s, not ms
-        # self.CPD_t_max5=self.CPD_TimeTemp5[-1,0]*1.e-3 #tmax in s, not ms
-        #
-        #
-        #
-    def DAF(self,PAFC_asRecieved,PAVM_asRecieved):
-        """calculates PAFC, PAVM  from the as recieved state to the daf state of coal"""
-        fractionFC=PAFC_asRecieved/(PAFC_asRecieved+PAVM_asRecieved)
-        fractionVM=PAVM_asRecieved/(PAFC_asRecieved+PAVM_asRecieved)
-        return 100.*fractionFC, 100.*fractionVM
-        #
+        inputs_folder = (inputs_folder if inputs_folder else workingDir + 'inputs/')
+        full_fn = inputs_folder + 'inputs.inp'
+        try:
+            file_stream = open(full_fn, 'r')
+            inp = yaml.load(file_stream)
+            return inp
+        except Exception as e:
+            print e 
+
+
+    def execute_solver(self):
+        # if Case.CPDselect==True:
+        #     Case.MakeResults_CPD()
+        # if Case.FG_select==True:
+        #     Case.CheckFGdt()
+        #     Case.MakeResults_FG()
+        # if Case.PMSKD_select==True:
+        #     Case.RunPMSKD()
+        # if Case.PCCL_select==True:
+        #     Case.MakeResults_PCCL()
+
     def CheckFGdt(self):
-        """Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 (which is FG-DVC not able to read):"""
+        """ Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 
+        """
+        #TODO check if this function gets callesd ? Can't we use a limiter here ?
         if ((self.FG_select==True) and (self.FG_dt<1e-4)):
-            print "Please select for FG-DVC a time step greather equal 1e-4 in 'OperCond.inp'. FG-DVC would not be able to read the time history file for a dt<1e-4."
+            print """Please select for FG-DVC a time step greather equal 1e-4 in 'OperCond.inp'. 
+            FG-DVC would not be able to read the time history file for a dt<1e-4. """
             sys.exit()
 
     def OptGradBased(self,Fit,ParameterVecInit,FinalYield,Species):
-        """Starts a gradient Based Optimization. Sets the Final Fit result as the ParamVector in the Kinetic Model. Input are the Fit (Result Objects of the Detailed Models), the Parameter to initialize and the Final Yield (all dependent on the kinetic model). For Kobayashi Model set Final Yield to False (independent), for all other set a value. It will be excluded from the optimization. SPecies is the Species Index."""
+        """ Starts a gradient Based Optimization. 
+        Sets the Final Fit result as the ParamVector in the Kinetic Model. 
+        Input are the Fit (Result Objects of the Detailed Models), the Parameter 
+        to initialize and the Final Yield (all dependent on the kinetic model). 
+        For Kobayashi Model set Final Yield to False (independent), for all other set a value. 
+        It will be excluded from the optimization. Species is the Species Index. """
         LS=Fitter.LeastSquarsEstimator()
         LS.setOptimizer(GlobalOptParam.selectedGradBasedOpt)
         LS.setTolerance(GlobalOptParam.Tolerance)
@@ -227,10 +137,13 @@ class MainProcess(object):
         LS.setWeights(self.WeightY,self.WeightR)
         LS.setFinalYield(FinalYield)
         self.KinModel.setParamVector(LS.estimate_T(Fit,self.KinModel,ParameterVecInit,Species))
-	print 'Final error=',LS.Deviation()
+        print 'Final error=', LS.Deviation()
 
     def OptGenAlgBased(self,Fit,ParameterVecInit,ParameterVecMin,ParameterVecMax,Species):
-        """Starts a genetic algorithm and afterwards a gradient Based optimization. Sets the Final Fit result as the ParamVector in the Kinetic Model. Input are the Fit (Result Objects of the Detailed Models), the Parameter to initialize, the two Parameter vectors defining the range of the results and the Species index."""
+        """ Starts a genetic algorithm and afterwards a gradient Based optimization. 
+            Sets the Final Fit result as the ParamVector in the Kinetic Model. 
+            Input are the Fit (Result Objects of the Detailed Models), the Parameter to initialize,
+            the two Parameter vectors defining the range of the results and the Species index. """
         GenAlg=Evolve.GenericOpt(self.KinModel,Fit,Species)
         GenAlg.setWeights(self.WeightY,self.WeightR)
         GenAlg.setParamRanges(ParameterVecInit,ParameterVecMin,ParameterVecMax)
@@ -242,7 +155,7 @@ class MainProcess(object):
             self.OptGradBased(Fit,ParameterVecInit,False,Species)
 
     def MakeResults_CR(self,PyrolProgram,File,Fit):
-        """Generates the results for constant Rate."""
+        """ Generates the results for constant Rate. """
         outfile = open(PyrolProgram+'-Results_const_rate.txt', 'w')
         outfile.write("Species     k [1/s]     t_start [s]   FinalYield\n\n")
         # init model
@@ -250,7 +163,8 @@ class MainProcess(object):
         self.KinModel=Models.ConstantRateModel(ParamInit)
         if PyrolProgram=='PCCL':
                 self.KinModel.setDt4Intergrate(self.FG_dt)
-        # uses for optimization gradient based (LS) optimizer if NrOfRuns is one ; for more runs use Evolutionary algorithm (GenAlg; global optimum)
+        # uses for optimization gradient based (LS) optimizer if NrOfRuns is one ; 
+        # for more runs use Evolutionary algorithm (GenAlg; global optimum)
         if self.NrOfRuns == 1:
             for Spec in range(2,len(Fit[0].SpeciesNames()),1):
                 #
@@ -260,8 +174,9 @@ class MainProcess(object):
                 self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Spec)[-1],Spec)
                 self.KinModel.plot(Fit,Spec)
                 self.Solution = self.KinModel.ParamVector()
-                if np.sum(self.Solution)!=np.sum(ParamInit):# if true nothing was optimized, no result to show
-                    outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+'%8.4f  %8.4f  %8.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2])+'\n')
+                if np.sum(self.Solution)!=np.sum(ParamInit):
+                    # if true nothing was optimized, no result to show
+                    outfile.write(str(Fit[0].SpeciesName(Spec)) +'\t'+'%8.4f  %8.4f  %8.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2])+'\n')
         else:
             if len(ParamInit) == 2:
                 ParamInit.append(0.0)
@@ -298,6 +213,7 @@ class MainProcess(object):
 
     def MakeResults_Arrh(self,PyrolProgram,File,Fit):
         """Generates the results for Arrhenius Rate."""
+        #TODO Giant spaghetti factory
         outfile = open(PyrolProgram+'-Results_ArrheniusRate.txt', 'w')
         outfile.write("Species                         A [1/s]         b               E_a [K]    FinalYield\n\n")
         #makes Species list which contains alls species to fit:
@@ -359,7 +275,8 @@ class MainProcess(object):
             #
             self.KinModel.plot(Fit,Species)
             self.Solution=self.KinModel.ParamVector()
-            if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0): #To avoid, a species with no yield is added to the parameter file
+            #To avoid, a species with no yield is added to the parameter file
+            if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0): 
                 outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %6.4f  %11.4f  %7.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2],self.Solution[3])+'\n')
         outfile.close()
         if oSystem=='Linux' or oSystem == 'Darwin':
@@ -534,21 +451,65 @@ class MainProcess(object):
 #
 #
     def SpeciesEnergy(self,PyrolProgram,File,FittingModel):
-        """Carries out the species and Energy balance."""
+        """ Carries out the species and Energy balance. """
         ##SPECIES AND ENERGY BALANCE:
         for runNr in range(self.NrOfRuns):
             if PyrolProgram=='CPD':
                 print 'CPD energy and mass balance...'
-                Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
+                #TODO replace by dictionaries
+                Compos_and_Energy.CPD_SpeciesBalance(
+                    File[runNr],
+                    self.UAC,
+                    self.UAH,
+                    self.UAN,
+                    self.UAO,
+                    self.UAS,
+                    self.PAVM_asrec,
+                    self.PAFC_asrec,
+                    self.PAmoist,
+                    self.PAash,
+                    self.HHV,
+                    self.MTar,
+                    self.densityDryCoal,
+                    runNr)
+                
             if PyrolProgram=='FGDVC':    
                 print 'FG-DVC energy and mass balance...'
-                Compos_and_Energy.FGPC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr,'FGDVC')
-                #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
+                Compos_and_Energy.FGPC_SpeciesBalance(
+                    File[runNr],
+                    self.UAC,
+                    self.UAH,
+                    self.UAN,
+                    self.UAO,
+                    self.UAS,
+                    self.PAVM_asrec,
+                    self.PAFC_asrec,
+                    self.PAmoist,
+                    self.PAash,
+                    self.HHV,
+                    self.MTar,
+                    self.densityDryCoal,
+                    runNr,
+                    'FGDVC')
 #
             if PyrolProgram=='PCCL':
                 print 'PCCL-Flashchain energy and mass balance...TO FINISH'
-                Compos_and_Energy.FGPC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr,'PCCL')
-
+                Compos_and_Energy.FGPC_SpeciesBalance(
+                    File[runNr],
+                    self.UAC,
+                    self.UAH,
+                    self.UAN,
+                    self.UAO,
+                    self.UAS,
+                    self.PAVM_asrec,
+                    self.PAFC_asrec,
+                    self.PAmoist,
+                    self.PAash,
+                    self.HHV,
+                    self.MTar,
+                    self.densityDryCoal,
+                    runNr,
+                    'PCCL')
 
         # new implementation of species energy for Kobayashi model Michele Vascellari
         if FittingModel == 'Kobayashi':
@@ -611,93 +572,72 @@ class MainProcess(object):
                                                  self.HHV,self.MTar,self.densityDryCoal,'Koba2')
 
 
-
-
-
-#
-#
-####CPD#####
     def MakeResults_CPD(self):
         """generates the result for CPD"""
         CPDFile=[]
         CPDFit=[]
-        for runNr in range(self.NrOfRuns):
+        for run, temps in self.inputs['CPD']['Operation Conditions']).iteritems():
             #launches CPD
-            CPD=CPD_SetAndLaunch.SetterAndLauncher()
-            CPD.SetCoalParameter(self.UAC,self.UAH,self.UAN,self.UAO,self.PAVM_daf)
-            CPD.CalcCoalParam()
-            if runNr==0:
-                CPD.SetOperateCond(self.CPD_pressure,self.CPD_TimeTemp1)
-                CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max1)
-            elif runNr==1:
-                CPD.SetOperateCond(self.CPD_pressure,self.CPD_TimeTemp2)
-                CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max2)
-            elif runNr==2:
-                CPD.SetOperateCond(self.CPD_pressure,self.CPD_TimeTemp3)
-                CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max3)
-            elif runNr==3:
-                CPD.SetOperateCond(self.CPD_pressure,self.CPD_TimeTemp4)
-                CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max4)
-            elif runNr==4:
-                CPD.SetOperateCond(self.CPD_pressure,self.CPD_TimeTemp5)
-                CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max5)
+            CPD = CPD_SetAndLaunch.SetterAndLauncher(self.ultim_ana, self.daf)
+            
+            CPD.SetOperateCond(self.inputs['CPD']['pressure'], np.array(temps))
+            CPD.SetNumericalParam(self.CPDdt,self.CPD_t_max1)
             CPD.writeInstructFile(workingDir)
-            print 'Running CPD ...',runNr
+            print 'Running CPD: ' + run
             # run CPD executable
             CPD.Run(run_nr=runNr)
-            #
-            ###calibration of the kinetic parameter:
-            #read result:
-            CurrentCPDFile=CPD_Result.CPD_Result(workingDir)
-            # creates object, required for fitting procedures
-            CurrentCPDFit=FitInfo.Fit_one_run(CurrentCPDFile)
-            CPDFile.append(CurrentCPDFile)
-            CPDFit.append(CurrentCPDFit)
-            #
-            if oSystem=='Linux' or oSystem == 'Darwin':
-                shutil.move('CPD_Result1.dat', 'Result/'+'CPD_'+str(runNr)+'_Result1.dat')
-                shutil.move('CPD_Result2.dat', 'Result/'+'CPD_'+str(runNr)+'_Result2.dat')
-                shutil.move('CPD_Result3.dat', 'Result/'+'CPD_'+str(runNr)+'_Result3.dat')
-                shutil.move('CPD_Result4.dat', 'Result/'+'CPD_'+str(runNr)+'_Result4.dat')
-                shutil.move('CPD_'+str(runNr)+'_output.log', 'Result/'+'CPD_'+str(runNr)+'_output.log')
-            elif oSystem=='Windows':
-                shutil.move('CPD_Result1.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result1.dat')
-                shutil.move('CPD_Result2.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result2.dat')
-                shutil.move('CPD_Result3.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result3.dat')
-                shutil.move('CPD_Result4.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result4.dat')
-                shutil.move('CPD_'+str(runNr)+'_output.log', 'Result\\'+'CPD_'+str(runNr)+'_output.log')
-            else:
-                print "The name of the operating system couldn't be found."
-        #####
-        M=Models.Model()
-        for Species in CPDFit[0].SpeciesNames():
-            M.mkSimpleResultFiles(CPDFit,Species)
-            if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-                self.SpeciesToConsider.append(Species)
-        if self.CPD_FittingKineticParameter_Select=='constantRate':
-            self.MakeResults_CR('CPD',CPDFile,CPDFit)
-            currentDict={'CPD':'constantRate'}
-        elif self.CPD_FittingKineticParameter_Select=='Arrhenius':
-            self.MakeResults_Arrh('CPD',CPDFile,CPDFit)
-            currentDict={'CPD':'Arrhenius'}
-        elif self.CPD_FittingKineticParameter_Select=='ArrheniusNoB':
-            self.MakeResults_ArrhNoB('CPD',CPDFile,CPDFit)
-            currentDict={'CPD':'ArrheniusNoB'}
-        elif self.CPD_FittingKineticParameter_Select=='Kobayashi':
-            self.MakeResults_Kob('CPD',CPDFile,CPDFit)
-            currentDict={'CPD':'Kobayashi'}
-        elif self.CPD_FittingKineticParameter_Select=='DAEM':
-            self.MakeResults_DEAM('CPD',CPDFile,CPDFit)
-            currentDict={'CPD':'DAEM'}
-        elif self.CPD_FittingKineticParameter_Select==None:
-            currentDict={'CPD':'None'}
-        else:
-            print 'unspecified CPD_FittingKineticParameter_Select'
-            currentDict={}
-        #
-        self.ProgramModelDict.update(currentDict)
-        #
-        self.SpeciesEnergy('CPD',CPDFile,self.CPD_FittingKineticParameter_Select)
+        #     ###calibration of the kinetic parameter:
+        #     #read result:
+        #     CurrentCPDFile=CPD_Result.CPD_Result(workingDir)
+        #     # creates object, required for fitting procedures
+        #     CurrentCPDFit=FitInfo.Fit_one_run(CurrentCPDFile)
+        #     CPDFile.append(CurrentCPDFile)
+        #     CPDFit.append(CurrentCPDFit)
+        #     #
+        #     if oSystem=='Linux' or oSystem == 'Darwin':
+        #         shutil.move('CPD_Result1.dat', 'Result/'+'CPD_'+str(runNr)+'_Result1.dat')
+        #         shutil.move('CPD_Result2.dat', 'Result/'+'CPD_'+str(runNr)+'_Result2.dat')
+        #         shutil.move('CPD_Result3.dat', 'Result/'+'CPD_'+str(runNr)+'_Result3.dat')
+        #         shutil.move('CPD_Result4.dat', 'Result/'+'CPD_'+str(runNr)+'_Result4.dat')
+        #         shutil.move('CPD_'+str(runNr)+'_output.log', 'Result/'+'CPD_'+str(runNr)+'_output.log')
+        #     elif oSystem=='Windows':
+        #         shutil.move('CPD_Result1.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result1.dat')
+        #         shutil.move('CPD_Result2.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result2.dat')
+        #         shutil.move('CPD_Result3.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result3.dat')
+        #         shutil.move('CPD_Result4.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result4.dat')
+        #         shutil.move('CPD_'+str(runNr)+'_output.log', 'Result\\'+'CPD_'+str(runNr)+'_output.log')
+        #     else:
+        #         print "The name of the operating system couldn't be found."
+        # #####
+        # M=Models.Model()
+        # for Species in CPDFit[0].SpeciesNames():
+        #     M.mkSimpleResultFiles(CPDFit,Species)
+        #     if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+        #         self.SpeciesToConsider.append(Species)
+        # if self.CPD_FittingKineticParameter_Select=='constantRate':
+        #     self.MakeResults_CR('CPD',CPDFile,CPDFit)
+        #     currentDict={'CPD':'constantRate'}
+        # elif self.CPD_FittingKineticParameter_Select=='Arrhenius':
+        #     self.MakeResults_Arrh('CPD',CPDFile,CPDFit)
+        #     currentDict={'CPD':'Arrhenius'}
+        # elif self.CPD_FittingKineticParameter_Select=='ArrheniusNoB':
+        #     self.MakeResults_ArrhNoB('CPD',CPDFile,CPDFit)
+        #     currentDict={'CPD':'ArrheniusNoB'}
+        # elif self.CPD_FittingKineticParameter_Select=='Kobayashi':
+        #     self.MakeResults_Kob('CPD',CPDFile,CPDFit)
+        #     currentDict={'CPD':'Kobayashi'}
+        # elif self.CPD_FittingKineticParameter_Select=='DAEM':
+        #     self.MakeResults_DEAM('CPD',CPDFile,CPDFit)
+        #     currentDict={'CPD':'DAEM'}
+        # elif self.CPD_FittingKineticParameter_Select==None:
+        #     currentDict={'CPD':'None'}
+        # else:
+        #     print 'unspecified CPD_FittingKineticParameter_Select'
+        #     currentDict={}
+        # #
+        # self.ProgramModelDict.update(currentDict)
+        # #
+        # self.SpeciesEnergy('CPD',CPDFile,self.CPD_FittingKineticParameter_Select)
             #
             #
     ####FG-DVC####
@@ -975,7 +915,9 @@ class MainProcess(object):
             for Species in PMSKDFit[0].SpeciesNames():
                 M=Models.Model()
                 M.mkSimpleResultFiles(PMSKDFit,Species)
-                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                if (Species not in self.SpeciesToConsider) 
+                    and (Species!='Temp') 
+                    and (Species!='Time'):
                     self.SpeciesToConsider.append(Species)
         else:
             print 'undefined PMSKD_FittingKineticParameter_Select'
@@ -985,22 +927,8 @@ class MainProcess(object):
         #
         #self.SpeciesEnergy('PMSKD',FGFile)
 
-
-
 #Main Part starting
 if __name__ == "__main__":
-    Case=MainProcess()
-    #FIXME: avoid long if cascades
-    #       either by case of statement
-    #       or factoring it out from main method
-    if Case.CPDselect==True:
-        Case.MakeResults_CPD()
-    if Case.FG_select==True:
-        Case.CheckFGdt()
-        Case.MakeResults_FG()
-    if Case.PMSKD_select==True:
-        Case.RunPMSKD()
-    if Case.PCCL_select==True:
-        Case.MakeResults_PCCL()
+    Case = MainProcess()
+    Case.execute_solver()
     print 'calculated Species: ',Case.SpeciesToConsider
-        
