@@ -11,7 +11,10 @@ config = {
     'description': '',
     'license': '',
     'version': __version__,
-    'packages': ["PKP"],
+    'packages': ["PKP", 
+                 "PKP.src",
+                 "PKP.bins",
+                ],
     'install_requires': [
                          'numpy',
                          'scipy',

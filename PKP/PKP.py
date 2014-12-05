@@ -51,6 +51,7 @@ class BalancedComposition(object):
 
     def __init__(self, inp, target=100.00):
         """ From a given input dictionary and a target sum a scaled dictionary is created """
+        self.target = target
         scaling_factor = target/sum(inp.values())
         self.elems = {key:value*scaling_factor for key,value in inp.iteritems()} 
 
@@ -70,8 +71,13 @@ class BalancedComposition(object):
 
             Usage:  .remove_elems_rebalance(['Moisture','Ash'])
         """
-        return BalancedComposition(
-            {key:elem for key,elem in self.elems.iteritems() if key not in elems_})
+        return BalancedComposition({ 
+            key:elem for key,elem in self.elems.iteritems() 
+                if key not in elems_
+        })
+
+    def scale(self, factor):
+        return BalancedComposition(self.elems, target=self.target*factor)
 
     def __repr__(self):
         return str(self.elems)

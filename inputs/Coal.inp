@@ -33,15 +33,15 @@ CPD:
     write_value : 1 #?
     pressure    : 1.0
 
-    Operation Conditions:
-        run1:
-            0:   500
-            1:   1000
-            2:   2000
-        run2:
-            0:   500
-            1:   2000
-            2:   2000
+Operating Conditions:
+    run1:
+        1.0:   500
+        2.5:   1000
+        3.0:   2000
+    run2:
+        0:   500
+        1:   2000
+        2:   2000
 
 FGDVC:
     active : false

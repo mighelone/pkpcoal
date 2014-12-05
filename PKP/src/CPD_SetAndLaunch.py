@@ -54,10 +54,11 @@ class SetterAndLauncher(SetAndLaunchBase):
             inputs="/home/go/documents/code/pkp.git/inputs/"
         ):
         self.tempProfile = self.timeTempProfile(tempProfile) # TODO give it a better name
-        self.pressure=pressure
-        self.ua  = ultimateAnalysis
-        self.daf = proximateAnalysisDaf
-        self.coal_param = self.CalcCoalParam()
+        self.pressure    = pressure
+        # We scale ua and daf data for cpd since input is not in percents
+        self.ultim_ana   = ultimateAnalysis.scale(0.01)
+        self.daf         = proximateAnalysisDaf.scale(0.01)
+        self.coal_param  = self.CalcCoalParam()
         self.output_dict = {
             'num_time' : len(tempProfile),
             'pressure' : self.pressure,
@@ -69,7 +70,7 @@ class SetterAndLauncher(SetAndLaunchBase):
         # for generating the output string 
         # all the dicts are merge into one
         self.output_dict.update(self.cpd_constants)
-        self.output_dict.update(self.ua.elems)
+        self.output_dict.update(self.ultim_ana.elems)
         self.output_dict.update(self.coal_param)
         self.output_dict.update(self.daf.elems)
         self.output_dict.update(self.__dict__)
@@ -93,25 +94,25 @@ class SetterAndLauncher(SetAndLaunchBase):
                [0.556772,1.36022,-0.0110498,0.00926097],
                [-0.00654575,-0.0313561,0.000100939,-0.0000826717]])
         # calculates c0:
-        self.c0=0.0
-        if self.ua['Carbon'] > 85.9:
-            c0 = 0.1183*self.ua['Carbon'] - 10.16
+        c0 = 0.0
+        if self.ultim_ana['Carbon'] > 85.9:
+            c0 = 0.1183*self.ultim_ana['Carbon'] - 10.16
             if c0 > 0.36: #TODO does this make sense ??
                 c0 = 0.0
-        elif self.ua['Oxygen'] > 12.5:
-            c0 = 0.014*self.ua['Oxygen'] - 0.175
+        elif self.ultim_ana['Oxygen'] > 12.5:
+            c0 = 0.014*self.ultim_ana['Oxygen'] - 0.175
             if c0 > 0.15:
                 c0 = 0.0
 
         Y = np.zeros(int(len(c[1,:])))
         for i, yi in enumerate(Y): 
             Y[i] = (c[1,i] 
-                     + c[2,i]*self.ua['Carbon'] 
-                     + c[3,i]*self.ua['Carbon']**2 
-                     + c[4,i]*self.ua['Hydrogen']
-                     + c[5,i]*self.ua['Hydrogen']**2 
-                     + c[6,i]*self.ua['Oxygen'] 
-                     + c[7,i]*self.ua['Oxygen']**2
+                     + c[2,i]*self.ultim_ana['Carbon'] 
+                     + c[3,i]*self.ultim_ana['Carbon']**2 
+                     + c[4,i]*self.ultim_ana['Hydrogen']
+                     + c[5,i]*self.ultim_ana['Hydrogen']**2 
+                     + c[6,i]*self.ultim_ana['Oxygen'] 
+                     + c[7,i]*self.ultim_ana['Oxygen']**2
                      + c[8,i]*self.daf['Volatile Matter']
                      + c[9,i]*self.daf['Volatile Matter']**2)
 

@@ -23,12 +23,10 @@ Coal:
 # constantRate -> SCR (single constant rate)
 CPD:
     #fit: ['constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM', 'None']
-    active      : true
-    fit         : None
-    delta_t     : 1e-4
-    print_increment: 1
-    write_value : 1 
-    MW_TAR :  130
+    active : true
+    fit    : None
+    deltaT : 1e-4
+    MW_TAR : 130
 
 FGDVC:
     active      : false
@@ -73,13 +71,8 @@ Calibration:
 
 OperatingConditions:
     pressure    : 1.0 #atmosphere
-    run1        :
-        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
-    run2        :
-        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
-    run3        :
-        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
-    run4        :
-        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
-    run5        :
-        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
+    run1        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
+    run2        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
+    run3        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
+    run4        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
+    run5        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
