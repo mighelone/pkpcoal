@@ -11,20 +11,16 @@ Coal:
         Nitrogen : 0.695
         Oxygen   : 25.579
         Sulphur  : 0.456
-    #Higher Heating Value, as recieved, in J/kg:
-    HHVAR :   0.0 
+    #Higher Heating Value, as received, in J/kg:
+    hhv :   0.0 
     #Tar Molecule weight, MTar:
-    MW_TAR :  130
-    rho_dry : 1310 # kg/m3
-    # Weight-Parameter yields for fitting the kinetics:
-    # 100?
-    # Weight-Parameter rates for fitting the kinetics:
-    # 0?
+    rhoDry : 1310 # kg/m3
 
-executable: cpd
-coeffs:     CPD
- 
-
+# TODO MV: names of empirical models should be modified for being more coherent with publication in Fuel 2013 
+# Arrhenius -> SFOR (single first order reaction)
+# Kobayashi -> C2SM (Competing 2 steps model)
+# DAEM
+# constantRate -> SCR (single constant rate)
 CPD:
     #fit: ['constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM', 'None']
     active      : true
@@ -32,9 +28,58 @@ CPD:
     delta_t     : 1e-4
     print_increment: 1
     write_value : 1 
+    MW_TAR :  130
 
 FGDVC:
-    active : false
-    fit    : None #?
+    active      : false
+    fit         : None #?
+    dir         : C:\FGDVC_8-2-3\
+    dirOut      : C:\FGDVC_8-2-3\FGDVC\
+    #Choose Coal: 0 interpolate between library coals and generate own coal. Set 1 to 8 for a library coal.
+    refCoal     : 0 
+    #Model tar cracking? If no, set tar residence time equal 0. For a partial tar cracking enter the tar residence time in s. For full tar cracking write -1.
+    tarModel    : 0 
+    # time step
+    timeStep    : 1e-4
+    
+# I rename PCCL to FLASHCHAIN
+FLASHCHAIN:
+    active      :   false
+    fit         :   None #?
+    # PC Coal Lab Main Path:
+    dir         :   C:\Users\vascella\Documents\PCCL\
+    # PC Coal Lab executable name:
+    execName    :   PCCoV41M1to7Par.exe
+    # Known PC Coal Lab Coal Calibration Factor? None or Value(float): ?
+    calibrationFactor   : None
+    # Particle Size in micrometer:
+    diameter    :   100.
+
+PMSKD:  # Polimi Multi-Step Kinetic Devolatilization
+    active      :   false
+    fit         :   None #?
+    # number of step
+    nStep       :   100
+    # Mechanism file for Cantera (only use xml!!!)
+    mechFile    :   COAL.xml
 
 
+
+Calibration:
+    weightYield     :   100.
+    weightRate      :   0.
+    # species to fit: total, mainSpecies, allSpecies
+    speciesToFit    :   total 
+
+OperatingConditions:
+    pressure    : 1.0 #atmosphere
+    run1        :
+        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
+    run2        :
+        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
+    run3        :
+        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
+    run4        :
+        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
+    run5        :
+        [ [ 0, 400], [ 0, 400], [ 0, 400], [ 0, 400] ]
