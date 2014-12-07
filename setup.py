@@ -6,22 +6,27 @@ exec(compile(open(package_name + '/version.py').read(),
              package_name + 'src/version.py', 'exec'))
 
 config = {
-    'author': '',
-    'author_email': '',
-    'description': '',
-    'license': '',
-    'version': __version__,
-    'packages': ["PKP", 
-                 "PKP.src",
-                 "PKP.bins",
-                ],
-    'install_requires': [
-                         'numpy',
-                         'scipy',
-                         'pyside',
-                         'pyevolve',
-                        ],
-   'name': 'PKP' 
+    'author'                 : '',
+    'author_email'           : '',
+    'description'            : '',
+    'license'                : '',
+    'version'                : __version__,
+    'include_package_data'   : True,
+    'package_data'           : {
+        '': ['cpdnlg*'],
+    },
+    'packages'               : [
+         "PKP",
+         "PKP.src",
+         "PKP.bins", 
+     ],
+    'install_requires'       : [
+         'numpy',
+         'scipy',
+         'pyside',
+         'pyevolve',
+    ],
+   'name'                    : 'PKP'
 }
 
 
