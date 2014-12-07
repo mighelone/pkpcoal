@@ -58,7 +58,7 @@ class SetterAndLauncher(SetAndLaunchBase):
         # We scale ua and daf data for cpd since input is not in percents
         self.ultim_ana   = ultimateAnalysis.scale(0.01)
         self.daf         = proximateAnalysisDaf.scale(0.01)
-        self.coal_param  = self.CalcCoalParam()
+        self.coal_param  = self.CalcCoalParam(self.ultim_ana, self.daf)
         self.output_dict = {
             'num_time' : len(tempProfile),
             'pressure' : self.pressure,
@@ -76,47 +76,55 @@ class SetterAndLauncher(SetAndLaunchBase):
         self.output_dict.update(self.__dict__)
         self.inputs = inputs #TODO GO fix how input folder is defined
         
-    def CalcCoalParam(self):
+
+    def calcC0(self, massFracCarbon, massFracOx):
+        c0 = 0.0
+        #TODO GO are these really mutually exclusive?
+        #       what happens if c > 0.859 and ox > 0.123
+        #TODO GO double check if correct
+        if massFracCarbon > 0.859:
+            c0 = 11.83*massFracCarbon - 10.16
+            c0 = (0.0 if c0 > 0.36 else c0)
+        elif massFracOx > 0.125:
+            c0 = 1.4*massFracOx - 0.175
+            c0 = (0.0 if c0 > 0.15 else c0)
+        return c0
+
+
+    def CalcCoalParam(self, ultim_ana, daf):
         """ Calculates the CPD coal parameter mdel, mw, p0, sig 
             and sets the as an attribute of the class. """
         #uses equations from: http://www.et.byu.edu/~tom/cpd/correlation.html
         #c[0,0]=c0
         #c[1,Column]=c1
         #... see table in http://www.et.byu.edu/~tom/cpd/correlation.html
-        c=np.array([[0.0,0.0,0.0,0.0],
-               [421.957,1301.41,0.489809,-52.1054],
-               [ -8.64692,16.3879,-0.00981566,1.63872],
-               [0.0463894,-0.187493,0.000133046,-0.0107548],
-               [-8.47272,-454.773,0.155483,-1.23688],
-               [1.18173,51.7109,-0.0243873,0.0931937],
-               [1.15366,-10.0720,0.00705248,-0.165673],
-               [-0.0434024,0.0760827,0.000219163,0.00409556],
-               [0.556772,1.36022,-0.0110498,0.00926097],
-               [-0.00654575,-0.0313561,0.000100939,-0.0000826717]])
-        # calculates c0:
-        c0 = 0.0
-        if self.ultim_ana['Carbon'] > 85.9:
-            c0 = 0.1183*self.ultim_ana['Carbon'] - 10.16
-            if c0 > 0.36: #TODO does this make sense ??
-                c0 = 0.0
-        elif self.ultim_ana['Oxygen'] > 12.5:
-            c0 = 0.014*self.ultim_ana['Oxygen'] - 0.175
-            if c0 > 0.15:
-                c0 = 0.0
+        c=np.array([
+               [ 0.0    ,  0.0    ,  0.0     ,  0.0],
+               [ 421.957,  1301.41,  0.489809, -52.1054],
+               [-864.692,  1638.79, -0.981566,  163.872],
+               [ 463.894, -1874.93,  1.33046 , -107.548],
+               [-847.272, -45477.3,  15.5483 , -123.688],
+               [ 11817.3,  517109., -243.873 ,  931.937],
+               [ 115.366, -1007.20,  0.705248, -16.5673],
+               [-434.024,  760.827,  2.19163 ,  40.9556],
+               [ 55.6772,  136.022, -1.10498 ,  0.926097],
+               [-65.4575, -313.561,  1.00939 , -0.826717],
+        ])
 
-        Y = np.zeros(int(len(c[1,:])))
+
+        Y = np.zeros(len(c[1,:]))
         for i, yi in enumerate(Y): 
             Y[i] = (c[1,i] 
-                     + c[2,i]*self.ultim_ana['Carbon'] 
-                     + c[3,i]*self.ultim_ana['Carbon']**2 
-                     + c[4,i]*self.ultim_ana['Hydrogen']
-                     + c[5,i]*self.ultim_ana['Hydrogen']**2 
-                     + c[6,i]*self.ultim_ana['Oxygen'] 
-                     + c[7,i]*self.ultim_ana['Oxygen']**2
-                     + c[8,i]*self.daf['Volatile Matter']
-                     + c[9,i]*self.daf['Volatile Matter']**2)
+                     + c[2,i]*ultim_ana['Carbon'] 
+                     + c[3,i]*ultim_ana['Carbon']**2 
+                     + c[4,i]*ultim_ana['Hydrogen']
+                     + c[5,i]*ultim_ana['Hydrogen']**2 
+                     + c[6,i]*ultim_ana['Oxygen'] 
+                     + c[7,i]*ultim_ana['Oxygen']**2
+                     + c[8,i]*daf['Volatile Matter']
+                     + c[9,i]*daf['Volatile Matter']**2)
 
-        return {'c0'   : c0,
+        return {'c0'   : self.calcC0(ultim_ana['Carbon'], ultim_ana['Oxygen']),
                 'mdel' : Y[0],
                 'mw'   : Y[1],
                 'p0'   : Y[2],
@@ -136,8 +144,7 @@ class SetterAndLauncher(SetAndLaunchBase):
         ini=open(self.inputs+'CPD_input.dat','w')#Keywords:1-15,args:16-70
         #TODO GO is fcar,fhyd ... from daf or ua ?
         #TODO GO where does timax and nmax come frome
-        ini_str = """
-{p0:<20} ! p0
+        ini_str = """{p0:<20} ! p0
 {c0:<20} ! c0
 {sig:<20} ! sig+1
 {mw:<20} ! mw
@@ -165,8 +172,8 @@ class SetterAndLauncher(SetAndLaunchBase):
 {pressure:<20} ! pressure (atm)
 {num_time:<20} ! number of time points
 {strTempProfile}
-{deltaT} {printIntervall} {writeIntervall} ! dt (s), print increment, max dt (s))
-5                    ! timax (maximum residence time [s] for calculations))
+{deltaT} {printIntervall} {deltaT} ! dt (s), print increment, max dt (s))
+0.03                    ! timax (maximum residence time [s] for calculations))
 {nmax:<20} ! nmax (maximum number of mers for tar molecular wt))
 """.format(**self.output_dict)
         ini.write(ini_str)
