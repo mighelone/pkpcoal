@@ -587,16 +587,17 @@ class MainProcess(object):
         pressure = operatingConditions.pop('pressure') 
         for run, temps in operatingConditions.iteritems():
             # TODO type check if temps is an 2d array 
-            CPD = CPD_SetAndLaunch.SetterAndLauncher(
-                    self.ultim_ana, 
-                    self.daf,
-                    temps,
-                    pressure,
-                    self.inputs['CPD']['deltaT'] 
+            cpd = CPD_SetAndLaunch.CPD(
+                    ultimateAnalysis = self.ultim_ana,
+                    proximateAnalysisDaf = self.daf,
+                    tempProfile = temps,
+                    pressure = pressure,
+                    deltaT = self.inputs['CPD']['deltaT'],
+                    runNr = run
                 )
-            CPD.writeInstructFile(workingDir)
+            cpd.writeInstructFile(workingDir)
             print 'Running CPD: ' + run
-            CPD.Run()
+            cpd.Run()
         #     ###calibration of the kinetic parameter:
         #     #read result:
         #     CurrentCPDFile=CPD_Result.CPD_Result(workingDir)
