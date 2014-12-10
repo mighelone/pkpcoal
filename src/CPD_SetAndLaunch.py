@@ -70,16 +70,18 @@ class SetterAndLauncher(object):
                [0.556772,1.36022,-0.0110498,0.00926097],
                [-0.00654575,-0.0313561,0.000100939,-0.0000826717]])
         # calculates c0:
-        if self.fcar>85.9:
-            c[0,0] = 0.1183*self.fcar - 10.16
-            if c[0,0]>0.36:
-                c[0,0]=0.0
-        elif self.foxy>12.5:
-            c[0,0] = 0.014*self.foxy - 0.175
-            if c[0,0]>0.15:
-                c[0,0]=0.0
-        else:
-            c[0,0]=0.0
+        #if self.fcar>85.9:
+        #    c[0,0] = 0.1183*self.fcar - 10.16
+        #    if c[0,0]>0.36:
+        #        c[0,0]=0.0
+        #elif self.foxy>12.5:
+        #    c[0,0] = 0.014*self.foxy - 0.175
+        #    if c[0,0]>0.15:
+        #        c[0,0]=0.0
+        #else:
+        #    c[0,0]=0.0
+        # ,modified c0 from http://www.et.byu.edu/~tom/Papers/Genetti-rep/rep.html
+        c[0,0] = min(0.36, max(0.118 * self.fcar - 10.1, 0.0))+ min(0.15, max(0.014 * self.foxy - 0.175, 0.0))
         #
         self.c0=c[0,0]
         #
