@@ -123,8 +123,9 @@ class GenericOpt(object):
         # Set the Roulette Wheel selector method, the number of generations and the termination criteria
         ga.selector.set(Selectors.GRouletteWheel)
         ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
-	ga.setMutationRate(0.4)
-	ga.setCrossoverRate(1.0)
+        ga.setMutationRate(0.40)
+        ga.setCrossoverRate(1.0)
+
         #parallel processing
         #ga.setMultiProcessing(True)
         # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
@@ -137,8 +138,11 @@ class GenericOpt(object):
         ga.evolve(freq_stats=1)
         # Gets the best individual
         best=ga.bestIndividual()
+        print best
+        print 'Selected parameters'
         #selects the bestiniviual
         self.__ParameterSc=best[0:len(self.__ParameterSc)]
+        print self.__ParameterNonSc
         #update the non-scaled parameterrs
         self.__UpdateParam()
         return self.__ParameterNonSc
