@@ -51,8 +51,10 @@ class CPD(SetAndLaunchBase):
             tempProfile,
             pressure,
             deltaT,
-            inputs="/home/go/documents/code/pkp.git/inputs/"
+            inputs="/home/go/documents/code/pkp.git/inputs/",
+            runNr = 0
         ):
+        self.runNr = runNr
         self.tempProfile = self.timeTempProfile(tempProfile) # TODO give it a better name
         self.pressure    = pressure
         # We scale ua and daf data for cpd since input is not in percents
@@ -75,7 +77,7 @@ class CPD(SetAndLaunchBase):
         self.output_dict.update(self.daf.elems)
         self.output_dict.update(self.__dict__)
         self.inputs = inputs #TODO GO fix how input folder is defined
-        
+
 
     @classmethod
     def calcC0(cls, massFracCarbon, massFracOx):
@@ -84,22 +86,19 @@ class CPD(SetAndLaunchBase):
         #       what happens if c > 0.859 and ox > 0.123
         #TODO GO double check if correct
         if massFracCarbon > 0.859:
-            c0 = 11.83*massFracCarbon - 10.16
-            c0 = (0.0 if c0 > 0.36 else c0)
+            c0 = min(0.36, 11.83*massFracCarbon - 10.16)
         elif massFracOx > 0.125:
-            c0 = 1.4*massFracOx - 0.175
-            c0 = (0.0 if c0 > 0.15 else c0)
+            c0 = min(0.15, 1.4*massFracOx - 0.175)
         return c0
 
 
     @classmethod
     def CalcCoalParam(cls, ultim_ana, daf):
         """ Calculates the CPD coal parameter mdel, mw, p0, sig 
-            and sets the as an attribute of the class. """
-        #uses equations from: http://www.et.byu.edu/~tom/cpd/correlation.html
-        #c[0,0]=c0
-        #c[1,Column]=c1
-        #... see table in http://www.et.byu.edu/~tom/cpd/correlation.html
+            and returns as dictionary 
+
+            equations from: http://www.et.byu.edu/~tom/cpd/correlation.html
+        """
         c=np.array([
                [ 0.0    ,  0.0    ,  0.0     ,  0.0],
                [ 421.957,  1301.41,  0.489809, -52.1054],
@@ -113,9 +112,8 @@ class CPD(SetAndLaunchBase):
                [-65.4575, -313.561,  1.00939 , -0.826717],
         ])
 
-
         Y = np.zeros(len(c[1,:]))
-        for i, yi in enumerate(Y): 
+        for i, yi in enumerate(Y):
             Y[i] = (c[1,i] 
                      + c[2,i]*ultim_ana['Carbon'] 
                      + c[3,i]*ultim_ana['Carbon']**2 
@@ -131,8 +129,8 @@ class CPD(SetAndLaunchBase):
                 'mw'   : Y[1],
                 'p0'   : Y[2],
                 'sig'  : Y[3]}
-        
-    
+
+
 
     def timeTempProfile(self,tempProfile):
         """ Returns a string from yaml read temp profile, basically reversing the yaml read function
@@ -185,7 +183,6 @@ class CPD(SetAndLaunchBase):
         """Launches the CPD executable and inputs Input_File. 
 
         """
-        self.runNr += 1 
         import PKP.bins
         cpdExec =  os.path.dirname(PKP.bins.__file__)
         if OS == 'Linux':
