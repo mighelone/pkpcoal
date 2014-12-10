@@ -19,7 +19,7 @@ class SetAndLaunchBase(object):
     printIntervall=1
     writeIntervall=1
 
-class SetterAndLauncher(SetAndLaunchBase):
+class CPD(SetAndLaunchBase):
     """ This class is able to write the CPD input file and launch the CPD program. 
         Before writing the CPD input file (method 'writeInstructFile') set all parameter 
         using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam, 
@@ -58,7 +58,7 @@ class SetterAndLauncher(SetAndLaunchBase):
         # We scale ua and daf data for cpd since input is not in percents
         self.ultim_ana   = ultimateAnalysis.scale(0.01)
         self.daf         = proximateAnalysisDaf.scale(0.01)
-        self.coal_param  = self.CalcCoalParam(self.ultim_ana, self.daf)
+        self.coal_param  = CPD.CalcCoalParam(self.ultim_ana, self.daf)
         self.output_dict = {
             'num_time' : len(tempProfile),
             'pressure' : self.pressure,
@@ -77,7 +77,8 @@ class SetterAndLauncher(SetAndLaunchBase):
         self.inputs = inputs #TODO GO fix how input folder is defined
         
 
-    def calcC0(self, massFracCarbon, massFracOx):
+    @classmethod
+    def calcC0(cls, massFracCarbon, massFracOx):
         c0 = 0.0
         #TODO GO are these really mutually exclusive?
         #       what happens if c > 0.859 and ox > 0.123
@@ -91,7 +92,8 @@ class SetterAndLauncher(SetAndLaunchBase):
         return c0
 
 
-    def CalcCoalParam(self, ultim_ana, daf):
+    @classmethod
+    def CalcCoalParam(cls, ultim_ana, daf):
         """ Calculates the CPD coal parameter mdel, mw, p0, sig 
             and sets the as an attribute of the class. """
         #uses equations from: http://www.et.byu.edu/~tom/cpd/correlation.html
@@ -124,7 +126,7 @@ class SetterAndLauncher(SetAndLaunchBase):
                      + c[8,i]*daf['Volatile Matter']
                      + c[9,i]*daf['Volatile Matter']**2)
 
-        return {'c0'   : self.calcC0(ultim_ana['Carbon'], ultim_ana['Oxygen']),
+        return {'c0'   : CPD.calcC0(ultim_ana['Carbon'], ultim_ana['Oxygen']),
                 'mdel' : Y[0],
                 'mw'   : Y[1],
                 'p0'   : Y[2],
@@ -139,7 +141,7 @@ class SetterAndLauncher(SetAndLaunchBase):
         #return '\n'.join(["{} {}".format(time, temp) for time, temp in tempProfile.iteritems()])
         return '\n'.join([' '.join(map(str,_)) for _ in tempProfile])
 
-    def writeInstructFile(self,Dirpath):
+    def writeInstructFile(self, Dirpath):
         """Writes the File 'CPD_input.dat' into the directory Dirpath."""
         ini=open(self.inputs+'CPD_input.dat','w')#Keywords:1-15,args:16-70
         #TODO GO is fcar,fhyd ... from daf or ua ?
