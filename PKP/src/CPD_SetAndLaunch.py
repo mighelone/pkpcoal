@@ -5,7 +5,7 @@ import pylab as plt
 import shutil
 from scipy.integrate import odeint
 import scipy.interpolate
-import Fit_one_run 
+import Fit_one_run
 import platform
 
 OS = platform.system()
@@ -59,7 +59,7 @@ class CPDResult(object):
         """ return column names from a cpd results file header """
         with open(fn) as f:
             header = f.readline().split()
-        return header 
+        return header
 
     @classmethod
     def writeResults(cls, folder):
@@ -67,14 +67,15 @@ class CPDResult(object):
         pass
 
 class SetAndLaunchBase(object):
+    workingDir = os.getcwd()
     runNr=0
     printIntervall=1
     writeIntervall=1
 
 class CPD(SetAndLaunchBase):
-    """ This class is able to write the CPD input file and launch the CPD program. 
-        Before writing the CPD input file (method 'writeInstructFile') set all parameter 
-        using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam, 
+    """ This class is able to write the CPD input file and launch the CPD program.
+        Before writing the CPD input file (method 'writeInstructFile') set all parameter
+        using the corresponding methods (SetCoalParameter, SetOperateCond, SetNumericalParam,
         CalcCoalParam). After writing the instruct file, the .Run method can be used."""
 
     cpd_constants = {
@@ -97,13 +98,15 @@ class CPD(SetAndLaunchBase):
            'nmax'   : 20,
         }
 
-    def __init__(self, 
+    execDir = os.getcwd()+"/CPD/"
+    resDir = execDir + "Results/"
+
+    def __init__(self,
             ultimateAnalysis,
             proximateAnalysisDaf,
             tempProfile,
             pressure,
             deltaT,
-            inputs="",
             runNr = 0
         ):
         self.runNr = runNr
@@ -121,15 +124,15 @@ class CPD(SetAndLaunchBase):
             'printIntervall': self.printIntervall,
             'writeIntervall': self.writeIntervall,
         }
-        # for generating the output string 
+        # for generating the output string
         # all the dicts are merge into one
         self.output_dict.update(self.cpd_constants)
         self.output_dict.update(self.ultim_ana.elems)
         self.output_dict.update(self.coal_param)
         self.output_dict.update(self.daf.elems)
         self.output_dict.update(self.__dict__)
-        self.inputs = inputs #TODO GO fix how input folder is defined
         self.writen_inputs = False
+        self.resDir = "{}Run{}/".format(self.resDir,runNr)
 
     @classmethod
     def calcC0(cls, massFracCarbon, massFracOx):
@@ -146,8 +149,8 @@ class CPD(SetAndLaunchBase):
 
     @classmethod
     def CalcCoalParam(cls, ultim_ana, daf):
-        """ Calculates the CPD coal parameter mdel, mw, p0, sig 
-            and returns as dictionary 
+        """ Calculates the CPD coal parameter mdel, mw, p0, sig
+            and returns as dictionary
 
             equations from: http://www.et.byu.edu/~tom/cpd/correlation.html
         """
@@ -164,25 +167,25 @@ class CPD(SetAndLaunchBase):
                [-65.4575, -313.561,  1.00939 , -0.826717],
         ])
 
-        Y = np.zeros(len(c[1,:]))
-        for i, yi in enumerate(Y): 
-            Y[i] = (c[1,i] 
-                     + c[2,i]*ultim_ana['Carbon'] 
-                     + c[3,i]*ultim_ana['Carbon']**2 
-                     + c[4,i]*ultim_ana['Hydrogen']
-                     + c[5,i]*ultim_ana['Hydrogen']**2 
-                     + c[6,i]*ultim_ana['Oxygen'] 
-                     + c[7,i]*ultim_ana['Oxygen']**2
-                     + c[8,i]*daf['Volatile Matter']
-                     + c[9,i]*daf['Volatile Matter']**2)
+        Y = [(c[1,i]
+                 + c[2,i]*ultim_ana['Carbon']
+                 + c[3,i]*ultim_ana['Carbon']**2
+                 + c[4,i]*ultim_ana['Hydrogen']
+                 + c[5,i]*ultim_ana['Hydrogen']**2
+                 + c[6,i]*ultim_ana['Oxygen']
+                 + c[7,i]*ultim_ana['Oxygen']**2
+                 + c[8,i]*daf['Volatile Matter']
+                 + c[9,i]*daf['Volatile Matter']**2)
+                for i in range(4)]
+
 
         return {'c0'   : CPD.calcC0(ultim_ana['Carbon'], ultim_ana['Oxygen']),
                 'mdel' : Y[0],
                 'mw'   : Y[1],
                 'p0'   : Y[2],
                 'sig'  : Y[3]}
-        
-    
+
+
 
     def timeTempProfile(self,tempProfile):
         """ Returns a string from yaml read temp profile, basically reversing the yaml read function
@@ -193,7 +196,9 @@ class CPD(SetAndLaunchBase):
 
     def writeInstructFile(self):
         """Writes the File 'CPD_input.dat' into the directory Dirpath."""
-        ini=open(self.inputs+'CPD_input.dat','w')#Keywords:1-15,args:16-70
+        if not os.path.exists(self.resDir):
+            os.makedirs(self.resDir)
+        ini=open(self.execDir+'CPD_input.dat','w')#Keywords:1-15,args:16-70
         #TODO GO is fcar,fhyd ... from daf or ua ?
         #TODO GO where does timax and nmax come frome
         ini_str = """{p0:<20} ! p0
@@ -232,15 +237,25 @@ class CPD(SetAndLaunchBase):
         ini.close()
         self.writen_inputs = True
 
+
+    def writeInDat(self):
+        inps_str = self.execDir + "CPD_input.dat\n"
+        inps_str +=  "\n".join([self.resDir + "CPD_Result{}.dat".format(f) for f in range(1,5)])
+        ini=open(self.execDir+'IN.dat','w')
+        ini.write(inps_str)
+        ini.close()
+
+
     def Run(self, inp_file="IN.dat"):
-        """Launches the CPD executable and inputs Input_File. 
+        """Launches the CPD executable and inputs Input_File.
 
            TODO: Store Results in subfolder
         """
         import PKP.bins
         if not self.writen_inputs:
             self.writeInstructFile()
-            
+            self.writeInDat()
+
         cpdExec =  os.path.dirname(PKP.bins.__file__)
         if OS == 'Linux':
             exe = '{}/cpdnlg'.format(cpdExec)
@@ -250,13 +265,13 @@ class CPD(SetAndLaunchBase):
             exe = '{}cpdnlg.exe'.format(cpdExec)
         else:
             print "The name of the operating system couldn't be found."
-            return 
+            return
         OScommand='{} < {}{} > {}CPD_{}_output.log'.format(
-                        exe, self.inputs, inp_file, self.inputs, self.runNr)
+                        exe, self.execDir, inp_file, self.resDir, self.runNr)
         print OScommand
         os.system(OScommand)
-        return CPDResult(folder=self.inputs)
- 
+        return CPDResult(folder=self.resDir)
+
 
 
 ################################################################################
@@ -268,20 +283,20 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
         self.PathFromCPD_EXE=DirectoryFromCPD_EXE
 
     def SpeciesName(self,SpeciesIndice):
-	"""Returns the Name of species with the Input column number."""
+        """Returns the Name of species with the Input column number."""
         return self.Cols2Yields[SpeciesIndice]
 
     def SpeciesIndex(self,SpeciesName):
-	"""Returns the column number of the input species."""
+        """Returns the column number of the input species."""
         return self.Yields2Cols[SpeciesName]
 
     def CpFile(self,genSetterAndLauncher,PathFromEXE,HeatingR):
-	"""Copies the current FG-DVC result file into the folder 'runs' and renames it with their heating rate."""
+        """Copies the current FG-DVC result file into the folder 'runs' and renames it with their heating rate."""
         shutil.copyfile(PathFromEXE+'CPD_Result1.dat', PathFromEXE+'runs/'+str(HeatingR)+'_CPD_Result1.dat')
         shutil.copyfile(PathFromEXE+'CPD_Result4.dat', PathFromEXE+'runs/'+str(HeatingR)+'_CPD_Result4.dat')
 
     def ReadYields(self,DirectoryWhereFGDVCoutFilesAreLocated):
-	"""Reads the yields and rates of the current run."""
+        """Reads the yields and rates of the current run."""
         #makes reading object
         ResultObject=Fit_one_run.CPD_Result(DirectoryWhereFGDVCoutFilesAreLocated)
         #gets data from this object
@@ -291,29 +306,29 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
         self.Yields2Cols=ResultObject.DictYields2Cols()
         self.Cols2Yields=ResultObject.DictCols2Yields()
         self.makeDt()
-       
+
     def makeDt(self):
-	"""Generates a list of the time steps."""
+        """Generates a list of the time steps."""
         Dt=np.zeros(len(self._yields[:,0]))
         t=self._yields[:,0]
         Dt[0]=t[1]-t[0]
         Dt[1:-1]=(t[2:]-t[:-2])/2.
         Dt[-1]=t[-1]-t[-2]
         self.Dt=Dt
-        
+
     def MaxRateTemp(self,SpeciesIndice):
-	"""Returns the temperature where the maximum rate occurs."""
+        """Returns the temperature where the maximum rate occurs."""
         u=self._rates[:,SpeciesIndice]
         Line=np.argmax(abs(u))
         TmaxR = self._rates[Line,1]
         return TmaxR
-            
+
     def Time(self):
-	"""Returns the time array."""
+        """Returns the time array."""
         return self._yields[:,0]
-        
+
     def Derive(self,u):
-	"""Derives the input vector using a CDS."""
+        """Derives the input vector using a CDS."""
         self.makeDt()
         yDot=np.zeros(len(u))
         yDot[0]=(u[1]-u[0])/self.Dt[0]  #approx only first order, but doesn't matter, because at the begin nd end rate=0
@@ -323,8 +338,8 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
 
 
     def generateRuns(self,genSetterAndLauncher,tEnd,Tstart,TEnd,lowestHr,highestHr,NumberOfRuns,CPD_exe,Input_File,PltLegend=False):
-	"""Runs CPD for the range of the heating rates and writes an Array containing the heating rates and the corresponding maximum rate temperatures."""
-        self. tEnd=   tEnd    
+        """Runs CPD for the range of the heating rates and writes an Array containing the heating rates and the corresponding maximum rate temperatures."""
+        self. tEnd=   tEnd
         self.T_End=TEnd
         self.Tstart=Tstart
         self.CPD_exe=CPD_exe
@@ -351,11 +366,11 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
                 CurrentHrVec.append(float(self.MaxRateTemp(spec)))
             ParamArray.append(CurrentHrVec)
         self.ParamArray=np.array(ParamArray)
-                
-                    
+
+
 
     def calcAE(self,genSetterAndLauncher):
-	"""Calculates the Arrhenius parameter using the array generated in 'generateRuns'."""
+        """Calculates the Arrhenius parameter using the array generated in 'generateRuns'."""
         ParamFile=open('runs/ParameterForLinRegrRuns.txt','w')
         ParamError=open('runs/ParameterForLinRegrRuns_std_Error.txt','w')
         #for spec in range(2,len(self.Cols2Yields)-2,1):
@@ -391,24 +406,24 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
                 print 'Species ',self.SpeciesName(spec),' not considered, because Tmax is not on the ramp where Hr>0'
         self.AEArray=np.array(AEArray)
         ParamFile.close(); ParamError.close()
-        
+
     def getAE(self,Species):
-	"""returns the calculated kinetic parameter."""
+        """returns the calculated kinetic parameter."""
         B=np.where(self.AEArray[:,0]==Species)
         B=B[0];B=B[0]
         B=self.AEArray[B,:]
         return B
-        
+
     def TtInterpol(self):
-	"""Returns an interpolation object of T(t)."""
+        """Returns an interpolation object of T(t)."""
         OrderOfTimeInterpol=2
         t=self._yields[:,0]
         T=self._yields[:,1]
         T_Interpol=scipy.interpolate.interp1d( np.array(list(t)+[10*t[-1]]),np.array(list(T)+[T[-1]]),kind=OrderOfTimeInterpol,axis=-1,copy=True,bounds_error=True,fill_value=np.nan )
         return T_Interpol
-          
+
     def CompareResults(self,genSetterAndLauncher,HrWhereToCompare):
-	"""Plots the genearted curve and the CPD output in a Yield vs. time diagram, each for one species."""
+        """Plots the genearted curve and the CPD output in a Yield vs. time diagram, each for one species."""
         self.generateRuns(genSetterAndLauncher,self.tEnd,self.Tstart,self.T_End,HrWhereToCompare,HrWhereToCompare,2,self.CPD_exe,self.Input_File)
         for spec in range(2,len(self.Cols2Yields)-1,1):#(2,len(self.Cols2Yields),1):
             t=self._yields[:,0]
@@ -434,9 +449,9 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
             plt.title(str(self.SpeciesName(spec)))
             plt.savefig('runs/Compare_'+str(self.SpeciesName(spec))+'_R.pdf',format='pdf')
             plt.clf(),plt.cla()
-            
+
     def calcYield(self,genSetterAndLauncher,Species):
-	"""Calculates the yields.""" 
+        """Calculates the yields.""" 
         absTol=1.e-8
         relTol=1.e-6
         ###
@@ -459,4 +474,4 @@ class ProcessCPD(object):  #planed just for different linear heating rates,DAF B
             return dmdt_out
         m_out=scipy.integrate.odeint(dmdt,IC,time,atol=absTol,rtol=relTol,hmax=1.e-4)
         return m_out[:,0]
-      
+
