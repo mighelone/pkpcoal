@@ -99,6 +99,7 @@ class MainProcess(object):
     def ReadInputFiles(self, inputs_folder=False):
         """ Read params from input file and generate Input objects """
         import yaml
+        # TODO GO print warning if it cant find file 
         inputs_folder = (inputs_folder if inputs_folder else workingDir + 'inputs/')
         full_fn = inputs_folder + 'inputs.inp'
         try:
@@ -110,41 +111,59 @@ class MainProcess(object):
 
 
     def executeSolver(self):
-        pass
-        # if Case.CPDselect==True:
-        #     Case.MakeResults_CPD()
-        # if Case.FG_select==True:
-        #     Case.CheckFGdt()
-        #     Case.MakeResults_FG()
-        # if Case.PMSKD_select==True:
-        #     Case.RunPMSKD()
-        # if Case.PCCL_select==True:
-        #     Case.MakeResults_PCCL()
-
-    def CheckFGdt(self):
-        """ Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 
+        """ execute all solver that are activated in the inputs file 
+            and return list of results objects
         """
-        #TODO check if this function gets callesd ? Can't we use a limiter here ?
-        if ((self.FG_select==True) and (self.FG_dt<1e-4)):
-            print """Please select for FG-DVC a time step greather equal 1e-4 in 'OperCond.inp'. 
-            FG-DVC would not be able to read the time history file for a dt<1e-4. """
-            sys.exit()
+        def selector(inputs):
+            if inputs['CPD']['active']:
+                return self.MakeResults_CPD
+            # TODO GO Reimplement other solvers
+            # if Case.FG_select==True:
+            #     Case.CheckFGdt()
+            #     Case.MakeResults_FG()
+            # if Case.PMSKD_select==True:
+            #     Case.RunPMSKD()
+            # if Case.PCCL_select==True:
+            #     Case.MakeResults_PCCL()
+        return selector(self.inputs)() #
 
-    def OptGradBased(self,Fit,ParameterVecInit,FinalYield,Species):
+
+    def postProcessResults(self, results):
+        for run in results:
+            solver = run.solver
+            getattr(self, self.inputs[solver]['fit'])(solver, run)
+        
+
+    # def CheckFGdt(self):
+    #     """ Aborts, if FG-DVC is selected and the timestep is lower than 1.e-3 
+    #     """
+    #     # TODO GO move to FGDVC class
+    #     # TODO check if this function gets callesd ? Can't we use a limiter here ?
+    #     if ((self.FG_select==True) and (self.FG_dt<1e-4)):
+    #         print """Please select for FG-DVC a time step greather equal 1e-4 in 'OperCond.inp'. 
+    #         FG-DVC would not be able to read the time history file for a dt<1e-4. """
+    #         sys.exit()
+
+    def OptGradBased(self, Fit, ParameterVecInit, FinalYield, Species):
         """ Starts a gradient Based Optimization. 
-        Sets the Final Fit result as the ParamVector in the Kinetic Model. 
+
+        returns the final Fit. 
         Input are the Fit (Result Objects of the Detailed Models), the Parameter 
         to initialize and the Final Yield (all dependent on the kinetic model). 
         For Kobayashi Model set Final Yield to False (independent), for all other set a value. 
         It will be excluded from the optimization. Species is the Species Index. """
-        LS=Fitter.LeastSquarsEstimator()
-        LS.setOptimizer(GlobalOptParam.selectedGradBasedOpt)
-        LS.setTolerance(GlobalOptParam.Tolerance)
-        LS.setMaxIter(GlobalOptParam.MaxIter)
-        LS.setWeights(self.WeightY,self.WeightR)
-        LS.setFinalYield(FinalYield)
-        self.KinModel.setParamVector(LS.estimate_T(Fit,self.KinModel,ParameterVecInit,Species))
-        print 'Final error=', LS.Deviation()
+        # LS = Fitter.LeastSquarsEstimator(
+        #         optimizer = self.inputs['Optimisation']['GradBasedOpt'],
+        #         maxIter = self.inputs['Optimisation']['maxIter'],
+        #         fitTolerance = self.inputs['Optimisation']['Tolerance'],
+        #         weights = self.WeightY,self.WeightR,
+        #         finalYield = FinalYield,
+        # )
+        # result = LS.estimateT(
+        #     Fit,self.KinModel,ParameterVecInit,Species)
+        # print 'Final error=', LS.Deviation()
+        # return result
+        pass
 
     def OptGenAlgBased(self,Fit,ParameterVecInit,ParameterVecMin,ParameterVecMax,Species):
         """ Starts a genetic algorithm and afterwards a gradient Based optimization. 
@@ -161,61 +180,83 @@ class MainProcess(object):
         if GlobalOptParam.optimizGrad == True:
             self.OptGradBased(Fit,ParameterVecInit,False,Species)
 
-    def MakeResults_CR(self,PyrolProgram,File,Fit):
-        """ Generates the results for constant Rate. """
-        outfile = open(PyrolProgram+'-Results_const_rate.txt', 'w')
-        outfile.write("Species     k [1/s]     t_start [s]   FinalYield\n\n")
+    def constantRate(self, PyrolProgram, Results):
+        """ Generates the results for constant Rate.
+
+            Parameters:
+                File:        results file from the prepocessor i.e CPD_Results.dat
+                PyrolPrgram: name of the preprocessor
+                Fit is the fit object
+         """
+        # TODO GO delay writing of the file until end of computation
+        #         to spearate responsibilities
+        # outf = PyrolProgram+'-Results_const_rate.txt'
+        # outfile = open(outf, 'w')
+        # outfile.write("Species     k [1/s]     t_start [s]   FinalYield\n\n")
         # init model
-        ParamInit = GlobalOptParam.EvACRInit
-        self.KinModel=Models.ConstantRateModel(ParamInit)
-        if PyrolProgram=='PCCL':
-                self.KinModel.setDt4Intergrate(self.FG_dt)
+        KinModel = Models.ConstantRateModel(
+            self.inputs['Optimisation']['ConstantRate'])
+        # if PyrolProgram =='PCCL': # TODO GO reimplement
+        #         self.KinModel.setDt4Intergrate(self.FG_dt)
         # uses for optimization gradient based (LS) optimizer if NrOfRuns is one ; 
         # for more runs use Evolutionary algorithm (GenAlg; global optimum)
-        if self.NrOfRuns == 1:
-            for Spec in range(2,len(Fit[0].SpeciesNames()),1):
+        if self.inputs['OperatingConditions']['runs'] == 1: 
+
+            # Iterate species in Fit Object
+            # for Spec in range(2, len(Fit[0].SpeciesNames()),1):
+            for Spec in Results.species():
+                if Spec not in self.SpeciesToConsider:
+                    self.SpeciesToConsider.append(Spec)
                 #
-                if Fit[0].SpeciesName(Spec) not in self.SpeciesToConsider:
-                    self.SpeciesToConsider.append(Fit[0].SpeciesName(Spec))
-                #
-                self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Spec)[-1],Spec)
-                self.KinModel.plot(Fit,Spec)
-                self.Solution = self.KinModel.ParamVector()
-                if np.sum(self.Solution)!=np.sum(ParamInit):
+                self.OptGradBased(Fit, KinModel.initialParameter, Fit[0].Yield(Spec)[-1], Spec)
+                # TODO GO cant the plotting be delayed until computation is done
+                # self.KinModel.plot(Fit, Spec)
+                # TODO GO why are parameters summed ?
+                if np.sum(KinModel.parameter) != np.sum(KinModel.initialParamter):
                     # if true nothing was optimized, no result to show
-                    outfile.write(str(Fit[0].SpeciesName(Spec)) +'\t'+'%8.4f  %8.4f  %8.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2])+'\n')
-        else:
-            if len(ParamInit) == 2:
-                ParamInit.append(0.0)
-            ParamMin = GlobalOptParam.EvACRMin
-            if len(ParamMin) == 2:
-                ParamMin.append(0.0)
-            ParamMax = GlobalOptParam.EvACRMax
-            if len(ParamMax) == 2:
-                ParamMax.append(0.0)
-            for Spec in range(2,len(Fit[0].SpeciesNames()),1):
-                # max Yield, min Yield
-                m_final_predictionAll = []
-                for i in range(len(Fit)):
-                    m_final_predictionAll.append(Fit[i].Yield(Spec)[-1])
-                ParamInit[2]= (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-                ParamMin[2] = ( min(m_final_predictionAll) )
-                ParamMax[2] = ( max(m_final_predictionAll) )
-                #
-                self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Spec)
-                self.Solution = self.KinModel.ParamVector()
-                self.KinModel.plot(Fit,Spec)
-                if np.sum(self.Solution)!=np.sum(ParamInit):#if True nothing was optimized
-                    outfile.write(str(Fit[0].SpeciesName(Spec))+'\t'+'%8.4f  %8.4f  %8.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2])+'\n')
-            #
-            #
-        outfile.close()
-        if oSystem=='Linux' or oSystem == 'Darwin':
-            shutil.move(PyrolProgram+'-Results_const_rate.txt','Result/'+PyrolProgram+'-Results_constantRate.txt')
-        elif oSystem=='Windows':
-            shutil.move(PyrolProgram+'-Results_const_rate.txt','Result\\'+PyrolProgram+'-Results_constantRate.txt')
-        else:
-            print "The name of the operating system couldn't be found."
+                    outfile.write(
+                        str(Fit[0].SpeciesName(Spec)) 
+                        + '\t'+'%8.4f  %8.4f  %8.4f  ' %( 
+                            self.Solution[0], 
+                            self.Solution[1], 
+                            self.Solution[2])+'\n')
+
+        # else:
+        #     if len(ParamInit) == 2:
+        #         ParamInit.append(0.0)
+        #     ParamMin = GlobalOptParam.EvACRMin
+        #     if len(ParamMin) == 2:
+        #         ParamMin.append(0.0)
+        #     ParamMax = GlobalOptParam.EvACRMax
+        #     if len(ParamMax) == 2:
+        #         ParamMax.append(0.0)
+        #     for Spec in range(2,len(Fit[0].SpeciesNames()),1):
+        #         # max Yield, min Yield
+        #         m_final_predictionAll = []
+        #         for i in range(len(Fit)):
+        #             m_final_predictionAll.append(Fit[i].Yield(Spec)[-1])
+        #         ParamInit[2]= (max(m_final_predictionAll)
+        #                     + min(m_final_predictionAll))/2.
+        #         ParamMin[2] = (min(m_final_predictionAll))
+        #         ParamMax[2] = (max(m_final_predictionAll))
+        #         #
+        #         self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Spec)
+        #         self.Solution = self.KinModel.ParamVector()
+        #         self.KinModel.plot(Fit,Spec)
+        #         #if True nothing was optimized
+        #         if np.sum(self.Solution) != np.sum(ParamInit):
+        #             outfile.write(str(Fit[0].SpeciesName(Spec)) 
+        #                 + '\t'+'%8.4f  %8.4f  %8.4f  ' %(
+        #                     self.Solution[0],
+        #                     self.Solution[1],
+        #                     self.Solution[2])+'\n')
+        # outfile.close()
+        # if oSystem=='Linux' or oSystem == 'Darwin':
+        #     shutil.move(outf, 'Result/' + outf)
+        # elif oSystem=='Windows':
+        #     shutil.move(outf, 'Result\\' + outf)
+        # else:
+        #     print "The name of the operating system couldn't be found."
 
 
     def MakeResults_Arrh(self,PyrolProgram,File,Fit):
@@ -580,67 +621,53 @@ class MainProcess(object):
 
 
     def MakeResults_CPD(self):
-        """generates the result for CPD"""
-        CPDFile = [] #TODO GO What are these god for?
-        CPDFit  = []
+        """ Execute CPD for each given temperature profile and 
+            return a list of CPD results objects
+         """
+        def InitAndLaunch(*pargs):
+            """ initialises and execute cpd calculation """
+            print 'Running CPD: ' + str(run)
+            cpd = CPD_SetAndLaunch.CPD(*pargs)
+            return cpd.Run() 
+
         operatingConditions = self.inputs['OperatingConditions']
         pressure = operatingConditions.pop('pressure') 
-        for run, temps in operatingConditions.iteritems():
-            # TODO type check if temps is an 2d array 
-            cpd = CPD_SetAndLaunch.CPD(
-                    ultimateAnalysis = self.ultim_ana,
-                    proximateAnalysisDaf = self.daf,
-                    tempProfile = temps,
-                    pressure = pressure,
-                    deltaT = self.inputs['CPD']['deltaT'],
-                    runNr = run
-                )
-            cpd.writeInstructFile(workingDir)
-            print 'Running CPD: ' + run
-            cpd.Run()
-        #     ###calibration of the kinetic parameter:
-        #     #read result:
-        #     CurrentCPDFile=CPD_Result.CPD_Result(workingDir)
-        #     # creates object, required for fitting procedures
-        #     CurrentCPDFit=FitInfo.Fit_one_run(CurrentCPDFile)
-        #     CPDFile.append(CurrentCPDFile)
-        #     CPDFit.append(CurrentCPDFit)
-        #     #
-        #     if oSystem=='Linux' or oSystem == 'Darwin':
-        #         shutil.move('CPD_Result1.dat', 'Result/'+'CPD_'+str(runNr)+'_Result1.dat')
-        #         shutil.move('CPD_Result2.dat', 'Result/'+'CPD_'+str(runNr)+'_Result2.dat')
-        #         shutil.move('CPD_Result3.dat', 'Result/'+'CPD_'+str(runNr)+'_Result3.dat')
-        #         shutil.move('CPD_Result4.dat', 'Result/'+'CPD_'+str(runNr)+'_Result4.dat')
-        #         shutil.move('CPD_'+str(runNr)+'_output.log', 'Result/'+'CPD_'+str(runNr)+'_output.log')
-        #     elif oSystem=='Windows':
-        #         shutil.move('CPD_Result1.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result1.dat')
-        #         shutil.move('CPD_Result2.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result2.dat')
-        #         shutil.move('CPD_Result3.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result3.dat')
-        #         shutil.move('CPD_Result4.dat', 'Result\\'+'CPD_'+str(runNr)+'_Result4.dat')
-        #         shutil.move('CPD_'+str(runNr)+'_output.log', 'Result\\'+'CPD_'+str(runNr)+'_output.log')
-        #     else:
-        #         print "The name of the operating system couldn't be found."
-        # #####
-        # M=Models.Model()
-        # for Species in CPDFit[0].SpeciesNames():
-        #     M.mkSimpleResultFiles(CPDFit,Species)
-        #     if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-        #         self.SpeciesToConsider.append(Species)
+        return [InitAndLaunch(self.ultim_ana, 
+                              self.daf,
+                              operatingConditions["run"+str(run+1)],
+                              pressure,
+                              self.inputs['CPD']['deltaT'],
+                              run)
+                for run in range(operatingConditions['runs'])]
+
+    def fitCPDResults(self, cpdResults):
+        #TODO GO CPDFit comes from Fit_one_run.py
+        if self.CPD_FittingKineticParameter_Select=='constantRate':
+            self.MakeResults_CR('CPD', cpdResults)
+            #currentDict={'CPD':'constantRate'}
+        
+
+        # TODO GO CPDFit comes from Fit_one_run.py
         # if self.CPD_FittingKineticParameter_Select=='constantRate':
         #     self.MakeResults_CR('CPD',CPDFile,CPDFit)
         #     currentDict={'CPD':'constantRate'}
+
         # elif self.CPD_FittingKineticParameter_Select=='Arrhenius':
         #     self.MakeResults_Arrh('CPD',CPDFile,CPDFit)
         #     currentDict={'CPD':'Arrhenius'}
+
         # elif self.CPD_FittingKineticParameter_Select=='ArrheniusNoB':
         #     self.MakeResults_ArrhNoB('CPD',CPDFile,CPDFit)
         #     currentDict={'CPD':'ArrheniusNoB'}
+
         # elif self.CPD_FittingKineticParameter_Select=='Kobayashi':
         #     self.MakeResults_Kob('CPD',CPDFile,CPDFit)
         #     currentDict={'CPD':'Kobayashi'}
+
         # elif self.CPD_FittingKineticParameter_Select=='DAEM':
         #     self.MakeResults_DEAM('CPD',CPDFile,CPDFit)
         #     currentDict={'CPD':'DAEM'}
+
         # elif self.CPD_FittingKineticParameter_Select==None:
         #     currentDict={'CPD':'None'}
         # else:
@@ -650,8 +677,7 @@ class MainProcess(object):
         # self.ProgramModelDict.update(currentDict)
         # #
         # self.SpeciesEnergy('CPD',CPDFile,self.CPD_FittingKineticParameter_Select)
-            #
-            #
+
     ####FG-DVC####
     def MakeResults_FG(self):
         """generates the result for FG-DVC"""
@@ -940,7 +966,11 @@ class MainProcess(object):
         #self.SpeciesEnergy('PMSKD',FGFile)
 
 #Main Part starting
-if __name__ == "__main__":
-    Case = MainProcess()
-    Case.execute_solver()
+
+def main():
+    Case = MainProcess(inputs_folder=workingDir+"/inputs/")
+    Case.executeSolver()
     print 'calculated Species: ',Case.SpeciesToConsider
+
+if __name__ == "__main__":
+    main()
