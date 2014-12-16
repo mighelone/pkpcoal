@@ -1,267 +1,268 @@
+"""
+A selection of different Pyrolysis models
+
+A model pyrolysis model usually provides method to calculate the yield of 
+individual species the rates and energy balancing methods
+
+"""
 import numpy as np
 import pylab as plt
 import scipy as sp
 import scipy.integrate
 import scipy.interpolate
 import platform
-#
-PngResolution=100
-#
-#oSystem=platform.system()
-oSystem = 'Linux'
-#the general parent class
-class Model(object):
-    """Parent class of the children ConstantRateModel, the three Arrhenius Models (notations) and the Kobayashi models. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE. If set TimeVectorToInterplt=[t0,t1,t2,t3,t4] (t: floats) then is the yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4], linear interploated."""
-    
-    def getName(self):
-        """ return model name """
+
+class BalancedComposition(object):
+    """ Class for compostion that ensures componenents sum up to a 
+        certain value 
+    """
+
+    def __init__(self, inp, target=100.00):
+        """ From a given input dictionary and a target sum a 
+            dictionary with scaled composition is created 
+        """
+        self.target = target
+        scaling_factor = target/sum(inp.values())
+        self.elems = {key:value*scaling_factor for key,value in inp.iteritems()} 
+
+
+    def __getitem__(self,item):
+        """ """
         try:
-            return self._name
+            return self.elems[item]
         except:
-            print 'class Model: self._modelName not defined'
-            return 'empty model'
-    def pltYield(self,fgdvc_list,xValueToPlot,yValueToPlot):
-        """Plots the yields (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot)."""
-        for runnedCaseNr in range(len(fgdvc_list)):
-            plt.plot(fgdvc_list[runnedCaseNr].Yield(xValueToPlot),fgdvc_list[runnedCaseNr].Yield(yValueToPlot))
-        if xValueToPlot=='Time':
-            plt.xlabel('t in s')
-        if xValueToPlot=='Temp':
-            plt.xlabel('T in K')
-        if type(yValueToPlot)==int:
-            SpeciesForTitle=fgdvc_list[0].SpeciesName(yValueToPlot)
-        if type(yValueToPlot)==str:
-            SpeciesForTitle=yValueToPlot
-        plt.title(SpeciesForTitle)
-        plt.ylabel('yield in wt%')
-        plt.legend()
-        plt.grid()
-        if oSystem=='Linux':
-            plt.savefig('Result/'+'Yields_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
-        elif oSystem=='Windows':
-            plt.savefig('Result\\'+'Yields_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
-        else:
-            print 'Models: Operating Platform cannot be specified.'
-        plt.clf(),plt.cla()
+            print """Warning trying to access {} which was not set in
+            input file, assuming 0.0. 
+            """ 
+            return 0.0
 
-    def pltRate(self,fgdvc_list,xValueToPlot,yValueToPlot):
-        """Plots the rates (to select with yValueToPlot) over Time or Temperature (to slect with xValueToPlot)."""
-        for runnedCaseNr in range(len(fgdvc_list)):
-            plt.plot(fgdvc_list[runnedCaseNr].Rate(fgdvc_list[runnedCaseNr].SpeciesIndex(xValueToPlot)),fgdvc_list[runnedCaseNr].Rate(fgdvc_list[runnedCaseNr].SpeciesIndex(yValueToPlot)),label=yValueToPlot)
-        if xValueToPlot=='Time':
-            plt.xlabel('t in s')
-        if xValueToPlot=='Temp':
-            plt.xlabel('T in K')
-        plt.ylabel('rate in wt%/s')
-        if type(yValueToPlot)==int:
-            SpeciesForTitle=fgdvc_list[0].SpeciesName(yValueToPlot)
-        if type(yValueToPlot)==str:
-            SpeciesForTitle=yValueToPlot
-        plt.title(SpeciesForTitle)
-        plt.legend()
-        plt.grid()
-        if oSystem=='Linux':
-            plt.savefig('Result/'+'Rates_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
-        elif oSystem=='Windows':
-            plt.savefig('Result\\'+'Rates_'+yValueToPlot+'VS'+xValueToPlot+'.pdf',format='pdf')
+    def remove_elems_rebalance(self, elems_):
+        """ To compute daf composition elements can be removed 
+
+            Usage:  .remove_elems_rebalance(['Moisture','Ash'])
+        """
+        return BalancedComposition({ 
+            key:elem for key,elem in self.elems.iteritems() 
+                if key not in elems_
+        })
+
+    def scale(self, factor):
+        return BalancedComposition(self.elems, target=self.target*factor)
+
+    def __repr__(self):
+        return str(self.elems)
+
+
+class Model(object):
+    """ Parent class of the children ConstantRateModel, 
+        the three Arrhenius Models (notations) and the Kobayashi models. 
+
+        TimeVectorToInterplt allows the option to define the discrete time points, 
+        where to interpolate the results. If set to False (standard), then is are 
+        the outputed results equal the dt to solve the ODE. If set 
+        TimeVectorToInterplt=[t0,t1,t2,t3,t4] (t: floats) then is the 
+        yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4], 
+        linear interploated."""
+    
+    def __init__(self, name):
+        print "Initialised {} Model".format(name)
+        self.name = name
+    
+    def computeTimeDerivative(self, mass, deltaT=False, times=False):
+        """ Return time derivatives for a given deltat array
+            and a mass array
+        """
+        from numpy import gradient
+        # rate[0]    = (mass[1]  - mass[0])/deltat[0]
+        # rate[1:-1] = (mass[2:] - mass[:-2])/(2*deltat[1:-1])
+        # rate[-1]   = (mass[-1] - mass[-2])/deltat[-1]
+        if deltaT:
+            return gradient(mass,deltat)
         else:
-            print 'Models: Operating Platform cannot be specified.'
-        plt.clf(),plt.cla()
+            return gradient(np.array([mass,times]))
         
-    def maxLengthOfVectors(self,fgdvc_list):
-        """Returns the minimum lenght of a all vectors from the several runs."""
-        Len_tPointsL=[]
-        for i in range(len(fgdvc_list)):
-            Len_tPointsL.append(len(fgdvc_list[i].Time()))
-        Len_tPoints=max(Len_tPointsL)
-        return Len_tPoints
+    def calcRate(self, preProcResult, time, temp, species):
+        """ computes actual release reates for a given species
+            by a time array and temperature array
 
-    def plot(self,fgdvc_list,Species):
-        """Plot the yield and the rates over time with two curves: one is the original data, the other the fitting curve. Also file 'PyrolysisProgramName-Species.out' (e.g. 'CPD-CO2.out') containing the time (s), yields (kg/kg), rates (kg/(kg s))."""
-        #plots:
-        colors=['r','b','g','black','purple']
-        #Yields to compare
-        u=[] #line index, time, column index: runned case
-        v=[] #line index, time, column index: runned case
-        for runnedCaseNr in range(len(fgdvc_list)):
-            u_=fgdvc_list[runnedCaseNr].Yield(Species)
-            v_=self.calcMass(fgdvc_list[runnedCaseNr],fgdvc_list[runnedCaseNr].Time(),fgdvc_list[runnedCaseNr].Interpolate('Temp'),Species)
-            u.append(u_)
-            v.append(v_)
-        if type(Species)==int:
-            SpeciesForTitle=fgdvc_list[0].SpeciesName(Species)
-        if type(Species)==str:
-            SpeciesForTitle=Species
-        if SpeciesForTitle=='Solid':
-            for runnedCaseNr in range(len(fgdvc_list)):
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u[runnedCaseNr])],u[runnedCaseNr],'-',color=colors[runnedCaseNr],label=fgdvc_list[0].Name()+' '+str(runnedCaseNr))
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v[runnedCaseNr])],v[runnedCaseNr],'--',color=colors[runnedCaseNr],label='fit')
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u[runnedCaseNr])],(1.-u[runnedCaseNr]),'-',color=colors[runnedCaseNr],label='Sum yields'+' '+str(runnedCaseNr))
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v[runnedCaseNr])],(1.-v[runnedCaseNr]),'--',color=colors[runnedCaseNr],label='fit')
-        else:
-            for runnedCaseNr in range(len(fgdvc_list)):
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(u[runnedCaseNr])],u[runnedCaseNr],'-',color=colors[runnedCaseNr],label=fgdvc_list[0].Name()+' '+str(runnedCaseNr))
-                plt.plot(fgdvc_list[runnedCaseNr].Time()[:len(v[runnedCaseNr])],v[runnedCaseNr],'--',color=colors[runnedCaseNr],label='fit')            
-        plt.title(SpeciesForTitle)
-        plt.xlabel('t in s')
-        plt.ylabel('yield fraction in kg/kg_coal')
-        plt.legend()
-        plt.grid()
-        if oSystem=='Linux':
-            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.pdf',format='pdf')
-            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.png',dpi=PngResolution,format='png')
-        elif oSystem=='Windows':
-            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.pdf',format='pdf')
-            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_Y.png',dpi=PngResolution,format='png')
-        else:
-            print 'Models: Operating Platform cannot be specified.'
-        plt.clf(),plt.cla()
-        #Rates to compare
-        for runnedCaseNr in range(len(fgdvc_list)):
-            ur=fgdvc_list[runnedCaseNr].Rate(Species)
-            plt.plot(fgdvc_list[runnedCaseNr].Time(),ur,'-',color=colors[runnedCaseNr],label=fgdvc_list[runnedCaseNr].Name()+' '+str(runnedCaseNr))
-            w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
-            plt.plot(fgdvc_list[runnedCaseNr].Time(),w,'--',color=colors[runnedCaseNr],label='fit')
-        if type(Species)==int:
-            SpeciesForTitle=fgdvc_list[0].SpeciesName(Species)
-        if type(Species)==str:
-            SpeciesForTitle=Species
-        plt.title(SpeciesForTitle)
-        plt.xlabel('t in s')
-        plt.ylabel('rate in 1/s')#min')
-        plt.legend()
-        plt.grid()
-        if oSystem=='Linux':
-            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.pdf',format='pdf')
-            plt.savefig('Result/'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.png',dpi=PngResolution,format='png')
-        elif oSystem=='Windows':
-            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.pdf',format='pdf')
-            plt.savefig('Result\\'+fgdvc_list[0].Name()+'-Fit_result_'+SpeciesForTitle+'_R.png',dpi=PngResolution,format='png')
-        else:
-            print 'Models: Operating Platform cannot be specified.'
-        plt.clf(),plt.cla()
-        #writes result file
-        for runnedCaseNr in range(len(fgdvc_list)):
-            t=fgdvc_list[runnedCaseNr].Yield('Time')
-            T=fgdvc_list[runnedCaseNr].Yield('Temp')
-            w=self.deriveC(fgdvc_list[runnedCaseNr],v[runnedCaseNr])
-            ur=fgdvc_list[runnedCaseNr].Rate(Species)
-            if oSystem=='Linux':
-                print fgdvc_list[runnedCaseNr]
-                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
-            elif oSystem=='Windows':
-                print fgdvc_list[runnedCaseNr]
-                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
-            else:
-                print 'Models: Operating Platform cannot be specified.'
-            resultFile.write('    Time       Temperature    Yields       Rates    Yields(original) Rates(original) \n')
-            for i in range(len(t)):
-                resultFile.write('%7e  %11e %7e %8e %7e %8e \n' % (t[i], T[i], v[runnedCaseNr][i], w[i], u[runnedCaseNr][i], ur[i]))
-            resultFile.close()
+            the preProcResults are used for initial values
+            #TODO GO can time be taken from preProcResult?
+        """
+        mass = self.calcMass(preProcResult, time, temp, species)
+        return self.computeTimeDerivative(mass, times = time)
 
-    def deriveC(self,fgdvc,yVector):
-        """Returns a CDS of the inputted yVector."""
-        dt=fgdvc.Dt()
-        yDot=np.zeros(fgdvc.NPoints())
-        yDot[0]=(yVector[1]-yVector[0])/dt[0]
-        yDot[1:-1]=(yVector[2:]-yVector[:-2])/(2*dt[1:-1])
-        yDot[-1]=(yVector[-1]-yVector[-2])/dt[-1]
-        return yDot
-        
-    def calcRate(self,fgdvc,time,T,Name):
-        """Generates the Rates using the yields vector and a CDS."""
-        m=self.calcMass(fgdvc,time,T,Name)
-        mDot=self.deriveC(fgdvc,m)
-        return mDot
 
-    def setParamVector(self,ParameterList):
-        """Sets the Vector containing the kinetic parameter of the Model (refering to the child model)."""
-        self._ParamVector=ParameterList
+    @classmethod
+    def modelErrori(cls, target, model):
+        """ compute the deviation between modeled values and the target values
+            from the pre processor
+        """
+        return target - model
 
-    def ParamVector(self):
-        """Returns the Vector containing the kinetic parameter of the Model (refering to the child model)."""
-        return self._ParamVector
+    @classmethod
+    def modelErrorSquared(cls, target, model):
+        """ compute the deviation between modeled values and the target values
+            from the pre processor
+        """
+        return np.power(target - model, 2.0)
 
-    def ErrorYield(self,fgdvc,Species):                                  #calculates avrg Error between curves
-        """Returns the absolute deviation per point between the fitted and the original yield curve."""
-        v=self.calcMass(fgdvc,fgdvc.Time(),fgdvc.Interpolate('Temp'),Species)
-        u=fgdvc.Yield(Species)
-        absE=(np.sum(u-v))/fgdvc.NPoints()
-        return absE
+    @classmethod
+    def summedModelError(cls, target, model):
+        return np.sum(Model.modelError(target, model))
 
-    def ErrorRate(self,fgdvc,Species):                                  #calculates avrg Error between curves
-        """Returns the absolute deviation per point between the fitted and the original rate curve."""
-        v=self.calcMass(fgdvc,fgdvc.Time(),fgdvc.Interpolate('Temp'),Species)
-        uDot=fgdvc.Rate(Species)
-        vDot=self.deriveC(fgdvc,v)
-        absE=(np.sum(uDot-vDot))/fgdvc.NPoints()
+    @classmethod
+    def totModelErrorSquaredPerc(cls, target, model):
+        return np.sum(Model.modelErrorSquared(target, model))/len(target)
+
+
+    @classmethod
+    def yieldDelta(cls, mass):
+        return max(mass) - min(mass)
+
+    def ErrorYield(self, preProcResult, Species):
+        """ Returns the absolute deviation per point between the fitted
+            pyrolysis model and the original preprocessor yield 
+        TODO GO: why only take some arrays from preProcResults
+        """
+        modeled_mass = self.calcMass(
+                            preProcResult,
+                            preProcResult["Time"],
+                            preProcResult["Temp"],
+                            Species
+                        )
+        target_mass = preProcResult[Species]
+        return (np.sum(target_mass - modeled_mass))/(len(target_mass))
+
+    def ErrorRate(self, preProcResult, species):
+        """ Returns the absolute deviation per point between 
+            the fitted and the original rate curve.
+        """
+        mass = self.calcMass(
+                preProcResult, 
+                preProcResult.Time(),
+                preProcResult.Interpolate('Temp'),
+                species)
+
+        uDot = preProcResult.Rate(Species)
+        mDot = self.deriveC(preProcResult, mass)
+        absE = (np.sum(uDot-vDot))/preProcResult.NPoints()
         return absE
     
-    def mkSimpleResultFiles(self,fgdvc_list,Species):
-        """Simple result file if no fitting is carried out. Writes only the transformed results into a file."""
-        if type(Species)==int:
-            SpeciesForTitle=fgdvc_list[0].SpeciesName(Species)
-        if type(Species)==str:
-            SpeciesForTitle=Species
-        #
-        for runnedCaseNr in range(len(fgdvc_list)):
-            t=fgdvc_list[runnedCaseNr].Yield('Time')
-            T=fgdvc_list[runnedCaseNr].Yield('Temp')
-            u=[]
-            for Nr in range(len(fgdvc_list)):
-                u_=fgdvc_list[Nr].Yield(Species)
-                u.append(u_)
-            w=self.deriveC(fgdvc_list[runnedCaseNr],u[runnedCaseNr])
-            if oSystem=='Linux':
-                resultFile=open('Result/'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
-            elif oSystem=='Windows':
-                resultFile=open('Result\\'+fgdvc_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
-            else:
-                print 'Models: Operating Platform cannot be specified.'
-            resultFile.write('    Time       Temperature Yields(original) Rates(original) \n')
-            for i in range(len(u[runnedCaseNr])):
-                resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], u[runnedCaseNr][i], w[i]))
-            resultFile.close()
+    # def mkSimpleResultFiles(self,preProcResult_list,Species):
+    #     """Simple result file if no fitting is carried out. Writes only the transformed results into a file."""
+    #     if type(Species)==int:
+    #         SpeciesForTitle=preProcResult_list[0].SpeciesName(Species)
+    #     if type(Species)==str:
+    #         SpeciesForTitle=Species
+    #     #
+    #     for runnedCaseNr in range(len(preProcResult_list)):
+    #         t=preProcResult_list[runnedCaseNr].Yield('Time')
+    #         T=preProcResult_list[runnedCaseNr].Yield('Temp')
+    #         u=[]
+    #         for Nr in range(len(preProcResult_list)):
+    #             u_=preProcResult_list[Nr].Yield(Species)
+    #             u.append(u_)
+    #         w=self.deriveC(preProcResult_list[runnedCaseNr],u[runnedCaseNr])
+    #         if oSystem=='Linux':
+    #             resultFile=open('Result/'+preProcResult_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
+    #         elif oSystem=='Windows':
+    #             resultFile=open('Result\\'+preProcResult_list[runnedCaseNr].Name()+'-Fit_result_'+SpeciesForTitle+'_'+str(runnedCaseNr)+'.out','w')
+    #         else:
+    #             print 'Models: Operating Platform cannot be specified.'
+    #         resultFile.write('    Time       Temperature Yields(original) Rates(original) \n')
+    #         for i in range(len(u[runnedCaseNr])):
+    #             resultFile.write('%7e  %11e %7e %8e \n' % (t[i], T[i], u[runnedCaseNr][i], w[i]))
+    #         resultFile.close()
             
     def _mkInterpolatedRes(self,InputVecYields,Time):
-        """Generates the result vector. Outputs the result vector at the corresponding time steps corresponding to the imported time at method calcMass. Requiered for Pc Coal Lab (only few reported points)."""
-        return np.interp(Time,self.constDtVec,InputVecYields) # t for for interplt, t_points, y_points
+        """ Generates the result vector. Outputs the result vector at the 
+            corresponding time steps corresponding to the imported time at 
+            method calcMass. Requiered for Pc Coal Lab (only few reported points).
+        """
+        # t for for interplt, t_points, y_points
+        return np.interp(Time,self.constDtVec,InputVecYields)
     
     def setDt4Intergrate(self,constantDt):
-     """constantDt allows the option to define numerical time step to solve the ODE. The outputted results ever equal the imported time list (when applying method calcMass Time = [t0,t1,t2,t3,t4]. If these time steps are too large, then is this defined dt used to solve the ODE and the results are linear interploated that way that they correspond to the imported time vector. To reset it, just set constantDt to False."""
+     """ constantDt allows the option to define numerical time step to solve the ODE. 
+        
+        The outputted results ever equal the imported time list 
+        (when applying method calcMass Time = [t0,t1,t2,t3,t4]. If these time steps 
+        are too large, then is this defined dt used to solve the ODE and the results 
+        are linear interploated that way that they correspond to the imported time 
+        vector. To reset it, just set constantDt to False.
+        """
      if constantDt != False:
          self.constDt = float(constantDt)
     
     def _mkDt4Integrate(self,Time):
-        """Time is the original time vector calculated by exact model, e.g. CPD. This class generates the internal dt vector if the dt defined by the user file is too large. A time step must be defined in Method setDt4Intergrate before."""
+        """ Time is the original time vector calculated by exact model, e.g. CPD. 
+            This class generates the internal dt vector if the dt defined by the 
+            user file is too large. A time step must be defined in Method 
+            setDt4Intergrate before.
+        """
         if self.constDt != False:
          self.constDtVec = np.arange(Time[0],Time[-1],self.constDt)
 
 ################childrenclasses####################
 
 class ConstantRateModel(Model):
-    """The model calculating the mass with m(t)=m_s0+(m_s0-m_s,e)*e**(-k*(t-t_start)) from the ODE dm/dt = -k*(m-m_s,e). The Parameter to optimize are k and t_start."""
-    def __init__(self,InitialParameterVector):
-        print 'Constant rate initialized'
-        self._modelName = 'ConstantRate'
-        self._ParamVector=InitialParameterVector
-        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
+    """ The model calculating the mass 
+        with m(t)  =  m_s0+(m_s0-m_s,e)*exp(-k*(t-t_start)) 
+             dm/dt = -k*(m-m_s,e). 
+        The Parameter to optimize are k and t_start. 
+    """
+    #TODO store initial parameter to see test if parameters have been changed
+    #TODO GO parameter[2] is not specified in inputs example
 
-    def calcMass(self,fgdvc,t,T,SpeciesToCalc):
-        ParamVector=self.ParamVector()
-        u=fgdvc.Yield(SpeciesToCalc)
-        u_0=u[0]; u_s0=ParamVector[2]
-        if SpeciesToCalc=='Solid' or SpeciesToCalc==(fgdvc.SpeciesIndex('Solid')):
-            v=u_s0+(u_0-u_s0)*np.exp(-ParamVector[0]*(t-ParamVector[1]))
-        else:
-            v=u_s0*(1.-np.exp(-ParamVector[0]*(t-ParamVector[1])))
-        v=np.where(t>ParamVector[1],v,u_0)
-        if self.constDt == False:
-            return v
+    def __init__(self, parameter):
+        Model.__init__(self,"ConstantRate")
+        self.initialParameter = parameter
+        self.k                = parameter["k"] 
+        self.start_time       = parameter["tstart"]
+        self.final_yield      = parameter.get('finalYield',False)
+        # if set to false, the numerical time step corresponding to the outputed 
+        # by the detailled model (e.g CPD) is used; define a value to use instead this 
+        self.constDt = False 
+
+    def updateParameter(self, parameter):
+        self.k          = parameter[0] 
+        self.start_time = parameter[1]
+
+    def calcMass(self, init_mass, time, *args, **kwargs):
+        """
+            Inputs: 
+                time an array of time values
+
+            the function might get an additional temp argument 
+            which captured in *args or **kwargs
+        """
+        # we care only about time value
+        # starting at start time
+        time = time - self.start_time 
+        # the yield still retained in the coal
+        # this should converge to zero at large 
+        # time
+        retained_mass = self.final_yield * np.exp(-self.k*time)
+        released_mass = self.final_yield - retained_mass 
+
+        # if we are interested in the solid mass
+        # TODO GO what is this solid thing going on here 
+        if False: #species == 'Solid':
+            released_mass += solid_mass*np.exp(-self.k*time)
+
+        # why choosing between released or solid mass 
+        # start_time is small then time
+        # released_mass = np.where(time > self.start_time, released_mass, solid_mass) 
+        if self.constDt == False: # TODO GO shouldnt interpolation be used for var dt?
+            return released_mass
         else: #returns the short, interpolated list (e.g. for PCCL)
-            return self._mkInterpolatedRes(v,t)
-
+            return self._mkInterpolatedRes(released_mass, time)
+    
+    @property
+    def parameter(self):
+        return np.array([self.k,self.start_time])
                 
+
 class ArrheniusModel(Model):
     """The Arrhenius model in the standart notation: dm/dt=A*(T**b)*exp(-E/T)*(m_s-m) with the parameter a,b,E to optimize."""
     def __init__(self,InitialParameterVector):
@@ -271,13 +272,13 @@ class ArrheniusModel(Model):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
  
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         #numercal values:
         absoluteTolerance = 1.0e-8
         relativeTolerance = 1.0e-6
         ##################
-        u=fgdvc.Yield(Name)
+        u=preProcResult.Yield(Name)
         ParamVec=self.ParamVector()
         m_s0=ParamVec[3]
         # question whether the dt from DetailledModel result file or from a constant dt should be used
@@ -287,7 +288,7 @@ class ArrheniusModel(Model):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
+            if Name == 'Solid':# or Name == preProcResult.Yields2Cols['Solid']:
                 dmdt_out=-ParamVec[0]*(T(t)**ParamVec[1])*np.exp(-ParamVec[2]/(T(t)))*(m-m_s0)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
             else:
@@ -320,13 +321,13 @@ class ArrheniusModelNoB(Model):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
  
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         #numercal values:
         absoluteTolerance = 1.0e-8
         relativeTolerance = 1.0e-6
         ##################
-        u=fgdvc.Yield(Name)
+        u=preProcResult.Yield(Name)
         ParamVec=self.ParamVector()
         m_s0=ParamVec[2]
         # question whether the dt from DetailledModel result file or from a constant dt should be used
@@ -336,7 +337,7 @@ class ArrheniusModelNoB(Model):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
+            if Name == 'Solid':# or Name == preProcResult.Yields2Cols['Solid']:
                 dmdt_out=-ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m-m_s0)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
             else:
@@ -368,16 +369,16 @@ class ArrheniusModelAlternativeNotation1(ArrheniusModel):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         #numercal values:
         absoluteTolerance = 1.0e-8
         relativeTolerance = 1.0e-6
         ##################
         ParamVec=self.ParamVector()
-        u=fgdvc.Yield(Name)
+        u=preProcResult.Yield(Name)
         m_s0=ParamVec[2]
-        twhereTmax=time[fgdvc.LineNumberMaxRate(Name)]
+        twhereTmax=time[preProcResult.LineNumberMaxRate(Name)]
         self.T0=T(twhereTmax)
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
@@ -386,7 +387,7 @@ class ArrheniusModelAlternativeNotation1(ArrheniusModel):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
+            if Name == 'Solid':# or Name == preProcResult.Yields2Cols['Solid']:
                 dmdt_out=-np.exp( ParamVec[0]  - ParamVec[1]*( self.T0/T(t) - 1 ))*(m-m_s0) #-ParamVec[0]*( (T(t)/self.T0)**ParamVec[1] )*np.exp( -ParamVec[2]*(self.T0/(T(t))-1) )*(m)    #IC
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cuase problem(nan)
             else:
@@ -407,11 +408,11 @@ class ArrheniusModelAlternativeNotation1(ArrheniusModel):
         E=ParameterVector[1]*self.T0
         return [A,0.0,E,ParameterVector[2]]
 
-    def ConvertKinFactorsToOwnNotation(self,fgdvc,ParameterVector,Species):
+    def ConvertKinFactorsToOwnNotation(self,preProcResult,ParameterVector,Species):
         """Converts the standard Arrhenius kinetic factors backk to the factors of the own notation."""
-        time=fgdvc.Time()
-        twhereTRmax=time[fgdvc.LineNumberMaxRate(Species)]
-        T=fgdvc.Interpolate('Temp')
+        time=preProcResult.Time()
+        twhereTRmax=time[preProcResult.LineNumberMaxRate(Species)]
+        T=preProcResult.Interpolate('Temp')
         self.T0=T(twhereTRmax)
         A=ParameterVector[0]
         if ParameterVector[1]!=0:
@@ -436,18 +437,18 @@ class ArrheniusModelAlternativeNotation2(ArrheniusModel):
         self.T_min=Tmin
         self.T_max=Tmax
         
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         self.c=1./(1./self.T_max-1./self.T_min)
         self.ODE_hmax=1.e-2
-        self.fgdvc=fgdvc
+        self.preProcResult=preProcResult
         #numercal values:
         absoluteTolerance = 1.0e-8
         relativeTolerance = 1.0e-6
         ##################
         ParamVec=self.ParamVector()
-        u=fgdvc.Yield(Name)
-        #uDot=fgdvc.Rate(Name)
+        u=preProcResult.Yield(Name)
+        #uDot=preProcResult.Rate(Name)
         m_s0=ParamVec[2]
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
@@ -456,7 +457,7 @@ class ArrheniusModelAlternativeNotation2(ArrheniusModel):
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
         def dmdt(m,t):
-            if Name == 'Solid':# or Name == fgdvc.Yields2Cols['Solid']:
+            if Name == 'Solid':# or Name == preProcResult.Yields2Cols['Solid']:
                 dmdt_out= -np.exp( self.c*( ParamVec[0]*(1./T(t)-1./self.T_min) - ParamVec[1]*(1./T(t)-1./self.T_max) ) )*(m-m_s0)
                 dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problem(nan)
             else:
@@ -506,7 +507,7 @@ class Kobayashi(Model):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation. The input Vector is [A1,E1,A2,E2,alpha1,alpha2]"""
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
@@ -514,7 +515,7 @@ class Kobayashi(Model):
         else: #if dt in DM results file has too large dt
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
-        self.fgdvc=fgdvc
+        self.preProcResult=preProcResult
         timeInt=np.delete(timeInt,0)
         self.__Integral=0.0
         tList=[0.0]
@@ -553,7 +554,7 @@ class KobayashiPCCL(Model):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
         
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
@@ -561,7 +562,7 @@ class KobayashiPCCL(Model):
         else: #if dt in DM results file has too large dt
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
-        self.fgdvc=fgdvc
+        self.preProcResult=preProcResult
         timeInt=np.delete(timeInt,0)
         self.__Integral=0.0
         tList=[0.0]
@@ -620,7 +621,7 @@ class KobayashiA2(Model):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
 
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
@@ -628,8 +629,8 @@ class KobayashiA2(Model):
         else: #if dt in DM results file has too large dt
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
-        self.fgdvc=fgdvc
-        T_general=fgdvc.Rate('Temp')
+        self.preProcResult=preProcResult
+        T_general=preProcResult.Rate('Temp')
         self.T_min=min(T_general)
         self.T_max=max(T_general)
         self.c=1./(1./self.T_max-1./self.T_min)
@@ -642,7 +643,7 @@ class KobayashiA2(Model):
         self.Integral=0.0
         self.k1k2=[0.0]
         ParamVec=self.ParamVector()
-        u=fgdvc.Yield(Name)
+        u=preProcResult.Yield(Name)
         #
         def dmdt(m,t):
             k1=np.exp( self.c*( ParamVec[0]*(1./T(t)-1./self.T_min) - ParamVec[1]*(1./T(t)-1./self.T_max) ) )
@@ -698,7 +699,7 @@ class DAEM(Model):
         """Returns the number of activation enrgies the integral shall be solved for (using Simpson Rule)."""
         return self.NrOfActivationEnergies
         
-    def calcMass(self,fgdvc,time,T,Name):
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
         self.E_List=np.arange(int(self._ParamVector[1]-3.*self._ParamVector[2]),int(self._ParamVector[1]+3.*self._ParamVector[2]),int((6.*self._ParamVector[2])/self.NrOfActivationEnergies)) #integration range E0 +- 3sigma, see [Cai 2008]
         # question whether the dt from DetailledModel result file or from a constant dt should be used

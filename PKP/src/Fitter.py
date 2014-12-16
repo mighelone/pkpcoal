@@ -5,10 +5,28 @@ from scipy.optimize import fmin_bfgs
 from scipy.optimize import fmin_ncg
 from scipy.optimize import leastsq
 from scipy.optimize import fmin_slsqp
-import GlobalOptParam
 
-#
 #not really precise, just for tests (Analytical solution)
+def OptGradBased(inputs, model, results, finalYield, species):
+    """ Starts a gradient Based Optimization and returns the final Fit.
+
+    Parameter:
+        inputs: dictionary containing the optimisation parameter
+        model:  the pyrolsis model for which rate and yield defining
+                parameters are optimised
+        finalYield: the final yield of the considered species
+        species: the name of the species to optimise
+
+    Note:
+        For Kobayashi Model set Final Yield to False (independent), for all 
+        other set a value.  It will be excluded from the optimization. 
+    """
+    # Called by PyrolModelLauncher for every species
+    ls = LeastSquaresEstimator(inputs['Optimisation'], finalYield)
+    result = ls.estimate(results, model, species)
+    print 'Final error= ' +  str(ls.deviation)
+    return result
+
 class TwoPointEstimator(object):
     """Solves the devolatilization reaction analytically using two arbitrary selected points and the constant rate model. Unprecise. Should only be used for tests."""
     def __init__(self):
@@ -29,233 +47,183 @@ class TwoPointEstimator(object):
         return k_VM
 #    
 #the optimizer to use:
-class LeastSquarsEstimator(object):
-    """Optimizes the Fitting curve using the Least Squares for the Yields and the Rates."""
-    def __init__(self):
+class LeastSquaresEstimator(object):
+    """ Optimizes the Fitting curve using the Least Squares 
+        for Yields and the Rates. 
+    """
+
+    Pre_Tolerance = 1.e-5 # Tolerance used for the self.improve_? functions
+    PreMaxIter = 50       # Number of maximum iterations used for 
+                          # the self.improve_? functions
+
+    def __init__(self, optimisation_parameter, finalYield=False):
+        """ 
+        Parameters:
+            optimizer: one of 'fmin', 'fmin_cg', 'fmin_bfgs','fmin_ncg',
+                              'fmin_slsqp', 'leastsq'
+                       Experience is that 'fmin' and 'leastsq' gives best results
+
+            fitTolerance:
+            weights: weights for yields and rates for the fitting procedure
+            finalYield: final yield for the ODE to optimize. False if model 
+                        is Kobayashi equation 
+                        (independend of final yield,standard Setting). 
+                        Must be applied for all models except the Kobayashi model"
+        """
         print 'Least Square initialized'
-        self.Pre_Tolerance=1.e-5   #Tolerance used for the self.improve_? functions
-        self.Fit_Tolerance=1.e-10  #Tolerance for main run
-        self.PreMaxIter=50         #Number of maximum iterations used for the self.improve_? functions
-        self.MaxIter=1000          #Number of maximum iterations for main run
-        self.FinalY=False          #Final yield, not fitted if it has a value
+        # Select one optimizer of the scipy.optimizer library: 
+        #        'fmin','fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp' or 'leastsq'. 
+        # According to experience 'fmin' (or also 'leastsq') generates at best the results."""
+        opt = optimisation_parameter
+        self.optimizer    = opt['GradBasedOpt'] #FIXME:GO this will change for runs > 1
+        self.maxIter      = opt['maxIter']
+        self.scaleFactor  = opt['scaleFactor']
+        self.fitTolerance = opt['Tolerance'],
+        self.weightMass   = opt['weightMass']
+        self.weightRate   = opt['weightRate']
+        self.FinalY       = finalYield
 
-    def improve_E(self,fgdvc,model,t,T,Parameter_Vector,Name,):
-        """Additional option: Only the Activation Energy in the Arrhenius Equation is optimized. Actual not necessary."""
-        def E_adjust(ActivationEnergie):
-            model.setParamVector([Parameter_Vector[0],Parameter_Vector[1],ActivationEnergie])
-            print model.ParamVector()
-            uDot=fgdvc.Rate(Name)
-            vDot=model.calcRate(fgdvc,t,T,Name)
-            return sum((uDot-vDot)**2)
-        IC_ActEner=Parameter_Vector[2] #InitialCondition for Optimzation
-        #Optimizing
-        Optimized_E1=fmin(E_adjust,IC_ActEner,ftol=self.Pre_Tolerance,maxiter=self.PreMaxIter)  #shifts the rates curves by the Activation Energy together
-        #reformate, because Vec has shape: [0.1, 5.0, array([ 26468.75])]
-        Optimized_AE=Optimized_E1[0]
-        return Optimized_AE
-       
+        
+    # def improve_E(self,fgdvc,model,t,T,Parameter_Vector,Name,):
+    #     """Additional option: Only the Activation Energy in the Arrhenius Equation is optimized. Actual not necessary."""
+    #     def E_adjust(ActivationEnergie):
+    #         model.setParamVector([Parameter_Vector[0],Parameter_Vector[1],ActivationEnergie])
+    #         print model.ParamVector()
+    #         uDot=fgdvc.Rate(Name)
+    #         vDot=model.calcRate(fgdvc,t,T,Name)
+    #         return sum((uDot-vDot)**2)
+    #     IC_ActEner=Parameter_Vector[2] #InitialCondition for Optimzation
+    #     #Optimizing
+    #     Optimized_E1=fmin(E_adjust,IC_ActEner,ftol=self.Pre_Tolerance,maxiter=self.PreMaxIter)  #shifts the rates curves by the Activation Energy together
+    #     #reformate, because Vec has shape: [0.1, 5.0, array([ 26468.75])]
+    #     Optimized_AE=Optimized_E1[0]
+    #     return Optimized_AE
+    #    
+    #
+    # def improve_a(self,fgdvc,model,t,T,Parameter_Vector,Name):
+    #     """Additional option: Only the preexponential factor in the Arrhenius Equation is optimized. Actual not necessary."""
+    #     IC_a=Parameter_Vector
+    #     def a_adjust(aPre):
+    #         model.setParamVector([aPre,Parameter_Vector[1],Parameter_Vector[2]])
+    #         print model.ParamVector()
+    #         uDot=fgdvc.Rate(Name)
+    #         vDot=model.calcRate(fgdvc,t,T,Name)
+    #         return sum((uDot-vDot)**2)
+    #     Optimized_a1=fmin(a_adjust,IC_a[0],ftol=self.Pre_Tolerance,maxiter=self.PreMaxIter)
+    #     Optimized_a=Optimized_a1[0]
+    #     return Optimized_a
+    #
+    # def maxLengthOfVectors(self,results):
+    #     """Returns the minimum lenght of a all vectors from the several runs."""
+    #     Len_tPointsL=[]
+    #     for i in range(len(results)):
+    #         Len_tPointsL.append(len(results[i].Time()))
+    #     Len_tPoints=max(Len_tPointsL)
+    #     return Len_tPoints
 
-    def improve_a(self,fgdvc,model,t,T,Parameter_Vector,Name):
-        """Additional option: Only the preexponential factor in the Arrhenius Equation is optimized. Actual not necessary."""
-        IC_a=Parameter_Vector
-        def a_adjust(aPre):
-            model.setParamVector([aPre,Parameter_Vector[1],Parameter_Vector[2]])
-            print model.ParamVector()
-            uDot=fgdvc.Rate(Name)
-            vDot=model.calcRate(fgdvc,t,T,Name)
-            return sum((uDot-vDot)**2)
-        Optimized_a1=fmin(a_adjust,IC_a[0],ftol=self.Pre_Tolerance,maxiter=self.PreMaxIter)
-        Optimized_a=Optimized_a1[0]
-        return Optimized_a
-    
-    def maxLengthOfVectors(self,fgdvc_list):
-        """Returns the minimum lenght of a all vectors from the several runs."""
-        Len_tPointsL=[]
-        for i in range(len(fgdvc_list)):
-            Len_tPointsL.append(len(fgdvc_list[i].Time()))
-        Len_tPoints=max(Len_tPointsL)
-        return Len_tPoints
-        
-        
+    def estimate(self, results, model, species, preLoopNumber=0):
+        """ The main optimization method. 
+            Optimizes the Fitting curve using the Least Squares for the weighted Yields 
+            and the weighted Rates considering the temperature history.
 
-    def estimate_T(self,fgdvc_list,model,Parameter_Vector,Name,preLoopNumber=0):
-        """The main optimization method. Optimizes the Fitting curve using the Least Squares for the weighted Yields and the weighted Rates considering the temperatur history. Requires at input: The corresponding Fit_one_run object, the Model object, the kinetic parameter list, a name (e.g. the species). preLoopNumber is the number of running the  improve_E and improve_a routines. So the standard setting of preLoopNumber is equal zero. It may be used if there is only a very bad convergence when optimize all three parameter."""
-        maxLen=self.maxLengthOfVectors(fgdvc_list)
-        t=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        dt=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        T=[[] for i in range(len(fgdvc_list))]
-        u=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        uDot=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        v=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        vDot=[[] for i in range(len(fgdvc_list))] #line index, time, column index: runned case
-        # this are the main arrays, containing sublists
-        # in the following, each subelement in every list is indicated with an underscore, see next loop
-        for runnedCaseNr in range(len(fgdvc_list)):
-            t_=fgdvc_list[runnedCaseNr].Time()
-            dt_=fgdvc_list[runnedCaseNr].Dt()
-            u_=fgdvc_list[runnedCaseNr].Yield(Name)
-            T[runnedCaseNr] = (fgdvc_list[runnedCaseNr].Interpolate('Temp'))
-            t[runnedCaseNr] = (t_)
-            dt[runnedCaseNr] = (dt_)
-            u[runnedCaseNr] = (u_)
-        ##### scaled weight factor
-        w0=GlobalOptParam.ScaleFactor*self.a0/(( max((fgdvc_list[0].Yield(Name))) -min((fgdvc_list[0].Yield(Name))) )**2)
-        w1=GlobalOptParam.ScaleFactor*self.a1/(max( ((fgdvc_list[0].Rate(Name)))**2 ))
-        print 'start gradient based optimization, species:',fgdvc_list[0].SpeciesName(Name)
-        #
-        def LeastSquareFunction(Parameter):
-            """ The function to optimize. Calculates the LS deviation for rates and yields."""
-            # adds the final yield to the vector:
-            if self.FinalY != False:
-                Parameter = list(Parameter)
-                Parameter.append(self.FinalY)
-                Parameter = np.array(Parameter)
-            #
-            model.setParamVector(Parameter)
-            for runnedCaseNr in range(len(fgdvc_list)):
-                v_=model.calcMass(fgdvc_list[runnedCaseNr],t[runnedCaseNr],T[runnedCaseNr],Name)
-                uDot_=fgdvc_list[runnedCaseNr].Rate(Name)
-                vDot_=model.deriveC(fgdvc_list[runnedCaseNr],v_)
-                v[runnedCaseNr] = (v_)
-                uDot[runnedCaseNr] = (uDot_)
-                vDot[runnedCaseNr] = (vDot_)
-            if self.selectedOptimizer=='leastsq':
-                Error=np.zeros(maxLen,dtype='d')
-                for runnedCaseNr in range(len(fgdvc_list)):
-                    Dot2_=w1*(((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2)*dt[runnedCaseNr]) #the rate term
-                    Dot1_=w0*(((u[runnedCaseNr]-v[runnedCaseNr])**2)*dt[runnedCaseNr])        #the yield term          
-                    #makes an array, containing both, the rates and yields                
-                    Error[:len(Dot1_)]+=Dot1_+Dot2_
-		#print "deviation: ",np.sum(Error)
-            else:
-                #sumYields_vec=np.zeros(maxLen)
-                #sumRates_vec=np.zeros(maxLen)
-		Error = 0.
-                for runnedCaseNr in range(len(fgdvc_list)):
-                    #sumYields_vec[:len(u[runnedCaseNr])]+=dt[runnedCaseNr]*(u[runnedCaseNr]-v[runnedCaseNr])**2
-                    #sumRates_vec[:len(u[runnedCaseNr])]+=dt[runnedCaseNr]*(uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
-		    ntime = len(u[runnedCaseNr])
-		    errori = (u[runnedCaseNr]-v[runnedCaseNr])**2
-		    deltaYield2 = ( max(u[runnedCaseNr]) - min(u[runnedCaseNr]) )**2.
-		    Error += np.sum(errori)/ntime * self.a0 / deltaYield2
-		    errori = (uDot[runnedCaseNr]-vDot[runnedCaseNr])**2
-		    deltaRate2 = ( max(uDot[runnedCaseNr]) - min(uDot[runnedCaseNr]) )**2.
-		    Error += np.sum(errori)/ntime * self.a1 / deltaYield2
-		    #sumRatesec = np.sum((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2) /deltaYield2
-		    # new error see Evolve.py
-                #SumYields=np.sum(sumYields_vec)
-                #SumRates=np.sum(sumRates_vec)
-                Error= Error / len(fgdvc_list)
-		#print "deviation: ",Error
-            return Error / len(fgdvc_list)
-        #
-        #
-        if self.selectedOptimizer=='fmin':
-            OptimizedVector=fmin(LeastSquareFunction,Parameter_Vector,ftol=self.Fit_Tolerance,maxiter=self.MaxIter) # calculates optimized vector
-            # saves now final deviation
-            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
-            # appends final yield
-            if self.FinalY != False:
-                OptimizedVector = list(OptimizedVector)
-                OptimizedVector.append(self.FinalY)
-                OptimizedVector = np.array(OptimizedVector)
-            return OptimizedVector
-        elif self.selectedOptimizer=='fmin_cg':
-            OptimizedVector=fmin_cg(LeastSquareFunction,Parameter_Vector,gtol=self.Fit_Tolerance,maxiter=self.MaxIter) # calculates optimized vector
-            # saves now final deviation
-            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
-            # appends final yield
-            if self.FinalY != False:
-                OptimizedVector = list(OptimizedVector)
-                OptimizedVector.append(self.FinalY)
-                OptimizedVector = np.array(OptimizedVector)
-            return OptimizedVector
-        elif self.selectedOptimizer=='fmin_bfgs':
-            OptimizedVector=fmin_bfgs(LeastSquareFunction,Parameter_Vector,gtol=self.Fit_Tolerance,maxiter=self.MaxIter) # calculates optimized vector
-            # saves now final deviation
-            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
-            # appends final yield
-            if self.FinalY != False:
-                OptimizedVector = list(OptimizedVector)
-                OptimizedVector.append(self.FinalY)
-                OptimizedVector = np.array(OptimizedVector)
-            return OptimizedVector
-        elif self.selectedOptimizer=='fmin_ncg':
-            OptimizedVector=fmin_ncg(LeastSquareFunction,Parameter_Vector,avextol=self.Fit_Tolerance) # calculates optimized vector
-            # saves now final deviation
-            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
-            # appends final yield
-            if self.FinalY != False:
-                OptimizedVector = list(OptimizedVector)
-                OptimizedVector.append(self.FinalY)
-                OptimizedVector = np.array(OptimizedVector)
-            return OptimizedVector
-        elif self.selectedOptimizer=='fmin_slsqp':
-            OptimizedVector=fmin_slsqp(LeastSquareFunction,Parameter_Vector,acc=self.Fit_Tolerance) # calculates optimized vector
-            # saves now final deviation
-            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
-            # appends final yield
-            if self.FinalY != False:
-                OptimizedVector = list(OptimizedVector)
-                OptimizedVector.append(self.FinalY)
-                OptimizedVector = np.array(OptimizedVector)
-            return OptimizedVector
-        elif self.selectedOptimizer=='leastsq':
-            OptimizedVector=leastsq(LeastSquareFunction,Parameter_Vector,ftol=self.Fit_Tolerance,maxfev=self.MaxIter) # calculates optimized vector
-            OptimizedVector = OptimizedVector[0]
-            # saves now final deviation
-            self.FinalDeviation=LeastSquareFunction(OptimizedVector)
-            # appends final yield
-            if self.FinalY != False:
-                OptimizedVector = list(OptimizedVector)
-                OptimizedVector.append(self.FinalY)
-                OptimizedVector = np.array(OptimizedVector)
-            return OptimizedVector
-        else:
-            print "\n\nNo Optimizer was selected. Please choose: 'fmin' or 'fmin_cg' or 'fmin_bfgs' or 'leastsq' or 'fmin_slsqp'\n\n"
-        print  'Optm Vec:   ',OptimizedVector
-        
-    def Deviation(self):
-        """Returns the Deviation after the optimization procedure."""
-        return self.FinalDeviation
+            Requires at input: 
+                The corresponding Fit_one_run object, the Model object, the kinetic parameter list, 
+                a name (e.g. the species). 
 
-    def setWeights(self,WeightMass,WeightRates):
-        """Sets the weights for the yields and the rates for the fitting procedure. See manual for equation."""
-        self.a0=WeightMass
-        self.a1=WeightRates
-        
-    def setTolerance(self, ToleranceForFminFunction):
-        """Sets the tolerance as a abort criterion for the fitting procedure."""
-        self.Fit_Tolerance=ToleranceForFminFunction
+            preLoopNumber is the number of running the improve_E and improve_a routines. 
+            So the standard setting of preLoopNumber is equal zero. 
+            It may be used if there is only a very bad convergence when optimize all three parameter.
+            #TODO GO why estimateT?
+        """
+        def LeastSquaresFunction(parameter, model, run, species):
+            """ The function which is to be optimised.
+                
+            """
+            from PKP.src.Models import Model
+            # TODO GO is it executed only for NRruns == 1
+            # rename it and make a class function
+            model.updateParameter(parameter)
+            times = run['time(ms)']*1e-3
+            modeled_mass = model.calcMass(
+                    init_mass = run[species][0],
+                    time = times,
+                    temp = run['temp'], 
+                )
+            # TODO FIX this?
+            target_mass  = run[species] 
+            target_rate  = run[species]
+            modeled_rate = model.computeTimeDerivative(modeled_mass, times = times)
+            massError = self.weightMass/np.power(Model.yieldDelta(target_mass), 2.0)
+            if False: #self.selectedOptimizer == 'leastsq':
+                w0 = self.scaleFactor * massError
+                w1 = self.scaleFactor * self.weightRate/np.power(max(target_rate), 2.0)
+                # Error = np.zeros(maxLen, dtype='d')
+                # Dot2_ = w1*(
+                #     ((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2)
+                #         *dt[runnedCaseNr]
+                #     )
+                # #the yield term
+                # Dot1_ = w0*(
+                #     ((u[runnedCaseNr]-v[runnedCaseNr])**2)
+                #         *dt[runnedCaseNr]
+                #     )
+                # #makes an array, containing both, the rates and yields
+                # Error[:len(Dot1_)] += Dot1_ + Dot2_
+                # # print "deviation: ",np.sum(Error)
+            else: # if self.inputs[] = 'fmin' ... 
+                # NOTE: Removed loop since this part is only called if runs == 1 
+                # TODO GO where does this come from?
+                # TODO GO double check if its the rate or mass? propably its mass
+                ErrorMass = (Model.totModelErrorSquaredPerc(target_mass, modeled_mass)
+                            * massError)
+
+                ErrorRate = (Model.totModelErrorSquaredPerc(target_rate, modeled_rate)
+                            * self.weightRate/np.power(Model.yieldDelta(target_rate), 2.0))
+
+                Error = (ErrorMass + ErrorRate)/len(target_mass)
+            return Error
+
+        # TODO GO Double check
+        print 'start gradient based optimization, species: ' + species
+
+        # add final yield to parameters
+        # is this part of the optimized parameters too?
+        # should it be passed as args to least squares
+        # if self.FinalY != False:
+        #     # TODO where does the FinalY come from? 
+        #     Parameter = list(Parameter)
+        #     Parameter.append(self.FinalY)
+        #     Parameter = np.array(Parameter)
+
+        import scipy.optimize as scopt
+        optimiser = getattr(scopt, self.optimizer)
+        OptimizedVector = optimiser(
+                func = LeastSquaresFunction,
+                x0   = model.parameter,
+                args = (model, results, species ), 
+                ftol = self.fitTolerance, # TODO GO what is the diff between gtol&ftol
+                maxiter = self.maxIter    
+        ) # caLculates optimized vector
+        self.deviation = LeastSquaresFunction(OptimizedVector, model, results, species)
+        print OptimizedVector
+        # appends final yield
+        if self.FinalY != False:
+            OptimizedVector = list(OptimizedVector)
+            OptimizedVector.append(self.FinalY)
+            OptimizedVector = np.array(OptimizedVector)
+        return OptimizedVector
+
 
     def setPreTolerance(self, ToleranceForFminFunction):
-        """Sets the tolerance as a abort criterion for the prefitting procedure (if preLoopNumber in estimate_T is not equal zero)."""
+        """ Sets the tolerance as a abort criterion for the prefitting procedure 
+            (if preLoopNumber in estimate_T is not equal zero). """
         self.Pre_Tolerance=ToleranceForFminFunction
 
     def setPreMaxIter(self,MaxiumNumberOfIterationInPreProcedure):
-        """Sets the maximum number of iteration oin the optimizer as a abort criterion for the prefitting procedure (if preLoopNumber in estimate_T is not equal zero)."""
+        """ Sets the maximum number of iteration oin the optimizer as a abort 
+            criterion for the prefitting procedure (if preLoopNumber in estimate_T 
+            is not equal zero). """
         self.PreMaxIter=int(MaxiumNumberOfIterationInPreProcedure)
-
-    def setMaxIter(self,MaxiumNumberOfIterationInMainProcedure):
-        """Sets the maximum number of iteration oin the optimizer as a abort criterion for the fitting procedure."""
-        self.MaxIter=int(MaxiumNumberOfIterationInMainProcedure)
-
-    def setOptimizer(self,ChosenOptimizer):
-        """Select one optimizer of the scipy.optimizer library: 'fmin','fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp' or 'leastsq'. According to experience 'fmin' (or also 'leastsq') generates at best the results."""
-        self.selectedOptimizer=ChosenOptimizer
-
-    def setFinalYield(self,FinalYield):
-        """Sets the final yield for the ODE to optimize. Enter False if model is Kobayashi equation (independend of final yield,standard Setting). Must be applied for all models except the Kobayashi model."""
-        self.FinalY=FinalYield
-
-
-
-
-
-
-
-
-
 
 
 class GlobalOptimizer(object):

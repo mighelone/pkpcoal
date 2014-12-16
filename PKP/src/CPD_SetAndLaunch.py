@@ -16,27 +16,37 @@ R=1.0 #8.3144621 # Gas constant only =8.3... if E should not include R
 
 class CPDResult(object):
 
-    # #####
-    # M=Models.Model()
-    # for Species in CPDFit[0].SpeciesNames():
-    #     M.mkSimpleResultFiles(CPDFit,Species)
-    #     if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-    #         self.SpeciesToConsider.append(Species)
-    # TODO: GO get species names from file
+    # Following data has been previously returned
+    # CPD_Result1: 0=Time 2=Temp 4=ftar 5=fgas 6=fsolid   7=ftot
+    # CPD_Result4: 2=fh2O 3=fco2 4=fch4 5=fco  6=fother
+    # NOTE GO: last line of CPD_Result1 is a duplicate
+    solver = "CPD"
 
     def __init__(self, folder):
         files = ["CPD_Result{}.dat".format(i) for i in range(1,5)]
         self.data   = {fn:CPDResult.readResults(folder + fn) for fn in files}
         self.header = {fn:CPDResult.readHeader(folder + fn) for fn in files}
 
+
     def __getitem__(self, item):
         def find_file(item):
             for fn, names in self.header.iteritems():
                 if item in names:
                     return fn, names.index(item)
+            else:
+                print fn, names, item #TODO GO replace by error
         fn, column = find_file(item)
         return self.data[fn][column]
+    
+    @property
+    def speciesnames(self):
+        # TODO GO why on earth is it h2zero? 
+        return ['fh20', 'fco2', 'fch4', 'fco', 'fother']
 
+
+    def iterspecies(self):
+        for name in self.speciesnames:
+            yield name, self.__getitem__(name)
 
     @classmethod
     def readResults(cls, fn):
@@ -51,8 +61,12 @@ class CPDResult(object):
             fn_str = re.sub('(?<=[0-9])[ ]+',',',f.read())
             fn_str = re.sub('[ ]+','',fn_str)
             # TODO GO why is the data transposed
-            return numpy.genfromtxt(
-                StringIO(fn_str), delimiter=',', skip_header=1, dtype=float).transpose()
+            if "CPD_Result1.dat" in fn:
+                return (numpy.genfromtxt(
+                    StringIO(fn_str), delimiter=',', skip_header=1, dtype=float)[0:-1]).transpose()
+            else:
+                return numpy.genfromtxt(
+                    StringIO(fn_str), delimiter=',', skip_header=1, dtype=float).transpose()
 
     @classmethod
     def readHeader(cls, fn):
