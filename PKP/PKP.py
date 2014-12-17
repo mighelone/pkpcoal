@@ -282,7 +282,7 @@ class MainProcess(object):
 def main():
     Case = MainProcess(inputs_folder=workingDir+"/inputs/")
     results = Case.executeSolver()
-    Case.postProcessResults(results)
+    fittedModels = Case.postProcessResults(results)
     print 'calculated Species: ',Case.SpeciesToConsider
     
 
