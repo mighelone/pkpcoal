@@ -86,7 +86,15 @@ class MainProcess(object):
         return selector()(self.inputs) #
 
 
-    def postProcessResults(self, results):
+    def startFittingProcedure(self, results):
+        """ starts the fitting procedure to calculate modeled rates and yields
+            according to preprocessor results
+
+            Parameters:
+                results: an array of preprocessor results objects
+
+            Returns an array of fitted pyrolysis model objects
+        """
         import src.PyrolModelLauncher as pml
         solver = results[0].solver
         if self.inputs[solver]['fit'] not in pml.__dict__:
@@ -95,6 +103,7 @@ class MainProcess(object):
         return getattr(pml, self.inputs[solver]['fit'])(self.inputs, results)
         
 
+    def 
 
     def OptGenAlgBased(self, Fit, ParameterVecInit, ParameterVecMin, ParameterVecMax, Species):
         """ Starts a genetic algorithm and afterwards a gradient Based optimization. 
@@ -282,7 +291,7 @@ class MainProcess(object):
 def main():
     Case = MainProcess(inputs_folder=workingDir+"/inputs/")
     results = Case.executeSolver()
-    fittedModels = Case.postProcessResults(results)
+    fittedModels = Case.startFittingProcedure(results)
     print 'calculated Species: ',Case.SpeciesToConsider
     
 
