@@ -52,11 +52,11 @@ class MainProcess(object):
         if read_inp_files:
             self.inputs = self.ReadInputFiles(inputs_folder)
 
- 
+
     def ReadInputFiles(self, inputs_folder=False):
         """ Read params from input file and generate Input objects """
         import yaml
-        # TODO GO print warning if it cant find file 
+        # TODO GO print warning if it cant find file
         inputs_folder = (inputs_folder if inputs_folder else workingDir + 'inputs/')
         full_fn = inputs_folder + 'inputs.inp'
         try:
@@ -64,11 +64,11 @@ class MainProcess(object):
             inp = yaml.load(file_stream)
             return inp
         except Exception as e:
-            print e 
+            print e
 
 
     def executeSolver(self):
-        """ execute all solver that are activated in the inputs file 
+        """ execute all solver that are activated in the inputs file
             and return list of results objects
         """
         from src import PreprocLauncher as Launcher
@@ -99,28 +99,46 @@ class MainProcess(object):
         solver = results[0].solver
         if self.inputs[solver]['fit'] not in pml.__dict__:
             print "Cannot find " + self.inputs[solver]['fit']
-            return 
+            return
         return getattr(pml, self.inputs[solver]['fit'])(self.inputs, results)
-        
 
-    def 
 
-    def OptGenAlgBased(self, Fit, ParameterVecInit, ParameterVecMin, ParameterVecMax, Species):
-        """ Starts a genetic algorithm and afterwards a gradient Based optimization. 
-            Sets the Final Fit result as the ParamVector in the Kinetic Model. 
-            Input are the Fit (Result Objects of the Detailed Models), 
-            the Parameter to initialize, the two Parameter vectors defining 
-            the range of the results and the Species index. 
+    def plotResults(self, preProcResults, fittedModels):
+        """ Creates plots of preProcResults against fittedModels
         """
-        GenAlg=Evolve.GenericOpt(self.KinModel,Fit,Species)
-        GenAlg.setWeights(self.WeightY,self.WeightR)
-        GenAlg.setParamRanges(ParameterVecInit,ParameterVecMin,ParameterVecMax)
-        GenAlg.setNrPopulation(GlobalOptParam.NrOfPopulation)
-        GenAlg.setNrGenerations(GlobalOptParam.NrOfGeneration)
-        self.KinModel.setParamVector(GenAlg.mkResults())
-        # afterwards grad based optimization
-        if GlobalOptParam.optimizGrad == True:
-            self.OptGradBased(Fit,ParameterVecInit,False,Species)
+        # NOTE: we implement a simple pyplot version for now
+        #       finally a way to select different plotting backends
+        #       would be desirable
+        import matplotlib.pyplot as plt
+        fig, axs = plt.subplots(len(preProcResults))
+        run = preProcResults[0] #TODO fix it for multiple runs
+        colors = ['c', 'm', 'y', 'k']
+        for color,preProc in zip(
+                colors,
+                run.iterspecies(),
+            ):
+
+            name, data = preProc
+            axs.scatter(
+                     x=run['time(ms)']*1e-3,
+                     y=data,
+                     color = color,
+                     label = name,
+                     marker = '.',
+                )
+
+            model_data = fittedModels[name]
+            axs.plot(
+                 run['time(ms)']*1e-3,
+                 model_data.mass,
+                 color = color,
+                 label = name,
+                 linewidth = 2
+            )
+
+        plt.legend()
+        plt.show(fig)
+
 
 
     def SpeciesEnergy(self,PyrolProgram,File,FittingModel):
@@ -145,8 +163,8 @@ class MainProcess(object):
                     self.MTar,
                     self.densityDryCoal,
                     runNr)
-                
-            if PyrolProgram=='FGDVC':    
+
+            if PyrolProgram=='FGDVC':
                 print 'FG-DVC energy and mass balance...'
                 Compos_and_Energy.FGPC_SpeciesBalance(
                     File[runNr],
@@ -251,7 +269,7 @@ class MainProcess(object):
         if self.CPD_FittingKineticParameter_Select=='constantRate':
             self.MakeResults_CR('CPD', cpdResults)
             #currentDict={'CPD':'constantRate'}
-        
+
 
         # TODO GO CPDFit comes from Fit_one_run.py
         # if self.CPD_FittingKineticParameter_Select=='constantRate':
@@ -290,10 +308,10 @@ class MainProcess(object):
 
 def main():
     Case = MainProcess(inputs_folder=workingDir+"/inputs/")
-    results = Case.executeSolver()
+    preProcResults = Case.executeSolver()
     fittedModels = Case.startFittingProcedure(results)
     print 'calculated Species: ',Case.SpeciesToConsider
-    
+    self.plotResults(preProcResults, fittedModels)
 
 if __name__ == "__main__":
     main()
