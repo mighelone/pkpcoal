@@ -227,8 +227,9 @@ class ConstantRateModel(Model):
     def updateParameter(self, parameter):
         self.k          = parameter[0] 
         self.start_time = parameter[1]
+        ##print "Parameter update " + str(parameter)
 
-    def calcMass(self, init_mass, time, *args, **kwargs):
+    def calcMass(self, init_mass, time, temp=False):
         """
             Inputs: 
                 time an array of time values
@@ -242,6 +243,7 @@ class ConstantRateModel(Model):
         # the yield still retained in the coal
         # this should converge to zero at large 
         # time
+        print self.k
         retained_mass = self.final_yield * np.exp(-self.k*time)
         released_mass = self.final_yield - retained_mass 
 
@@ -254,6 +256,7 @@ class ConstantRateModel(Model):
         # start_time is small then time
         # released_mass = np.where(time > self.start_time, released_mass, solid_mass) 
         if self.constDt == False: # TODO GO shouldnt interpolation be used for var dt?
+            #print "modeled_mass " + str(released_mass)
             return released_mass
         else: #returns the short, interpolated list (e.g. for PCCL)
             return self._mkInterpolatedRes(released_mass, time)

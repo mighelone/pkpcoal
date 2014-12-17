@@ -149,7 +149,6 @@ class LeastSquaresEstimator(object):
                     time = times,
                     temp = run['temp'], 
                 )
-            # TODO FIX this?
             target_mass  = run[species] 
             target_rate  = run[species]
             modeled_rate = model.computeTimeDerivative(modeled_mass, times = times)
@@ -181,6 +180,8 @@ class LeastSquaresEstimator(object):
                             * self.weightRate/np.power(Model.yieldDelta(target_rate), 2.0))
 
                 Error = (ErrorMass + ErrorRate)/len(target_mass)
+                # print modeled_mass
+                # print "ErrorMass " + str(ErrorMass)
             return Error
 
         # TODO GO Double check
@@ -189,7 +190,8 @@ class LeastSquaresEstimator(object):
         # add final yield to parameters
         # is this part of the optimized parameters too?
         # should it be passed as args to least squares
-        # if self.FinalY != False:
+        #if model.final_yield == False: # TODO test if final_yield is needed
+        model.final_yield = results[species][-1]
         #     # TODO where does the FinalY come from? 
         #     Parameter = list(Parameter)
         #     Parameter.append(self.FinalY)
@@ -205,6 +207,7 @@ class LeastSquaresEstimator(object):
                 maxiter = self.maxIter    
         ) # caLculates optimized vector
         self.deviation = LeastSquaresFunction(OptimizedVector, model, results, species)
+        print self.deviation
         print OptimizedVector
         # appends final yield
         if self.FinalY != False:

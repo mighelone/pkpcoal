@@ -92,7 +92,7 @@ class MainProcess(object):
         if self.inputs[solver]['fit'] not in pml.__dict__:
             print "Cannot find " + self.inputs[solver]['fit']
             return 
-        return getattr(pml, self.inputs[solver]['fit'])(self.inputs, solver, results)
+        return getattr(pml, self.inputs[solver]['fit'])(self.inputs, results)
         
 
 
