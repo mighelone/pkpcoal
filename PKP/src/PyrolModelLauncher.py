@@ -13,7 +13,7 @@ def constantRate(inputs, results):
         Parameters:
             inputs: dictionary with input parameter
             results: a results  object containing data from
-                     preprocessor runs 
+                     preprocessor runs
     """
     from PKP.src.Fitter import OptGradBased
     # NOTE: Following things have been removed and need to be reimplemented
@@ -23,21 +23,22 @@ def constantRate(inputs, results):
     #       * the pccl dt thing
     #       * nrRuns > 1
     # init model
-    pyrol_model = mdl.ConstantRateModel(inputs['Optimisation']['ConstantRate'])
     # uses for optimization gradient based (LS) optimizer if NrOfRuns == 1
     # otherwise an Evolutionary algorithm (GenAlg; global optimum) is used
-    if inputs['OperatingConditions']['runs'] == 1: 
-        results = results[0] 
+    #TODO implement corrector selector for models
+    if inputs['OperatingConditions']['runs'] == 1:
+        results = results[0]
         # Iterate species in Fit Object
-        return [
-            OptGradBased(
+        # NOTE it seems strange that we need a model object for every species
+        cr_inputs = inputs['Optimisation']['ConstantRate']
+        return {species_name : OptGradBased(
                     inputs     = inputs,
-                    model      = pyrol_model,
+                    model      = mdl.ConstantRateModel(cr_inputs),
                     results    = results,
                     finalYield = species_data[-1],
-                    species    = species_name
-               )
-            for species_name, species_data in results.iterspecies()]
+                    species    = species_name)
+
+            for species_name, species_data in results.iterspecies()}
     # else:
     #     if len(ParamInit) == 2:
     #         ParamInit.append(0.0)
@@ -128,7 +129,7 @@ def constantRate(inputs, results):
 #         self.KinModel.plot(Fit,Species)
 #         self.Solution=self.KinModel.ParamVector()
 #         #To avoid, a species with no yield is added to the parameter file
-#         if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0): 
+#         if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0):
 #             outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %6.4f  %11.4f  %7.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2],self.Solution[3])+'\n')
 #     outfile.close()
 #     if oSystem=='Linux' or oSystem == 'Darwin':
