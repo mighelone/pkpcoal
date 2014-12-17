@@ -18,14 +18,27 @@ def OptGradBased(inputs, model, results, finalYield, species):
         species: the name of the species to optimise
 
     Note:
-        For Kobayashi Model set Final Yield to False (independent), for all 
-        other set a value.  It will be excluded from the optimization. 
+        For Kobayashi Model set Final Yield to False (independent), for all
+        other set a value.  It will be excluded from the optimization.
     """
     # Called by PyrolModelLauncher for every species
     ls = LeastSquaresEstimator(inputs['Optimisation'], finalYield)
     result = ls.estimate(results, model, species)
     print 'Final error= ' +  str(ls.deviation)
     return result
+
+def OptGenAlgBased(inputs, model, results, finalYield, species):
+    """ Starts a genetic algorithm and afterwards a gradient Based optimization.
+        Sets the Final Fit result as the ParamVector in the Kinetic Model.
+        Input are the Fit (Result Objects of the Detailed Models),
+        the Parameter to initialize, the two Parameter vectors defining
+        the range of the results and the Species index.
+    """
+    genAlg = Evolve.GenericOpt(inputs, finalYield)
+    model.update(genAlg.estimate())
+    # afterwards grad based optimization
+    if GlobalOptParam.optimizGrad == True:
+        self.OptGradBased(Fit, ParameterVecInit, False, Species)
 
 class TwoPointEstimator(object):
     """Solves the devolatilization reaction analytically using two arbitrary selected points and the constant rate model. Unprecise. Should only be used for tests."""
@@ -45,19 +58,19 @@ class TwoPointEstimator(object):
             u_0=u[-1]
             k_VM=(np.log(1- u[TimePoint]/u_0))/(-t[TimePoint])
         return k_VM
-#    
+#
 #the optimizer to use:
 class LeastSquaresEstimator(object):
-    """ Optimizes the Fitting curve using the Least Squares 
-        for Yields and the Rates. 
+    """ Optimizes the Fitting curve using the Least Squares
+        for Yields and the Rates.
     """
 
     Pre_Tolerance = 1.e-5 # Tolerance used for the self.improve_? functions
-    PreMaxIter = 50       # Number of maximum iterations used for 
+    PreMaxIter = 50       # Number of maximum iterations used for
                           # the self.improve_? functions
 
     def __init__(self, optimisation_parameter, finalYield=False):
-        """ 
+        """
         Parameters:
             optimizer: one of 'fmin', 'fmin_cg', 'fmin_bfgs','fmin_ncg',
                               'fmin_slsqp', 'leastsq'
@@ -65,14 +78,14 @@ class LeastSquaresEstimator(object):
 
             fitTolerance:
             weights: weights for yields and rates for the fitting procedure
-            finalYield: final yield for the ODE to optimize. False if model 
-                        is Kobayashi equation 
-                        (independend of final yield,standard Setting). 
+            finalYield: final yield for the ODE to optimize. False if model
+                        is Kobayashi equation
+                        (independend of final yield,standard Setting).
                         Must be applied for all models except the Kobayashi model"
         """
         print 'Least Square initialized'
-        # Select one optimizer of the scipy.optimizer library: 
-        #        'fmin','fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp' or 'leastsq'. 
+        # Select one optimizer of the scipy.optimizer library:
+        #        'fmin','fmin_cg','fmin_bfgs','fmin_ncg','fmin_slsqp' or 'leastsq'.
         # According to experience 'fmin' (or also 'leastsq') generates at best the results."""
         opt = optimisation_parameter
         self.optimizer    = opt['GradBasedOpt'] #FIXME:GO this will change for runs > 1
@@ -83,7 +96,7 @@ class LeastSquaresEstimator(object):
         self.weightRate   = opt['weightRate']
         self.FinalY       = finalYield
 
-        
+
     # def improve_E(self,fgdvc,model,t,T,Parameter_Vector,Name,):
     #     """Additional option: Only the Activation Energy in the Arrhenius Equation is optimized. Actual not necessary."""
     #     def E_adjust(ActivationEnergie):
@@ -98,7 +111,7 @@ class LeastSquaresEstimator(object):
     #     #reformate, because Vec has shape: [0.1, 5.0, array([ 26468.75])]
     #     Optimized_AE=Optimized_E1[0]
     #     return Optimized_AE
-    #    
+    #
     #
     # def improve_a(self,fgdvc,model,t,T,Parameter_Vector,Name):
     #     """Additional option: Only the preexponential factor in the Arrhenius Equation is optimized. Actual not necessary."""
@@ -122,22 +135,22 @@ class LeastSquaresEstimator(object):
     #     return Len_tPoints
 
     def estimate(self, results, model, species, preLoopNumber=0):
-        """ The main optimization method. 
-            Optimizes the Fitting curve using the Least Squares for the weighted Yields 
+        """ The main optimization method.
+            Optimizes the Fitting curve using the Least Squares for the weighted Yields
             and the weighted Rates considering the temperature history.
 
-            Requires at input: 
-                The corresponding Fit_one_run object, the Model object, the kinetic parameter list, 
-                a name (e.g. the species). 
+            Requires at input:
+                The corresponding Fit_one_run object, the Model object, the kinetic parameter list,
+                a name (e.g. the species).
 
-            preLoopNumber is the number of running the improve_E and improve_a routines. 
-            So the standard setting of preLoopNumber is equal zero. 
+            preLoopNumber is the number of running the improve_E and improve_a routines.
+            So the standard setting of preLoopNumber is equal zero.
             It may be used if there is only a very bad convergence when optimize all three parameter.
             #TODO GO why estimateT?
         """
         def LeastSquaresFunction(parameter, model, run, species):
             """ The function which is to be optimised.
-                
+
             """
             from PKP.src.Models import Model
             # TODO GO is it executed only for NRruns == 1
@@ -147,9 +160,9 @@ class LeastSquaresEstimator(object):
             modeled_mass = model.calcMass(
                     init_mass = run[species][0],
                     time = times,
-                    temp = run['temp'], 
+                    temp = run['temp'],
                 )
-            target_mass  = run[species] 
+            target_mass  = run[species]
             target_rate  = run[species]
             modeled_rate = model.computeTimeDerivative(modeled_mass, times = times)
             massError = self.weightMass/np.power(Model.yieldDelta(target_mass), 2.0)
@@ -169,8 +182,8 @@ class LeastSquaresEstimator(object):
                 # #makes an array, containing both, the rates and yields
                 # Error[:len(Dot1_)] += Dot1_ + Dot2_
                 # # print "deviation: ",np.sum(Error)
-            else: # if self.inputs[] = 'fmin' ... 
-                # NOTE: Removed loop since this part is only called if runs == 1 
+            else: # if self.inputs[] = 'fmin' ...
+                # NOTE: Removed loop since this part is only called if runs == 1
                 # TODO GO where does this come from?
                 # TODO GO double check if its the rate or mass? propably its mass
                 ErrorMass = (Model.totModelErrorSquaredPerc(target_mass, modeled_mass)
@@ -180,51 +193,35 @@ class LeastSquaresEstimator(object):
                             * self.weightRate/np.power(Model.yieldDelta(target_rate), 2.0))
 
                 Error = (ErrorMass + ErrorRate)/len(target_mass)
-                # print modeled_mass
-                # print "ErrorMass " + str(ErrorMass)
+
             return Error
 
-        # TODO GO Double check
         print 'start gradient based optimization, species: ' + species
-
-        # add final yield to parameters
-        # is this part of the optimized parameters too?
-        # should it be passed as args to least squares
-        #if model.final_yield == False: # TODO test if final_yield is needed
         model.final_yield = results[species][-1]
-        #     # TODO where does the FinalY come from? 
-        #     Parameter = list(Parameter)
-        #     Parameter.append(self.FinalY)
-        #     Parameter = np.array(Parameter)
-
         import scipy.optimize as scopt
         optimiser = getattr(scopt, self.optimizer)
         OptimizedVector = optimiser(
                 func = LeastSquaresFunction,
                 x0   = model.parameter,
-                args = (model, results, species ), 
+                args = (model, results, species ),
                 ftol = self.fitTolerance, # TODO GO what is the diff between gtol&ftol
-                maxiter = self.maxIter    
+                maxiter = self.maxIter
         ) # caLculates optimized vector
+        # NOTE It seems unneccessary to reevaluate the model agian,
+        #      but for now no better solution is in sight,
+        #      so we will use it to store final yields and rates on the model
         self.deviation = LeastSquaresFunction(OptimizedVector, model, results, species)
-        print self.deviation
-        print OptimizedVector
-        # appends final yield
-        if self.FinalY != False:
-            OptimizedVector = list(OptimizedVector)
-            OptimizedVector.append(self.FinalY)
-            OptimizedVector = np.array(OptimizedVector)
-        return OptimizedVector
+        return model
 
 
     def setPreTolerance(self, ToleranceForFminFunction):
-        """ Sets the tolerance as a abort criterion for the prefitting procedure 
+        """ Sets the tolerance as a abort criterion for the prefitting procedure
             (if preLoopNumber in estimate_T is not equal zero). """
         self.Pre_Tolerance=ToleranceForFminFunction
 
     def setPreMaxIter(self,MaxiumNumberOfIterationInPreProcedure):
-        """ Sets the maximum number of iteration oin the optimizer as a abort 
-            criterion for the prefitting procedure (if preLoopNumber in estimate_T 
+        """ Sets the maximum number of iteration oin the optimizer as a abort
+            criterion for the prefitting procedure (if preLoopNumber in estimate_T
             is not equal zero). """
         self.PreMaxIter=int(MaxiumNumberOfIterationInPreProcedure)
 
@@ -236,15 +233,15 @@ class GlobalOptimizer(object):
         self.KinModel=KineticModel
         self.FitInfo=Fit_one_runObj
         self.AllParameterList=[] #collects the final results of the local minima.
-        
+
     def setParamList(self,ParameterList):
         """Sets the Parameter list."""
         self.__ParamList=ParameterList
-    
+
     def ParamList(self):
         """Returns the Parameter list."""
         return self.__ParamList
-        
+
     def GenerateOptima(self,Species,IndexListofParameterToOptimize,ArrayOfRanges,ListNrRuns):
         """This method makes a several number of runs and returns the Parameter having the lowest deviation of all local minima. The list contains 3 or 4 parameters. If e.g., the second and the third Parameter have to be optimized: IndexListofParameterToOptimize=[1,2]. If e.g. the range of the second is 10000 to 12000 and for the third 1 to 5,  ArrayOfRanges=[[10000,12000],[1,5]]. When ListNrRuns is e.g. [0,10,5,0] the the second Parameter will be optimizted eleven times between 10000 and 12000, the third six times between 1 and 5. Attention, the number of runs grows by NrRuns1*NrRuns2*NrRuns3*NrRuns4, which can lead to a very large number needing very much time!"""
         DevList=[]       #saves the deviation"""
