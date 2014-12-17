@@ -243,7 +243,6 @@ class ConstantRateModel(Model):
         # the yield still retained in the coal
         # this should converge to zero at large 
         # time
-        print self.k
         retained_mass = self.final_yield * np.exp(-self.k*time)
         released_mass = self.final_yield - retained_mass 
 
@@ -252,6 +251,7 @@ class ConstantRateModel(Model):
         if False: #species == 'Solid':
             released_mass += solid_mass*np.exp(-self.k*time)
 
+        self.mass = released_mass
         # why choosing between released or solid mass 
         # start_time is small then time
         # released_mass = np.where(time > self.start_time, released_mass, solid_mass) 
