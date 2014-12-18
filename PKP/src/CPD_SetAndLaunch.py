@@ -39,13 +39,13 @@ class CPDResult(object):
         return self.data[fn][column]
     
     @property
-    def speciesnames(self):
+    def speciesNames(self):
         # TODO GO why on earth is it h2zero? 
         return ['fh20', 'fco2', 'fch4', 'fco', 'fother']
 
 
     def iterspecies(self):
-        for name in self.speciesnames:
+        for name in self.speciesNames:
             yield name, self.__getitem__(name)
 
     @classmethod
