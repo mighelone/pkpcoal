@@ -15,7 +15,7 @@ def constantRate(inputs, results):
             results: a results  object containing data from
                      preprocessor runs
     """
-    from PKP.src.Fitter import OptGradBased
+    from PKP.src.Fitter import OptGradBased, OptGenAlgBased
     # NOTE: Following things have been removed and need to be reimplemented
     #       * plotting
     #       * write to data file
@@ -23,44 +23,21 @@ def constantRate(inputs, results):
     #       * the pccl dt thing
     #       * nrRuns > 1
     # init model
+    #TODO implement corrector selector for models
+    
     # uses for optimization gradient based (LS) optimizer if NrOfRuns == 1
     # otherwise an Evolutionary algorithm (GenAlg; global optimum) is used
-    #TODO implement corrector selector for models
-    if inputs['OperatingConditions']['runs'] == 1:
-        results = results[0]
-        # Iterate species in Fit Object
-        # NOTE it seems strange that we need a model object for every species
-        cr_inputs = inputs['Optimisation']['ConstantRate']
-        return {species_name : OptGradBased(
-                    inputs     = inputs,
-                    model      = mdl.ConstantRateModel(cr_inputs),
-                    results    = results,
-                    finalYield = species_data[-1],
-                    species    = species_name)
-
-            for species_name, species_data in results.iterspecies()}
-    # else:
-    #     if len(ParamInit) == 2:
-    #         ParamInit.append(0.0)
-    #     ParamMin = GlobalOptParam.EvACRMin
-    #     if len(ParamMin) == 2:
-    #         ParamMin.append(0.0)
-    #     ParamMax = GlobalOptParam.EvACRMax
-    #     if len(ParamMax) == 2:
-    #         ParamMax.append(0.0)
-    #     for Spec in range(2,len(Fit[0].SpeciesNames()),1):
-    #         # max Yield, min Yield
-    #         m_final_predictionAll = []
-    #         for i in range(len(Fit)):
-    #             m_final_predictionAll.append(Fit[i].Yield(Spec)[-1])
-    #         ParamInit[2]= (max(m_final_predictionAll)
-    #                     + min(m_final_predictionAll))/2.
-    #         ParamMin[2] = (min(m_final_predictionAll))
-    #         ParamMax[2] = (max(m_final_predictionAll))
-    #         #
-    #         self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Spec)
-    #         self.Solution = self.KinModel.ParamVector()
-    #         self.KinModel.plot(Fit,Spec)
+    opt = (OptGradBased if inputs['OperatingConditions']['runs'] == 1 else OptGenAlgBased)
+    # Iterate species in Fit Object
+    # NOTE it seems strange that we need a model object for every species
+    cr_inputs = inputs['Optimisation']['ConstantRate']
+    species_names = results[0].speciesNames
+    return {species_name : opt(
+                inputs     = inputs,
+                model      = mdl.ConstantRateModel(cr_inputs),
+                results    = results,
+                species    = species_name)
+        for species_name in species_names}
 
 
 
