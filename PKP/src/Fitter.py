@@ -7,7 +7,7 @@ from scipy.optimize import leastsq
 from scipy.optimize import fmin_slsqp
 
 #not really precise, just for tests (Analytical solution)
-def OptGradBased(inputs, model, results, finalYield, species):
+def OptGradBased(inputs, model, results, species):
     """ Starts a gradient Based Optimization and returns the final Fit.
 
     Parameter:
@@ -19,22 +19,22 @@ def OptGradBased(inputs, model, results, finalYield, species):
 
     Note:
         For Kobayashi Model set Final Yield to False (independent), for all
-        other set a value.  It will be excluded from the optimization.
+        other set a value. It will be excluded from the optimization.
     """
     # Called by PyrolModelLauncher for every species
-    ls = LeastSquaresEstimator(inputs['Optimisation'], finalYield)
+    ls = LeastSquaresEstimator(inputs['Optimisation'])
     result = ls.estimate(results, model, species)
     print 'Final error= ' +  str(ls.deviation)
     return result
 
-def OptGenAlgBased(inputs, model, results, finalYield, species):
+def OptGenAlgBased(inputs, model, results, species):
     """ Starts a genetic algorithm and afterwards a gradient Based optimization.
         Sets the Final Fit result as the ParamVector in the Kinetic Model.
         Input are the Fit (Result Objects of the Detailed Models),
         the Parameter to initialize, the two Parameter vectors defining
         the range of the results and the Species index.
     """
-    genAlg = Evolve.GenericOpt(inputs, finalYield)
+    genAlg = Evolve.GenericOpt(inputs)
     model.update(genAlg.estimate())
     # afterwards grad based optimization
     if GlobalOptParam.optimizGrad == True:
@@ -134,96 +134,97 @@ class LeastSquaresEstimator(object):
     #     Len_tPoints=max(Len_tPointsL)
     #     return Len_tPoints
 
-    def estimate(self, results, model, species, preLoopNumber=0):
+    def estimate(self, results, model, species):
         """ The main optimization method.
-            Optimizes the Fitting curve using the Least Squares for the weighted Yields
-            and the weighted Rates considering the temperature history.
 
-            Requires at input:
-                The corresponding Fit_one_run object, the Model object, the kinetic parameter list,
-                a name (e.g. the species).
+            Optimizes the pyrolysis parameters (i.e. t_start and k for constant rate)
+            to match the preprocessor results.
 
-            preLoopNumber is the number of running the improve_E and improve_a routines.
-            So the standard setting of preLoopNumber is equal zero.
-            It may be used if there is only a very bad convergence when optimize all three parameter.
-            #TODO GO why estimateT?
+            Inputs:
+                results = a list of preprocessor result objects
+                model = the pyrolysis model to optimise
+                species = selected species to optimize
+
+            How it works
+            1. based on the selected optimsation procedure the input function
+               is constructed
+            2. for each run in the results the errors are evaluated and reduced
+            3. when the optimiser converged the pyrolysis model with new parameters
+               is returned
         """
-        def LeastSquaresFunction(parameter, model, run, species):
-            """ The function which is to be optimised.
+        from PKP.src.Models import Model
+        import scipy.optimize as scopt
 
+        # NOTE here a block of functions is defined to evaluate the
+        # the errors this should be moved to a separate class and
+        # needs test methods
+        def input_func(parameter, func, model, runs, species):
+            """ The main function which returns the error, which serves as
+                input for the optimiser
+
+                this functions takes care on reducing the errors evaluated
+                per run. If we get a list of scalars we just sum the error
+                if get a list of lists containing errors per point we need
+                to merge it
             """
-            from PKP.src.Models import Model
-            # TODO GO is it executed only for NRruns == 1
             # rename it and make a class function
             model.updateParameter(parameter)
+            # collect errors of individual runs
+            ret = [errorPerRun(run, func, model, species) for run in runs]
+            # if we have a simple scalar list just sum the errors
+            # else we component wise sum the error
+            return (sum(ret) if type(ret[0]) != list else map(np.add,ret))
+
+        def errorPerRun(run, func, model, species):
+            """ adapts final yield and  computes the modeled yield per run """
             times = run['time(ms)']*1e-3
-            modeled_mass = model.calcMass(
-                    init_mass = run[species][0],
+            targetMass  = run[species]
+            targetRate  = run[species] #FIXME
+            model.final_yield = targetMass[-1] #FIXME does this make sense?
+            modeledMass = model.calcMass(
+                    init_mass = targetMass[0],
                     time = times,
                     temp = run['temp'],
                 )
-            target_mass  = run[species]
-            target_rate  = run[species]
-            modeled_rate = model.computeTimeDerivative(modeled_mass, times = times)
-            massError = self.weightMass/np.power(Model.yieldDelta(target_mass), 2.0)
-            if False: #self.selectedOptimizer == 'leastsq':
-                w0 = self.scaleFactor * massError
-                w1 = self.scaleFactor * self.weightRate/np.power(max(target_rate), 2.0)
-                # Error = np.zeros(maxLen, dtype='d')
-                # Dot2_ = w1*(
-                #     ((uDot[runnedCaseNr]-vDot[runnedCaseNr])**2)
-                #         *dt[runnedCaseNr]
-                #     )
-                # #the yield term
-                # Dot1_ = w0*(
-                #     ((u[runnedCaseNr]-v[runnedCaseNr])**2)
-                #         *dt[runnedCaseNr]
-                #     )
-                # #makes an array, containing both, the rates and yields
-                # Error[:len(Dot1_)] += Dot1_ + Dot2_
-                # # print "deviation: ",np.sum(Error)
-            else: # if self.inputs[] = 'fmin' ...
-                # NOTE: Removed loop since this part is only called if runs == 1
-                # TODO GO where does this come from?
-                # TODO GO double check if its the rate or mass? propably its mass
-                ErrorMass = (Model.totModelErrorSquaredPerc(target_mass, modeled_mass)
-                            * massError)
+            dt = False # FIXME
+            modeledRate = model.computeTimeDerivative(modeledMass, times = times)
+            # normalisation factor
+            def norm(weight, target):
+                return weight/np.power(Model.yieldDelta(target), 2.0)
+            normMass = norm(self.weightMass, targetMass)
+            normRate = norm(self.weightRate, targetRate)
+            return func(targetRate, modeledRate,
+                        targetMass, modeledMass,
+                        normRate, normMass, dt)
 
-                ErrorRate = (Model.totModelErrorSquaredPerc(target_rate, modeled_rate)
-                            * self.weightRate/np.power(Model.yieldDelta(target_rate), 2.0))
+        def ls_input_func(tr, mr, tm, mm, nr, nm, dt):
+            ErrorRate = Model.modelErrorSquared(tr, mr)*dt
+            ErrorMass = Model.modelErrorSquared(tm, mm)*dt
+            return (ErrorMass * nm + ErrorRate * nr) * self.scaleFactor * dt
 
-                Error = (ErrorMass + ErrorRate)/len(target_mass)
-
-            return Error
+        def min_input_func(tr, mr, tm, mm, nr, nm, dt):
+            ErrorMass = Model.totModelErrorSquaredPerc(tm, mm)
+            ErrorRate = Model.totModelErrorSquaredPerc(tr, mr)
+            return (ErrorMass*nm + ErrorRate*nr)/len(tm)
 
         print 'start gradient based optimization, species: ' + species
-        model.final_yield = results[species][-1]
-        import scipy.optimize as scopt
         optimiser = getattr(scopt, self.optimizer)
+        # select optimisation input function depending on the optimizer
+        # this is needed since leastsq expects a list of errors where fmin
+        # simply expects a global error
+        error_func = (ls_input_func if self.optimizer == 'leastsq' else min_input_func)
         OptimizedVector = optimiser(
-                func = LeastSquaresFunction,
+                func = input_func,
                 x0   = model.parameter,
-                args = (model, results, species ),
+                args = (error_func, model, results, species),
                 ftol = self.fitTolerance, # TODO GO what is the diff between gtol&ftol
                 maxiter = self.maxIter
         ) # caLculates optimized vector
         # NOTE It seems unneccessary to reevaluate the model agian,
         #      but for now no better solution is in sight,
         #      so we will use it to store final yields and rates on the model
-        self.deviation = LeastSquaresFunction(OptimizedVector, model, results, species)
+        self.deviation = input_func(OptimizedVector, error_func, model, results, species)
         return model
-
-
-    def setPreTolerance(self, ToleranceForFminFunction):
-        """ Sets the tolerance as a abort criterion for the prefitting procedure
-            (if preLoopNumber in estimate_T is not equal zero). """
-        self.Pre_Tolerance=ToleranceForFminFunction
-
-    def setPreMaxIter(self,MaxiumNumberOfIterationInPreProcedure):
-        """ Sets the maximum number of iteration oin the optimizer as a abort
-            criterion for the prefitting procedure (if preLoopNumber in estimate_T
-            is not equal zero). """
-        self.PreMaxIter=int(MaxiumNumberOfIterationInPreProcedure)
 
 
 class GlobalOptimizer(object):
