@@ -110,26 +110,23 @@ class MainProcess(object):
         #       finally a way to select different plotting backends
         #       would be desirable
         import matplotlib.pyplot as plt
-        fig, axs = plt.subplots(len(preProcResults))
-        run = preProcResults[0] #TODO fix it for multiple runs
+        fig, axs = plt.subplots()
         colors = ['c', 'm', 'y', 'k']
-        for color,preProc in zip(
-                colors,
-                run.iterspecies(),
-            ):
-
-            name, data = preProc
-            axs.scatter(
-                     x=run['time(ms)']*1e-3,
-                     y=data,
-                     color = color,
-                     label = name,
-                     marker = '.',
-                )
+        marker = ['.','x','+']
+        for color, preProc in zip(colors, preProcResults[0].iterspecies()):
+            name, data =  preProc
+            for i, run in enumerate(preProcResults):
+                axs.scatter(
+                         x=run['time(ms)']*1e-3,
+                         y=run[name],
+                         color = color,
+                         label = name+ "_run_" + str(i),
+                         marker = marker[i],
+                    )
 
             model_data = fittedModels[name]
             axs.plot(
-                 run['time(ms)']*1e-3,
+                 preProcResults[-1]['time(ms)']*1e-3,
                  model_data.mass,
                  color = color,
                  label = name,
