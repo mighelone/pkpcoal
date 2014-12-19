@@ -8,6 +8,12 @@ import numpy as np
 import PKP.src.Models as mdl
 
 def constantRate(inputs, results):
+    return genericRate(inputs, results, "constantRate")
+
+def arrheniusRate(inputs, results):
+    return genericRate(inputs, results, "arrheniusRate")
+
+def genericRate(inputs, results, pyrolModelName):
     """ Generates the results for constant Rate.
 
         Parameters:
@@ -27,25 +33,23 @@ def constantRate(inputs, results):
     
     # uses for optimization gradient based (LS) optimizer if NrOfRuns == 1
     # otherwise an Evolutionary algorithm (GenAlg; global optimum) is used
-    opt = (OptGradBased if inputs['OperatingConditions']['runs'] == 1 else OptGenAlgBased)
+    opt = (OptGradBased if inputs['OperatingConditions']['runs'] == 1 
+                else OptGenAlgBased)
     # Iterate species in Fit Object
     # NOTE it seems strange that we need a model object for every species
-    cr_inputs = inputs['Optimisation']['ConstantRate']
+    model_inputs = inputs['Optimisation'][pyrolModelName]
+    model = getattr(mdl, pyrolModelName)
     species_names = results[0].speciesNames
     return {species_name : opt(
                 inputs     = inputs,
-                model      = mdl.ConstantRateModel(cr_inputs),
+                model      = model(model_inputs),
                 results    = results,
                 species    = species_name)
         for species_name in species_names}
 
 
-
 # def MakeResults_Arrh(self,PyrolProgram,File,Fit):
 #     """Generates the results for Arrhenius Rate."""
-#     #TODO Giant spaghetti factory
-#     outfile = open(PyrolProgram+'-Results_ArrheniusRate.txt', 'w')
-#     outfile.write("Species                         A [1/s]         b               E_a [K]    FinalYield\n\n")
 #     #makes Species list which contains alls species to fit:
 #     SpeciesList=[] # List containing the Species Index to fit
 #     if self.ArrhSpec=='Total':
@@ -67,41 +71,41 @@ def constantRate(inputs, results):
 #             if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
 #                 self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
 #             SpeciesList.append(i)
-#     ##The single species:
-#     for Species in SpeciesList:
-#         #
-#         m_final_prediction=Fit[0].Yield(Species)[-1]
-#         PredictionV0=[0.86e15,0.01,27700,m_final_prediction]  #for Standard Arrhenius
-#         #
-#         self.KinModel=Models.ArrheniusModel(PredictionV0)
-#         if PyrolProgram=='PCCL':
-#             self.KinModel.setDt4Intergrate(self.FG_dt)
-#         #
-#         print Fit[0].SpeciesName(Species)
-#         ParamInit = GlobalOptParam.EvAArrhInit
-#         if len(ParamInit) == 4:
-#             ParamInit.pop(-1)
-#         #
-#         if self.NrOfRuns == 1:
-#             self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
-#         else:
-#             # init the Parameter for global optimization
-#             m_final_predictionAll=[] # final yields
-#             for i in range(len(Fit)):
-#                 m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-#             ParamMin = GlobalOptParam.EvAArrhMin
-#             ParamMax = GlobalOptParam.EvAArrhMax
-#             if len(ParamMin) == 3:
-#                 ParamMin.append(0.0)
-#             if len(ParamMax) == 3:
-#                 ParamMax.append(0.0)
-#             if len(ParamInit) == 3:
-#                 ParamInit.append(0.0)
-#             ParamInit[3] = (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-#             ParamMin[3] = (min(m_final_predictionAll))
-#             ParamMax[3] = (max(m_final_predictionAll))
-#             #
-#             self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
+    ##The single species:
+    for Species in SpeciesList:
+        #
+        m_final_prediction=Fit[0].Yield(Species)[-1]
+        PredictionV0=[0.86e15,0.01,27700,m_final_prediction]  #for Standard Arrhenius
+        #
+        self.KinModel=Models.ArrheniusModel(PredictionV0)
+        if PyrolProgram=='PCCL':
+            self.KinModel.setDt4Intergrate(self.FG_dt)
+        #
+        print Fit[0].SpeciesName(Species)
+        ParamInit = GlobalOptParam.EvAArrhInit
+        if len(ParamInit) == 4:
+            ParamInit.pop(-1)
+        #
+        if self.NrOfRuns == 1:
+            self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
+        else:
+            # init the Parameter for global optimization
+            m_final_predictionAll=[] # final yields
+            for i in range(len(Fit)):
+                m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+            ParamMin = GlobalOptParam.EvAArrhMin
+            ParamMax = GlobalOptParam.EvAArrhMax
+            if len(ParamMin) == 3:
+                ParamMin.append(0.0)
+            if len(ParamMax) == 3:
+                ParamMax.append(0.0)
+            if len(ParamInit) == 3:
+                ParamInit.append(0.0)
+            ParamInit[3] = (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+            ParamMin[3] = (min(m_final_predictionAll))
+            ParamMax[3] = (max(m_final_predictionAll))
+            #
+            self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
 #         #
 #         self.KinModel.plot(Fit,Species)
 #         self.Solution=self.KinModel.ParamVector()
@@ -109,12 +113,6 @@ def constantRate(inputs, results):
 #         if np.sum(self.KinModel.ParamVector())!=np.sum(PredictionV0):
 #             outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %6.4f  %11.4f  %7.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2],self.Solution[3])+'\n')
 #     outfile.close()
-#     if oSystem=='Linux' or oSystem == 'Darwin':
-#         shutil.move(PyrolProgram+'-Results_ArrheniusRate.txt','Result/'+PyrolProgram+'-Results_Arrhenius.txt')
-#     elif oSystem=='Windows':
-#         shutil.move(PyrolProgram+'-Results_ArrheniusRate.txt','Result\\'+PyrolProgram+'-Results_Arrhenius.txt')
-#     else:
-#         print "The name of the operating system couldn't be found."
 #
 #
 # def MakeResults_ArrhNoB(self,PyrolProgram,File,Fit):
