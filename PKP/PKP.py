@@ -86,21 +86,25 @@ class MainProcess(object):
         return selector()(self.inputs) #
 
 
-    def startFittingProcedure(self, results):
+    def startFittingProcedure(self, results, selectPyrolModel = False):
         """ starts the fitting procedure to calculate modeled rates and yields
             according to preprocessor results
 
             Parameters:
                 results: an array of preprocessor results objects
+                selectPyrolModel: selects a specific pyrolysis model
+                        overriding selections from inputs file
 
             Returns an array of fitted pyrolysis model objects
         """
         import src.PyrolModelLauncher as pml
         solver = results[0].solver
-        if self.inputs[solver]['fit'] not in pml.__dict__:
-            print "Cannot find " + self.inputs[solver]['fit']
+        fit = (self.inputs[solver]['fit']
+                if not selectPyrolModel else selectPyrolModel)
+        if fit not in pml.__dict__:
+            print "Cannot find " + fit
             return
-        return getattr(pml, self.inputs[solver]['fit'])(self.inputs, results)
+        return getattr(pml, fit)(self.inputs, results)
 
 
     def plotResults(self, preProcResults, fittedModels):
