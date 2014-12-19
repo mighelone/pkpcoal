@@ -184,7 +184,7 @@ class LeastSquaresEstimator(object):
             modeledMass = model.calcMass(
                     init_mass = targetMass[0],
                     time = times,
-                    temp = run['temp'],
+                    temp = run.interpolate('temp'),
                 )
             dt = False # FIXME
             modeledRate = model.computeTimeDerivative(modeledMass, times = times)
