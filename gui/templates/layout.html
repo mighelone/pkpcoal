@@ -1,0 +1,41 @@
+<!doctype html>
+<title>{% block title %}{% endblock %}</title>
+<link rel=stylesheet href=/static/boot.css type=text/css>
+<h1><a href=/>PKP Dashboard</a></h1>
+<p class=tagline>PKP is a tool combining Coal Preprocessors and Kinetic Pyrolysis Models
+<div class=box>
+  {% block inputs %}{% endblock %}
+</div>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://127.0.0.1:5001/static/graphs.js"></script>
+<script>
+{# //- Using and anonymous function: #}
+document.getElementById('carbon').value=70
+document.getElementById('oxygen').value=20
+document.getElementById('nitrogen').value=5
+document.getElementById('hydrogen').value=5
+document.getElementById('fixed_carbon').value=70
+document.getElementById('volatile_matter').value=20
+document.getElementById('ash').value=5
+document.getElementById('moisture').value=5
+
+var counter = 1;
+var limit = 3;
+function addInput(){
+     if (counter == limit)  {
+          alert("You have reached the limit of adding " + counter + " inputs");
+     }
+     else {
+          var newdivHR = document.createElement('div');
+          var newdivFT = document.createElement('div');
+          newdivHR.innerHTML = "Heating Rate" + (counter + 1) + "<input type='text' name='myInputs[]'>";
+          newdivFT.innerHTML = "Final Temp" + (counter + 1) + "<input type='text' name='myInputs[]'>";
+          document.getElementById("oper_cond").appendChild(newdivHR);
+          document.getElementById("oper_cond").appendChild(newdivFT);
+          counter++;
+     }
+}
+
+</script>
+

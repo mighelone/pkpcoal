@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block inputs %}
+
+  <div class=input_box>
+  <form action="" method=post>
+    {% if error %}
+      <p class=error><strong>Error:</strong> {{ error }}
+    {% endif %}
+
+    <fieldset>
+    <legend>Ultimate Analysis</legend>
+    <p>Carbon:
+      <input id=carbon type=text name=carbon value="{{ carbon }}" class=urlinput>
+    <p>Oxygen:
+      <input id=oxygen type=text name=oxygen value="{{ oxygen }}" class=urlinput>
+    <p>Hydrogen:
+      <input id=hydrogen type=text name=hydrogen value="{{ hydrogen }}" class=urlinput>
+    <p>Nitrogen:
+      <input id=nitrogen type=text name=nitrogen value="{{ nitrogen }}" class=urlinput>
+    </fieldset>
+
+    <fieldset >
+    <legend>Proximate Analysis</legend>
+    <p>Fixed Carbon:
+      <input id=fixed_carbon type=text name=fixed_carbon value="{{ fixed_carbon }}" class=urlinput>
+    <p>Volatile Matter:
+      <input id=volatile_matter type=text name=volatile_matter value="{{ volatile_matter }}" class=urlinput>
+    <p>Ash:
+      <input id=ash type=text name=ash value="{{ ash }}" class=urlinput>
+    <p>Moisture:
+      <input id= moisture type=text name=moisture value="{{ moisture }}" class=urlinput>
+    </fieldset>
+
+    <fieldset id="oper_cond">
+    <legend>Operating Conditions</legend>
+    <p> Heating Rate
+      <input id=heating_rate type=text name=heating_rate value="{{ heating_rate }}" class=urlinput>
+    <p> Final Temp
+      <input id=final_temp type=text name=final_temp value="{{ final_temp }}" class=urlinput>
+    </fieldset>
+    <input type="button" id="add-oper" value="+" class="btn btn-primary btn-xs" onclick="addInput()"> </input>
+  <button type="submit" id="compute" value="Preprocess" class="btn btn-primary"> Compute</button>
+
+  </form>
+   
+  {# <button type="submit" id="compute" value="Preprocess" class="btn btn-primary"> Compute</button> #}
+
+</div>
+{% endblock %}
