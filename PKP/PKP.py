@@ -1,12 +1,25 @@
+#!/usr/bin/python
+"""
+PKP
+
+Usage:
+      PKP.py -h | --help
+      PKP.py generate (--json-input=<string> | --file-input=<loc>) --results-folder=<loc>
+      PKP.py fit      (--json-input=<string> | --file-input=<loc>) --fit-target=<string> --results-folder=<loc>
+
+Options:
+    -h  --help              Shows this screen
+    --json-input=<string>   Foo
+    --file-input=<loc>      Bar
+    --results-folder=<loc>  Baz
+    --fit-target=<string>   Bla
+
 """
 
-Usage: pkp generate --json-input|--file-input --results-folder
-       pkp fit      --json-input|--file-input --fit-target --results-folder
-"""
 import sys
 import os
 import platform
-import docopt
+from docopt import docopt
 
 #PKP imports
 import src.CPD_SetAndLaunch as CPD_SetAndLaunch  # writes CPD-instruct File, launches CPD
@@ -28,20 +41,19 @@ class BaseProcess(object):
         self.inputs = inputs_dict
         self.output = output
 
-
     def returnResults(self):
-        pass 
+        pass
 
 class Generate(BaseProcess):
     """ Controls the whole process of generating input files, fitting etc. """
 
     SpeciesToConsider = []
 
-
     def executeSolver(self):
         """ execute all solver that are activated in the inputs file
             and return list of results objects
         """
+        print self.inputs
         from src import PreprocLauncher as Launcher
         def selector():
             if self.inputs['CPD']['active']:
@@ -130,12 +142,18 @@ def ReadInputFiles(inputs_folder):
 
 #Main Part starting
 
-def main():
-    Case = MainProcess(inputs_folder=workingDir+"/inputs/")
-    preProcResults = Case.executeSolver()
-    fittedModels = Case.startFittingProcedure(results)
-    print 'calculated Species: ',Case.SpeciesToConsider
-    self.plotResults(preProcResults, fittedModels)
+def generate(folder=False, json_string=False):
+    inputs = (json_string if json_string else ReadInputFiles(folder))
+    gen = Generate(inputs)
+    #Case = MainProcess(inputs_folder=workingDir+"/inputs/")
+    return gen.executeSolver()
+    # fittedModels = Case.startFittingProcedure(results)
+    # print 'calculated Species: ',Case.SpeciesToConsider
+    # self.plotResults(preProcResults, fittedModels)
 
 if __name__ == "__main__":
+    arguments = docopt(__doc__)
+    print arguments
+    if arguments['generate']:
+        generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
     main()
