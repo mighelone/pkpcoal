@@ -41,7 +41,7 @@ class CPDResult(object):
     @property
     def _tsv(self):
         # out = {name: list(data) for name, data in self.iterspecies()}
-        fields = ['time(ms)', 'fch4', 'fco', 'temp' ]
+        fields = ['time(ms)', 'fch4', 'fco', 'temp', "fh20", "fco2", "fother"]
         header = " ".join(fields)
         s = ""
         for i,_ in enumerate(self.__getitem__('time(ms)')):
@@ -49,22 +49,6 @@ class CPDResult(object):
                 s += str(list(self.__getitem__(spec))[i]) + "\t"
             s += "\n"
         return header + "\n" + s
-
-    @property
-    def _dict(self):
-        # out = {name: list(data) for name, data in self.iterspecies()}
-        out = {'fch4': list(self.__getitem__('fch4'))}
-        out.update({'temp': list(self.__getitem__('temp'))})
-        out.update({'time': list(self.__getitem__('time(ms)'))})
-        return out
-
-    @property
-    def _list(self):
-        # out = {name: list(data) for name, data in self.iterspecies()}
-        num_els = len(self.__getitem__('time(ms)'))
-        out = [ [self.__getitem__(el)[idx] for el in ['time(ms)', 'fch4', 'temp']]
-                                      for idx in range(num_els)]
-        return out
 
     @property
     def speciesNames(self):
