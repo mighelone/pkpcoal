@@ -39,9 +39,37 @@ class CPDResult(object):
         return self.data[fn][column]
 
     @property
+    def _tsv(self):
+        # out = {name: list(data) for name, data in self.iterspecies()}
+        fields = ['time(ms)', 'fch4', 'fco', 'temp' ]
+        header = " ".join(fields)
+        s = ""
+        for i,_ in enumerate(self.__getitem__('time(ms)')):
+            for spec in fields:
+                s += str(list(self.__getitem__(spec))[i]) + "\t"
+            s += "\n"
+        return header + "\n" + s
+
+    @property
+    def _dict(self):
+        # out = {name: list(data) for name, data in self.iterspecies()}
+        out = {'fch4': list(self.__getitem__('fch4'))}
+        out.update({'temp': list(self.__getitem__('temp'))})
+        out.update({'time': list(self.__getitem__('time(ms)'))})
+        return out
+
+    @property
+    def _list(self):
+        # out = {name: list(data) for name, data in self.iterspecies()}
+        num_els = len(self.__getitem__('time(ms)'))
+        out = [ [self.__getitem__(el)[idx] for el in ['time(ms)', 'fch4', 'temp']]
+                                      for idx in range(num_els)]
+        return out
+
+    @property
     def speciesNames(self):
         # TODO GO why on earth is it h2zero?
-        return ['fh20', 'fco2', 'fch4', 'fco', 'fother']
+        return ["fh20", "fco2", "fch4", "fco", "fother"]
 
 
     def iterspecies(self):
@@ -63,10 +91,16 @@ class CPDResult(object):
             # TODO GO why is the data transposed
             if "CPD_Result1.dat" in fn:
                 return (numpy.genfromtxt(
-                    StringIO(fn_str), delimiter=',', skip_header=1, dtype=float)[0:-1]).transpose()
+                    StringIO(fn_str),
+                    delimiter=',',
+                    skip_header=1,
+                    dtype=float)[0:-1]).transpose()
             else:
                 return numpy.genfromtxt(
-                    StringIO(fn_str), delimiter=',', skip_header=1, dtype=float).transpose()
+                    StringIO(fn_str),
+                    delimiter=',',
+                    skip_header=1,
+                    dtype=float).transpose()
 
     @classmethod
     def readHeader(cls, fn):
@@ -100,7 +134,6 @@ class CPDResult(object):
 
 
 class SetAndLaunchBase(object):
-    workingDir = os.getcwd()
     runNr=0
     printIntervall=1
     writeIntervall=1
@@ -131,7 +164,7 @@ class CPD(SetAndLaunchBase):
            'nmax'   : 20,
         }
 
-    execDir = os.getcwd()+"/CPD/"
+    execDir = os.path.expanduser('~') + "/.pkp/CPD/" # os.getcwd()+"/CPD/"
     resDir = execDir + "Results/"
 
     def __init__(self,
