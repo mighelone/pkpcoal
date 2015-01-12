@@ -33,7 +33,7 @@ class CPDResult(object):
                 if item in names:
                     return fn, names.index(item)
             else:
-                print "cannot find", item  fn, names #TODO GO replace by error
+                print "cannot find", item, fn, names #TODO GO replace by error
         fn, column = find_file(item)
         return self.data[fn][column]
 
