@@ -22,7 +22,7 @@ import platform
 from docopt import docopt
 
 #PKP imports
-import src.CPD_SetAndLaunch as CPD_SetAndLaunch  # writes CPD-instruct File, launches CPD
+import src.CPD as CPD  # writes CPD-instruct File, launches CPD
 
 import matplotlib
 import numpy as np
@@ -84,7 +84,7 @@ class Fit(BaseProcess):
         """
         import src.PyrolModelLauncher as pml
         solver = results[0].solver
-        fit = (self.inputs[solver]['fit']
+        fit = (self.inputs[solver].get('fit','NONE')
                 if not selectPyrolModel else selectPyrolModel)
         if fit not in pml.__dict__:
             print "Cannot find " + fit
@@ -139,17 +139,28 @@ def ReadInputFiles(inputs_folder):
     except Exception as e:
         print e
 
-
-#Main Part starting
-
 def generate(folder=False, json_string=False):
-    inputs = (json_string if json_string else ReadInputFiles(folder))
+    """ a factory method for the  Generate class
+        Returns result object from the solver
+    """
+    inputs = (json_string if json_string
+                else ReadInputFiles(folder))
     gen = Generate(inputs)
-    #Case = MainProcess(inputs_folder=workingDir+"/inputs/")
     return gen.executeSolver()
     # fittedModels = Case.startFittingProcedure(results)
     # print 'calculated Species: ',Case.SpeciesToConsider
     # self.plotResults(preProcResults, fittedModels)
+
+def fit(folder=False, results=False, selectPyrolModel=None, json_string=False):
+    """ a factory method for the Fit class
+        accepts a results file or a results  Object
+    """
+    inputs = (json_string if json_string
+                else ReadInputFiles(folder))
+    fit = Fit(inputs)
+    fit.pyrolModel = "constantRate"
+    return fit.startFittingProcedure(results)
+
 
 if __name__ == "__main__":
     arguments = docopt(__doc__)
