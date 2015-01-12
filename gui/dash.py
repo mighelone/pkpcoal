@@ -38,28 +38,51 @@ class Shortly(object):
 
         self.url_map = Map([
             Rule('/', endpoint='inputs'),
-            Rule('/preProcDict', endpoint='preProcDict'),
-            Rule('/preProcList', endpoint='preProcList'),
             Rule('/preProcTSV', endpoint='preProcTSV'),
             Rule('/model', endpoint='short_link_details')
         ])
+        self.res = None
 
     def on_inputs(self, request):
-        import os
         error = None
         url = ''
+        target = "/static/None"
         if request.method == 'POST':
             url = request.form
-            input_dict = self.transform_dict(dict(url))
-            print input_dict
-            generator = PKP.Generate(input_dict)
-            self.res = generator.executeSolver()[0] #FIXME enable multiple runs
-            res = str(self.res._tsv)
-            target =  os.getcwd() + "/static/res.tsv"
-            with open(target,'w') as f:
-                l = res.replace('(ms)','').replace(' ','\t')
-                f.write(l)
+            if request.form.get('Preprocess'):
+                self.res = self.gen_res(url)
+                res = str(self.res[0]._tsv)
+                target =  os.getcwd() + "/static/res.tsv"
+                self.write_tsv(target, res)
+            elif request.form.get('Fit'):
+                if not self.res:
+                    print "regenerating"
+                    self.res = self.gen_res(url) 
+                self.fit = PKP.fit(
+                    folder="/home/go/documents/code/pkp.git/inputs/",
+                    results=self.res,
+                    selectPyrolModel="constantRate")
+                res = str(self.fit._tsv)
+                target = os.getcwd() + "/static/fit.tsv"
+                self.write_tsv(target, res)
         return self.render_template('inputs.html', error=error, url=url)
+
+    def gen_res(self, url):
+        input_dict = self.transform_dict(dict(url))
+        print "generating results"
+        print input_dict
+        generator = PKP.Generate(input_dict)
+        res = generator.executeSolver() #FIXME enable multiple runs
+        print res
+        return res
+        
+
+    def write_tsv(self, path, content):
+        print "writting "  + path
+        with open(path,'w') as f:
+            l = content.replace('(ms)','').replace(' ','\t')
+            f.write(l)
+
 
     def transform_dict(self, raw_dict):
         return {'Coal': 

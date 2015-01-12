@@ -48,16 +48,7 @@ svg.append("g")
     .attr("transform", "translate("+ (width/2) + ", 30 )")
     .text("Time [s]");
 
-var color = d3.scale.category10();
-
-//document.getElementById("compute").onclick = function () {
-    // load the data
-    d3.tsv("http://127.0.0.1:5001/static/res.tsv", function(error, data) {
-        if (error) {
-            return console.log("there was an error loading the data: " + error);
-        };
-
-    // get all field names except time
+var draw = function(data, style) {
     color.domain(d3.keys(data[0]).filter(function(key) {
             return !(key == "time" || key == "temp");
         })
@@ -120,10 +111,16 @@ var color = d3.scale.category10();
         .attr("transform", "translate(40,"+ (height/2) + ")rotate(-90)")
         .text("Temperature [K]");
 
-    species.append("path")
-        .attr("class", "line")
-        .attr("d",function(d) {return line(d.values);});
-
+    if (style == "dashed") {
+        species.append("path")
+            .style("stroke-dasharray", ("3, 3"))
+            .attr("class", "line")
+            .attr("d",function(d) {return line(d.values);});}
+    else {
+        species.append("path")
+            .attr("class", "line")
+            .attr("d",function(d) {return line(d.values);});}
+    
     species.append("path")
         .attr("class", "line")
         .style("stroke", "red")
@@ -135,6 +132,25 @@ var color = d3.scale.category10();
       .attr("x", -30)
       .attr("dy", "-0.8em")
       .text(function(d) { return d.name; });
-});
 
-// }
+
+};
+
+var color = d3.scale.category10();
+
+// document.getElementById("compute").onclick = function () {
+    // load the data
+    d3.tsv("http://127.0.0.1:5001/static/res.tsv", function(error, data) {
+        if (error) {
+            return console.log("there was an error loading the data: " + error);
+        };
+        draw(data, "dashed");
+    });
+
+    d3.tsv("http://127.0.0.1:5001/static/fit.tsv", function(error, data) {
+        if (error) {
+            return console.log("there was an error loading the data: " + error);
+        };
+        draw(data, "smthing");
+    });
+//}

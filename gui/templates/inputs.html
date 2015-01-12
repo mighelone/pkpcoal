@@ -39,11 +39,20 @@
       <input id=final_temp type=text name=final_temp value="{{ final_temp }}" class=urlinput>
     </fieldset>
     <input type="button" id="add-oper" value="+" class="btn btn-primary btn-xs" onclick="addInput()"> </input>
-  <button type="submit" id="compute" value="Preprocess" class="btn btn-primary"> Compute</button>
+
+
+    <fieldset id="Models">
+    <legend>Pyrolysis Models</legend>
+    <div class="checkbox">
+    <label> <input type="checkbox"> Constant Rate </label>
+    <label> <input type="checkbox"> Arrhenius Rate </label>
+
+    </fieldset>
+
+  <button type="submit" name="Preprocess" value="Preprocess"  class="btn btn-primary"> Compute</button>
+  <button type="submit" name="Fit" value="Fit"  class="btn btn-primary"> Fit</button>
 
   </form>
    
-  {# <button type="submit" id="compute" value="Preprocess" class="btn btn-primary"> Compute</button> #}
-
 </div>
 {% endblock %}
