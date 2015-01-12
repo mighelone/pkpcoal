@@ -40,12 +40,31 @@ def genericRate(inputs, results, pyrolModelName):
     model_inputs = inputs['Optimisation'][pyrolModelName]
     model = getattr(mdl, pyrolModelName)
     species_names = results[0].speciesNames
-    return {species_name : opt(
+    # TODO make a results object out of it
+    return FitResult({species_name : opt(
                 inputs     = inputs,
                 model      = model(model_inputs),
                 results    = results,
                 species    = species_name)
-        for species_name in species_names}
+        for species_name in species_names})
+
+class FitResult(object):
+    #FIXME correct conversion between ms and seconds
+
+    def __init__(self, res):
+        self.res = res
+
+    @property
+    def _tsv(self):
+        header = " ".join(self.res.keys())
+        s = ""
+        res = list(self.res.items())
+        for i,_ in enumerate(res[0][1].mass):
+            s += str(res[0][1].time[i]*1000) + "\t"
+            for name, model in self.res.items():
+                s += str(model.mass[i]) + "\t"
+            s += "\n"
+        return "time\t" + header + "\n" + s
 
 
 # def MakeResults_Arrh(self,PyrolProgram,File,Fit):
@@ -71,41 +90,41 @@ def genericRate(inputs, results, pyrolModelName):
 #             if Fit[0].SpeciesName(i) not in self.SpeciesToConsider:
 #                 self.SpeciesToConsider.append(Fit[0].SpeciesName(i))
 #             SpeciesList.append(i)
-    ##The single species:
-    for Species in SpeciesList:
-        #
-        m_final_prediction=Fit[0].Yield(Species)[-1]
-        PredictionV0=[0.86e15,0.01,27700,m_final_prediction]  #for Standard Arrhenius
-        #
-        self.KinModel=Models.ArrheniusModel(PredictionV0)
-        if PyrolProgram=='PCCL':
-            self.KinModel.setDt4Intergrate(self.FG_dt)
-        #
-        print Fit[0].SpeciesName(Species)
-        ParamInit = GlobalOptParam.EvAArrhInit
-        if len(ParamInit) == 4:
-            ParamInit.pop(-1)
-        #
-        if self.NrOfRuns == 1:
-            self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
-        else:
-            # init the Parameter for global optimization
-            m_final_predictionAll=[] # final yields
-            for i in range(len(Fit)):
-                m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
-            ParamMin = GlobalOptParam.EvAArrhMin
-            ParamMax = GlobalOptParam.EvAArrhMax
-            if len(ParamMin) == 3:
-                ParamMin.append(0.0)
-            if len(ParamMax) == 3:
-                ParamMax.append(0.0)
-            if len(ParamInit) == 3:
-                ParamInit.append(0.0)
-            ParamInit[3] = (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
-            ParamMin[3] = (min(m_final_predictionAll))
-            ParamMax[3] = (max(m_final_predictionAll))
-            #
-            self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
+    # ##The single species:
+    # for Species in SpeciesList:
+    #     #
+    #     m_final_prediction=Fit[0].Yield(Species)[-1]
+    #     PredictionV0=[0.86e15,0.01,27700,m_final_prediction]  #for Standard Arrhenius
+    #     #
+    #     self.KinModel=Models.ArrheniusModel(PredictionV0)
+    #     if PyrolProgram=='PCCL':
+    #         self.KinModel.setDt4Intergrate(self.FG_dt)
+    #     #
+    #     print Fit[0].SpeciesName(Species)
+    #     ParamInit = GlobalOptParam.EvAArrhInit
+    #     if len(ParamInit) == 4:
+    #         ParamInit.pop(-1)
+    #     #
+    #     if self.NrOfRuns == 1:
+    #         self.OptGradBased(Fit,ParamInit,Fit[0].Yield(Species)[-1],Species)
+    #     else:
+    #         # init the Parameter for global optimization
+    #         m_final_predictionAll=[] # final yields
+    #         for i in range(len(Fit)):
+    #             m_final_predictionAll.append(Fit[i].Yield(Species)[-1])
+    #         ParamMin = GlobalOptParam.EvAArrhMin
+    #         ParamMax = GlobalOptParam.EvAArrhMax
+    #         if len(ParamMin) == 3:
+    #             ParamMin.append(0.0)
+    #         if len(ParamMax) == 3:
+    #             ParamMax.append(0.0)
+    #         if len(ParamInit) == 3:
+    #             ParamInit.append(0.0)
+    #         ParamInit[3] = (max(m_final_predictionAll)+min(m_final_predictionAll))/2.
+    #         ParamMin[3] = (min(m_final_predictionAll))
+    #         ParamMax[3] = (max(m_final_predictionAll))
+    #         #
+    #         self.OptGenAlgBased(Fit,ParamInit,ParamMin,ParamMax,Species)
 #         #
 #         self.KinModel.plot(Fit,Species)
 #         self.Solution=self.KinModel.ParamVector()
