@@ -75,11 +75,8 @@ class Model(object):
             and a mass array
         """
         from numpy import gradient
-        # rate[0]    = (mass[1]  - mass[0])/deltat[0]
-        # rate[1:-1] = (mass[2:] - mass[:-2])/(2*deltat[1:-1])
-        # rate[-1]   = (mass[-1] - mass[-2])/deltat[-1]
         if deltaT:
-            return gradient(mass,deltat)
+            return gradient(mass, deltat)
         else:
             return gradient(np.array([mass,times]))
 
@@ -211,6 +208,7 @@ class constantRate(Model):
             released_mass += solid_mass*np.exp(-self.k*time)
 
         self.mass = released_mass
+        self.time = time
         # why choosing between released or solid mass
         # start_time is small then time
         # released_mass = np.where(time > self.start_time, released_mass, solid_mass)
