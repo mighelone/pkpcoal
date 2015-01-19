@@ -1,4 +1,6 @@
 var data;
+var ymin_glob=1.0;
+var ymax_glob=0.0;
 
 var margin = {top: 40.5, right: 40.5, bottom: 50.5, left: 60.5},
     width = 400 - margin.left - margin.right,
@@ -48,43 +50,63 @@ svg.append("g")
     .attr("transform", "translate("+ (width/2) + ", 30 )")
     .text("Time [s]");
 
-var draw = function(data, style) {
-    color.domain(d3.keys(data[0]).filter(function(key) {
-            return !(key == "time" || key == "temp");
-        })
-    );
 
-    // parse time seperately
-    data.forEach(function(d) {
-        d.time = +d.time;
-        d.temp = +d.temp;
-    });
-
-    // construct yields 
-    var yields = color.domain().map(function(name) {
-        return {
-            name: name,
-            values: data.map(function(d) {
-                return {time: d.time, temp:d.temp, yield: +d[name]};
+var draw = function(error, pre, fit) {
+    var construct  = function(data) {
+        // transform data for plotting
+        color.domain(d3.keys(data[0]).filter(function(key) {
+                return !(key == "time" || key == "temp");
             })
-        };
-    });
+        );
 
-    y.domain([
-        d3.min(yields, function(c) {return d3.min(c.values, function(v) {return v.yield; }); }),
-        d3.max(yields, function(c) {return d3.max(c.values, function(v) {return v.yield; }); })
-    ]);
+        // parse time seperately
+        data.forEach(function(d) {
+            d.time = +d.time;
+            d.temp = +d.temp;
+        });
+
+        // construct yields 
+        var yields = color.domain().map(function(name) {
+            return { name: name,
+                     values: data.map(
+                        function(d) {return {time: +d.time, temp: +d.temp, yield: +d[name]};
+                })
+            };
+        });
+        return yields
+    };
+
+    // alert(yields[0].name);
+    yields_fit = construct(fit);
+    yields_pre = construct(pre);
 
     y2.domain([
-        d3.min(yields, function(c) {return d3.min(c.values, function(v) {return v.temp; }); }),
-        d3.max(yields, function(c) {return d3.max(c.values, function(v) {return v.temp; }); })
+        d3.min(yields_pre, function(c) {return d3.min(c.values, function(v) {return v.temp; }); }),
+        d3.max(yields_pre, function(c) {return d3.max(c.values, function(v) {return v.temp; }); })
     ]);
-    // alert(yields[0].name);
 
-    var species = svg.selectAll(".specie")
-      .data(yields)
+
+    var species_fit = svg.selectAll(".specie.fit")
+      .data(yields_fit)
       .enter().append("g")
       .attr("class", "yield");
+
+    var species_pre = svg.selectAll(".specie.pre")
+      .data(yields_pre)
+      .enter().append("g")
+      .attr("class", "yield");
+
+    var ymin = d3.min(
+        [ d3.min(yields_fit, function(c) {return d3.min(c.values, function(v) {return v.yield; }); }),
+          d3.min(yields_pre, function(c) {return d3.min(c.values, function(v) {return v.yield; }); })]
+    );
+
+    var ymax = d3.max(
+        [d3.max(yields_fit, function(c) {return d3.max(c.values, function(v) {return v.yield; }); }),
+         d3.max(yields_pre, function(c) {return d3.max(c.values, function(v) {return v.yield; }); })]
+    );
+
+    y.domain([ymin,ymax]);
 
     var yAxis = d3.svg.axis()
         .scale(y)
@@ -104,53 +126,57 @@ var draw = function(data, style) {
 
     svg.append("g")
         .attr("class", "axis axis--y")
-        .attr("transform", "translate("+ width +  ",0)")
+        .attr("transform", "translate("+ width + ",0)")
         .call(yAxisRight)
         .append("text")
         .style("font-size", "12px")
         .attr("transform", "translate(40,"+ (height/2) + ")rotate(-90)")
         .text("Temperature [K]");
 
-    if (style == "dashed") {
-        species.append("path")
+    species_pre.append("path")
             .style("stroke-dasharray", ("3, 3"))
             .attr("class", "line")
-            .attr("d",function(d) {return line(d.values);});}
-    else {
-        species.append("path")
-            .attr("class", "line")
-            .attr("d",function(d) {return line(d.values);});}
+            .attr("d",function(d) {return line(d.values);});
+
+    species_fit.append("path")
+        .attr("class", "line")
+        .attr("d",function(d) {return line(d.values);});
     
-    species.append("path")
+    species_pre.append("path")
         .attr("class", "line")
         .style("stroke", "red")
-        .attr("d", line2(data));
+        .attr("d",function(d) {return line2(d.values);});
 
-    species.append("text")
+    species_pre.append("text")
       .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
       .attr("transform", function(d) { return "translate(" + x(d.value.time) + "," + y(d.value.yield) + ")"; })
       .attr("x", -30)
       .attr("dy", "-0.8em")
       .text(function(d) { return d.name; });
-
-
 };
 
 var color = d3.scale.category10();
 
 // document.getElementById("compute").onclick = function () {
     // load the data
-    d3.tsv("http://127.0.0.1:5001/static/res.tsv", function(error, data) {
-        if (error) {
-            return console.log("there was an error loading the data: " + error);
-        };
-        draw(data, "dashed");
-    });
+    // d3.tsv("http://127.0.0.1:5001/static/res.tsv", function(error, data) {
+    //     if (error) {
+    //         return console.log("there was an error loading the data: " + error);
+    //     };
+    //     draw(data, "dashed");
+    // });
+    //
+    // d3.tsv("http://127.0.0.1:5001/static/fit.tsv", function(error, data) {
+    //      if (error) {
+    //         return console.log("there was an error loading the data: " + error);
+    //      };
+    //      draw(data, "smthing");
+    // });
+    //
+    // draw(pre,fit)
+    queue()
+        .defer(d3.tsv, "http://127.0.0.1:5001/static/res.tsv")
+        .defer(d3.tsv, "http://127.0.0.1:5001/static/fit.tsv")
+        .await(draw)
 
-    d3.tsv("http://127.0.0.1:5001/static/fit.tsv", function(error, data) {
-        if (error) {
-            return console.log("there was an error loading the data: " + error);
-        };
-        draw(data, "smthing");
-    });
 //}
