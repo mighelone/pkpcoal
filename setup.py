@@ -3,7 +3,7 @@ import sys
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-package_name = 'PKP'
+package_name = 'pkp'
 # Get the version from FoamAna/version.py without importing the package
 exec(compile(open(package_name + '/version.py').read(),
              package_name + 'src/version.py', 'exec'))
@@ -38,9 +38,9 @@ config = {
         '': ['cpdnlg*'],
     },
     'packages'               : [
-         "PKP",
-         "PKP.src",
-         "PKP.bins", 
+         "pkp",
+         "pkp.src",
+         "pkp.bins", 
      ],
     'install_requires'       : [
          'numpy',
@@ -48,9 +48,10 @@ config = {
          'scipy',
          'pyevolve',
     ],
-   'name'                    : 'PKP',
+   'name'                    : 'pkp',
    'tests_require' : ['pytest'],
    'cmdclass' :  {'test': PyTest},
+   'entry_points': {'console_scripts': ['pkp-cli = pkp:main']}
 }
 
 
