@@ -1,28 +1,6 @@
-#!/usr/bin/python
-"""
-PKP
-
-Usage:
-      PKP.py -h | --help
-      PKP.py generate (--json-input=<string> | --file-input=<loc>) --results-folder=<loc>
-      PKP.py fit      (--json-input=<string> | --file-input=<loc>) --fit-target=<string> --results-folder=<loc>
-
-Options:
-    -h  --help              Shows this screen
-    --json-input=<string>   Foo
-    --file-input=<loc>      Bar
-    --results-folder=<loc>  Baz
-    --fit-target=<string>   Bla
-
-"""
-try:
-    import PKP.src
-except:
-    import src
 import sys
 import os
 import platform
-from docopt import docopt
 
 #PKP imports
 import numpy as np
@@ -90,7 +68,6 @@ class Fit(BaseProcess):
             return
         return getattr(pml, fit)(self.inputs, results)
 
-
     def plotResults(self, preProcResults, fittedModels):
         """ Creates plots of preProcResults against fittedModels
         """
@@ -123,7 +100,6 @@ class Fit(BaseProcess):
 
         plt.legend()
         plt.show(fig)
-
 
 def ReadInputFiles(inputs_folder):
     """ Read params from input file and generate Input objects """
@@ -160,15 +136,3 @@ def fit(folder=False, results=False, selectPyrolModel=None, json_string=False):
     fit.pyrolModel = "constantRate"
     return fit.startFittingProcedure(results)
 
-# def main():
-#     arguments = docopt(__doc__)
-#     print arguments
-#     if arguments['generate']:
-#         generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
-#
-# if __name__ == "__main__":
-#     arguments = docopt(__doc__)
-#     print arguments
-#     if arguments['generate']:
-#         generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
-#     main()
