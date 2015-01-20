@@ -1,9 +1,8 @@
 import os
 
-import PKP.src.CPD_SetAndLaunch as cpdsl
-import PKP.src.Models as mdls
+import pkp.src.CPD as cpdsl
+import pkp.src.Models as mdls
 import numpy as np
-from PKP.PKP import MainProcess
 
 def test_calcC0_zeroTest():
     """ Test if c0=0.0 for no carbon and no Ox """
@@ -55,23 +54,22 @@ def test_calcMassCR():
     """ 
 
     """
-    const_rate = mdls.ConstantRateModel({"k":1.0,"tstart":0.0,"finalYield":1.0})
+    const_rate = mdls.constantRate({"k":1.0,"tstart":0.0,"finalYield":1.0})
     # Test if at t=0 no mass is released
     assert const_rate.calcMass(0.0,0.0) == 0.0
  
 
-# def test_modelError():
-#     res = mdls.Model.modelError(
-#                 np.array(range(10)),
-#                 np.array(range(10)))
-#     assertIs(type(res), np.float64)
-#     assertAlmostEqual(res, 0.0)
-#
-#
 
-def test_main(tmpdir):
-    mp = MainProcess(inputs_folder =  "/home/go/documents/code/pkp.git/inputs/")
-    res = mp.executeSolver()
-    mp.postProcessResults(res)
+def test_full_main(tmpdir):
+    from pkp.pkpcli import generate
+    from pkp.pkpcli import fit
+    fold = "/home/go/documents/code/pkp.git/inputs/"
+    res = generate(folder=fold)
+    fit = fit(folder=fold, results=res, selectPyrolModel="constantRate")
+    print fit._tsv
+    # mp.plotResults(res, fitsCR)
+    # fitsArr = mp.startFittingProcedure(res, selectPyrolModel="arrheniusRate")
+    # mp.plotResults(res, fitsArr)
+
 
 
