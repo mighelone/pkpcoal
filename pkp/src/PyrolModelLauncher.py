@@ -5,7 +5,7 @@
 
 """
 import numpy as np
-import PKP.src.Models as mdl
+import pkp.src.Models as mdl
 
 def constantRate(inputs, results):
     return genericRate(inputs, results, "constantRate")
@@ -21,7 +21,7 @@ def genericRate(inputs, results, pyrolModelName):
             results: a results  object containing data from
                      preprocessor runs
     """
-    from PKP.src.Fitter import OptGradBased, OptGenAlgBased
+    from pkp.src.Fitter import OptGradBased, OptGenAlgBased
     # NOTE: Following things have been removed and need to be reimplemented
     #       * plotting
     #       * write to data file

@@ -152,7 +152,7 @@ class LeastSquaresEstimator(object):
             3. when the optimiser converged the pyrolysis model with new parameters
                is returned
         """
-        from PKP.src.Models import Model
+        from pkp.src.Models import Model
         import scipy.optimize as scopt
 
         # NOTE here a block of functions is defined to evaluate the

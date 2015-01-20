@@ -15,14 +15,16 @@ Options:
     --fit-target=<string>   Bla
 
 """
-
+try:
+    import PKP.src
+except:
+    import src
 import sys
 import os
 import platform
 from docopt import docopt
 
 #PKP imports
-import src.CPD as CPD  # writes CPD-instruct File, launches CPD
 
 import matplotlib
 import numpy as np
@@ -161,10 +163,15 @@ def fit(folder=False, results=False, selectPyrolModel=None, json_string=False):
     fit.pyrolModel = "constantRate"
     return fit.startFittingProcedure(results)
 
-
-if __name__ == "__main__":
-    arguments = docopt(__doc__)
-    print arguments
-    if arguments['generate']:
-        generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
-    main()
+# def main():
+#     arguments = docopt(__doc__)
+#     print arguments
+#     if arguments['generate']:
+#         generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
+#
+# if __name__ == "__main__":
+#     arguments = docopt(__doc__)
+#     print arguments
+#     if arguments['generate']:
+#         generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
+#     main()

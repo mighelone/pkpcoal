@@ -300,12 +300,12 @@ class CPD(SetAndLaunchBase):
 
            TODO: Store Results in subfolder
         """
-        import PKP.bins
+        import pkp.bins
         if not self.writen_inputs:
             self.writeInstructFile()
             self.writeInDat()
 
-        cpdExec =  os.path.dirname(PKP.bins.__file__)
+        cpdExec =  os.path.dirname(pkp.bins.__file__)
         if OS == 'Linux':
             exe = '{}/cpdnlg'.format(cpdExec)
         elif OS == 'Darwin':

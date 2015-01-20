@@ -56,7 +56,7 @@ class GenericOpt(object):
                         )
                 deltaYield2 = np.power(
                       max((self.FitInfo[runnedCaseNr].Yield(self.Species)))
-                    - min((self.FitInfo[runnedCaseNr].Yield(self.Species))),2.0).
+                    - min((self.FitInfo[runnedCaseNr].Yield(self.Species))),2.0)
                 nTime = len(t)
                 errori = (yieldcalc-self.FitInfo[runnedCaseNr].Yield(self.Species))**2.
                 #error += self.__a0 * np.sum(errori)
@@ -68,7 +68,7 @@ class GenericOpt(object):
                           max(self.FitInfo[runnedCaseNr].Rate(self.Species))
                         - min((self.FitInfo[runnedCaseNr].Rate(self.Species))), 2.0)
                     errori = np.power(
-                        ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species)), 2.0)
+                        ratecalc-self.FitInfo[runnedCaseNr].Rate(self.Species), 2.0)
                     error += self.__a1 * np.sum(errori) / nTime / deltaRate2
             error /= len(self.FitInfo)
             #error *= GlobalOptParam.ScaleFactor
