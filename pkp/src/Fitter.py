@@ -6,6 +6,8 @@ from scipy.optimize import fmin_ncg
 from scipy.optimize import leastsq
 from scipy.optimize import fmin_slsqp
 
+from pkp.src.Models import Model
+
 #not really precise, just for tests (Analytical solution)
 def OptGradBased(inputs, model, results, species):
     """ Starts a gradient Based Optimization and returns the final Fit.
@@ -33,7 +35,9 @@ def OptGenAlgBased(inputs, model, results, species):
         Input are the Fit (Result Objects of the Detailed Models),
         the Parameter to initialize, the two Parameter vectors defining
         the range of the results and the Species index.
+        TODO: Revise
     """
+    from pkp.src import Evolve
     genAlg = Evolve.GenericOpt(inputs)
     model.update(genAlg.estimate())
     # afterwards grad based optimization
@@ -58,8 +62,84 @@ class TwoPointEstimator(object):
             u_0=u[-1]
             k_VM=(np.log(1- u[TimePoint]/u_0))/(-t[TimePoint])
         return k_VM
-#
-#the optimizer to use:
+
+class ModelError(object): 
+    # TODO merge this with the pyrolysis model
+
+    def __init__(self, runs, model, species, func, weightMass, weightRate):
+        self.runs = runs 
+        self.model = model
+        self.func = func
+        self.species = species 
+        self.weightMass = weightMass 
+        self.weightRate = weightRate 
+
+    def input_func(self, parameter):
+        """ The main function which returns the error, which serves as
+            input for the optimiser and computes the errors per run for
+            a given model, input parameter and precompt results
+
+            Arguments:
+            ---------
+                    parameter: input parameter for the model e.g.:
+                               pre-exp factor and tinit for const rate
+                    func:
+                    model:
+                    runs:
+                    species: name of the species to be fitted, needs
+                             to be stored in runs 
+        """
+        # rename it and make a class function
+        self.model.updateParameter(parameter)
+        # collect errors of individual runs
+        ret = [self.errorPerRun(run) for run in self.runs]
+
+        # If we have a simple scalar list just sum the errors
+        # else we component wise sum the error and return a vector
+        # of errors per point
+        self.error = (sum(ret) if type(ret[0]) != list else map(np.add, ret))
+        return self.error
+
+    def errorPerRun(self,run):
+        """ Evaluate the the error per run compared to pre comp
+            
+            Computation of the error is based on given function func,
+            since we either want a the global error or the error per point
+            for least squares
+         """
+        times      = run['time(ms)']*1e-3
+        targetMass = run[self.species]
+        targetRate = run[self.species] #FIXME
+        self.model.final_yield = targetMass[-1] #FIXME does this make sense?
+        modeledMass = self.model.calcMass(
+                init_mass = targetMass[0],
+                time = times,
+                temp = run.interpolate('temp'),
+            )
+        dt = False # FIXME
+        modeledRate = self.model.computeTimeDerivative(modeledMass, times=times)
+        # normalisation factor
+        def norm(weight, target):
+            return weight/np.power(Model.yieldDelta(target), 2.0)
+        normMass = norm(self.weightMass, targetMass)
+        normRate = norm(self.weightRate, targetRate)
+        return self.func(targetRate, modeledRate,
+                        targetMass, modeledMass,
+                        normRate, normMass, dt)
+
+    @classmethod
+    def ls_input_func(cls, tr, mr, tm, mm, nr, nm, dt):
+        ErrorRate = Model.modelErrorSquared(tr, mr)*dt
+        ErrorMass = Model.modelErrorSquared(tm, mm)*dt
+        return (ErrorMass * nm + ErrorRate * nr) * self.scaleFactor * dt
+
+    @classmethod
+    def min_input_func(cls, tr, mr, tm, mm, nr, nm, dt):
+        ErrorMass = Model.totModelErrorSquaredPerc(tm, mm)
+        ErrorRate = Model.totModelErrorSquaredPerc(tr, mr)
+        return (ErrorMass*nm + ErrorRate*nr)/len(tm)
+
+
 class LeastSquaresEstimator(object):
     """ Optimizes the Fitting curve using the Least Squares
         for Yields and the Rates.
@@ -152,78 +232,26 @@ class LeastSquaresEstimator(object):
             3. when the optimiser converged the pyrolysis model with new parameters
                is returned
         """
-        from pkp.src.Models import Model
         import scipy.optimize as scopt
-
-        # NOTE here a block of functions is defined to evaluate the
-        # the errors this should be moved to a separate class and
-        # needs test methods
-        def input_func(parameter, func, model, runs, species):
-            """ The main function which returns the error, which serves as
-                input for the optimiser
-
-                this functions takes care on reducing the errors evaluated
-                per run. If we get a list of scalars we just sum the error
-                if get a list of lists containing errors per point we need
-                to merge it
-            """
-            # rename it and make a class function
-            model.updateParameter(parameter)
-            # collect errors of individual runs
-            ret = [errorPerRun(run, func, model, species) for run in runs]
-            # if we have a simple scalar list just sum the errors
-            # else we component wise sum the error
-            return (sum(ret) if type(ret[0]) != list else map(np.add,ret))
-
-        def errorPerRun(run, func, model, species):
-            """ adapts final yield and  computes the modeled yield per run """
-            times = run['time(ms)']*1e-3
-            targetMass  = run[species]
-            targetRate  = run[species] #FIXME
-            model.final_yield = targetMass[-1] #FIXME does this make sense?
-            modeledMass = model.calcMass(
-                    init_mass = targetMass[0],
-                    time = times,
-                    temp = run.interpolate('temp'),
-                )
-            dt = False # FIXME
-            modeledRate = model.computeTimeDerivative(modeledMass, times = times)
-            # normalisation factor
-            def norm(weight, target):
-                return weight/np.power(Model.yieldDelta(target), 2.0)
-            normMass = norm(self.weightMass, targetMass)
-            normRate = norm(self.weightRate, targetRate)
-            return func(targetRate, modeledRate,
-                        targetMass, modeledMass,
-                        normRate, normMass, dt)
-
-        def ls_input_func(tr, mr, tm, mm, nr, nm, dt):
-            ErrorRate = Model.modelErrorSquared(tr, mr)*dt
-            ErrorMass = Model.modelErrorSquared(tm, mm)*dt
-            return (ErrorMass * nm + ErrorRate * nr) * self.scaleFactor * dt
-
-        def min_input_func(tr, mr, tm, mm, nr, nm, dt):
-            ErrorMass = Model.totModelErrorSquaredPerc(tm, mm)
-            ErrorRate = Model.totModelErrorSquaredPerc(tr, mr)
-            return (ErrorMass*nm + ErrorRate*nr)/len(tm)
 
         print 'start gradient based optimization, species: ' + species
         optimiser = getattr(scopt, self.optimizer)
         # select optimisation input function depending on the optimizer
         # this is needed since leastsq expects a list of errors where fmin
         # simply expects a global error
-        error_func = (ls_input_func if self.optimizer == 'leastsq' else min_input_func)
+        error_func = (ModelError.ls_input_func if self.optimizer == 'leastsq' else ModelError.min_input_func)
+        model_error = ModelError(results, model, species, error_func, self.weightMass, self.weightRate)
         OptimizedVector = optimiser(
-                func = input_func,
+                func = model_error.input_func,
                 x0   = model.parameter,
-                args = (error_func, model, results, species),
+                #args = (error_func, model, results, species),
                 ftol = self.fitTolerance, # TODO GO what is the diff between gtol&ftol
                 maxiter = self.maxIter
         ) # caLculates optimized vector
         # NOTE It seems unneccessary to reevaluate the model agian,
         #      but for now no better solution is in sight,
         #      so we will use it to store final yields and rates on the model
-        self.deviation = input_func(OptimizedVector, error_func, model, results, species)
+        self.deviation = model_error.error
         return model
 
 
