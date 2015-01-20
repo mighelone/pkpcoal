@@ -25,10 +25,7 @@ import platform
 from docopt import docopt
 
 #PKP imports
-
-import matplotlib
 import numpy as np
-import pylab as plt
 #
 sys.path.append('src')
 #
