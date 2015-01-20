@@ -1,11 +1,12 @@
 #!/usr/bin/python
 """
-PKP
+pkp-cli
 
 Usage:
       pkp-cli -h | --help
       pkp-cli generate (--json-input=<string> | --file-input=<loc>) --results-folder=<loc>
-      pkp-cli fit      (--json-input=<string> | --file-input=<loc>) --fit-target=<string> --results-folder=<loc>
+      pkp-cli generate-only (--json-input=<string> | --file-input=<loc>) --results-folder=<loc>
+      pkp-cli fit-only      (--json-input=<string> | --file-input=<loc>) --fit-target=<string> --results-folder=<loc>
 
 Options:
     -h  --help              Shows this screen
@@ -25,7 +26,20 @@ from pkpcli import generate
 from pkpcli import fit
 
 def main():
-    arguments = docopt(__doc__)
-    print arguments
-    if arguments['generate']:
-        generate(json_string=arguments['--json-input'], folder=arguments['--file-input'])
+    args = docopt(__doc__)
+    print args
+    inp = args['--file-input']
+    if args['generate'] or args['generate-only']:
+        json = args['--json-input']
+        pre = generate(json_string=json, folder=inp)
+        if args['generate-only']:
+            sys.exit(0)
+        else:
+            res = fit(
+                folder=inp,
+                results=pre,
+                selectPyrolModel="constantRate"
+            )
+    elif args['fit-only']:
+        pass
+    
