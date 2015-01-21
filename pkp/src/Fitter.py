@@ -26,9 +26,9 @@ def OptGradBased(inputs, model, results, species):
     """
     # Called by PyrolModelLauncher for every species
     ls = LeastSquaresEstimator(inputs['Optimisation'])
-    result = ls.estimate(results, model, species)
+    optModel = ls.estimate(results, model, species)
     print 'Final error= ' +  str(ls.deviation)
-    return result
+    return optModel
 
 def OptGenAlgBased(inputs, model, results, species):
     """ Starts a genetic algorithm and afterwards a gradient Based optimization.
@@ -39,11 +39,16 @@ def OptGenAlgBased(inputs, model, results, species):
         TODO: Revise
     """
     from pkp.src import Evolve
-    genAlg = Evolve.GenericOpt(inputs)
-    model.update(genAlg.estimate())
+    genAlg = Evolve.GenericOpt(inputs['Optimisation'])
+    optModel = genAlg.estimate(results, model, species)
+    # TODO we have to reset model.parameter to the values
+    #      after genetic opt
+    # TODO what is the reason for this test? 
     # afterwards grad based optimization
-    if GlobalOptParam.optimizGrad == True:
-        self.OptGradBased(Fit, ParameterVecInit, False, Species)
+    # if GlobalOptParam.optimizGrad == True:
+        #OptGradBased(Fit, ParameterVecInit, False, Species)
+    return OptGradBased(inputs, optModel, results, species)
+
 
 class TwoPointEstimator(object):
     """Solves the devolatilization reaction analytically using two arbitrary selected points and the constant rate model. Unprecise. Should only be used for tests."""
@@ -63,8 +68,6 @@ class TwoPointEstimator(object):
             u_0=u[-1]
             k_VM=(np.log(1- u[TimePoint]/u_0))/(-t[TimePoint])
         return k_VM
-
-
 
 class LeastSquaresEstimator(object):
     """ Optimizes the Fitting curve using the Least Squares
@@ -161,6 +164,7 @@ class LeastSquaresEstimator(object):
         import scipy.optimize as scopt
 
         print 'start gradient based optimization, species: ' + species
+        print 'initial parameter: ' + str(model.parameter) 
         optimiser = getattr(scopt, self.optimizer)
         # select optimisation input function depending on the optimizer
         # this is needed since leastsq expects a list of errors where fmin
@@ -178,93 +182,5 @@ class LeastSquaresEstimator(object):
         #      but for now no better solution is in sight,
         #      so we will use it to store final yields and rates on the model
         self.deviation = model_error.error
+        print 'final parameter: ' + str(model.parameter) 
         return model
-
-
-class GlobalOptimizer(object):
-    """Makes runs over a defined range to look for global optimum. Local Optimizer is an LeastSquarsEstimator object, KineticModel is e.g. an constantRate model object, Fit_one_runObj is the List containing the Objects supporting the local fitting procedure with data."""
-    def __init__(self,localOptimizer,KineticModel,Fit_one_runObj):
-        self.LocOpt=localOptimizer
-        self.KinModel=KineticModel
-        self.FitInfo=Fit_one_runObj
-        self.AllParameterList=[] #collects the final results of the local minima.
-
-    def setParamList(self,ParameterList):
-        """Sets the Parameter list."""
-        self.__ParamList=ParameterList
-
-    def ParamList(self):
-        """Returns the Parameter list."""
-        return self.__ParamList
-
-    def GenerateOptima(self,Species,IndexListofParameterToOptimize,ArrayOfRanges,ListNrRuns):
-        """This method makes a several number of runs and returns the Parameter having the lowest deviation of all local minima. The list contains 3 or 4 parameters. If e.g., the second and the third Parameter have to be optimized: IndexListofParameterToOptimize=[1,2]. If e.g. the range of the second is 10000 to 12000 and for the third 1 to 5,  ArrayOfRanges=[[10000,12000],[1,5]]. When ListNrRuns is e.g. [0,10,5,0] the the second Parameter will be optimizted eleven times between 10000 and 12000, the third six times between 1 and 5. Attention, the number of runs grows by NrRuns1*NrRuns2*NrRuns3*NrRuns4, which can lead to a very large number needing very much time!"""
-        DevList=[]       #saves the deviation"""
-        DevList=[]       #saves the deviation
-        ParamArray=[]    #saves the corresponding Prameter lists
-        Parameter=self.KinModel.ParamVector()
-        for i in range(len(IndexListofParameterToOptimize)):
-            Parameter[IndexListofParameterToOptimize[i]]=ArrayOfRanges[i][0]
-        self.setParamList(Parameter)
-        if len(self.__ParamList)==4:
-            for i in range(ListNrRuns[0]+1):
-                if ListNrRuns[0]!=0:
-                    self.__ParamList[0] = ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(0)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0])*((float(i))/ListNrRuns[0])
-                for j in range(ListNrRuns[1]+1):
-                    if ListNrRuns[1]!=0:
-                        self.__ParamList[1]=ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(1)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0])*((float(j))/ListNrRuns[1])
-                    for k in range(ListNrRuns[2]+1):
-                        if ListNrRuns[2]!=0:
-                            self.__ParamList[2]=ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(2)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0])*((float(k))/ListNrRuns[2])
-                        for l in range(ListNrRuns[3]+1):
-                            if ListNrRuns[3]!=0:
-                                self.__ParamList[3] = ArrayOfRanges[IndexListofParameterToOptimize.index(3)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(3)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(3)][0])*((float(l))/ListNrRuns[3])
-                            #
-                            self.KinModel.setParamVector(self.LocOpt.estimate_T(self.FitInfo,self.KinModel,self.__ParamList,Species))
-                            DevList.append(self.LocOpt.Deviation())
-                            ParamArray.append(self.KinModel.ParamVector())
-        ####
-        if len(self.__ParamList)==3:
-            for i in range(ListNrRuns[0]+1):
-                if ListNrRuns[0]!=0:
-                    self.__ParamList[0] = ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(0)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0])*((float(i))/ListNrRuns[0])
-                for j in range(ListNrRuns[1]+1):
-                    if ListNrRuns[1]!=0:
-                            self.__ParamList[1]=ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(1)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0])*((float(j))/ListNrRuns[1])
-                    for k in range(ListNrRuns[2]+1):
-                        if ListNrRuns[2]!=0:
-                            self.__ParamList[2]=ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(2)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0])*((float(k))/ListNrRuns[2])
-                            #
-                        self.KinModel.setParamVector(self.LocOpt.estimate_T(self.FitInfo,self.KinModel,self.__ParamList,Species))
-                        DevList.append(self.LocOpt.Deviation())
-                        ParamArray.append(self.KinModel.ParamVector())
-        if len(self.__ParamList)==6:
-            for i in range(ListNrRuns[0]+1):
-                if ListNrRuns[0]!=0:
-                    self.__ParamList[0] = ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(0)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(0)][0])*((float(i))/ListNrRuns[0])
-                for j in range(ListNrRuns[1]+1):
-                    if ListNrRuns[1]!=0:
-                        self.__ParamList[1]=ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(1)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(1)][0])*((float(j))/ListNrRuns[1])
-                    for k in range(ListNrRuns[2]+1):
-                        if ListNrRuns[2]!=0:
-                            self.__ParamList[2]=ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(2)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(2)][0])*((float(k))/ListNrRuns[2])
-                        for l in range(ListNrRuns[3]+1):
-                            if ListNrRuns[3]!=0:
-                                self.__ParamList[3] = ArrayOfRanges[IndexListofParameterToOptimize.index(3)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(3)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(3)][0])*((float(l))/ListNrRuns[3])
-                            for m in range(ListNrRuns[4]+1):
-                                if ListNrRuns[4]!=0:
-                                    self.__ParamList[4]=ArrayOfRanges[IndexListofParameterToOptimize.index(4)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(4)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(4)][0])*((float(m))/ListNrRuns[4])
-                                for n in range(ListNrRuns[5]+1):
-                                    if ListNrRuns[5]!=0:
-                                        self.__ParamList[5] = ArrayOfRanges[IndexListofParameterToOptimize.index(5)][0] + (ArrayOfRanges[IndexListofParameterToOptimize.index(5)][1]-ArrayOfRanges[IndexListofParameterToOptimize.index(5)][0])*((float(n))/ListNrRuns[5])
-                            #
-                            self.KinModel.setParamVector(self.LocOpt.estimate_T(self.FitInfo,self.KinModel,self.__ParamList,Species))
-                            DevList.append(self.LocOpt.Deviation())
-                            ParamArray.append(self.KinModel.ParamVector())
-        indexMinDeviation=DevList.index(np.min(DevList))
-        return ParamArray[indexMinDeviation]
-
-
-
-
-
