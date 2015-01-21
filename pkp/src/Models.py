@@ -255,10 +255,25 @@ class constantRate(Model):
         # if set to false, the numerical time step corresponding to the outputed
         # by the detailled model (e.g CPD) is used; define a value to use instead this
 
+    def __repr__(self):
+        return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
+
+
     def updateParameter(self, parameter):
         self.k          = parameter[0]
         self.start_time = parameter[1]
-        ##print "Parameter update " + str(parameter)
+        return self
+
+    def recalcMass(self):
+        """ recalculate mass releas after updateParameter
+
+            reuses init_mass, time and temp from previous
+            computation, needed for genetic algorhythm
+            since we only get the best parameters back
+            and need to adjust the model
+        """
+        self.calcMass(self.init_mass, self.time)
+        return self
 
     def calcMass(self, init_mass, time, temp=False):
         """ Computes the released mass over time
@@ -271,6 +286,7 @@ class constantRate(Model):
         #         and t_start as arguments?
         # we care only about time value
         # starting at start time
+        self.init_mass = init_mass # store for recalc
         time = time - self.start_time
         # the yield still retained in the coal
         # this should converge to zero at large
