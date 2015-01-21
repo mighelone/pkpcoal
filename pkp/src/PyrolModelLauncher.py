@@ -59,6 +59,7 @@ class FitResult(object):
         header = " ".join(self.res.keys())
         s = ""
         res = list(self.res.items())
+        # res[i] is a tuple of species name and model
         for i,_ in enumerate(res[0][1].mass):
             s += str(res[0][1].time[i]*1000) + "\t"
             for name, model in self.res.items():
