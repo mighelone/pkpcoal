@@ -5,21 +5,15 @@ import pkp.src.Models as mdls
 import numpy as np
 
 def test_calcC0_zeroTest():
-    """ Test if c0=0.0 for no carbon and no Ox """
+    # Test if c0=0.0 for no carbon and no Ox
     assert cpdsl.CPD.calcC0(0.0, 0.0) == 0.0
-
-def test_calcC0_maximumTestCarbon():
-    """ Test if for 100% carbon the maximum c0=0.36 is returned """
+    # Test if for 100% carbon the maximum c0=0.36 is returned
     assert cpdsl.CPD.calcC0(1.0, 0.0) == 0.36
-
-def test_calcC0_maximumTestOxygen():
-    """ Test if for 100% oxygen the maximum c0=0.15 is returned """
+    # Test if for 100% oxygen the maximum c0=0.15 is returned
     assert cpdsl.CPD.calcC0(0.0, 1.0) == 0.15
-
-def test_calcC0_website_8515():
-    """ Test if for 15%oxygen and 85% carbon a value of 0.035 is returned.
-        Value has been calculated with the online calculator tool 
-        from http://www.et.byu.edu/~tom/cpd/correlation.html """
+    # Test if for 15%oxygen and 85% carbon a value of 0.035 is returned.
+    # Value has been calculated with the online calculator tool 
+    # from http://www.et.byu.edu/~tom/cpd/correlation.html
     assert cpdsl.CPD.calcC0(0.85, 0.15) == 0.035
 
 def test_calcCoalParam():
@@ -58,15 +52,21 @@ def test_calcMassCR():
     # Test if at t=0 no mass is released
     assert const_rate.calcMass(0.0,0.0) == 0.0
  
-
-
 def test_full_main(tmpdir):
     from pkp.pkpcli import generate
     from pkp.pkpcli import fit
     fold = "/home/go/documents/code/pkp.git/inputs/"
     res = generate(folder=fold)
-    fit = fit(folder=fold, results=res, selectPyrolModel="constantRate")
-    print fit._tsv
+    fit1run = fit(folder=fold, results=res, 
+        selectPyrolModel="constantRate")
+    fit1run.inputs['OperatingConditions']['runs'] = 1
+    fit2run = fit(folder=fold, results=res,
+        selectPyrolModel="constantRate")
+    fit2run.inputs['OperatingConditions']['runs'] = 2
+    fit1 = fit1run.startFittingProcedure(res)
+    fit2 = fit2run.startFittingProcedure(res)
+    print fit1.res 
+    print fit2.res 
     # mp.plotResults(res, fitsCR)
     # fitsArr = mp.startFittingProcedure(res, selectPyrolModel="arrheniusRate")
     # mp.plotResults(res, fitsArr)

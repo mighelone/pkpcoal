@@ -134,5 +134,6 @@ def fit(folder=False, results=False, selectPyrolModel=None, json_string=False):
                 else ReadInputFiles(folder))
     fit = Fit(inputs)
     fit.pyrolModel = "constantRate"
-    return fit.startFittingProcedure(results)
+    #return fit.startFittingProcedure(results)
+    return fit#.startFittingProcedure(results)
 
