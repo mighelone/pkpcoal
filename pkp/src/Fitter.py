@@ -7,6 +7,7 @@ from scipy.optimize import leastsq
 from scipy.optimize import fmin_slsqp
 
 from pkp.src.Models import Model
+from pkp.src.Models import ModelError
 
 #not really precise, just for tests (Analytical solution)
 def OptGradBased(inputs, model, results, species):
@@ -63,81 +64,6 @@ class TwoPointEstimator(object):
             k_VM=(np.log(1- u[TimePoint]/u_0))/(-t[TimePoint])
         return k_VM
 
-class ModelError(object): 
-    # TODO merge this with the pyrolysis model
-
-    def __init__(self, runs, model, species, func, weightMass, weightRate):
-        self.runs = runs 
-        self.model = model
-        self.func = func
-        self.species = species 
-        self.weightMass = weightMass 
-        self.weightRate = weightRate 
-
-    def input_func(self, parameter):
-        """ The main function which returns the error, which serves as
-            input for the optimiser and computes the errors per run for
-            a given model, input parameter and precompt results
-
-            Arguments:
-            ---------
-                    parameter: input parameter for the model e.g.:
-                               pre-exp factor and tinit for const rate
-                    func:
-                    model:
-                    runs:
-                    species: name of the species to be fitted, needs
-                             to be stored in runs 
-        """
-        # rename it and make a class function
-        self.model.updateParameter(parameter)
-        # collect errors of individual runs
-        ret = [self.errorPerRun(run) for run in self.runs]
-
-        # If we have a simple scalar list just sum the errors
-        # else we component wise sum the error and return a vector
-        # of errors per point
-        self.error = (sum(ret) if type(ret[0]) != list else map(np.add, ret))
-        return self.error
-
-    def errorPerRun(self,run):
-        """ Evaluate the the error per run compared to pre comp
-            
-            Computation of the error is based on given function func,
-            since we either want a the global error or the error per point
-            for least squares
-         """
-        times      = run['time(ms)']*1e-3
-        targetMass = run[self.species]
-        targetRate = run[self.species] #FIXME
-        self.model.final_yield = targetMass[-1] #FIXME does this make sense?
-        modeledMass = self.model.calcMass(
-                init_mass = targetMass[0],
-                time = times,
-                temp = run.interpolate('temp'),
-            )
-        dt = False # FIXME
-        modeledRate = self.model.computeTimeDerivative(modeledMass, times=times)
-        # normalisation factor
-        def norm(weight, target):
-            return weight/np.power(Model.yieldDelta(target), 2.0)
-        normMass = norm(self.weightMass, targetMass)
-        normRate = norm(self.weightRate, targetRate)
-        return self.func(targetRate, modeledRate,
-                        targetMass, modeledMass,
-                        normRate, normMass, dt)
-
-    @classmethod
-    def ls_input_func(cls, tr, mr, tm, mm, nr, nm, dt):
-        ErrorRate = Model.modelErrorSquared(tr, mr)*dt
-        ErrorMass = Model.modelErrorSquared(tm, mm)*dt
-        return (ErrorMass * nm + ErrorRate * nr) * self.scaleFactor * dt
-
-    @classmethod
-    def min_input_func(cls, tr, mr, tm, mm, nr, nm, dt):
-        ErrorMass = Model.totModelErrorSquaredPerc(tm, mm)
-        ErrorRate = Model.totModelErrorSquaredPerc(tr, mr)
-        return (ErrorMass*nm + ErrorRate*nr)/len(tm)
 
 
 class LeastSquaresEstimator(object):
