@@ -96,7 +96,7 @@ class Model(object):
         """ compute the deviation between modeled values and the target values
             from the pre processor
         """
-        return target - model
+        return abs(target - model)
 
     @classmethod
     def modelErrorSquared(cls, target, model):
@@ -204,7 +204,7 @@ class ModelError(object):
             since we either want a the global error or the error per point
             for least squares
          """
-        times      = run['time(ms)']*1e-3
+        times      = run['time']
         targetMass = run[self.species]
         targetRate = run[self.species] #FIXME
         self.model.final_yield = targetMass[-1] #FIXME does this make sense?
@@ -279,7 +279,7 @@ class constantRate(Model):
         """ Computes the released mass over time
 
             Inputs:
-                time: array of time values
+                time: array of time values from the preproc
 
         """
         # TODO GO Could it be beneficial to take k and
@@ -287,11 +287,14 @@ class constantRate(Model):
         # we care only about time value
         # starting at start time
         self.init_mass = init_mass # store for recalc
-        time = time - self.start_time
+        time_ = time - self.start_time
         # the yield still retained in the coal
         # this should converge to zero at large
         # time
-        retained_mass = self.final_yield * np.exp(-self.k*time)
+        # NOTE dont compute values for negative times
+        # the yield should be zero anyways
+        time_ = time_.clip(0)
+        retained_mass = self.final_yield * np.exp(-self.k*time_)
         released_mass = self.final_yield - retained_mass
 
         # if we are interested in the solid mass
