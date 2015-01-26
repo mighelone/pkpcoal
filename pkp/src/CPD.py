@@ -21,11 +21,14 @@ class CPDResult(object):
     # NOTE GO: last line of CPD_Result1 is a duplicate
     solver = "CPD"
 
-    def __init__(self, folder):
-        files = ["CPD_Result{}.dat".format(i) for i in range(1,5)]
-        self.data   = {fn:CPDResult.readResults(folder + fn) for fn in files}
-        self.header = {fn:CPDResult.readHeader(folder + fn) for fn in files}
-
+    def __init__(self, folder=False, dct=False):
+        if folder:
+            files = ["CPD_Result{}.dat".format(i) for i in range(1,5)]
+            self.data   = {fn:CPDResult.readResults(folder + fn) for fn in files}
+            self.header = {fn:CPDResult.readHeader(folder + fn) for fn in files}
+        elif dct:
+            self.data = dct['data']
+            self.header = dct['header']
 
     def __getitem__(self, item):
         def find_file(item):
@@ -34,13 +37,24 @@ class CPDResult(object):
                     return fn, names.index(item)
             else:
                 print "cannot find", item, fn, names #TODO GO replace by error
-        fn, column = find_file(item)
-        return self.data[fn][column]
+        if not 'time' in item:
+            fn, column = find_file(item)
+            return self.data[fn][column]
+        elif item == 'time':
+            # make sure that we return time only
+            # in SI units
+            fn, column = find_file('time(ms)')
+            return self.data[fn][column]/1000.0
+        elif item == 'time(ms)':
+            # make sure that we return time only
+            # in SI units
+            fn, column = find_file('time(ms)')
+            return self.data[fn][column]
 
     @property
     def _tsv(self):
         # out = {name: list(data) for name, data in self.iterspecies()}
-        fields = ['time(ms)', 'fch4', 'fco', 'temp', "fh20", "fco2", "fother"]
+        fields = ['time', 'fch4', 'fco', 'temp', "fh20", "fco2", "fother"]
         header = " ".join(fields)
         s = ""
         for i,_ in enumerate(self.__getitem__('time(ms)')):

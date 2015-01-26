@@ -1,4 +1,6 @@
 import numpy as np
+
+from scipy.optimize import minimize
 from scipy.optimize import fmin
 from scipy.optimize import fmin_cg
 from scipy.optimize import fmin_bfgs
@@ -161,23 +163,17 @@ class LeastSquaresEstimator(object):
             3. when the optimiser converged the pyrolysis model with new parameters
                is returned
         """
-        import scipy.optimize as scopt
-
         print 'start gradient based optimization, species: ' + species
-        print 'initial parameter: ' + str(model.parameter) 
-        optimiser = getattr(scopt, self.optimizer)
-        # select optimisation input function depending on the optimizer
-        # this is needed since leastsq expects a list of errors where fmin
-        # simply expects a global error
-        error_func = (ModelError.ls_input_func if self.optimizer == 'leastsq' else ModelError.min_input_func)
+        # error_func = (ModelError.ls_input_func if self.optimizer == 'leastsq' else ModelError.min_input_func)
         model_error = ModelError(results, model, species, error_func, self.weightMass, self.weightRate)
-        OptimizedVector = optimiser(
-                func = model_error.input_func,
+        OptimizedVector = minimize(
+                fun  = model_error.input_func,
                 x0   = model.parameter,
-                #args = (error_func, model, results, species),
-                ftol = self.fitTolerance, # TODO GO what is the diff between gtol&ftol
-                maxiter = self.maxIter
-        ) # caLculates optimized vector
+                method = 'CG',
+                # bounds = [(None,None),(1e-6,0.99)],#FIXME read from inputs
+                tol = 1.0e-32,# self.fitTolerance, # FIXME
+                options = {'maxiter': self.maxIter}
+        ) # calculates optimized vector
         # NOTE It seems unneccessary to reevaluate the model agian,
         #      but for now no better solution is in sight,
         #      so we will use it to store final yields and rates on the model

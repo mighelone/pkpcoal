@@ -10,7 +10,7 @@ class GenericOpt(object):
         run object list, which supports the fitting process with the informations.
         TODO implement limits 
     """
-    __NrGenerations=100
+    __NrGenerations=200
     __NrPopulation=30
     optimizer = "None"
 
@@ -57,7 +57,7 @@ class GenericOpt(object):
         #         (self.initParams - self.minParams)/(self.deltaParams)
         # )
         genome = G1DList.G1DList(len(model.parameter))
-        genome.setParams(rangemin=0, rangemax=1)
+        genome.setParams(rangemin=0,rangemax=1)
         genome.initializator.set(Initializators.G1DListInitializatorReal)
         genome.mutator.set(Mutators.G1DListMutatorRealRange)
         # The evaluator function (objective function)

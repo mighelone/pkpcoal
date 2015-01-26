@@ -57,6 +57,13 @@ class Model(object):
     """ Parent class of the children ConstantRateModel,
         the three Arrhenius Models (notations) and the Kobayashi models.
 
+        Parameter:
+                name      = model name e.g constantRate
+                parameter = initial parameter which are adapted during
+                            optimisation
+                species   = Name of the modeled species
+                runs      = preProc results as list
+
         TimeVectorToInterplt allows the option to define the discrete time points,
         where to interpolate the results. If set to False (standard), then is are
         the outputed results equal the dt to solve the ODE. If set
@@ -64,11 +71,42 @@ class Model(object):
         yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4],
         linear interploated."""
 
-    def __init__(self, name, parameter, constDt=False):
+    def __init__(self, name, parameter, parameterBounds, inputs, species, calcMass, runs=False, constDt=False):
         print "Initialised {} Model".format(name)
         self.name = name
         self.initialParameter = parameter
+        self.parameter = parameter
+        self.parameterBounds = parameterBounds
+        self.species = species
         self.constDt = constDt
+        self.calcMass = calcMass
+        self.finalYield = 1.0
+        self.runs = (runs if runs else [])
+        self.postGeneticOpt = True
+
+    def fit(self):
+        print 'initial parameter: ' + str(self.initialParameter)
+        if len(self.runs) > 1:
+            from pkp.src import Evolve
+            genAlg = Evolve.GenericOpt(self.parameter['Optimisation'])
+            optModel = genAlg.estimate(results, model, species)
+        if self.postGeneticOpt:
+            print 'start gradient based optimization, species: ' + self.species
+            from scipy.optimize import minimize
+            optimizedParameter = minimize(
+                    fun  = self.error,
+                    x0   = self.initialParameter,
+                    # method = 'CG',
+                    bounds = self.parameterBounds,
+                    tol = 1.0e-32,# self.fitTolerance, # FIXME
+                    # options = {'maxiter': self.maxIter}
+            )
+            self.parameter = optimizedParameter
+        return optimizedParameter
+
+    def updateParameter(self, parameter):
+        self.parameter  = parameter
+        return self
 
     def computeTimeDerivative(self, mass, deltaT=False, times=False):
         """ Return time derivatives for a given deltat array
@@ -90,28 +128,6 @@ class Model(object):
         mass = self.calcMass(preProcResult, time, temp, species)
         return self.computeTimeDerivative(mass, times = time)
 
-
-    @classmethod
-    def modelErrori(cls, target, model):
-        """ compute the deviation between modeled values and the target values
-            from the pre processor
-        """
-        return abs(target - model)
-
-    @classmethod
-    def modelErrorSquared(cls, target, model):
-        """ compute the deviation between modeled values and the target values
-            from the pre processor
-        """
-        return np.power(target - model, 2.0)
-
-    @classmethod
-    def summedModelError(cls, target, model):
-        return np.sum(Model.modelError(target, model))
-
-    @classmethod
-    def totModelErrorSquaredPerc(cls, target, model):
-        return np.sum(Model.modelErrorSquared(target, model))/len(target)
 
 
     @classmethod
@@ -160,36 +176,23 @@ class Model(object):
         if self.constDt != False:
          self.constDtVec = np.arange(Time[0], Time[-1], self.constDt)
 
-class ModelError(object): 
-    # TODO merge this with the pyrolysis model
-
-    def __init__(self, runs, model, species, func, weightMass, weightRate):
-        self.runs = runs 
-        self.model = model
         self.func = func
-        self.species = species 
-        self.weightMass = weightMass 
-        self.weightRate = weightRate 
 
-    def input_func(self, parameter):
-        """ The main function which returns the error, which serves as
-            input for the optimiser and computes the errors per run for
-            a given model, input parameter and precompt results
+    def error(self, parameter, func="cummulative", weightMass=1.0, weightRate=0.0):
+        """ Function for the optimizer, computes model error as a function
+            of the input parameter
 
             Arguments:
             ---------
                     parameter: input parameter for the model e.g.:
                                pre-exp factor and tinit for const rate
-                    func:
-                    model:
-                    runs:
-                    species: name of the species to be fitted, needs
-                             to be stored in runs 
+                    func:      name of the function for evaluating the
+                               error e.g. cummulative, or perpoint
         """
-        # rename it and make a class function
-        self.model.updateParameter(parameter)
         # collect errors of individual runs
-        ret = [self.errorPerRun(run) for run in self.runs]
+        func = Model.cumulative_error
+        ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate) 
+                    for run in self.runs]
 
         # If we have a simple scalar list just sum the errors
         # else we component wise sum the error and return a vector
@@ -197,9 +200,9 @@ class ModelError(object):
         self.error = (sum(ret) if type(ret[0]) != list else map(np.add, ret))
         return self.error
 
-    def errorPerRun(self,run):
-        """ Evaluate the the error per run compared to pre comp
-            
+    def errorPerRun(self, parameter, run, func, weightMass, weightRate):
+        """ Evaluate the error per run compared to pre comp
+
             Computation of the error is based on given function func,
             since we either want a the global error or the error per point
             for least squares
@@ -207,36 +210,64 @@ class ModelError(object):
         times      = run['time']
         targetMass = run[self.species]
         targetRate = run[self.species] #FIXME
-        self.model.final_yield = targetMass[-1] #FIXME does this make sense?
-        modeledMass = self.model.calcMass(
-                init_mass = targetMass[0],
-                time = times,
-                temp = run.interpolate('temp'),
-            )
-        dt = False # FIXME
-        modeledRate = self.model.computeTimeDerivative(modeledMass, times=times)
+        modeledMass = self.calcMass(parameter, 0.0, times, run.interpolate('temp'))
+        modeledRate = self.computeTimeDerivative(modeledMass, times=times)
+        dt = False
         # normalisation factor
         def norm(weight, target):
             return weight/np.power(Model.yieldDelta(target), 2.0)
-        normMass = norm(self.weightMass, targetMass)
-        normRate = norm(self.weightRate, targetRate)
-        return self.func(targetRate, modeledRate,
-                        targetMass, modeledMass,
-                        normRate, normMass, dt)
+        normMass = norm(weightMass, targetMass)
+        normRate = norm(weightRate, targetRate)
+        return func(targetRate, modeledRate,
+                    targetMass, modeledMass,
+                    normRate, normMass, dt)
 
     @classmethod
-    def ls_input_func(cls, tr, mr, tm, mm, nr, nm, dt):
+    def perPointError(cls, tr, mr, tm, mm, nr, nm, dt):
         ErrorRate = Model.modelErrorSquared(tr, mr)*dt
         ErrorMass = Model.modelErrorSquared(tm, mm)*dt
         return (ErrorMass * nm + ErrorRate * nr) * self.scaleFactor * dt
 
     @classmethod
-    def min_input_func(cls, tr, mr, tm, mm, nr, nm, dt):
-        ErrorMass = Model.totModelErrorSquaredPerc(tm, mm)
-        ErrorRate = Model.totModelErrorSquaredPerc(tr, mr)
-        return (ErrorMass*nm + ErrorRate*nr)/len(tm)
+    def cumulative_error(cls, tr, mr, tm, mm, nr, nm, dt):
+        ErrorMass = Model.totModelErrorAbsPerc(tm, mm)
+        ErrorRate = Model.totModelErrorAbsPerc(tr, mr)
+        return (ErrorMass*nm + ErrorRate*nr)
 
-################childrenclasses####################
+    @classmethod
+    def modelErrori(cls, target, model):
+        """ compute the deviation between modeled values and the target values
+            from the pre processor
+        """
+        return abs(target - model)
+
+    @classmethod
+    def modelErrorSquared(cls, target, model):
+        """ compute the deviation between modeled values and the target values
+            from the pre processor
+        """
+        return np.power(target - model, 2.0)
+
+    @classmethod
+    def modelErrorAbs(cls, target, model):
+        """ compute the deviation between modeled values and the target values
+            from the pre processor
+        """
+        return np.abs(target - model)
+
+    @classmethod
+    def totModelErrorAbsPerc(cls, target, model):
+        return np.sum(Model.modelErrorAbs(target, model))/len(target)
+
+    @classmethod
+    def summedModelError(cls, target, model):
+        return np.sum(Model.modelError(target, model))
+
+    @classmethod
+    def totModelErrorSquaredPerc(cls, target, model):
+        return np.sum(Model.modelErrorSquared(target, model))/len(target)
+
+################ children classes ####################
 
 class constantRate(Model):
     """ The model calculating the mass
@@ -247,22 +278,21 @@ class constantRate(Model):
     #TODO store initial parameter to see test if parameters have been changed
     #TODO GO parameter[2] is not specified in inputs example
 
-    def __init__(self, parameter):
-        Model.__init__(self, "ConstantRate", parameter)
-        self.k           = parameter["k"]
-        self.start_time  = parameter["tstart"]
-        self.final_yield = parameter.get('finalYield',False)
+    def __init__(self, inputs, runs, species):
+        paramNames  = ['k', 'tstart', 'finalYield']
+        parameter   = [inputs['constantRate'][paramName] for paramName in paramNames]
+        paramBounds = [inputs['constantRate'].get(paramName+"Bounds",(None,None))
+                         for paramName in paramNames] 
+        Model.__init__(self, "ConstantRate", parameter, paramBounds, inputs,
+            species, self.calcMassConstRate, runs)
+        # self.k           = parameter["k"]
+        # self.start_time  = parameter["tstart"]
+        # self.final_yield = parameter.get('finalYield',False)
         # if set to false, the numerical time step corresponding to the outputed
         # by the detailled model (e.g CPD) is used; define a value to use instead this
 
     def __repr__(self):
         return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
-
-
-    def updateParameter(self, parameter):
-        self.k          = parameter[0]
-        self.start_time = parameter[1]
-        return self
 
     def recalcMass(self):
         """ recalculate mass releas after updateParameter
@@ -275,35 +305,42 @@ class constantRate(Model):
         self.calcMass(self.init_mass, self.time)
         return self
 
-    def calcMass(self, init_mass, time, temp=False):
+    def calcMassConstRate(self, parameter, init_mass, time, temp=False):
         """ Computes the released mass over time
 
             Inputs:
+                parameter: array of parameter e.g [k, tstart, finalYield]
+                init_mass: not implemented
                 time: array of time values from the preproc
 
+            NOTE: the function doesnt implicitly modifiy state of the
+                  constantRate Model, to modify the released mass
+                  use instance.mass = calcMassConstRate(...)
         """
-        # TODO GO Could it be beneficial to take k and
-        #         and t_start as arguments?
+        # TODO better use a classmethod?
+        k = parameter[0]
+        start_time = parameter[1]
+        final_yield = parameter[2]
+
         # we care only about time value
         # starting at start time
-        self.init_mass = init_mass # store for recalc
-        time_ = time - self.start_time
-        # the yield still retained in the coal
-        # this should converge to zero at large
-        # time
+        time_ = time - start_time
+
         # NOTE dont compute values for negative times
         # the yield should be zero anyways
         time_ = time_.clip(0)
-        retained_mass = self.final_yield * np.exp(-self.k*time_)
-        released_mass = self.final_yield - retained_mass
+
+        # the yield still retained in the coal
+        # this should converge to zero at large
+        # time
+        retained_mass = final_yield * np.exp(-k*time_)
+        released_mass = final_yield - retained_mass
 
         # if we are interested in the solid mass
         # TODO GO what is this solid thing going on here
         if False: #species == 'Solid':
-            released_mass += solid_mass*np.exp(-self.k*time)
+            released_mass += solid_mass*np.exp(-k*time)
 
-        self.mass = released_mass
-        self.time = time
         # why choosing between released or solid mass
         # start_time is small then time
         # released_mass = np.where(time > self.start_time, released_mass, solid_mass)
@@ -314,9 +351,12 @@ class constantRate(Model):
             return self._mkInterpolatedRes(released_mass, time)
 
     @property
-    def parameter(self):
-        return np.array([self.k, self.start_time])
+    def k(self):
+        return self.parameter[0]
 
+    @property
+    def start_time(self):
+        return self.parameter[1]
 
 class arrheniusRate(Model):
     """ The Arrhenius model in the standart notation:
