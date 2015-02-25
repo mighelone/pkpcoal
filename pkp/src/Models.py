@@ -88,13 +88,13 @@ class Model(object):
         print 'initial parameter: ' + str(self.initialParameter)
         if len(self.runs) > 1:
             from pkp.src import Evolve
-            genAlg = Evolve.GenericOpt(self.parameter['Optimisation'])
-            optModel = genAlg.estimate(results, model, species)
+            optParams = self.geneticOpt()
+            self.initialParameter = optParams
         if self.postGeneticOpt:
             print 'start gradient based optimization, species: ' + self.species
             from scipy.optimize import minimize
             optimizedParameter = minimize(
-                    fun  = self.error,
+                    fun  = self.error_func,
                     x0   = self.initialParameter,
                     # method = 'CG',
                     bounds = self.parameterBounds,
@@ -103,6 +103,45 @@ class Model(object):
             )
             self.parameter = optimizedParameter
         return optimizedParameter
+
+    def geneticOpt(self):
+        from pyevolve import G1DList, GSimpleGA, Selectors
+        from pyevolve import Initializators, Mutators, Consts, DBAdapters
+        import numpy as np
+        genome = G1DList.G1DList(len(self.parameter))
+        # genome.setParams(rangemin=self.parameterBounds[0],
+        #                  rangemax=self.parameterBounds[1])
+        genome.initializator.set(Initializators.G1DListInitializatorReal)
+        genome.mutator.set(Mutators.G1DListMutatorRealRange)
+        # The evaluator function (objective function)
+        genome.evaluator.set(self.error_func)
+        # Genetic Algorithm Instance
+        ga = GSimpleGA.GSimpleGA(genome)
+        ga.setMinimax(Consts.minimaxType["minimize"])
+        # set the population size
+        ga.setPopulationSize(1000) #FIXME
+        # set the number of generation
+        ga.setGenerations(100) #FIXME
+        # Set the Roulette Wheel selector method,
+        # the number of generations and the termination criteria
+        ga.selector.set(Selectors.GRouletteWheel)
+        ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
+        ga.setMutationRate(0.4)
+        ga.setCrossoverRate(1.0)
+        # parallel processing
+        # ga.setMultiProcessing(True)
+        # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
+        # the database and erase all data every run, you should use this flag
+        # just in the first time, after the pyevolve.db was created, you can
+        # omit it.
+        # sqlite_adapter = DBAdapters.DBSQLite(identify="koba", resetDB=True)
+        # ga.setDBAdapter(sqlite_adapter)
+        # Do the evolution, with stats dump, frequency of 20 generations
+        ga.evolve(freq_stats=10)
+        # Gets the best individual
+        best = ga.bestIndividual() # update or find best model
+        print best[0:]
+        return best[0:]
 
     def updateParameter(self, parameter):
         self.parameter  = parameter
@@ -178,7 +217,7 @@ class Model(object):
 
         self.func = func
 
-    def error(self, parameter, func="cummulative", weightMass=1.0, weightRate=0.0):
+    def error_func(self, parameter, func="cummulative", weightMass=1.0, weightRate=0.0):
         """ Function for the optimizer, computes model error as a function
             of the input parameter
 
@@ -230,6 +269,13 @@ class Model(object):
 
     @classmethod
     def cumulative_error(cls, tr, mr, tm, mm, nr, nm, dt):
+        """ Parameter tr: target rate
+                      mr: model rate
+                      tm: target mass
+                      mm: model mass
+                      nr: weight paramater rate
+                      nm: weight parameter mass
+        """
         ErrorMass = Model.totModelErrorAbsPerc(tm, mm)
         ErrorRate = Model.totModelErrorAbsPerc(tr, mr)
         return (ErrorMass*nm + ErrorRate*nr)
