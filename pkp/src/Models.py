@@ -90,9 +90,11 @@ class Model(object):
             from pkp.src import Evolve
             optParams = self.geneticOpt()
             self.initialParameter = optParams
+            self.parameterBounds = None #  reset bounds
         if self.postGeneticOpt:
             print 'start gradient based optimization, species: ' + self.species
             from scipy.optimize import minimize
+            print "bounds",  self.parameterBounds
             optimizedParameter = minimize(
                     fun  = self.error_func,
                     x0   = self.initialParameter,
@@ -119,9 +121,9 @@ class Model(object):
         ga = GSimpleGA.GSimpleGA(genome)
         ga.setMinimax(Consts.minimaxType["minimize"])
         # set the population size
-        ga.setPopulationSize(1000) #FIXME
+        ga.setPopulationSize(500) #FIXME
         # set the number of generation
-        ga.setGenerations(100) #FIXME
+        ga.setGenerations(200) #FIXME
         # Set the Roulette Wheel selector method,
         # the number of generations and the termination criteria
         ga.selector.set(Selectors.GRouletteWheel)
@@ -166,8 +168,6 @@ class Model(object):
         """
         mass = self.calcMass(preProcResult, time, temp, species)
         return self.computeTimeDerivative(mass, times = time)
-
-
 
     @classmethod
     def yieldDelta(cls, mass):
@@ -413,15 +413,14 @@ class arrheniusRate(Model):
     absoluteTolerance = 1.0e-8
     relativeTolerance = 1.0e-6
 
-    def __init__(self, parameter):
-        Model.__init__(self, "ArrhenuisRate", parameter)
-        self.A = parameter["preExp"]
-        self.beta = parameter["beta"]
-        self.E  = parameter["activationEnergy"]
-
-    @property
-    def parameter(self):
-        return np.array([self.A, self.beta, self.E])
+    def __init__(self, inputs, runs, species):
+        paramNames  = ['preExp', 'beta', 'activationEnergy']
+        parameter   = [inputs['arrheniusRate'][paramName] for paramName in paramNames]
+        paramBounds = [inputs['arrheniusRate'].get(paramName+"Bounds",(None,None))
+                         for paramName in paramNames] 
+        Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
+            species, self.calcMassArrhenius, runs)
+        self.updateParameter(self.parameter)
 
     def updateParameter(self, parameter):
         self.A    = parameter[0]
@@ -429,36 +428,44 @@ class arrheniusRate(Model):
         self.E    = parameter[2]
         ##print "Parameter update " + str(parameter)
 
-    def calcMass(self, init_mass, time, temp=False):
+    def calcMassArrhenius(self, parameter, init_mass, time, temp=False):
         """Outputs the mass(t) using the model specific equation."""
         """ dm/dt=A*(T**b)*exp(-E/T)*(m_s-m)  """
+        inp_temp = temp
         def dmdt(m, t):
             T  = temp(t) # so temp is a function that takes t and returns T
-            dm = self.final_yield - m # finalYield
+            #T  = inp_temp[np.where(time==t)] # so temp is a function that takes t and returns T
+            # dm = self.final_yield - m # finalYield
+            dm = init_mass - m # finalYield
+            A = self.A
+            beta = self.beta
+            E = self.E
             if False:
-                dmdt_ = (-self.A * dm  #FIXME this doesnt make sense!
+                dmdt_ = (-A * dm  #FIXME this doesnt make sense!
                           * np.power(T, beta)
                           * np.exp(-self.E/T)
                             )
             else:
-                dmdt_ =  (self.A * dm
-                          * np.power(T, self.beta)
-                          * np.exp(-self.E/T)) # TODO this should be Ta instead of E
+                dmdt_ =  (A * dm
+                          * np.power(T, beta)
+                          * np.exp(-E/T)) # TODO this should be Ta instead of E
 
             # sets values < 0 to 0.0, to avoid further problems
             return np.where(dmdt_ > 1e-64, dmdt_, 0.0)
-
         m_out = sp.integrate.odeint(
                 func=dmdt,
-                y0=[init_mass],
+                y0=init_mass,
                 t=time,
                 atol=self.absoluteTolerance,
                 rtol=self.relativeTolerance,
                 hmax=self.ODE_hmax,
             )
-
-        self.mass = m_out
-        return m_out
+        m_out = m_out[:, 0]
+        if self.constDt == False: # TODO GO shouldnt interpolation be used for var dt?
+            #print "modeled_mass " + str(released_mass)
+            return m_out
+        else: #returns the short, interpolated list (e.g. for PCCL)
+            return self._mkInterpolatedRes(m_out, time)
 
     def ConvertKinFactors(self,ParameterVector):
         """ Dummy function actual has to convert the
@@ -466,56 +473,6 @@ class arrheniusRate(Model):
         """
         #does nothing, just to have the same way of use for all notations
         return ParameterVector
-
-
-class ArrheniusModelNoB(Model):
-    """The Arrhenius model in the standart notation: dm/dt=A*exp(-E/T)*(m_s-m) with the parameter a,b,E to optimize."""
-    def __init__(self,InitialParameterVector):
-        print 'Arrhenuis Model initialized'
-        self._modelName = 'ArrheniusNoB'
-        self._ParamVector=InitialParameterVector
-        self.ODE_hmax=1.e-2
-        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
-
-    def calcMass(self,preProcResult,time,T,Name):
-        """Outputs the mass(t) using the model specific equation."""
-        #numercal values:
-        absoluteTolerance = 1.0e-8
-        relativeTolerance = 1.0e-6
-        ##################
-        u=preProcResult.Yield(Name)
-        ParamVec=self.ParamVector()
-        m_s0=ParamVec[2]
-        # question whether the dt from DetailledModel result file or from a constant dt should be used
-        if self.constDt == False: # dt for integrate = dt from DM result file
-            timeInt = time
-        else: #if dt in DM results file has too large dt
-            self._mkDt4Integrate(time)
-            timeInt = self.constDtVec
-        def dmdt(m,t):
-            if Name == 'Solid':# or Name == preProcResult.Yields2Cols['Solid']:
-                dmdt_out=-ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m-m_s0)
-                dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
-            else:
-                dmdt_out= ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))*(m_s0-m)
-                dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problems (nan)
-            return dmdt_out
-        InitialCondition=[u[0]]
-        m_out=sp.integrate.odeint(dmdt,InitialCondition,timeInt,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax)
-        if self.constDt == False:
-            if (ParamVec[0]<0 or ParamVec[1]<0):
-                m_out[:,0]=float('inf')
-                return m_out[:,0]
-            else:
-                return m_out[:,0]
-        else: #returns the short, interpolated list (e.g. for PCCL)
-            return self._mkInterpolatedRes(m_out[:,0],time)
-
-    def ConvertKinFactors(self,ParameterVector):
-        """Dummy. Function actual has to convert the parameter into the standart Arrhenius notation."""
-        #does nothing, just to have the same way of use for all notations
-        return ParameterVector
-
 
 class Kobayashi(Model):
     """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation."""
