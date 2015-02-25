@@ -129,7 +129,7 @@ class TestFittingProcedures():
         def model_cumalative_error(arr):
             return Model.cumulative_error(arr, arr, arr, arr, 1.0, 1.0, 1.0)
 
-        def model_cumalative_error_parallel(delta):
+        def model_cumalative_error_parallel_lines(delta):
             arr = np.zeros(10) 
             arr2 = arr + delta
             return Model.cumulative_error(arr, arr2, arr, arr2, 0.0, 1.0, 1.0)
@@ -158,18 +158,22 @@ class TestFittingProcedures():
 
         # TODO Axis labels
         deltas = np.arange(0.0, 1.01, 0.01)
-        errors = [model_cumalative_error_parallel(delta) for delta in deltas]
+        errors = [model_cumalative_error_parallel_lines(delta)
+                    for delta in deltas]
 
         # assume linear dependency
         assert np.allclose(deltas, errors)
 
         shifted_deltas = deltas - 0.5
-        shifted_errors = [model_cumalative_error_parallel(delta)
+        shifted_errors = [model_cumalative_error_parallel_lines(delta)
             for delta in shifted_deltas]
         assert np.allclose(abs(shifted_deltas),shifted_errors)
 
         axs.plot(deltas, errors, color = 'k', label = "model error", linewidth = 2)
-        axs.plot(deltas, shifted_errors, color = 'r', label = "model error shift", linewidth = 2)
+        axs.plot(deltas, shifted_errors, color = 'r',
+            label = "model error shift", linewidth = 2)
+        axs.set_ylabel('return values of error function')
+        axs.set_xlabel('parallel lines delta')
         plt.legend()
         fig.savefig('tests/cummulative_error.png')
 
@@ -193,12 +197,21 @@ class TestFittingProcedures():
             color = 'g', label = "yield fit", linestyle='--')
 
         plt.legend()
-        fig.savefig('tests/fit.png')
-
+        fig.savefig('tests/fit_constant_rate_single.png')
 
     def test_genetic_model(self, exp_cr_fit_bounded_multi):
         fit = exp_cr_fit_bounded_multi
         optimizedParameter = fit.fit().x
+        time = np.arange(0.0, 1.01, 0.01)
+        print optimizedParameter
+        fittedYield = fit.calcMass(optimizedParameter, 0.0, time)
+        
+        fig, axs = plt.subplots()
+        axs.plot(time, fittedYield, color = 'k', label = "yield fit unbounded")
+        axs.plot(time, exp_yield, color = 'r', label = "target yield")
+
+        plt.legend()
+        fig.savefig('tests/fit_constant_rate_multi.png')
 
     # def test_minimisation_linear():
     #     from pkp.src.CPD import CPDResult
