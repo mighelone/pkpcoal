@@ -1,0 +1,234 @@
+import os
+
+import pkp.src.CPD as cpdsl
+import pkp.src.Models as mdls
+import numpy as np
+
+# NOTE Mock data
+species = "MockSpecies"
+mock_res_dct = {
+        "header": {"file": ["time(ms)",species,"temp"]},
+        "data":   {"file": [ 
+                np.arange(0.0, 1000.1, 10.0),
+                np.arange(0.0, 1.01,    0.01),
+                np.arange(0.0, 1.01,    0.01)]}
+        }
+
+mock_res_dct_exp = {
+        "header": {"file": ["time(ms)",species,"temp"]},
+        "data":   {"file": [ 
+                np.arange(0.0, 1000.1, 10.0),
+                1.0-np.exp(-np.arange(0.0, 1.01,    0.01)),
+                np.arange(0.0, 1.01,    0.01)]}
+        }
+
+opt_params = {
+     'GradBasedOpt':'fmin',
+     'maxIter':1000,
+     'scaleFactor': False, # What is this used for
+     'Tolerance': False,   # Currently opt default
+     'weightMass': 1.0,
+     'weightRate': 0.0,
+}
+
+def test_calcC0_zeroTest():
+    # Test if c0=0.0 for no carbon and no Ox
+    assert cpdsl.CPD.calcC0(0.0, 0.0) == 0.0
+    # Test if for 100% carbon the maximum c0=0.36 is returned
+    assert cpdsl.CPD.calcC0(1.0, 0.0) == 0.36
+    # Test if for 100% oxygen the maximum c0=0.15 is returned
+    assert cpdsl.CPD.calcC0(0.0, 1.0) == 0.15
+    # Test if for 15%oxygen and 85% carbon a value of 0.035 is returned.
+    # Value has been calculated with the online calculator tool
+    # from http://www.et.byu.edu/~tom/cpd/correlation.html
+    assert cpdsl.CPD.calcC0(0.85, 0.15) == 0.035
+
+def test_CPDResults_timeconversion():
+    from pkp.src.CPD import CPDResult
+    results = CPDResult(dct=mock_res_dct)
+    assert np.array_equal(
+                results['time'],
+                mock_res_dct['data']['file'][0]/1000.0)
+    assert np.array_equal(
+                results['time(ms)'],
+                mock_res_dct['data']['file'][0])
+    
+def init_and_est(params, pre_proc):
+    """ initialize and estimate rates from mocked preproc data"""
+    from pkp.src.Fitter import LeastSquaresEstimator
+    from pkp.src.Models import constantRate
+    from pkp.src.CPD import CPDResult
+    estimator = LeastSquaresEstimator(opt_params, finalYield=1.0)
+    results = CPDResult(dct=pre_proc)
+    constRate = constantRate(params)
+    return estimator.estimate([results], constRate, species)
+
+class TestFittingProcedures():
+    """ Test class to test preformance of fitting 
+        procedures
+    """
+
+
+    def test_minimisation_linear():
+        from pkp.src.CPD import CPDResult
+        # # NOTE we mock to have more control
+        # # and be independet from actual input files
+            
+        def constant_rate_checker(model_params):
+            from copy import deepcopy
+            mock_res_dct_local = deepcopy(mock_res_dct) # make a local copy
+            fit  = init_and_est(model_params, mock_res_dct_local)
+            fit2 = init_and_est(model_params, mock_res_dct_local)
+            # Test if two runs with identical input 
+            # produce identical output
+            assert not (fit is fit2)
+            assert np.array_equal(fit.parameter,fit2.parameter)
+
+            # lets double the rate
+            mock_res_dct_double_rate = deepcopy(mock_res_dct_local)
+            mock_res_dct_double_rate['data']['file'][0] = np.arange(0.0,500.1,5)
+            fit_double = init_and_est(
+                    model_params,
+                    mock_res_dct_double_rate
+                )
+            assert not (fit is fit_double) # should be two different instances
+            # but initial params should not be affected   
+            assert fit_double.initialParameter == fit.initialParameter 
+            # test if for doubled heating rate the rate constant is 
+            # approximatley doubled and start_time is not affected 
+            ratio = fit_double.k/fit.k
+            # assert abs(fit.start_time - fit_double.start_time) < 0.1
+            # assert abs(ratio - 2.0)/2.0 < 0.1
+            return fit
+
+        def plot_and_save(fits, params, name):
+            import matplotlib.pyplot as plt
+            fig, axs = plt.subplots()
+            colors = ['c', 'm', 'y', 'k','b','g','r']
+            for i,fit in enumerate(fits):
+                axs.scatter(
+                    x=fit.time,
+                    y=fit.mass,
+                    marker='.',
+                    label = str(params[i]),
+                    color = colors[i],
+                 )
+            results = CPDResult(dct=mock_res_dct)
+            axs.plot(
+                 results['time'],
+                 results[species],
+                 color = 'k',
+                 label = "orig",
+                 linewidth = 2
+            )
+            plt.legend()
+            fig.savefig('tests/' + name)
+
+        ks = [0.0, 1.0, 2.0, 10.0, 20.0, 50.0, 100.0]
+        initial_params_k = [{'k':k, 'tstart':0.0, 'final_yield':1.0}
+                 for k in ks]
+        
+        tstarts = [-0.5, 0.0, 0.25, 0.5, 1.0]
+        initial_params_t  = [{'k':10, 'tstart': tstart, 'final_yield':1.0}
+                 for tstart in tstarts]
+
+        fits_k = [constant_rate_checker(init) 
+                 for init in initial_params_k]
+            
+        fits_t = [constant_rate_checker(init) 
+                 for init in initial_params_t]
+
+        plot_and_save(fits_k, ks, "initial_k.png")
+        plot_and_save(fits_t, tstarts, "initial_t.png")
+    
+   
+def test_modelError():
+    """ tests if computation of the deviation of
+        kinetic model to pre proc results works 
+        as expected    
+    """
+    pass
+
+
+def test_minimisation_exp():
+    model_params  = {'k': 0, 'tstart':0.0, 'final_yield':1.0}
+    fit = init_and_est(model_params, mock_res_dct_exp)
+    print "exponential fit"
+    print fit
+ 
+
+def test_calcCoalParam():
+    """ Test if for
+            10% oxygen and
+            70% carbon
+            3%  hydrogen
+            2%  nitrogen
+            15% vm
+        mdel == 43.3
+        MW per cluster == 551.2
+        Po == 0.65
+        sigma+1 ==  5.91
+        c0 == 0.0
+        Value has been calculated with the online calculator tool
+        from http://www.et.byu.edu/~tom/cpd/correlation.html """
+
+    ret = cpdsl.CPD.CalcCoalParam(
+        {'Carbon': 0.7, 'Hydrogen': 0.03,
+         'Oxygen': 0.1, 'Nitrogen': 0.2},
+        {'Volatile Matter': 0.15})
+
+    expected = { 'c0'   : 0.0,
+                 'mdel' : 43.27,
+                 'mw'   : 551.16,
+                 'sig'  : 5.91,
+                 'p0'   : 0.65, }
+    for key, value in expected.iteritems():
+        assert abs(ret[key] - value) < 0.01
+
+def test_calcMassCR():
+    """
+
+    """
+    const_rate = mdls.constantRate({
+             "k": 1.0,
+             "tstart": 0.0,
+             "finalYield":1.0})
+    # Test if at t=0 no mass is released
+    assert np.array_equal(
+        const_rate.calcMass(0.0, np.array([0.0,1.0])),
+        np.array([0.0, 1.0 - np.exp(-1.0)])
+    )
+    # assert const_rate.calcMass(0.0,np.array([1.0])) > 0.0
+    # # assert const_rate.calcMass(1.0,0.0) == 1.0
+
+def test_full_main(tmpdir):
+    pass
+    # from pkp.pkpcli import generate
+    # from pkp.pkpcli import fit
+    # fold = "/home/go/documents/code/pkp.git/inputs/"
+    # res = generate(folder=fold)
+    # fit1run = fit(folder=fold, results=res,
+    #     selectPyrolModel="constantRate")
+    # fit1run.inputs['OperatingConditions']['runs'] = 1
+    # fit2run = fit(folder=fold, results=res,
+    #     selectPyrolModel="constantRate")
+    # fit2run.inputs['OperatingConditions']['runs'] = 2
+    # fit1 = fit1run.startFittingProcedure(res)
+    # fit2 = fit2run.startFittingProcedure(res)
+    # print fit1.res
+    # print fit1._tsv
+    # print fit2.res
+    # print fit2._tsv
+
+    # mp.plotResults(res, fitsCR)
+    # fitsArr = mp.startFittingProcedure(res, selectPyrolModel="arrheniusRate")
+    # mp.plotResults(res, fitsArr)
+
+    # Test if same CPD run gives same results
+    # results = CPDResult(dct=mock_res_dct)
+    # results2 = CPDResult(dct=mock_res_dct)
+    # assert not (results is results2)
+    # for species,field in results.iterspecies():
+    #     assert results2[species] == field
+
+

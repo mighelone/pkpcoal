@@ -74,6 +74,14 @@ def exp_cr_fit_bounded(exp_preProc):
     from pkp.src.Models import constantRate
     return constantRate(opt_params_bounded, [exp_preProc], "Species")
 
+@pytest.fixture
+def exp_cr_fit_bounded_multi(exp_preProc):
+    """ initialize and estimate rates from mocked preproc data"""
+    from pkp.src.Models import constantRate
+    return constantRate(
+        opt_params_bounded, [exp_preProc, exp_preProc], "Species")
+
+
 class TestFittingProcedures():
     """ Test class to test preformance of fitting 
         procedures
@@ -187,6 +195,11 @@ class TestFittingProcedures():
         plt.legend()
         fig.savefig('tests/fit.png')
 
+
+    def test_genetic_model(self, exp_cr_fit_bounded_multi):
+        fit = exp_cr_fit_bounded_multi
+        optimizedParameter = fit.fit().x
+
     # def test_minimisation_linear():
     #     from pkp.src.CPD import CPDResult
     #     # # NOTE we mock to have more control
@@ -260,22 +273,6 @@ class TestFittingProcedures():
     #     plot_and_save(fits_t, tstarts, "initial_t.png")
     
    
-# def test_modelError():
-#     """ tests if computation of the deviation of
-#         kinetic model to pre proc results works 
-#         as expected    
-#     """
-#     pass
-#
-#
-# def test_minimisation_exp():
-#     model_params  = {'k': 0, 'tstart':0.0, 'final_yield':1.0}
-#     fit = init_and_est(model_params, mock_res_dct_exp)
-#     print "exponential fit"
-#     print fit
- 
-
-
 def test_full_main(tmpdir):
     pass
     # from pkp.pkpcli import generate
