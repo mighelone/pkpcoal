@@ -40,6 +40,8 @@ def main():
                 results=pre,
                 selectPyrolModel="constantRate"
             )
+            fit_result = res.startFittingProcedure(pre)
+            print fit_result._tsv
     elif args['fit-only']:
         pass
     
