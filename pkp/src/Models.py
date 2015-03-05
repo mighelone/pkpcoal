@@ -71,7 +71,7 @@ class Model(object):
         yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4],
         linear interploated."""
 
-    def __init__(self, name, parameter, parameterBounds, inputs, species, calcMass, runs=False, constDt=False):
+    def __init__(self, name, parameter, parameterBounds, inputs, species, calcMass, recalcMass, runs=False, constDt=False):
         print "Initialised {} Model".format(name)
         self.name = name
         self.initialParameter = parameter
@@ -83,6 +83,7 @@ class Model(object):
         self.finalYield = 1.0
         self.runs = (runs if runs else [])
         self.postGeneticOpt = True
+        self.recalcMass = recalcMass
 
     def fit(self):
         print 'initial parameter: ' + str(self.initialParameter)
@@ -105,6 +106,10 @@ class Model(object):
             )
             self.parameter = optimizedParameter
         return optimizedParameter
+
+    def fittedYield(self):
+        optParams = self.fit()
+        return self.recalcMass(optParams.x, time=self.runs[0]['time'])
 
     def geneticOpt(self):
         from pyevolve import G1DList, GSimpleGA, Selectors
@@ -330,7 +335,7 @@ class constantRate(Model):
         paramBounds = [inputs['constantRate'].get(paramName+"Bounds",(None,None))
                          for paramName in paramNames] 
         Model.__init__(self, "ConstantRate", parameter, paramBounds, inputs,
-            species, self.calcMassConstRate, runs)
+            species, self.calcMassConstRate, self.recalcMass, runs)
         # self.k           = parameter["k"]
         # self.start_time  = parameter["tstart"]
         # self.final_yield = parameter.get('finalYield',False)
@@ -340,16 +345,15 @@ class constantRate(Model):
     def __repr__(self):
         return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
 
-    def recalcMass(self):
-        """ recalculate mass releas after updateParameter
+    def recalcMass(self, parameter, time):
+        """ recalculate mass release after updateParameter
 
             reuses init_mass, time and temp from previous
             computation, needed for genetic algorhythm
             since we only get the best parameters back
             and need to adjust the model
         """
-        self.calcMass(self.init_mass, self.time)
-        return self
+        return self.calcMassConstRate(parameter, init_mass=None, time=time)
 
     def calcMassConstRate(self, parameter, init_mass, time, temp=False):
         """ Computes the released mass over time
@@ -431,34 +435,33 @@ class arrheniusRate(Model):
     def calcMassArrhenius(self, parameter, init_mass, time, temp=False):
         """Outputs the mass(t) using the model specific equation."""
         """ dm/dt=A*(T**b)*exp(-E/T)*(m_s-m)  """
-        inp_temp = temp
         def dmdt(m, t):
             T  = temp(t) # so temp is a function that takes t and returns T
-            #T  = inp_temp[np.where(time==t)] # so temp is a function that takes t and returns T
             # dm = self.final_yield - m # finalYield
-            dm = init_mass - m # finalYield
+            dm = 1.0 - m # finalYield
             A = self.A
             beta = self.beta
             E = self.E
+            # print (A,beta,E,dm)
             if False:
                 dmdt_ = (-A * dm  #FIXME this doesnt make sense!
                           * np.power(T, beta)
                           * np.exp(-self.E/T)
                             )
             else:
-                dmdt_ =  (A * dm
-                          * np.power(T, beta)
-                          * np.exp(-E/T)) # TODO this should be Ta instead of E
-
+                dmdt_ = (init_mass + A * dm
+                         * np.power(T, beta)
+                         * np.exp(-E/T)) # TODO this should be Ta instead of E
+            # print dmdt_,t
             # sets values < 0 to 0.0, to avoid further problems
-            return np.where(dmdt_ > 1e-64, dmdt_, 0.0)
+            return dmdt_ #np.where(dmdt_ > 1e-64, dmdt_, 0.0)
         m_out = sp.integrate.odeint(
                 func=dmdt,
-                y0=init_mass,
+                y0=[0.0],
                 t=time,
-                atol=self.absoluteTolerance,
-                rtol=self.relativeTolerance,
-                hmax=self.ODE_hmax,
+                # atol=self.absoluteTolerance,
+                # rtol=self.relativeTolerance,
+                # hmax=self.ODE_hmax,
             )
         m_out = m_out[:, 0]
         if self.constDt == False: # TODO GO shouldnt interpolation be used for var dt?
