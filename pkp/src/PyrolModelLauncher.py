@@ -21,7 +21,6 @@ def genericRate(inputs, results, pyrolModelName):
             results: a results  object containing data from
                      preprocessor runs
     """
-    from pkp.src.Fitter import OptGradBased, OptGenAlgBased
     # NOTE: Following things have been removed and need to be reimplemented
     #       * plotting
     #       * write to data file
@@ -33,19 +32,16 @@ def genericRate(inputs, results, pyrolModelName):
     
     # uses for optimization gradient based (LS) optimizer if NrOfRuns == 1
     # otherwise an Evolutionary algorithm (GenAlg; global optimum) is used
-    opt = (OptGradBased if inputs['OperatingConditions']['runs'] == 1 
-                else OptGenAlgBased)
     # Iterate species in Fit Object
     # NOTE it seems strange that we need a model object for every species
-    model_inputs = inputs['Optimisation'][pyrolModelName]
+    model_inputs = inputs['Optimisation']
     model = getattr(mdl, pyrolModelName)
     species_names = results[0].speciesNames
     # TODO make a results object out of it
-    return FitResult({species_name : opt(
-                inputs     = inputs,
-                model      = model(model_inputs),
-                results    = results,
-                species    = species_name)
+    return FitResult({species_name : model(
+                inputs  = model_inputs,
+                runs    = results,
+                species = species_name).fit()
         for species_name in species_names})
 
 class FitResult(object):
