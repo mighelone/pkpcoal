@@ -97,13 +97,13 @@ def exp_preProc():
     return CPDResult(dct=res_dct)
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def cpd_run():
     from pkp.pkpcli import Generate
-    return Generate(mock_input)
+    return Generate(mock_input).executeSolver()
 
 def test_cpd_results(cpd_run):
-    res = cpd_run.executeSolver()
+    res = cpd_run
     print res[0].Qfactor(mock_pa)
     print res[0].VolatileCompositionMass(mock_pa,mock_ua)
     print res[0].VolatileCompositionMol(mock_pa,mock_ua,150)
