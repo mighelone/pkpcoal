@@ -52,6 +52,11 @@ class BalancedComposition(object):
     def __repr__(self):
         return str(self.elems)
 
+    def values(self):
+        return self.elems.values()
+
+    def iteritems(self):
+        return self.elems.iteritems()
 
 class Model(object):
     """ Parent class of the children ConstantRateModel,
