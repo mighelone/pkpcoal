@@ -27,6 +27,42 @@ opt_params = {
             'activationEnergy': 1.0},
 }
 
+mock_ua = {
+       "Carbon": 69.20,
+       "Hydrogen": 4.40,
+       "Nitrogen": 1.42,
+       "Oxygen": 9.98,
+       "Sulphur": 0.58,
+}
+
+mock_pa = {
+       "Fixed Carbon": 50.80,
+       "Volatile Matter": 34.80,
+       "Moisture": 5.80,
+       "Ash": 8.60,
+}
+
+mock_cpd={
+    'fit'    : 'constantRate',
+    'active' : 'True',
+    'deltaT' : '5e-06',
+    'MW_TAR' : '130',
+}
+
+mock_opcond = {
+    'pressure' : 1.0,
+    'runs' : 1,
+    'run1' : [ [ 0, 300], [ 0.034, 2000] ]
+}
+
+mock_input={'Coal': {
+    'Proximate Analysis': mock_pa,
+    'Ultimate Analysis': mock_ua
+    },
+    'CPD': mock_cpd,
+    'OperatingConditions': mock_opcond
+}
+
 opt_params_bounded = copy.deepcopy(opt_params)
 opt_params_bounded['constantRate'].update(
     {'tstartBounds': (1e-6, 1e-5), 'finalYieldBounds': (1.0, 1.0)})
@@ -46,7 +82,7 @@ cpd_exp      = {"file": [time_array_ms, exp_yield, temp_array]}
 # FIXTURES
 @pytest.fixture
 def linear_preProc():
-    """ initialise a mocked cpd result with 
+    """ initialise a mocked cpd result with
         linearily increasing  yield """
     from pkp.src.CPD import CPDResult
     res_dct = {"header": cpd_header, "data": cpd_linear}
@@ -54,28 +90,39 @@ def linear_preProc():
 
 @pytest.fixture
 def exp_preProc():
-    """ initialise a mocked cpd result with 
+    """ initialise a mocked cpd result with
         exponentioal increasing  yield """
     from pkp.src.CPD import CPDResult
     res_dct = {"header": cpd_header, "data": cpd_exp}
     return CPDResult(dct=res_dct)
 
 
+@pytest.fixture
+def cpd_run():
+    from pkp.pkpcli import Generate
+    return Generate(mock_input)
+
+def test_cpd_results(cpd_run):
+    res = cpd_run.executeSolver()
+    print res[0].Qfactor(mock_pa)
+    print res[0].VolatileCompositionMass(mock_pa,mock_ua)
+    print res[0].VolatileCompositionMol(mock_pa,mock_ua,150)
+
 class TestFittingProcedures():
-    """ Test class to test preformance of fitting 
+    """ Test class to test preformance of fitting
         procedures
     """
     # def test_minimisation_linear():
     #     from pkp.src.CPD import CPDResult
     #     # # NOTE we mock to have more control
     #     # # and be independet from actual input files
-    #         
+    #
     #     def constant_rate_checker(model_params):
     #         from copy import deepcopy
     #         mock_res_dct_local = deepcopy(mock_res_dct) # make a local copy
     #         fit  = init_and_est(model_params, mock_res_dct_local)
     #         fit2 = init_and_est(model_params, mock_res_dct_local)
-    #         # Test if two runs with identical input 
+    #         # Test if two runs with identical input
     #         # produce identical output
     #         assert not (fit is fit2)
     #         assert np.array_equal(fit.parameter,fit2.parameter)
@@ -88,10 +135,10 @@ class TestFittingProcedures():
     #                 mock_res_dct_double_rate
     #             )
     #         assert not (fit is fit_double) # should be two different instances
-    #         # but initial params should not be affected   
-    #         assert fit_double.initialParameter == fit.initialParameter 
-    #         # test if for doubled heating rate the rate constant is 
-    #         # approximatley doubled and start_time is not affected 
+    #         # but initial params should not be affected
+    #         assert fit_double.initialParameter == fit.initialParameter
+    #         # test if for doubled heating rate the rate constant is
+    #         # approximatley doubled and start_time is not affected
     #         ratio = fit_double.k/fit.k
     #         # assert abs(fit.start_time - fit_double.start_time) < 0.1
     #         # assert abs(ratio - 2.0)/2.0 < 0.1
@@ -123,21 +170,21 @@ class TestFittingProcedures():
     #     ks = [0.0, 1.0, 2.0, 10.0, 20.0, 50.0, 100.0]
     #     initial_params_k = [{'k':k, 'tstart':0.0, 'final_yield':1.0}
     #              for k in ks]
-    #     
+    #
     #     tstarts = [-0.5, 0.0, 0.25, 0.5, 1.0]
     #     initial_params_t  = [{'k':10, 'tstart': tstart, 'final_yield':1.0}
     #              for tstart in tstarts]
     #
-    #     fits_k = [constant_rate_checker(init) 
+    #     fits_k = [constant_rate_checker(init)
     #              for init in initial_params_k]
-    #         
-    #     fits_t = [constant_rate_checker(init) 
+    #
+    #     fits_t = [constant_rate_checker(init)
     #              for init in initial_params_t]
     #
     #     plot_and_save(fits_k, ks, "initial_k.png")
     #     plot_and_save(fits_t, tstarts, "initial_t.png")
-    
-   
+
+
 def test_full_main(tmpdir):
     pass
     # from pkp.pkpcli import generate
