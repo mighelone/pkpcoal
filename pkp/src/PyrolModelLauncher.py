@@ -41,26 +41,27 @@ def genericRate(inputs, results, pyrolModelName):
     return FitResult({species_name : model(
                 inputs  = model_inputs,
                 runs    = results,
-                species = species_name).fit()
+                species = species_name).fittedYield()
         for species_name in species_names})
 
 class FitResult(object):
-    #FIXME correct conversion between ms and seconds
 
     def __init__(self, res):
         self.res = res
+        print(res)
 
     @property
     def _tsv(self):
         header = " ".join(self.res.keys())
         s = ""
         res = list(self.res.items())
-        # res[i] is a tuple of species name and model
-        for i,_ in enumerate(res[0][1].mass):
-            s += str(res[0][1].time[i]*1000) + "\t"
-            for name, model in self.res.items():
-                s += str(model.mass[i]) + "\t"
-            s += "\n"
+        # res[n] is a tuple of species name and model of
+        # the first species
+        for i, _ in enumerate(res[0][1]):
+        #     s += str(res[0][1]) + "\t"
+             for name, mass in self.res.items():
+                 s += str(mass[i]) + "\t"
+             s += "\n"
         return "time\t" + header + "\n" + s
 
 
