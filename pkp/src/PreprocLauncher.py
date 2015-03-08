@@ -21,7 +21,8 @@ def Launch_CPD(inputs):
         return cpd.Run() 
 
     operatingConditions = inputs['OperatingConditions']
-    pressure = operatingConditions.pop('pressure') 
+    #pressure = operatingConditions.pop('pressure') 
+    pressure = operatingConditions['pressure']
     coal = inputs["Coal"]
     proxi_ana = BalancedComposition(coal["Proximate Analysis"])
     ultim_ana = BalancedComposition(coal["Ultimate Analysis"])
