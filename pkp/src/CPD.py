@@ -7,10 +7,19 @@ from scipy.integrate import odeint
 import scipy.interpolate
 import platform
 
+from Models import BalancedComposition
 OS = platform.system()
 
 ################################
 R=1.0 #8.3144621 # Gas constant only =8.3... if E should not include R
+
+MolWeights = {
+    'Oxygen':16,
+    'Carbon':12,
+    'Hydrogen':1,
+    'Nitrogen':14,
+}
+
 ################################
 
 class CPDResult(object):
@@ -54,7 +63,7 @@ class CPDResult(object):
     @property
     def _tsv(self):
         # out = {name: list(data) for name, data in self.iterspecies()}
-        fields = ['time', 'fch4', 'fco', 'temp', "fh20", "fco2", "fother"]
+        fields = ['time', 'fch4', 'fco', 'temp', "fh20", "fco2", "fother", "fgas", "ftot"]
         header = " ".join(fields)
         s = ""
         for i,_ in enumerate(self.__getitem__('time(ms)')):
@@ -66,7 +75,7 @@ class CPDResult(object):
     @property
     def speciesNames(self):
         # TODO GO why on earth is it h2zero?
-        return ["fh20", "fco2", "fch4", "fco", "fother"]
+        return ["fh20", "fco2", "fch4", "fco", "fother", "ftot", "fgas", "ftar"]
 
 
     def iterspecies(self):
@@ -120,14 +129,61 @@ class CPDResult(object):
         t = self.__getitem__('time(ms)')
         data = self.__getitem__(field)
         return scipy.interpolate.interp1d(
-            np.array(t), # list(t) + [10*t[-1]]),
-            np.array(data), # list(T) + [10*T[-1]]),
-            kind=OrderOfTimeInterpolation,
-            axis=-1,
-            copy=True,
+            t, # list(t) + [10*t[-1]]),
+            data, # list(T) + [10*T[-1]]),
+            # kind=OrderOfTimeInterpolation,
+            # axis=-1,
             bounds_error=False,
             fill_value=data[-1], # NOTE if out of bounds fill with last value
         )
+
+    def Qfactor(self, proximate_analysis):
+        """ Qfactor is defined as q = m_vol/m_volProx,
+            hence we can use f_tot/m_volProx """
+        #TODO Base Qfactor on DAF
+        ftot =  self.__getitem__("ftot")[-1]
+        vm = (BalancedComposition(proximate_analysis)
+              .remove_elems_rebalance(['Moisture','Ash'])
+              ["Volatile Matter"])
+        return ftot*100.0/vm
+
+    def VolatileCompositionMass(self, proximate_analysis, ultimate_analysis):
+        """ m_species/m_tot
+            where:
+                m_tot = m_h + m_o + m_vc_cur
+
+            The difficulty is to know the carbon content of the
+            volatile yield.
+                m_c_ua = m_fc_prox + m_vc_prox
+                m_c_ua = m_fc_cur + m_vc_cur
+
+                m_vc_cur = m_c_ua - m_fc_prox/q_factor
+        """
+        #TODO Base Qfactor on DAF
+        ua = ultimate_analysis
+        pa = BalancedComposition(proximate_analysis).remove_elems_rebalance(['Moisture','Ash'])
+        carbon = (ua['Carbon']-pa['Fixed Carbon']/self.Qfactor(pa))
+        oxygen = ua['Oxygen']
+        hydrogen = ua['Hydrogen']
+        nitrogen = ua['Nitrogen']
+        tot = carbon + oxygen + hydrogen + nitrogen
+        assert tot < 100
+        return {'Carbon': carbon/tot,
+                'Hydrogen': hydrogen/tot,
+                'Oxygen': oxygen/tot,
+                'Nitrogen': nitrogen/tot
+                }
+
+    def VolatileCompositionMol(self,
+            proximate_analysis,
+            ultimate_analysis,
+            molar_mass_vm):
+        comp_mass = self.VolatileCompositionMass(
+                proximate_analysis,
+                ultimate_analysis
+            )
+        return {elem: comp_mass[elem]*mw/molar_mass_vm*100.
+                for elem, mw in MolWeights.iteritems()}
 
 
 class SetAndLaunchBase(object):
