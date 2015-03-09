@@ -6,17 +6,12 @@ import platform
 import numpy as np
 #
 sys.path.append('src')
-#
-#Directories:
-#gets the current directory:
-workingDir=os.getcwd()+'/'
-
 
 class BaseProcess(object):
 
-    def __init__(self, inputs_dict, output="Folder"):
+    def __init__(self, inputs_dict, output_folder=False):
         self.inputs = inputs_dict
-        self.output = output
+        self.output_folder = output_folder
 
     def returnResults(self):
         pass
@@ -43,7 +38,7 @@ class Generate(BaseProcess):
             #     Case.RunPMSKD()
             # if Case.PCCL_select==True:
             #     Case.MakeResults_PCCL()
-        return selector()(self.inputs) #
+        return selector()(self.inputs, self.output_folder)
 
 
 class Fit(BaseProcess):
@@ -101,37 +96,34 @@ class Fit(BaseProcess):
         plt.legend()
         plt.show(fig)
 
-def ReadInputFiles(inputs_folder):
+def ReadInputFile(input_file):
     """ Read params from input file and generate Input objects """
     import yaml
-    # TODO GO print warning if it cant find file
-    inputs_folder = (inputs_folder if inputs_folder else workingDir + 'inputs/')
-    full_fn = inputs_folder + 'inputs.inp'
     try:
-        file_stream = open(full_fn, 'r')
+        file_stream = open(input_file, 'r')
         inp = yaml.load(file_stream)
         return inp
     except Exception as e:
         print e
 
-def generate(folder=False, json_string=False):
+def generate(input_file=False, json_string=False, output_folder=False):
     """ a factory method for the  Generate class
         Returns result object from the solver
     """
     inputs = (json_string if json_string
-                else ReadInputFiles(folder))
-    gen = Generate(inputs)
+                else ReadInputFile(input_file))
+    gen = Generate(inputs, output_folder)
     return gen.executeSolver()
     # fittedModels = Case.startFittingProcedure(results)
     # print 'calculated Species: ',Case.SpeciesToConsider
     # self.plotResults(preProcResults, fittedModels)
 
-def fit(folder=False, results=False, selectPyrolModel=None, json_string=False):
+def fit(input_file=False, results=False, selectPyrolModel=None, json_string=False):
     """ a factory method for the Fit class
         accepts a results file or a results  Object
     """
     inputs = (json_string if json_string
-                else ReadInputFiles(folder))
+                else ReadInputFile(input_file))
     fit = Fit(inputs)
     fit.pyrolModel = "constantRate"
     #return fit.startFittingProcedure(results)

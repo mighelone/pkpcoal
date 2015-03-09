@@ -218,7 +218,7 @@ class CPD(SetAndLaunchBase):
         }
 
     execDir = os.path.expanduser('~') + "/.pkp/CPD/" # os.getcwd()+"/CPD/"
-    resDir = execDir + "Results/"
+    resDirDefault = execDir + "Results/"
 
     def __init__(self,
             ultimateAnalysis,
@@ -226,7 +226,8 @@ class CPD(SetAndLaunchBase):
             tempProfile,
             pressure,
             deltaT,
-            runNr = 0
+            runNr = 0,
+            resDir = False,
         ):
         self.runNr = runNr
         self.tempProfile = self.timeTempProfile(tempProfile) # TODO give it a better name
@@ -251,7 +252,8 @@ class CPD(SetAndLaunchBase):
         self.output_dict.update(self.daf.elems)
         self.output_dict.update(self.__dict__)
         self.writen_inputs = False
-        self.resDir = "{}Run{}/".format(self.resDir,runNr)
+        resDir = (resDir if resDir else self.resDirDefault)
+        self.resDir = "{}Run{}/".format(resDir, runNr)
 
     @classmethod
     def calcC0(cls, massFracCarbon, massFracOx):

@@ -10,7 +10,7 @@ The launcher function return a list of results objects
 from Models import BalancedComposition
 import CPD
 
-def Launch_CPD(inputs):
+def Launch_CPD(inputs, output_folder):
     """ Execute CPD for each given temperature profile and 
         return a list of CPD results objects
      """
@@ -33,7 +33,8 @@ def Launch_CPD(inputs):
                 operatingConditions["run"+str(run+1)],
                 pressure,
                 inputs['CPD']['deltaT'],
-                run
+                run,
+                output_folder
             ) for run in range(operatingConditions['runs'])]
 
 
