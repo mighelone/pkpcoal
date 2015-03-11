@@ -2,6 +2,7 @@ import os
 
 import pkp.src.CPD as cpdsl
 import pkp.src.Models as mdls
+import pkp.src.CoalThermoPhysics as ctp
 import numpy as np
 
 import pytest
@@ -21,7 +22,7 @@ def linear_preProc():
         linearily increasing  yield """
     from pkp.src.CPD import CPDResult
     res_dct = {"header": cpd_header, "data": cpd_linear}
-    return CPDResult(dct=res_dct)
+    return CPDResult(dct=res_dct, coal=ctp.Coal(mock_input['Coal']))
 
 @pytest.fixture
 def exp_preProc():
@@ -29,7 +30,7 @@ def exp_preProc():
         exponentioal increasing  yield """
     from pkp.src.CPD import CPDResult
     res_dct = {"header": cpd_header, "data": cpd_exp}
-    return CPDResult(dct=res_dct)
+    return CPDResult(dct=res_dct, coal=ctp.Coal(mock_input['Coal']))
 
 
 @pytest.fixture(scope='session')

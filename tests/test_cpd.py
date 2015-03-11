@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import pkp.src.CPD as cpdsl
 from test_main import linear_preProc
@@ -62,13 +63,22 @@ class TestCPDLauncher():
             assert abs(ret[key] - value) < 0.01
 
 def test_cpd_results(cpd_run_single):
+    from pkp.src.CoalThermoPhysics import PostulateSubstance
     for runNr, (opCond, res) in cpd_run_single.iteritems():
-        MW_POST = 30
-        print res.Qfactor(mock_pa)
-        print res.VolatileCompositionMass(mock_pa,mock_ua)
-        print res.VolatileCompositionMol(mock_pa,mock_ua,MW_POST)
-        print res.ProductCompositionMol(mock_pa,mock_ua,MW_POST)
-        print res.EnthalpyOfFormation(mock_pa,mock_ua,MW_POST,28220.0)
+        q = res.Qfactor()
+        print "qFactor", q
+        ps = PostulateSubstance(coal=res.coal,qFactor=q) 
+        print ps.VolatileCompositionMass()
+        print ps.VolatileCompositionMol()
+        print ps.ProductCompositionMol()
+        print ps.EnthalpyOfFormation()
+
+@pytest.mark.xfail
+def test_PostulateSubstance():
+    from pkp.src.CoalThermoPhysics import Coal
+    from pkp.src.CoalThermoPhysics import PostulateSubstance
+    methane = Coal(methane_as_coal['Coal'])
+    print PostulateSubstance(methane).EnthalpyOfFormation()
 
 def test_cpd_results_multi(cpd_run_multi):
     res = cpd_run_multi
@@ -76,7 +86,7 @@ def test_cpd_results_multi(cpd_run_multi):
 
     for runNr,(operCond, result) in res.iteritems():
         heating_rates.append(2200/operCond[1][0])
-        qfactor.append(result.Qfactor(mock_pa))
+        qfactor.append(result.Qfactor())
     
     fig, axs = plt.subplots()
     axs.scatter(heating_rates, qfactor, label="qFactor")
