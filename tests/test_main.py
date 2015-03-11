@@ -33,15 +33,18 @@ def exp_preProc():
 
 
 @pytest.fixture(scope='session')
-def cpd_run():
+def cpd_run_single():
     from pkp.pkpcli import Generate
+    print mock_input
     return Generate(mock_input).executeSolver()
 
-def test_cpd_results(cpd_run):
-    res = cpd_run
-    print res[0].Qfactor(mock_pa)
-    print res[0].VolatileCompositionMass(mock_pa,mock_ua)
-    print res[0].VolatileCompositionMol(mock_pa,mock_ua,150)
+@pytest.fixture(scope='session')
+def cpd_run_multi():
+    from pkp.pkpcli import Generate
+    multi = mock_input
+    multi['OperatingConditions']['runs'] = 19
+    print multi
+    return Generate(multi).executeSolver()
 
 class TestFittingProcedures():
     """ Test class to test preformance of fitting

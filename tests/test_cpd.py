@@ -3,6 +3,12 @@ import numpy as np
 import pkp.src.CPD as cpdsl
 from test_main import linear_preProc
 from test_main import cpd_linear
+from test_main import cpd_run_single
+from test_main import cpd_run_multi
+
+from mock_data import *
+
+import matplotlib.pyplot as plt
 
 class TestCPDLauncher():
 
@@ -54,3 +60,30 @@ class TestCPDLauncher():
                      'p0'   : 0.65, }
         for key, value in expected.iteritems():
             assert abs(ret[key] - value) < 0.01
+
+def test_cpd_results(cpd_run_single):
+    for runNr, (opCond, res) in cpd_run_single.iteritems():
+        MW_POST = 30
+        print res.Qfactor(mock_pa)
+        print res.VolatileCompositionMass(mock_pa,mock_ua)
+        print res.VolatileCompositionMol(mock_pa,mock_ua,MW_POST)
+        print res.ProductCompositionMol(mock_pa,mock_ua,MW_POST)
+        print res.EnthalpyOfFormation(mock_pa,mock_ua,MW_POST,28220.0)
+
+def test_cpd_results_multi(cpd_run_multi):
+    res = cpd_run_multi
+    heating_rates, qfactor = [], []
+
+    for runNr,(operCond, result) in res.iteritems():
+        heating_rates.append(2200/operCond[1][0])
+        qfactor.append(result.Qfactor(mock_pa))
+    
+    fig, axs = plt.subplots()
+    axs.scatter(heating_rates, qfactor, label="qFactor")
+
+    plt.legend()
+    axs.set_xlim([0,None])
+    axs.set_ylim([1.4,1.6])
+    axs.set_ylabel('qfactor [-]')
+    axs.set_xlabel('heating rate [K/s]')
+    fig.savefig('tests/qfactor_from_CPD.png')

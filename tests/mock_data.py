@@ -36,15 +36,18 @@ mock_pa = {
 mock_cpd={
     'fit'    : 'constantRate',
     'active' : 'True',
-    'deltaT' : '5e-06',
+    'deltaT' : '1e-08',
     'MW_TAR' : '130',
 }
 
+
+T_init = [0,300]
 mock_opcond = {
-    'pressure' : 1.0,
-    'runs' : 1,
-    'run1' : [ [ 0, 300], [ 0.034, 2000] ]
+    'run' + str(nr): [T_init, [0.005*i, 2500]] for nr,i in enumerate(range(1,40,1))
 }
+
+mock_opcond['pressure'] = 1.0
+mock_opcond['runs'] = 1
 
 mock_input={'Coal': {
     'Proximate Analysis': mock_pa,
