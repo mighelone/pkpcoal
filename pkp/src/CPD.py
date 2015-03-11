@@ -13,11 +13,28 @@ OS = platform.system()
 ################################
 R=1.0 #8.3144621 # Gas constant only =8.3... if E should not include R
 
-MolWeights = {
-    'Oxygen':16,
-    'Carbon':12,
-    'Hydrogen':1,
-    'Nitrogen':14,
+MolWeights = { #g/mol
+    'Oxygen':16.,
+    'Carbon':12.,
+    'Hydrogen':1.,
+    'Nitrogen':14.,
+    'CO': 28.,
+    'CO2': 44.,
+    'H2O': 18.,
+}
+
+EnthOfForm = { # in [kJ/kmol]
+    'CO':  -110541.0, # Turns p. 622
+    'CO2': -393546.0, # Turns p. 623
+    'H2O': -241845.0, # Turns p. 632
+}
+
+EnthOfFormKG = {name: value/MolWeights[name]
+        for name, value in EnthOfForm.iteritems()}
+
+CoresProd = {
+    'Carbon':'CO',
+    'Hydrogen':'H2O',
 }
 
 ################################
@@ -31,7 +48,7 @@ class CPDResult(object):
     solver = "CPD"
 
     def __init__(self, folder=False, dct=False):
-        if folder:
+        if folder != False:
             files = ["CPD_Result{}.dat".format(i) for i in range(1,5)]
             self.data   = {fn:CPDResult.readResults(folder + fn) for fn in files}
             self.header = {fn:CPDResult.readHeader(folder + fn) for fn in files}
@@ -167,7 +184,7 @@ class CPDResult(object):
         hydrogen = ua['Hydrogen']
         nitrogen = ua['Nitrogen']
         tot = carbon + oxygen + hydrogen + nitrogen
-        assert tot < 100
+        assert tot < 100.0
         return {'Carbon': carbon/tot,
                 'Hydrogen': hydrogen/tot,
                 'Oxygen': oxygen/tot,
@@ -182,8 +199,54 @@ class CPDResult(object):
                 proximate_analysis,
                 ultimate_analysis
             )
-        return {elem: comp_mass[elem]*mw/molar_mass_vm*100.
-                for elem, mw in MolWeights.iteritems()}
+        return {elem: comp_mass[elem]/mw*molar_mass_vm
+                for elem, mw in MolWeights.iteritems()
+                if elem in comp_mass.keys()}
+
+    def ProductCompositionMol(self,
+            proximate_analysis,
+            ultimate_analysis,
+            molar_mass_vm):
+        comp_mass = self.VolatileCompositionMol(
+                proximate_analysis,
+                ultimate_analysis,
+                molar_mass_vm
+            )
+        CO = comp_mass['Carbon']*molar_mass_vm/MolWeights['CO']
+        H2O = comp_mass['Hydrogen']*molar_mass_vm/MolWeights['H2O']*0.5
+        return {'CO':CO, 'H2O':H2O}
+
+    def EnthalpyOfFormation(self,
+            proximate_analysis,
+            ultimate_analysis,
+            molar_mass_vm,
+            LHV # kJ/kg
+            ):
+        """ Computes the enthalpy of formation of the volatile matter
+
+            h_react = LHV + sum(n_i h_prod_i) with n beeing stoich factor
+
+            Parameters:
+                molar_mass_mv in [kg/kmol]
+                LHV in [kJ/kg]
+        """
+        # NOTE
+        # first we get the molar composition of the volatile matter,
+        # with that we can compute the product compostion per mol vm
+        vol_comp = self.ProductCompositionMol(
+            proximate_analysis,
+            ultimate_analysis,
+            molar_mass_vm)
+        H_products = 0.0
+        # for every element in the volatile composition we get the
+        # corresponding product and its enthapy of formation kJ/kmol
+        for name, mol in vol_comp.iteritems():
+            # Hydrogen gives beta/2*H2O
+            h_prod = EnthOfForm.get(name, 0.0)
+            H_products += mol*h_prod
+        h_0f = (LHV*molar_mass_vm+H_products) # [kJ/kmol]
+        return h_0f, h_0f/4184.0
+
 
 
 class SetAndLaunchBase(object):
