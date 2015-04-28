@@ -36,15 +36,18 @@ def exp_preProc():
 @pytest.fixture(scope='session')
 def cpd_run_single():
     from pkp.pkpcli import Generate
-    print mock_input
     return Generate(mock_input).executeSolver()
+
+@pytest.fixture(scope='session')
+def cpd_run_ifrf():
+    from pkp.pkpcli import Generate
+    return Generate(mock_input_ifrf).executeSolver()
 
 @pytest.fixture(scope='session')
 def cpd_run_multi():
     from pkp.pkpcli import Generate
     multi = mock_input
     multi['OperatingConditions']['runs'] = 19
-    print multi
     return Generate(multi).executeSolver()
 
 class TestFittingProcedures():
@@ -155,3 +158,5 @@ def test_full_main(tmpdir):
     #     assert results2[species] == field
 
 
+def almost(val,target):
+    return abs((val-target)/target) < 0.05
