@@ -84,11 +84,21 @@ class PostulateSubstance(object):
                 for elem, mw in MolWeights.iteritems()
                 if elem in comp_mass.keys()}
 
-    def ProductCompositionMol(self, partialOx = True):
-        comp_mass = self.VolatileCompositionMol()
-        CO  =     comp_mass['Carbon']
-        H2O = 0.5*comp_mass['Hydrogen']
-        N2  =     comp_mass['Nitrogen']
+    def ProductCompositionMass(self, partialOx=True):
+        pass
+
+    def ProductCompositionMol(self, partialOx=True):
+        """ compute the molar composition of the products per mol fuel
+
+            assumes that each mol of carbon produces a mol CO or CO2
+                         each mol of hydrogen produces half a mol H20
+        """
+        # first we get the molar composition of the volatile matter,
+        # with that we can compute the product compostion per mol vm
+        comp = self.VolatileCompositionMol()
+        CO   =     comp['Carbon']
+        H2O  = 0.5*comp['Hydrogen']
+        N2   =     comp['Nitrogen']
         # if we assume partial oxidaten CO is produced instead of
         # CO2, but only the product name changes, stoichiometric
         # constants are the same. This is important since enthalpy
