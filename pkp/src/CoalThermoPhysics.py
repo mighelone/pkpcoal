@@ -110,22 +110,14 @@ class PostulateSubstance(object):
         """ Computes the enthalpy of formation of the volatile matter
 
             h_react = LHV + sum(n_i h_prod_i) with n beeing stoich factor
-
-            Parameters:
-                molar_mass_mv in [kg/kmol]
-                LHV in [kJ/kg]
         """
-        # NOTE
-        # first we get the molar composition of the volatile matter,
-        # with that we can compute the product compostion per mol vm
-        vol_comp = self.ProductCompositionMol()
+        vol_comp = self.ProductCompositionMol(partialOx=False)
         H_products = 0.0
         # for every element in the volatile composition we get the
         # corresponding product and its enthapy of formation kJ/kmol
         LHV = self.coal.hhv
         molar_mass_vm = self.coal.MW_PS
         for name, mol in vol_comp.iteritems():
-            # Hydrogen gives beta/2*H2O
             h_prod = EnthOfForm.get(name, 0.0)
             H_products += mol*h_prod
         h_0f = (LHV*molar_mass_vm+H_products) # [kJ/kmol]
