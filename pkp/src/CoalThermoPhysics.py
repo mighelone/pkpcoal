@@ -60,7 +60,7 @@ class PostulateSubstance(object):
         """
         #TODO Base Qfactor on DAF
         ua = self.coal.ua
-        pa = self.coal.pa_daf 
+        pa = self.coal.pa_daf
         carbon = ua['Carbon']-pa['Fixed Carbon']/self.q
         oxygen = ua['Oxygen']
         hydrogen = ua['Hydrogen']
@@ -74,8 +74,12 @@ class PostulateSubstance(object):
                 }
 
     def VolatileCompositionMol(self):
+        """ the species composition of the fuel in mol per mol fuel """
         molar_mass_vm = self.coal.MW_PS
         comp_mass = self.VolatileCompositionMass()
+        # species_mass_fraction*mw = moles of species per kg fuel
+        # and we normalise that by multiplying with molar_mass_vm
+        # to get moles of species per mol fuel
         return {elem: comp_mass[elem]/mw*molar_mass_vm
                 for elem, mw in MolWeights.iteritems()
                 if elem in comp_mass.keys()}
