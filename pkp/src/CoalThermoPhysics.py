@@ -80,12 +80,17 @@ class PostulateSubstance(object):
                 for elem, mw in MolWeights.iteritems()
                 if elem in comp_mass.keys()}
 
-    def ProductCompositionMol(self):
+    def ProductCompositionMol(self, partialOx = True):
         comp_mass = self.VolatileCompositionMol()
-        molar_mass_vm = self.coal.MW_PS
-        CO = comp_mass['Carbon']*molar_mass_vm/MolWeights['CO']
-        H2O = comp_mass['Hydrogen']*molar_mass_vm/MolWeights['H2O']*0.5
-        return {'CO':CO, 'H2O':H2O}
+        CO  =     comp_mass['Carbon']
+        H2O = 0.5*comp_mass['Hydrogen']
+        N2  =     comp_mass['Nitrogen']
+        # if we assume partial oxidaten CO is produced instead of
+        # CO2, but only the product name changes, stoichiometric
+        # constants are the same. This is important since enthalpy
+        # of formation is computed assuming full oxidation
+        prodName = ('CO' if partialOx else 'CO2')
+        return {prodName: CO, 'H2O': H2O, 'N2': N2}
 
     def EnthalpyOfFormation(self):
         """ Computes the enthalpy of formation of the volatile matter
