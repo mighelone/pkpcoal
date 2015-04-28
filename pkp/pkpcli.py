@@ -25,7 +25,6 @@ class Generate(BaseProcess):
         """ execute all solver that are activated in the inputs file
             and return list of results objects
         """
-        print self.inputs
         from src import PreprocLauncher as Launcher
         def selector():
             if self.inputs['CPD']['active']:
