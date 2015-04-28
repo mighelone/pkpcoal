@@ -2,11 +2,9 @@ import numpy as np
 import pytest
 
 import pkp.src.CPD as cpdsl
-from test_main import linear_preProc
-from test_main import cpd_linear
-from test_main import cpd_run_single
-from test_main import cpd_run_multi
-
+from test_main import (linear_preProc, 
+    cpd_linear, cpd_run_single, 
+    cpd_run_multi, cpd_run_ifrf)
 from mock_data import *
 
 import matplotlib.pyplot as plt
@@ -63,6 +61,7 @@ class TestCPDLauncher():
             assert abs(ret[key] - value) < 0.01
 
 def test_cpd_results(cpd_run_single):
+    from pkp.src.CoalThermoPhysics import Coal, R
     from pkp.src.CoalThermoPhysics import PostulateSubstance
     for runNr, (opCond, res) in cpd_run_single.iteritems():
         q = res.Qfactor()
@@ -71,14 +70,36 @@ def test_cpd_results(cpd_run_single):
         print ps.VolatileCompositionMass()
         print ps.VolatileCompositionMol()
         print ps.ProductCompositionMol()
-        print ps.EnthalpyOfFormation()
+        print ps.mechanism() 
+        print "a6: ", ps.EnthalpyOfFormation() / R 
 
-@pytest.mark.xfail
-def test_PostulateSubstance():
-    from pkp.src.CoalThermoPhysics import Coal
+def test_cpd_results_ifrf(cpd_run_ifrf):
+    from pkp.src.CoalThermoPhysics import Coal, R
     from pkp.src.CoalThermoPhysics import PostulateSubstance
-    methane = Coal(methane_as_coal['Coal'])
-    print PostulateSubstance(methane).EnthalpyOfFormation()
+    for runNr, (opCond, res) in cpd_run_ifrf.iteritems():
+        q = res.Qfactor()
+        print "qFactor", q
+        ps = PostulateSubstance(coal=res.coal, qFactor=1.6) 
+        print ps.VolatileCompositionMass()
+        print ps.VolatileCompositionMol()
+        print ps.ProductCompositionMol()
+        print ps.mechanism() 
+        print "ifrf, a6: ", ps.EnthalpyOfFormation() / R 
+
+def test_cpd_results_ifrf(cpd_run_ifrf):
+    from pkp.src.CoalThermoPhysics import Coal, R
+    from pkp.src.CoalThermoPhysics import PostulateSubstance
+    print "qFactor=1.45"
+    for runNr, (opCond, res) in cpd_run_ifrf.iteritems():
+        q = res.Qfactor()
+        print "qFactor", q
+        ps = PostulateSubstance(coal=res.coal, qFactor=1.45) 
+        print ps.VolatileCompositionMass()
+        print ps.VolatileCompositionMol()
+        print ps.ProductCompositionMol()
+        print ps.mechanism() 
+        print "ifrf, a6: ", ps.EnthalpyOfFormation() / R 
+
 
 def test_cpd_results_multi(cpd_run_multi):
     res = cpd_run_multi
