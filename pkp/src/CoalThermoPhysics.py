@@ -66,7 +66,7 @@ class PostulateSubstance(object):
         hydrogen = ua['Hydrogen']
         nitrogen = ua['Nitrogen']
         tot = carbon + oxygen + hydrogen + nitrogen
-        assert tot < 100.0
+        assert tot < 100.1
         return {'Carbon': carbon/tot,
                 'Hydrogen': hydrogen/tot,
                 'Oxygen': oxygen/tot,
