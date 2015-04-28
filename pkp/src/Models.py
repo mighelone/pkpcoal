@@ -33,7 +33,7 @@ class BalancedComposition(object):
         except:
             print """Warning trying to access {} which was not set in
             input file, assuming 0.0.
-            """
+            """.format(item)
             return 0.0
 
     def remove_elems_rebalance(self, elems_):
