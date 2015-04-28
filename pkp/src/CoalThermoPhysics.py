@@ -5,13 +5,13 @@ from Models import BalancedComposition
 R = 8.314 # [kJ/(kmol*K)]
 
 MolWeights = { #g/mol
-    'Oxygen':16.,
-    'Carbon':12.,
-    'Hydrogen':1.,
-    'Nitrogen':14.,
-    'CO': 28.,
-    'CO2': 44.,
-    'H2O': 18.,
+    'Oxygen':15.999,
+    'Carbon':12.011,
+    'Hydrogen':1.008,
+    'Nitrogen':14.007,
+    'CO': 28.010,
+    'CO2': 44.011,
+    'H2O': 18.016,
 }
 
 EnthOfForm = { # in [kJ/kmol]
