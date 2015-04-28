@@ -121,4 +121,14 @@ class PostulateSubstance(object):
             h_prod = EnthOfForm.get(name, 0.0)
             H_products += mol*h_prod
         h_0f = (LHV*molar_mass_vm+H_products) # [kJ/kmol]
-        return h_0f, h_0f/4184.0
+        return h_0f
+
+    def mechanism(self, partialOx=True):
+        vol = self.VolatileCompositionMol()
+        prods = self.ProductCompositionMol(partialOx=partialOx)
+        prodName = ('CO' if partialOx else 'CO2')
+        nO2prod = (prods[prodName] if partialOx else 2*prods[prodName])
+        nO2 = (nO2prod + prods['H2O'] - vol['Oxygen'] * 0.5)*0.5 #TODO correct?
+        reaction = "CxHyOz + {}O2 -> {}{} + {}H2O + {}N2".format(
+            nO2, prods[prodName], prodName, prods['H2O'], prods['N2'])
+        return reaction
