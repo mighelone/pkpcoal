@@ -61,7 +61,8 @@ class PostulateSubstance(object):
         #TODO Base Qfactor on DAF
         ua = self.coal.ua
         pa = self.coal.pa_daf
-        carbon = ua['Carbon']-pa['Fixed Carbon']/self.q
+        carbon = (ua['Carbon'] - pa['Fixed Carbon']
+                 + (self.q-1) * pa['Volatile Matter'])
         oxygen = ua['Oxygen']
         hydrogen = ua['Hydrogen']
         nitrogen = ua['Nitrogen']
