@@ -24,7 +24,7 @@ mock_ua = {"Carbon": 69.20, "Hydrogen": 4.40,
 mock_pa = {"Fixed Carbon": 50.80, "Volatile Matter": 34.80, 
            "Moisture": 5.80, "Ash": 8.60}
 
-mock_cpd={
+mock_cpd = {
     'fit'    : 'constantRate',
     'active' : 'True',
     'deltaT' : '1e-08',
@@ -51,15 +51,34 @@ mock_input={'Coal': {
 }
 
 methane_as_coal = {'Coal': {
-    'Proximate Analysis': {"Carbon": 0.75 , "Hydrogen": 0.25,
+    'Ultimate Analysis': {"Carbon": 0.75 , "Hydrogen": 0.25,
         "Nitrogen": 0.0, "Oxygen": 0.0, "Sulphur": 0.0},
-    'Ultimate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
+    'Proximate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
         "Moisture": 0.0, "Ash": 0.0},
     'hhv': 50016000,
     'MW_PS': 16
     },
 }
 
+propane_as_coal = {'Coal': {
+    'Ultimate Analysis': {"Carbon": 36.0/44.0 , "Hydrogen": 1.0-36.0/44.0,
+        "Nitrogen": 0.0, "Oxygen": 0.0, "Sulphur": 0.0},
+    'Proximate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
+        "Moisture": 0.0, "Ash": 0.0},
+    'hhv': 50016000,
+    'MW_PS': 44.0
+    },
+}
+
+mock_ps  = {'Coal': {
+    'Ultimate Analysis': {"Carbon": 0.5 , "Hydrogen": 0.5,
+        "Nitrogen": 0.0, "Oxygen": 0.0, "Sulphur": 0.0},
+    'Proximate Analysis': {"Fixed Carbon": 0.5, "Volatile Matter": 0.5, 
+        "Moisture": 0.0, "Ash": 0.0},
+    'hhv': 50016000,
+    'MW_PS': 44.0
+    },
+}
 
 opt_params_bounded = copy.deepcopy(opt_params)
 opt_params_bounded['constantRate'].update(
