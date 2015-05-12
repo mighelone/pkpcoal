@@ -57,26 +57,11 @@ class PostulateSubstance(object):
 
             The difficulty is to know the carbon content of the
             volatile yield.
-                m_c_ua = m_fc_prox + m_vc_prox
-                m_c_ua = m_fc_cur + m_vc_cur
-
-                m_vc_cur = m_c_ua - m_fc_prox/q_factor
         """
-        #TODO use BalancedComposition methods
-        ua = self.coal.ua
+        ua = self.coal.ua_vm
         pa = self.coal.pa_daf
-        carbon = (ua['Carbon'] - pa['Fixed Carbon']
-                 + (self.q-1) * pa['Volatile Matter'])
-        oxygen = ua['Oxygen']
-        hydrogen = ua['Hydrogen']
-        nitrogen = ua['Nitrogen']
-        tot = carbon + oxygen + hydrogen + nitrogen
-        assert tot < 100.1
-        return {'Carbon': carbon/tot,
-                'Hydrogen': hydrogen/tot,
-                'Oxygen': oxygen/tot,
-                'Nitrogen': nitrogen/tot
-                }
+        amount = -(self.q-1)*pa['Volatile Matter']
+        return ua.remove_elem_mass_rebalance('Carbon', amount)
 
     def VolatileCompositionMol(self):
         """ the species composition of the fuel in mol per mol fuel """
