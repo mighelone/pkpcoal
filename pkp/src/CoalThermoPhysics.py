@@ -35,7 +35,11 @@ class Coal(object):
         self.pa = BalancedComposition(input_dict["Proximate Analysis"])
         self.pa_dry = self.pa.remove_elems_rebalance(['Moisture'])
         self.pa_daf = self.pa.remove_elems_rebalance(['Moisture', 'Ash'])
-        self.ua = BalancedComposition(input_dict["Ultimate Analysis"])
+        # NOTE by default we neglect any sulphur content
+        self.ua_wS = BalancedComposition(input_dict["Ultimate Analysis"])
+        self.ua = self.ua_wS.remove_elems_rebalance(['Sulphur'])
+        self.ua_vm = self.ua.remove_elem_mass_rebalance('Carbon',
+            self.pa_daf['Fixed Carbon'])
         self.hhv = input_dict["hhv"]
         self.MW_PS = input_dict.get("MW_PS",100)
 
@@ -58,7 +62,7 @@ class PostulateSubstance(object):
 
                 m_vc_cur = m_c_ua - m_fc_prox/q_factor
         """
-        #TODO Base Qfactor on DAF
+        #TODO use BalancedComposition methods
         ua = self.coal.ua
         pa = self.coal.pa_daf
         carbon = (ua['Carbon'] - pa['Fixed Carbon']
