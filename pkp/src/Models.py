@@ -36,6 +36,15 @@ class BalancedComposition(object):
             """.format(item)
             return 0.0
 
+    def remove_elem_mass_rebalance(self, elem, amount):
+        """ select an element an subtract a percentage
+            mass and rebalance the result
+        """
+        from copy import deepcopy
+        input_dict = deepcopy(self.elems)
+        input_dict[elem] = input_dict[elem] - amount
+        return BalancedComposition(input_dict, self.target)
+
     def remove_elems_rebalance(self, elems_):
         """ To compute daf composition elements can be removed
 
@@ -240,7 +249,7 @@ class Model(object):
         """
         # collect errors of individual runs
         func = Model.cumulative_error
-        ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate) 
+        ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate)
                     for run in self.runs]
 
         # If we have a simple scalar list just sum the errors
@@ -338,7 +347,7 @@ class constantRate(Model):
         paramNames  = ['k', 'tstart', 'finalYield']
         parameter   = [inputs['constantRate'][paramName] for paramName in paramNames]
         paramBounds = [inputs['constantRate'].get(paramName+"Bounds",(None,None))
-                         for paramName in paramNames] 
+                         for paramName in paramNames]
         Model.__init__(self, "ConstantRate", parameter, paramBounds, inputs,
             species, self.calcMassConstRate, self.recalcMass, runs)
         # self.k           = parameter["k"]
@@ -426,7 +435,7 @@ class arrheniusRate(Model):
         paramNames  = ['preExp', 'beta', 'activationEnergy']
         parameter   = [inputs['arrheniusRate'][paramName] for paramName in paramNames]
         paramBounds = [inputs['arrheniusRate'].get(paramName+"Bounds",(None,None))
-                         for paramName in paramNames] 
+                         for paramName in paramNames]
         Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
             species, self.calcMassArrhenius, runs)
         self.updateParameter(self.parameter)
