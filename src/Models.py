@@ -678,58 +678,69 @@ class KobayashiA2(Model):
     def KobWeights(self):
         """Returns the two Kobayashi weights alpha1 and alpha2."""
         return self.__alpha1, self.__alpha2
-        
+
 
 class DAEM(Model):
-    """Calculates the devolatilization reaction using the Distributed Activation Energy Model."""
+    """Calculates the devolatilization reaction using the Distributed Activation Energy Model.
+    Using Hermit-Gaussian quadrature
+    """
     def __init__(self,InitialParameterVector):
         print 'DAEM initialized'
         self._modelName = 'DAEM'
         self._ParamVector=InitialParameterVector
         self.ODE_hmax=1.e-2
-        self.NrOfActivationEnergies=50
-        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this 
-    
-    def setNrOfActivationEnergies(self,NrOfE):
-        """Define for how many activation energies of the range of the whole distribution the integral shall be solved (using Simpson Rule)."""
-        self.NrOfActivationEnergies=NrOfE
-        
-    def NrOfActivationEnergies(self):
-        """Returns the number of activation enrgies the integral shall be solved for (using Simpson Rule)."""
-        return self.NrOfActivationEnergies
-        
-    def calcMass(self,fgdvc,time,T,Name):
+        #self.NrOfActivationEnergies=50
+        self._nquad = 4 # number of quadrature
+        self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
+
+        self._mT = 0.72 # from Michael Stoellinger
+        self._x = np.array([ np.sqrt((3-np.sqrt(6))/2),
+                          -np.sqrt((3-np.sqrt(6))/2),
+                          np.sqrt((3+np.sqrt(6))/2),
+                          -np.sqrt((3+np.sqrt(6))/2)])
+        self._H = 8*pow(self._x,3)-12*self._x # Hermite polynomial
+        from scipy.misc import factorial
+        self._w = pow(2,self._nquad-1) * factorial(self._nquad)*np.sqrt(np.pi)/(pow(self._nquad,2) * pow(self._H,2))
+        self._Wm = self._w * np.exp(pow(self._x,2))
+
+        #self._Em = self._E + self._x * sqrt(2) * self._sigma * self._mT
+
+    def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
-        self.E_List=np.arange(int(self._ParamVector[1]-3.*self._ParamVector[2]),int(self._ParamVector[1]+3.*self._ParamVector[2]),int((6.*self._ParamVector[2])/self.NrOfActivationEnergies)) #integration range E0 +- 3sigma, see [Cai 2008]
+        A0 = self._ParamVector[0]
+        E0 = self._ParamVector[1]
+        sigma = self._ParamVector[2]
+        Y0 = self._ParamVector[3]
+
+        Em = E0 + self._x * np.sqrt(2) * sigma * self._mT
+
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
             timeInt = time
         else: #if dt in DM results file has too large dt
             self._mkDt4Integrate(time)
             timeInt = self.constDtVec
-        #Inner Integral Funktion
-        def II_dt(t,E_i):
-            return np.exp( -E_i/T(t) )
-        #outer Integral for one activation energy from t0 to tfinal
-        #stores all values of the inner Integrals (time,ActivationEnergy) in a 2D-Array
-        InnerInts=np.zeros([len(timeInt),len(self.E_List)])
-        CurrentInnerInt=np.zeros(len(timeInt))
-        for Ei in range(len(self.E_List)):
-            CurrentInnerInt[:]=II_dt(timeInt[:],self.E_List[Ei])
-            InnerInts[1:,Ei] = sp.integrate.cumtrapz(CurrentInnerInt,timeInt[:])
-        #
-        def OI_dE(EIndex,tIndex):
-            m = np.exp(-self._ParamVector[0]*InnerInts[tIndex,EIndex])*(1./(self._ParamVector[2]*(2.*np.pi)**0.5))*np.exp(-(self.E_List[EIndex]-self._ParamVector[1])**2/(2.*self._ParamVector[2]**2)) 
-#            print 'InnerInt',InnerInt,'mass',dm_dt
-            return m
-        m_out=np.zeros(np.shape(timeInt))
-        mE=np.zeros(np.shape(self.E_List))
+
+        mout = []
         for ti in range(len(timeInt)):
-            for Ei in range(len(self.E_List)):
-                mE[Ei]=OI_dE(Ei,ti)
-            m_out[ti]=sp.integrate.simps(mE,self.E_List)
-        #descaling
-        m_out = self._ParamVector[3]*(1.-m_out)
+            if ti is 0:
+                mout.append(0)
+                kint = np.zeros(self._nquad)
+            else:
+                dti = timeInt[ti]-timeInt[ti-1]
+                temp = T(timeInt[ti])
+                dk = dti * A0 * np.exp(-Em/temp/8314.33)
+                kint = kint + dk
+                coeff1 = self._Wm * self._mT / np.sqrt(np.pi)
+                coeff2 = np.exp(-pow((Em-E0)/sigma,2)/2)
+                coeff3 = np.exp(-kint)
+                ym = self._Wm * self._mT / np.sqrt(np.pi) * np.exp(-pow((Em-E0)/sigma,2)/2) * np.exp(-kint)
+                sumym = np.sum(ym)
+                #print sum(ym), sum(ym1)
+                #print sumym
+                mout.append(1-sumym)
+
+        m_out = Y0*np.array(mout)
         if self.constDt == False:
             return m_out
         else: #returns the short, interpolated list (e.g. for PCCL)
