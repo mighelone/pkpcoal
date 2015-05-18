@@ -8,11 +8,12 @@ import scipy.interpolate
 import platform
 
 from Models import BalancedComposition
+from PreProc import PreProcResult
 from CoalThermoPhysics import MolWeights, EnthOfForm
 
 OS = platform.system()
 
-class CPDResult(object):
+class CPDResult(PreProcResult):
 
     # Following data has been previously returned
     # CPD_Result1: 0=Time 2=Temp 4=ftar 5=fgas 6=fsolid   7=ftot
@@ -128,7 +129,8 @@ class CPDResult(object):
             fill_value=data[-1], # NOTE if out of bounds fill with last value
         )
 
-    def Qfactor(self):
+    @property
+    def qFactor(self):
         """ Qfactor is defined as q = m_vol/m_volProx,
             hence we can use f_tot/m_volProx """
         #TODO Base Qfactor on DAF
