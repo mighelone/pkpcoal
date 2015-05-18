@@ -36,6 +36,10 @@ class BalancedComposition(object):
             """.format(item)
             return 0.0
 
+    def __contains__(self, key):
+        return key in self.elems
+
+
     def remove_elem_mass_rebalance(self, elem, amount):
         """ select an element an subtract a percentage
             mass and rebalance the result
