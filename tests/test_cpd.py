@@ -64,7 +64,7 @@ def test_cpd_results(cpd_run_single):
     from pkp.src.CoalThermoPhysics import Coal, R
     from pkp.src.CoalThermoPhysics import PostulateSubstance
     for runNr, (opCond, res) in cpd_run_single.iteritems():
-        q = res.Qfactor()
+        q = res.qFactor
         print "qFactor", q
         ps = PostulateSubstance(coal=res.coal,qFactor=q) 
         print ps.VolatileCompositionMass()
@@ -73,33 +73,6 @@ def test_cpd_results(cpd_run_single):
         print ps.mechanism() 
         print "a6: ", ps.EnthalpyOfFormation() / R 
 
-def test_cpd_results_ifrf(cpd_run_ifrf):
-    from pkp.src.CoalThermoPhysics import Coal, R
-    from pkp.src.CoalThermoPhysics import PostulateSubstance
-    for runNr, (opCond, res) in cpd_run_ifrf.iteritems():
-        q = res.Qfactor()
-        print "qFactor", q
-        ps = PostulateSubstance(coal=res.coal, qFactor=1.6) 
-        print ps.VolatileCompositionMass()
-        print ps.VolatileCompositionMol()
-        print ps.ProductCompositionMol()
-        print ps.mechanism() 
-        print "ifrf, a6: ", ps.EnthalpyOfFormation() / R 
-
-def test_cpd_results_ifrf(cpd_run_ifrf):
-    from pkp.src.CoalThermoPhysics import Coal, R
-    from pkp.src.CoalThermoPhysics import PostulateSubstance
-    print "qFactor=1.45"
-    for runNr, (opCond, res) in cpd_run_ifrf.iteritems():
-        q = res.Qfactor()
-        print "qFactor", q
-        ps = PostulateSubstance(coal=res.coal, qFactor=1.45) 
-        print ps.VolatileCompositionMass()
-        print ps.VolatileCompositionMol()
-        print ps.ProductCompositionMol()
-        print ps.mechanism() 
-        print "ifrf, a6: ", ps.EnthalpyOfFormation() / R 
-
 
 def test_cpd_results_multi(cpd_run_multi):
     res = cpd_run_multi
@@ -107,7 +80,7 @@ def test_cpd_results_multi(cpd_run_multi):
 
     for runNr,(operCond, result) in res.iteritems():
         heating_rates.append(2200/operCond[1][0])
-        qfactor.append(result.Qfactor())
+        qfactor.append(result.qFactor)
     
     fig, axs = plt.subplots()
     axs.scatter(heating_rates, qfactor, label="qFactor")
