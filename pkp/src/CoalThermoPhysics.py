@@ -72,7 +72,7 @@ class PostulateSubstance(object):
         # to get moles of species per mol fuel
         return {elem: comp_mass[elem]/mw*molar_mass_vm
                 for elem, mw in MolWeights.iteritems()
-                if elem in comp_mass.keys()}
+                if elem in comp_mass}
 
     def ProductCompositionMass(self, partialOx=True):
         pass
