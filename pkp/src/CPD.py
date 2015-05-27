@@ -143,10 +143,15 @@ class CPDResult(PreProcResult):
         """ Qfactor is defined as q = m_vol/m_volProx,
             hence we can use f_tot/m_volProx """
         #TODO Base Qfactor on DAF
-        ftot =  self.__getitem__("ftot")[-1]
         vm = self.coal.pa_daf["Volatile Matter"]
-        return ftot*100.0/vm
+        return self.ftot*100.0/vm
 
+    @property
+    def ftot(self):
+        """ the total yield as kg/kg_coal_daf
+            #TODO is ftot based on daf or as recieved?
+         """
+        return self.__getitem__("ftot")[-1]
 
 class SetAndLaunchBase(object):
     runNr=0
