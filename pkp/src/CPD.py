@@ -70,6 +70,15 @@ class CPDResult(PreProcResult):
         return ["fh20", "fco2", "fch4", "fco", "fother", "ftot", "fgas", "ftar"]
 
 
+    def rate(self, species):
+        """ returns the release rate of the species """
+        import numpy as np
+        species = self.__getitem__(species)
+        time = self.__getitem__("time")
+        dt = np.diff(time)
+        dt = np.append(time[0], dt)
+        return np.gradient(species, dt)
+
     def iterspecies(self):
         for name in self.speciesNames:
             yield name, self.__getitem__(name)
