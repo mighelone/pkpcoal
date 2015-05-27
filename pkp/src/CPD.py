@@ -334,7 +334,7 @@ class CPD(SetAndLaunchBase):
         ini.close()
 
 
-    def Run(self, inp_file="IN.dat"):
+    def Run(self, inp_file="IN.dat", verbose=False):
         """Launches the CPD executable and inputs Input_File.
 
            TODO: Store Results in subfolder
@@ -356,7 +356,8 @@ class CPD(SetAndLaunchBase):
             return
         OScommand='{} < {}{} > {}CPD_{}_output.log'.format(
                         exe, self.execDir, inp_file, self.resDir, self.runNr)
-        print OScommand
+        if verbose:
+            print OScommand
         os.system(OScommand)
         return CPDResult(folder=self.resDir, coal=self.coal)
 
