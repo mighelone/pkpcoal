@@ -4,6 +4,7 @@ EXPOSE 9999
 
 ADD . /root/pkp
 WORKDIR /root/pkp
+RUN pip install json2html
 RUN python setup.py install
 WORKDIR /root/notebooks/pkp
 
