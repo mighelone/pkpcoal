@@ -199,6 +199,8 @@ class CPD(SetAndLaunchBase):
             resDir = False,
         ):
         self.runNr = runNr
+        # NOTE we scale the tempProfile to pass time in ms as CPD expects
+        tempProfile = [(time*1000.0, temp) for time, temp in tempProfile]
         self.tempProfile = self.timeTempProfile(tempProfile) # TODO give it a better name
         self.pressure    = pressure
         # We scale ua and daf data for cpd since input is not in percents
@@ -221,9 +223,10 @@ class CPD(SetAndLaunchBase):
         self.output_dict.update(self.coal_param)
         self.output_dict.update(self.daf.elems)
         self.output_dict.update(self.__dict__)
+        self.output_dict.update({'t_final': tempProfile[-1][0]})
         self.writen_inputs = False
         resDir = (resDir if resDir else self.resDirDefault)
-        self.resDir = "{}Run{}/".format(resDir, runNr)
+        self.resDir = "{}{}/".format(resDir, runNr)
 
     @classmethod
     def calcC0(cls, massFracCarbon, massFracOx):
