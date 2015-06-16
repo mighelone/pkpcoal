@@ -284,6 +284,9 @@ class CPD(SetAndLaunchBase):
     def timeTempProfile(self, tempProfile):
         """ Returns a string from yaml read temp profile, basically reversing the yaml read function
             Probably there is a more direct way
+
+            NOTE: CPD excepts input time in (ms), but seconds are prefered as input
+                  hence we convert the times here
         """
         #return '\n'.join(["{} {}".format(time, temp) for time, temp in tempProfile.iteritems()])
         return '\n'.join([' '.join(map(str,_)) for _ in tempProfile])
