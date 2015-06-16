@@ -36,14 +36,10 @@ def main():
         if args['generate-only']:
             sys.exit(0)
         else:
-            res = fit(
-                input_file=inp,
-                results=pre,
-                selectPyrolModel="constantRate"
-            )
+            res = fit(input_file=inp)
             fit_result = res.startFittingProcedure(pre)
-            write_tsv(output, fit_result._tsv)
-            plot_and_save(output , pre[0], fit_result)
+            #write_tsv(output, fit_result._tsv)
+            plot_and_save(output, pre, fit_result)
     elif args['fit-only']:
         pass
 
@@ -57,28 +53,18 @@ def write_tsv(path, content):
 
 def plot_and_save(path, pre, model):
     import matplotlib.pyplot as plt
-    time = pre['time']
-    ftot_cpd = pre['ftot']
-    ftot_model = model.res['ftot']
-    print ftot_model
+    time = pre[pre.keys()[0]][1]['time']
+    print model.res['ftot'].fittedYield()
     fig, axs = plt.subplots()
-    colors = ['c', 'm', 'y', 'k','b','g','r']
-    print time
-    axs.scatter(
-        x=time,
-        y=ftot_cpd,
-        marker='.',
-        label = 'ftot_cpd',
-        color = colors[0],
-    )
-    axs.scatter(
-         x=time,
-         y=ftot_model,
-         color = 'k',
-         label = "ftot_constRate",
-         marker='x',
-    )
-    axs.set_xlim([0, 0.00004])
+    fig.set_size_inches(18.5, 10.5)
+    colors = ['c', 'm', 'y', 'k', 'b', 'g', 'r', 'k', 'm']
+    for runName, run in pre.iteritems():
+        for i, (name, data) in enumerate(run[1].iterspecies()):
+            axs.plot(time, data, label=name, color=colors[i], ls='--')
+            axs.plot(time, model.res[name].fittedYield(),
+                     color=colors[i], label = name + "Model")
+    # axs.set_xlim([0, 0.00004])
     axs.set_ylim([0, 1])
-    plt.legend()
+    plt.legend(loc="center left",
+            bbox_to_anchor=(0.95, 0.75))
     fig.savefig(path + '/plot.png')
