@@ -34,21 +34,20 @@ def genericRate(inputs, results, pyrolModelName):
     # otherwise an Evolutionary algorithm (GenAlg; global optimum) is used
     # Iterate species in Fit Object
     # NOTE it seems strange that we need a model object for every species
-    model_inputs = inputs['Optimisation']
     model = getattr(mdl, pyrolModelName)
-    species_names = results[0].speciesNames
-    # TODO make a results object out of it
+    model_inputs = inputs['FIT']
+    #FIXME very hacky
+    species_names = results[results.keys()[0]][1].speciesNames
     return FitResult({species_name : model(
                 inputs  = model_inputs,
                 runs    = results,
-                species = species_name).fittedYield()
+                species = species_name).fit()
         for species_name in species_names})
 
 class FitResult(object):
 
     def __init__(self, res):
         self.res = res
-        print(res)
 
     @property
     def _tsv(self):
