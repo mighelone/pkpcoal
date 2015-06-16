@@ -22,7 +22,8 @@ class BalancedComposition(object):
             dictionary with scaled composition is created
         """
         self.target = target
-        scaling_factor = target/sum(inp.values())
+        self.basis = sum(inp.values())
+        scaling_factor = target/self.basis
         self.elems = {key:value*scaling_factor for key,value in inp.iteritems()}
 
 
@@ -39,6 +40,9 @@ class BalancedComposition(object):
     def __contains__(self, key):
         return key in self.elems
 
+    def __iter__(self):
+        for name, mass in self.elems.iteritems():
+            yield name, mass
 
     def remove_elem_mass_rebalance(self, elem, amount):
         """ select an element an subtract a percentage
@@ -103,31 +107,32 @@ class Model(object):
         self.postGeneticOpt = True
         self.recalcMass = recalcMass
 
-    def fit(self):
-        print 'initial parameter: ' + str(self.initialParameter)
+    def fit(self, **kwargs):
+        # print 'initial parameter: ' + str(self.initialParameter)
         if len(self.runs) > 1:
             from pkp.src import Evolve
             optParams = self.geneticOpt()
             self.initialParameter = optParams
-            self.parameterBounds = None #  reset bounds
+            self.parameterBounds = None # reset bounds
         if self.postGeneticOpt:
             print 'start gradient based optimization, species: ' + self.species
             from scipy.optimize import minimize
-            print "bounds",  self.parameterBounds
             optimizedParameter = minimize(
                     fun  = self.error_func,
                     x0   = self.initialParameter,
-                    # method = 'CG',
                     bounds = self.parameterBounds,
-                    tol = 1.0e-32,# self.fitTolerance, # FIXME
-                    # options = {'maxiter': self.maxIter}
+                    **kwargs
             )
-            self.parameter = optimizedParameter
-        return optimizedParameter
+            if not optimizedParameter.success:
+                print "WARNING", optimizedParameter.status
+            self.parameter = optimizedParameter.x
+        return self
 
     def fittedYield(self):
-        optParams = self.fit()
-        return self.recalcMass(optParams.x, time=self.runs[0]['time'])
+        # NOTE needs fit to be run before, probably
+        # some checking
+        optParams = self.parameter
+        return self.recalcMass(optParams, time=self.runs[self.runs.keys()[0]][1]['time'])
 
     def geneticOpt(self):
         from pyevolve import G1DList, GSimpleGA, Selectors
@@ -136,7 +141,7 @@ class Model(object):
         genome = G1DList.G1DList(len(self.parameter))
         # genome.setParams(rangemin=self.parameterBounds[0],
         #                  rangemax=self.parameterBounds[1])
-        genome.initializator.set(Initializators.G1DListInitializatorReal)
+        genome.init, ializator.set(Initializators.G1DListInitializatorReal)
         genome.mutator.set(Mutators.G1DListMutatorRealRange)
         # The evaluator function (objective function)
         genome.evaluator.set(self.error_func)
@@ -180,7 +185,7 @@ class Model(object):
         if deltaT:
             return gradient(mass, deltat)
         else:
-            return gradient(np.array([mass,times]))
+            return False #FIXME gradient(np.array([mass,times]))
 
     def calcRate(self, preProcResult, time, temp, species):
         """ computes actual release reates for a given species
@@ -253,8 +258,8 @@ class Model(object):
         """
         # collect errors of individual runs
         func = Model.cumulative_error
-        ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate)
-                    for run in self.runs]
+        ret = [self.errorPerRun(parameter, run[1], func, weightMass, weightRate)
+                    for run in self.runs.values()]
 
         # If we have a simple scalar list just sum the errors
         # else we component wise sum the error and return a vector
@@ -360,14 +365,14 @@ class constantRate(Model):
         # if set to false, the numerical time step corresponding to the outputed
         # by the detailled model (e.g CPD) is used; define a value to use instead this
 
-    def __repr__(self):
-        return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
+    # def __repr__(self):
+    #     return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
 
     def recalcMass(self, parameter, time):
         """ recalculate mass release after updateParameter
 
             reuses init_mass, time and temp from previous
-            computation, needed for genetic algorhythm
+            computation, needed for genetic algorithm
             since we only get the best parameters back
             and need to adjust the model
         """
@@ -436,46 +441,52 @@ class arrheniusRate(Model):
     relativeTolerance = 1.0e-6
 
     def __init__(self, inputs, runs, species):
-        paramNames  = ['preExp', 'beta', 'activationEnergy']
+        print "runs", runs
+        paramNames  = ['preExp', 'activationEnergy']
         parameter   = [inputs['arrheniusRate'][paramName] for paramName in paramNames]
         paramBounds = [inputs['arrheniusRate'].get(paramName+"Bounds",(None,None))
                          for paramName in paramNames]
         Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
-            species, self.calcMassArrhenius, runs)
+            species, self.calcMassArrhenius, self.recalcMassArrhenius, runs=runs)
         self.updateParameter(self.parameter)
+        sel_run = runs.keys()[0] # FIXME
+        self.final_yield = runs[sel_run][1][species][-1] # FIXME
+        self.lowerT = inputs['arrheniusRate'].get('lowerDevolTemp', False)
+        self.temp = runs[sel_run][1].interpolate('temp')
 
     def updateParameter(self, parameter):
         self.A    = parameter[0]
-        self.beta = parameter[1]
-        self.E    = parameter[2]
+        #self.beta = parameter[1]
+        self.E    = parameter[1]
         ##print "Parameter update " + str(parameter)
 
-    def calcMassArrhenius(self, parameter, init_mass, time, temp=False):
+    def recalcMassArrhenius(self, parameter, time):
+        return self.calcMassArrhenius(parameter, init_mass=0.0, time=time, temp=self.temp)
+
+    def calcMassArrhenius(self, parameter, init_mass, time, temp):
         """Outputs the mass(t) using the model specific equation."""
-        """ dm/dt=A*(T**b)*exp(-E/T)*(m_s-m)  """
+        """ dm/dt=A*(T**0)*exp(-E/T)*(m_s-m)  """
+        #A, beta, E = parameter[0], parameter[1], parameter[2] # TODO tuple unpacking?
+        A, E = parameter[0], parameter[1]#, parameter[2] # TODO tuple unpacking?
         def dmdt(m, t):
-            T  = temp(t) # so temp is a function that takes t and returns T
-            # dm = self.final_yield - m # finalYield
-            dm = 1.0 - m # finalYield
-            A = self.A
-            beta = self.beta
-            E = self.E
-            # print (A,beta,E,dm)
+            T = temp(t) # so temp is a function that takes t and returns T
+            if self.lowerT and T < self.lowerT:
+               return 0.0
+            dm = self.final_yield - m # finalYield
             if False:
                 dmdt_ = (-A * dm  #FIXME this doesnt make sense!
                           * np.power(T, beta)
                           * np.exp(-self.E/T)
                             )
             else:
-                dmdt_ = (init_mass + A * dm
-                         * np.power(T, beta)
-                         * np.exp(-E/T)) # TODO this should be Ta instead of E
-            # print dmdt_,t
+                # TODO this should be Ta instead of E
+                dmdt_ = (init_mass + A*dm*np.exp(-E/T))
+            #print "dmdt, t, m, dm, T ",  dmdt_, t, m, dm, T
             # sets values < 0 to 0.0, to avoid further problems
-            return dmdt_ #np.where(dmdt_ > 1e-64, dmdt_, 0.0)
+            return float(dmdt_) #np.where(dmdt_ > 1e-64, dmdt_, 0.0)
         m_out = sp.integrate.odeint(
                 func=dmdt,
-                y0=[0.0],
+                y0=0.0,
                 t=time,
                 # atol=self.absoluteTolerance,
                 # rtol=self.relativeTolerance,
