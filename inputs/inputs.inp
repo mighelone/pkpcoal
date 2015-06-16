@@ -16,15 +16,31 @@ Coal:
     #Tar Molecule weight, MTar:
     rhoDry : 1310 # kg/m3
 
+FIT:
+    #Model: ['constantRate', 'arrheniusRate'] #, 'ArrheniusNoB', 'Kobayashi', 'DAEM', 'None']
+    #Model: arrheniusRate
+    Model: constantRate
+    # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
+    Species: [ftot]
+    constantRate:
+        k :  1.0
+        tstart : 0.0
+        tstartBounds : [0.0, 1.0]
+        finalYield : 1.0
+    arrheniusRate:
+        preExp: 79.0
+        beta : 0.0
+        activationEnergy : 0
+        betaBounds : (0.0, 0.0)
+        lowerDevolTemp : 800.0
+
 # TODO MV: names of empirical models should be modified for being more coherent with publication in Fuel 2013 
 # Arrhenius -> SFOR (single first order reaction)
 # Kobayashi -> C2SM (Competing 2 steps model)
 # DAEM
 # constantRate -> SCR (single constant rate)
 CPD:
-    #fit: ['constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM', 'None']
     active : true
-    fit    : None
     deltaT : 1e-4
     MW_TAR : 130
 
@@ -61,8 +77,6 @@ PMSKD:  # Polimi Multi-Step Kinetic Devolatilization
     # Mechanism file for Cantera (only use xml!!!)
     mechFile    :   COAL.xml
 
-
-
 Calibration:
     weightYield     :   100.
     weightRate      :   0.
@@ -71,8 +85,10 @@ Calibration:
 
 OperatingConditions:
     pressure    : 1.0 #atmosphere
-    run1        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
-    run2        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
-    run3        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
-    run4        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
-    run5        : [ [ 0, 400], [ 0.1,1400], [ 0.5, 2000] ]
+    runs: 1
+    run0        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    run1        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    run2        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    run3        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    run4        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    run5        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
