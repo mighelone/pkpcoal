@@ -80,6 +80,7 @@ class Coal(object):
     """ Class to hold all coal properties """
 
     def __init__(self, input_dict):
+        self.d = input_dict
         self.pa = BalancedComposition(input_dict["Proximate Analysis"])
         self.pa_dry = self.pa.remove_elems_rebalance(['Moisture'])
         self.pa_daf = self.pa.remove_elems_rebalance(['Moisture', 'Ash'])
