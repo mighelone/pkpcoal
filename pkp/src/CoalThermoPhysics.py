@@ -297,7 +297,7 @@ class PostulateSubstance(Yield):
         # for every element in the volatile composition we get the
         # corresponding product and its enthapy of formation kJ/kmol
         LHV = self.pre.coal.hhv
-        molar_mass_vm = self.coal.MW_PS
+        molar_mass_vm = self.pre.coal.MW_PS
         for name, mol in vol_comp.iteritems():
             h_prod = EnthOfForm.get(name, 0.0)
             H_products += mol*h_prod
