@@ -62,13 +62,14 @@ class TestCPDLauncher():
 
 def test_cpd_results(cpd_run_single):
     from pkp.src.CoalThermoPhysics import Coal, R
+    from pkp.src.PreProc import ManualQfactor
     from pkp.src.CoalThermoPhysics import PostulateSubstance
     for runNr, (opCond, res) in cpd_run_single.iteritems():
         q = res.qFactor
         print "qFactor", q
-        ps = PostulateSubstance(coal=res.coal,qFactor=q) 
-        print ps.VolatileCompositionMass()
-        print ps.VolatileCompositionMol()
+        ps = PostulateSubstance(ManualQfactor(coal=res.coal, qFactor=q))
+        print ps.VolatileCompositionMass
+        print ps.VolatileCompositionMol
         print ps.ProductCompositionMol()
         print ps.mechanism() 
         print "a6: ", ps.EnthalpyOfFormation() / R 

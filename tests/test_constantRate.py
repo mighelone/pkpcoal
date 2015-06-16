@@ -18,20 +18,20 @@ def linear_cr_fit(linear_preProc):
 def exp_cr_fit(exp_preProc):
     """ initialize and estimate rates from mocked preproc data"""
     from pkp.src.Models import constantRate
-    return constantRate(opt_params, [exp_preProc], "Species")
+    return constantRate(opt_params, {'run0': (0,exp_preProc)}, "Species")
 
 @pytest.fixture
 def exp_cr_fit_bounded(exp_preProc):
     """ initialize and estimate rates from mocked preproc data"""
     from pkp.src.Models import constantRate
-    return constantRate(opt_params_bounded, [exp_preProc], "Species")
+    return constantRate(opt_params_bounded, {'run0': (0,exp_preProc)}, "Species")
 
 @pytest.fixture
 def exp_cr_fit_bounded_multi(exp_preProc):
     """ initialize and estimate rates from mocked preproc data"""
     from pkp.src.Models import constantRate
     return constantRate(
-        opt_params_bounded, [exp_preProc, exp_preProc], "Species")
+        opt_params_bounded, {'run0':exp_preProc, 'run1':exp_preProc}, "Species")
 
 def test_cr_init(linear_cr_fit):
     """ test if instantiation of 
@@ -126,7 +126,8 @@ def test_cr_compute_model_error(exp_cr_fit):
 def test_fit_cr_model(exp_cr_fit, exp_cr_fit_bounded):
     fit = exp_cr_fit
     fitBounded = exp_cr_fit_bounded
-    optimizedParameter = fit.fit().x
+    fit.fit()
+    optimizedParameter = fit.parameter
     time = np.arange(0.0, 1.01, 0.01)
     print optimizedParameter
     fittedYield = fit.calcMass(optimizedParameter, 0.0, time)
@@ -135,7 +136,8 @@ def test_fit_cr_model(exp_cr_fit, exp_cr_fit_bounded):
     axs.plot(time, fittedYield, color = 'k', label = "yield fit unbounded")
     axs.plot(time, exp_yield, color = 'r', label = "target yield")
 
-    optimizedParameter2 = fitBounded.fit().x
+    fitBounded.fit()
+    optimizedParameter2 = fitBounded.parameter
     print optimizedParameter2
     fittedYieldBounded = fitBounded.calcMass(optimizedParameter2, 0.0, time)
 
@@ -148,8 +150,9 @@ def test_fit_cr_model(exp_cr_fit, exp_cr_fit_bounded):
 @pytest.mark.xfail
 def test_genetic_model(exp_cr_fit_bounded_multi):
     fit = exp_cr_fit_bounded_multi
-    optimizedParameter = fit.fit().x
     time = np.arange(0.0, 1.01, 0.01)
+    fit.fit()
+    optimizedParameter = fit.parameter
     print optimizedParameter
     fittedYield = fit.calcMass(optimizedParameter, 0.0, time)
     

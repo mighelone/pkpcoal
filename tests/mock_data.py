@@ -34,7 +34,7 @@ mock_cpd = {
 
 T_init = [0,300]
 mock_opcond = {
-    'run' + str(nr): [T_init, [0.005*i, 2500]] for nr,i in enumerate(range(1,40,1))
+    'run' + str(nr): [T_init, [0.000005*i, 2500]] for nr,i in enumerate(range(1,40,1))
 }
 
 mock_opcond['pressure'] = 1.0
