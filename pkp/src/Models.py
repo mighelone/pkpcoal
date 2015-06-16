@@ -353,10 +353,10 @@ class constantRate(Model):
     #TODO GO parameter[2] is not specified in inputs example
 
     def __init__(self, inputs, runs, species):
-        paramNames  = ['k', 'tstart', 'finalYield']
-        parameter   = [inputs['constantRate'][paramName] for paramName in paramNames]
+        self.paramNames  = ['k', 'tstart', 'finalYield']
+        parameter   = [inputs['constantRate'][paramName] for paramName in self.paramNames]
         paramBounds = [inputs['constantRate'].get(paramName+"Bounds",(None,None))
-                         for paramName in paramNames]
+                         for paramName in self.paramNames]
         Model.__init__(self, "ConstantRate", parameter, paramBounds, inputs,
             species, self.calcMassConstRate, self.recalcMass, runs)
         # self.k           = parameter["k"]
@@ -442,10 +442,10 @@ class arrheniusRate(Model):
 
     def __init__(self, inputs, runs, species):
         print "runs", runs
-        paramNames  = ['preExp', 'activationEnergy']
-        parameter   = [inputs['arrheniusRate'][paramName] for paramName in paramNames]
+        self.paramNames  = ['preExp', 'activationEnergy']
+        parameter   = [inputs['arrheniusRate'][paramName] for paramName in self.paramNames]
         paramBounds = [inputs['arrheniusRate'].get(paramName+"Bounds",(None,None))
-                         for paramName in paramNames]
+                         for paramName in self.paramNames]
         Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
             species, self.calcMassArrhenius, self.recalcMassArrhenius, runs=runs)
         self.updateParameter(self.parameter)
