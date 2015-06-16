@@ -12,21 +12,63 @@ MolWeights = { #g/mol
     'CO': 28.010,
     'CO2': 44.011,
     'H2O': 18.016,
+    'OH': 17.0,
+    'H2': 2.016,
+    'N2': 28.014,
+    'O2': 32.0,
+    'CH4': 16.0,
+    'C2H2': 26.0,
+    'C2': 24.0,
+    'Char': 12.0,
 }
 
 EnthOfForm = { # in [kJ/kmol]
     'CO':  -110541.0, # Turns p. 622
     'CO2': -393546.0, # Turns p. 623
     'H2O': -241845.0, # Turns p. 632
+    'OH': 38987.0,
+    'CH4': -74870,
+    'C2H2': 226880.0, #http://en.wikipedia.org/wiki/Acetylene
+    'Char': 0,
+}
+
+LatentHeat = { # in [kJ/kg]
+    'H2O': 2263.073
 }
 
 EnthOfFormKG = {name: value/MolWeights[name]
         for name, value in EnthOfForm.iteritems()}
 
-CoresProd = {
-    'Carbon':'CO',
-    'Hydrogen':'H2O',
-}
+
+class Species(object):
+
+    def __init__(self, name, molecular_weight, components):
+        self.name = name
+        self.molecular_weight = molecular_weight
+        self.components = components
+
+    def fraction(self, elem):
+        """ the fraction of mass MW_el/MW_tot """
+        if elem in self.components:
+            return self.components[elem]/self.molecular_weight
+        else:
+            return 0.0
+
+    @property
+    def fractions(self):
+        return {elem:self.fraction(elem) for elem in self.components}
+
+#TODO replace instantiation by parser
+CO = Species('CO', MolWeights['CO'], {'Carbon': MolWeights['Carbon'], 'Oxygen': MolWeights['Oxygen']})
+OH = Species('OH', MolWeights['OH'], {'Hydrogen': MolWeights['Hydrogen'] ,'Oxygen': MolWeights['Oxygen'] })
+CH4 = Species('CH4', MolWeights['CH4'], {'Hydrogen': 4*MolWeights['Hydrogen'] ,'Carbon': MolWeights['Carbon'] })
+C2H2 = Species('C2H2', MolWeights['C2H2'], {'Hydrogen': 2*MolWeights['Hydrogen'] ,'Carbon': 2*MolWeights['Carbon'] })
+N2 = Species('N2', MolWeights['N2'], {'Nitrogen': 2*MolWeights['Nitrogen']})
+H2 = Species('H2', MolWeights['H2'], {'Hydrogen': 2*MolWeights['Hydrogen']})
+O2 = Species('O2', MolWeights['O2'], {'Oxygen': 2*MolWeights['Oxygen']})
+H2O = Species('H2O', MolWeights['H2O'], {'Hydrogen': 2*MolWeights['Hydrogen'],'Oxygen': MolWeights['Oxygen']})
+CO2 = Species('CO2', MolWeights['CO2'], {'Carbon': MolWeights['Carbon'], 'Oxygen': 2*MolWeights['Oxygen']})
+C2 = Species('C2', MolWeights['C2'], {'Carbon': 2*MolWeights['Carbon']}) #FOR DEBUG ONLY
 
 class Coal(object):
     """ Class to hold all coal properties """
