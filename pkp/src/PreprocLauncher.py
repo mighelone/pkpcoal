@@ -14,14 +14,12 @@ def Launch_CPD(inputs, output_folder):
     """ Execute CPD for each given temperature profile and
         return a list of CPD results objects
      """
-    def InitAndLaunch(*pargs,**kwargs):
+    def InitAndLaunch(*pargs):
         """ initialises and execute cpd calculation """
-        if kwargs.get('verbose', False):
-            print 'Running CPD: ' + kwargs.get('runNr')
         cpd = CPD.CPD(*pargs)
         return cpd.Run()
 
-    operatingConditions = inputs['OperatingConditions']
+    operatingConditions = inputs['Coal']['OperatingConditions']
     #pressure = operatingConditions.pop('pressure')
     pressure = operatingConditions['pressure']
     from CoalThermoPhysics import Coal
@@ -36,10 +34,8 @@ def Launch_CPD(inputs, output_folder):
                     if 'run' in runNr ]
     return {run: (operatingConditions[run], InitAndLaunch(
                 coal,
-                operatingConditions[run],
                 pressure,
                 inputs['CPD']['deltaT'],
                 run,
-                output_folder,
-                runNr=str(run))
+                output_folder)
         ) for i, run in enumerate(runs)}
