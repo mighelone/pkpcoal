@@ -44,10 +44,10 @@ mock_input={'Coal': {
     'Proximate Analysis': mock_pa,
     'Ultimate Analysis': mock_ua,
     'hhv': 28220000,
-    'MW_PS': 40
+    'MW_PS': 40,
+    'OperatingConditions': mock_opcond,
     },
     'CPD': mock_cpd,
-    'OperatingConditions': mock_opcond
 }
 
 methane_as_coal = {'Coal': {
@@ -56,7 +56,8 @@ methane_as_coal = {'Coal': {
     'Proximate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
         "Moisture": 0.0, "Ash": 0.0},
     'hhv': 50016000,
-    'MW_PS': 16
+    'MW_PS': 16,
+    'OperatingConditions': mock_opcond,
     },
 }
 
@@ -66,7 +67,8 @@ co_as_coal = {'Coal': {
     'Proximate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
         "Moisture": 0.0, "Ash": 0.0},
     'hhv': 10159968,
-    'MW_PS': 28.0
+    'MW_PS': 28.0,
+    'OperatingConditions': mock_opcond,
     },
 }
 
@@ -76,7 +78,8 @@ propane_as_coal = {'Coal': {
     'Proximate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
         "Moisture": 0.0, "Ash": 0.0},
     'hhv': 50016000,
-    'MW_PS': 44.0
+    'MW_PS': 44.0,
+    'OperatingConditions': mock_opcond,
     },
 }
 
@@ -86,7 +89,8 @@ mock_ps  = {'Coal': {
     'Proximate Analysis': {"Fixed Carbon": 0.5, "Volatile Matter": 0.5, 
         "Moisture": 0.0, "Ash": 0.0},
     'hhv': 50016000,
-    'MW_PS': 44.0
+    'MW_PS': 44.0,
+    'OperatingConditions': mock_opcond,
     },
 }
 

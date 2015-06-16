@@ -22,7 +22,7 @@ def linear_preProc():
         linearily increasing  yield """
     from pkp.src.CPD import CPDResult
     res_dct = {"header": cpd_header, "data": cpd_linear}
-    return CPDResult(dct=res_dct, coal=ctp.Coal(mock_input['Coal']))
+    return CPDResult(dct=res_dct, coal=ctp.Coal(mock_input['Coal']), runNr='run0')
 
 @pytest.fixture
 def exp_preProc():
@@ -30,7 +30,7 @@ def exp_preProc():
         exponentioal increasing  yield """
     from pkp.src.CPD import CPDResult
     res_dct = {"header": cpd_header, "data": cpd_exp}
-    return CPDResult(dct=res_dct, coal=ctp.Coal(mock_input['Coal']))
+    return CPDResult(dct=res_dct, coal=ctp.Coal(mock_input['Coal']), runNr='run0')
 
 
 @pytest.fixture(scope='session')
@@ -47,7 +47,7 @@ def cpd_run_ifrf():
 def cpd_run_multi():
     from pkp.pkpcli import Generate
     multi = mock_input
-    multi['OperatingConditions']['runs'] = 19
+    multi['Coal']['OperatingConditions']['runs'] = 19
     return Generate(multi).executeSolver()
 
 class TestFittingProcedures():
