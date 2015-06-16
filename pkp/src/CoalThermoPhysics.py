@@ -4,6 +4,12 @@ from Models import BalancedComposition
 
 R = 8.314 # [kJ/(kmol*K)]
 
+CoresProd = {
+    'Carbon':'CO',
+    'Hydrogen':'H2O',
+}
+
+
 MolWeights = { #g/mol
     'Oxygen':15.999,
     'Carbon':12.011,
@@ -82,16 +88,48 @@ class Coal(object):
         self.ua = self.ua_wS.remove_elems_rebalance(['Sulphur'])
         self.ua_vm = self.ua.remove_elem_mass_rebalance('Carbon',
             self.pa_daf['Fixed Carbon'])
-        self.hhv = input_dict["hhv"]
-        self.MW_PS = input_dict.get("MW_PS",100)
+        self.hhv = input_dict["hhv"] #in kJ/kg
+        self.MW_PS = input_dict.get("MW_PS", 100)
 
+    #FIXME make it a testable function
+    @property
+    def hhv_daf(self):
+        """ HHV_{daf} = HHV_{as-recieved}/(f_{FC}+f_{VM}) """
+        #NOTE the factor 100.0 comes from the fact that pa is in percents
+        return self.hhv*100.0/(self.pa['Fixed Carbon'] + self.pa['Volatile Matter'])
 
-class PostulateSubstance(object):
+    @property
+    def lhv_daf(self):
+        """ LHV_{daf} = HHV_{daf} - h_{latent,H2O}(MW_O+2MW_H)/(2MW_H)f_{UA,H} """
+        return self.hhv_daf - LatentHeat['H2O']/(2.0*H2O.fractions['Hydrogen'])
 
-    def __init__(self, coal, qFactor=1.0):
-        self.coal = coal
-        self.q = qFactor
+def composition(species, scale=1.0):
+    """ returns the elemental composition for mixture of species
 
+        Arguments: species a dictionary with {'name':massfraction}
+"""
+    elems = ['Carbon', 'Oxygen', 'Hydrogen', 'Nitrogen']
+    comp = {elem: 0.0 for elem in elems}
+    for s, fraction in species.iteritems():
+        for elem, value in globals()[s].fractions.iteritems():
+            comp[elem] += fraction * value * scale
+    return comp
+
+class Yield(object):
+    """ Base class for fitting the composition of the pyrolysis yield
+        to the preprocessor data """
+
+    def __init__(self,
+        preProcessorResults,
+        targetSpecies=None,
+        preProcSpecies=None
+    ):
+        self.pre = preProcessorResults
+        self.targetSpecies = targetSpecies
+        self.target_map = {pos: name for pos, name in enumerate(targetSpecies)}
+
+    #TODO Move this to PreProc class?
+    @property
     def VolatileCompositionMass(self):
         """ m_species/m_tot
             where:
@@ -99,44 +137,155 @@ class PostulateSubstance(object):
 
             The difficulty is to know the carbon content of the
             volatile yield.
+            Units: [kg/kg_yield]
         """
-        ua = self.coal.ua_vm
-        pa = self.coal.pa_daf
-        amount = -(self.q-1)*pa['Volatile Matter']
+        ua = self.pre.coal.ua_vm
+        pa = self.pre.coal.pa_daf
+        amount = -(self.pre.qFactor-1.0)*pa['Volatile Matter']
         return ua.remove_elem_mass_rebalance('Carbon', amount)
 
+    @property
     def VolatileCompositionMol(self):
-        """ the species composition of the fuel in mol per mol fuel """
-        molar_mass_vm = self.coal.MW_PS
-        comp_mass = self.VolatileCompositionMass()
+        """ the species composition of the fuel in mol per mol yield
+            Units [mol/mol_yield]
+        """
+        molar_mass_vm = self.pre.coal.MW_PS
+        comp_mass = self.VolatileCompositionMass
         # species_mass_fraction*mw = moles of species per kg fuel
         # and we normalise that by multiplying with molar_mass_vm
         # to get moles of species per mol fuel
+        # TODO: Does this make sense? This probably doesnt sum up to one!
+        #       The function has been tested but what is the effect of
+        #       arbitray MW_PS. Do we need to rescale?
         return {elem: comp_mass[elem]/mw*molar_mass_vm
                 for elem, mw in MolWeights.iteritems()
                 if elem in comp_mass}
 
+    @property
+    def lhv(self):
+        """ LHV_{yield} = (LHV_{daf} - f_{char} LHV_{char})/f_{yield} """
+        f_yield = self.pre.ftot
+        f_char =  1.0 - f_yield
+        return (LowerHeatingValue['Char']*f_char)/f_yield
+
+    def error_func(self, species_massfractions):
+        """ compute the cumulated percentual error of composition
+
+            Parameters:
+                target: list of target mass fractions of elements
+                coeffs: matrix of nu*MW_elm/MW_species, i = Elm, j = spec
+        """
+        def elem_error_perc(target_mass, mass_elem):
+            return abs((target_mass - mass_elem)/target_mass)
+        def mass_elm_species(elem):
+            return sum([species_massfractions[i] * spec.fraction(elem)
+                        for i, spec in enumerate(self.targetSpecies)])
+        return sum([elem_error_perc(target_mass/100.0, mass_elm_species(elem))
+                        for elem, target_mass in self.VolatileCompositionMass])
+
+    def fit_composition(self, optimizer):
+        from scipy.optimize import brute
+        res = optimizer()
+        return {self.target_map[i].name: x for i, x in enumerate(res)}
+
     def ProductCompositionMass(self, partialOx=True):
+        """ Same as ProductCompositionMol but on mass basis
+            Units [kg/kg_Prod]
+        """
+        # NOTE This could be based on ProductCompositionMol, but as long
+        # it remains unclear that self.VolatileCompositionMol is correct
+        # the product composition is computed separately
+        comp = self.VolatileCompositionMass
+        spec = ('CO' if partialOx else 'CO2')
+        # each kg carbon in the yield can produce MW_CO?/MW_C kg CO2
+        COx = comp['Carbon']*MolWeights[spec]/MolWeights['Carbon']
+        # each kg hydrogen in the yield can produce MW_H2O/MW_H kg H2O
+        H2O = comp['Hydrogen']*MolWeights['H2O']/(2.0*MolWeights['Hydrogen'])
+        # The product mass of nitrogen stays unchanged
+        N2 = comp['Nitrogen']
+        # Creating a BalancedComposition changes the units from
+        # [kg/kg_Yield] to [kg/kg_Prod]
+        # but the old basis is still availible
+        return BalancedComposition({spec: COx, 'H2O': H2O, 'N2': N2})
+
+    def ProductMass(self, partialOx=True):
+        """ [kg/kg_yield] """
         pass
+
 
     def ProductCompositionMol(self, partialOx=True):
         """ compute the molar composition of the products per mol fuel
 
             assumes that each mol of carbon produces a mol CO or CO2
                          each mol of hydrogen produces half a mol H20
+            Units: [mol/mol_Prod]
         """
-        # first we get the molar composition of the volatile matter,
-        # with that we can compute the product compostion per mol vm
-        comp = self.VolatileCompositionMol()
-        CO   =     comp['Carbon']
-        H2O  = 0.5*comp['Hydrogen']
-        N2   =     comp['Nitrogen']
-        # if we assume partial oxidaten CO is produced instead of
-        # CO2, but only the product name changes, stoichiometric
-        # constants are the same. This is important since enthalpy
-        # of formation is computed assuming full oxidation
-        prodName = ('CO' if partialOx else 'CO2')
-        return {prodName: CO, 'H2O': H2O, 'N2': N2}
+        # the molar composition is based on the product mass composition
+        comp = self.ProductCompositionMass(partialOx)
+        # by using a BalancedComposition the individual components are
+        # divided by the total sum product moles
+        return BalancedComposition(
+                {spec: val/MolWeights[spec] for spec, val in comp.iteritems()})
+
+    @property
+    def Oxygen_from_yield(self):
+        """ the amount of oxygen in products coming from the yield
+        """
+        comp = composition(self.ProductCompositionMass(partialOx=False))
+        f = self.Fuel_to_Product_Mass
+        return self.VolatileCompositionMass['Oxygen']/(comp['Oxygen']/f)
+
+    @property
+    def Fuel_to_Product_Mass(self):
+        return 100.0/self.ProductCompositionMass(partialOx=False).basis
+
+    @property
+    def FOx(self):
+        """ the Fuel to Oxygen ratio on molar basis
+            m_Fuel + m_O2 -> m_Prod
+            FOx = m_Fuel/m_O2
+            m_O2 = m_O_Products * (1-r)
+            FOx = (m_Prod - m_O2)/m_O2
+            TODO DOUBLE CHECK THIS
+        """
+        prod = composition(self.ProductCompositionMass(partialOx=False))
+        f = self.Fuel_to_Product_Mass
+        m_O2 = prod['Oxygen']/(f*100.0)*(1.0 - self.Oxygen_from_yield)
+        return 1.0/m_O2
+
+    @property
+    def enthalpy_balance_products(self):
+        """ kJ/kg_yield """
+        f = self.Fuel_to_Product_Mass
+        return enthalpy_balance(self.ProductCompositionMass(partialOx=False))/(100.0/f)
+
+
+def enthalpy_balance(composition):
+    """ returns the sum of the enthalpies of formation weighted by the composition
+        in kJ/kg
+    """
+    # NOTE all species that are not in EnthOfForm are assumed to have 0
+    #      enthalpy of formation DANGEROUS
+    return sum([val*EnthOfFormKG[spec]
+                for spec, val in composition.iteritems()
+                if spec in EnthOfForm])
+
+def enthalpy_balance_mol(composition):
+    """ returns the sum of the enthalpies of formation weighted by the composition
+        in kJ/kmol
+    """
+    # NOTE all species that are not in EnthOfForm are assumed to have 0
+    #      enthalpy of formation DANGEROUS
+    return sum([val*EnthOfForm[spec]
+                for spec, val in composition.iteritems()
+                if spec in EnthOfForm])
+
+
+class PostulateSubstance(Yield):
+
+    def __init__(self, preProc):
+        Yield.__init__(self, preProc, ['CxHyOz'])
+
 
     def EnthalpyOfFormation(self):
         """ Computes the enthalpy of formation of the volatile matter
@@ -147,7 +296,7 @@ class PostulateSubstance(object):
         H_products = 0.0
         # for every element in the volatile composition we get the
         # corresponding product and its enthapy of formation kJ/kmol
-        LHV = self.coal.hhv
+        LHV = self.pre.coal.hhv
         molar_mass_vm = self.coal.MW_PS
         for name, mol in vol_comp.iteritems():
             h_prod = EnthOfForm.get(name, 0.0)
@@ -156,7 +305,7 @@ class PostulateSubstance(object):
         return h_0f
 
     def mechanism(self, partialOx=True):
-        vol = self.VolatileCompositionMol()
+        vol = self.VolatileCompositionMol
         prods = self.ProductCompositionMol(partialOx=partialOx)
         prodName = ('CO' if partialOx else 'CO2')
         nO2prod = (prods[prodName] if partialOx else 2*prods[prodName])
