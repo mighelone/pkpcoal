@@ -21,8 +21,10 @@ class CPDResult(PreProcResult):
     # NOTE GO: last line of CPD_Result1 is a duplicate
     solver = "CPD"
 
-    def __init__(self, coal, folder=False, dct=False):
+    def __init__(self, coal, runNr,
+        folder=False, dct=False):
         self.coal = coal
+        self.tempProfile = coal.d['OperatingConditions'][runNr]
         self.timesteps = 1 # unfortunately cpd write only 4 digits after comma
                            # so for small time steps we have to skip identical
                            # values
@@ -199,14 +201,14 @@ class CPD(SetAndLaunchBase):
 
     def __init__(self,
             coal,
-            tempProfile,
             pressure,
             deltaT,
-            runNr = 0,
+            runNr = 'run0',
             resDir = False,
         ):
         self.runNr = runNr
         # NOTE we scale the tempProfile to pass time in ms as CPD expects
+        tempProfile = coal.d['OperatingConditions'][runNr]
         tempProfile = [(time*1000.0, temp) for time, temp in tempProfile]
         self.tempProfile = self.timeTempProfile(tempProfile) # TODO give it a better name
         self.pressure    = pressure
@@ -375,5 +377,4 @@ class CPD(SetAndLaunchBase):
         if verbose:
             print OScommand
         os.system(OScommand)
-        return CPDResult(folder=self.resDir, coal=self.coal)
-
+        return CPDResult(runNr=self.runNr, folder=self.resDir, coal=self.coal)
