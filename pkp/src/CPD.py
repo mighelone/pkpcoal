@@ -130,13 +130,13 @@ class CPDResult(PreProcResult):
         # the T(t) interpolation is extended to a value 10*t with const.
         # T for ODE (requires more time t the end):
         OrderOfTimeInterpolation=1
-        t = self.__getitem__('time(ms)')
+        t = self.__getitem__('time')
+        t = np.append(np.array(0), t)
         data = self.__getitem__(field)
+        data = np.append(np.array(data[0]), data)
         return scipy.interpolate.interp1d(
             t, # list(t) + [10*t[-1]]),
             data, # list(T) + [10*T[-1]]),
-            # kind=OrderOfTimeInterpolation,
-            # axis=-1,
             bounds_error=False,
             fill_value=data[-1], # NOTE if out of bounds fill with last value
         )
@@ -148,6 +148,13 @@ class CPDResult(PreProcResult):
         #TODO Base Qfactor on DAF
         vm = self.coal.pa_daf["Volatile Matter"]
         return self.ftot*100.0/vm
+
+    @property
+    def pa_raw(self):
+        """ the composition of the raw molecule """
+        ftot = self.ftot*100.0
+        return {'Fixed Carbon': 100.0 - ftot,
+                'Volatile Matter': ftot}
 
     @property
     def ftot(self):
