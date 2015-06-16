@@ -23,6 +23,9 @@ class CPDResult(PreProcResult):
 
     def __init__(self, coal, folder=False, dct=False):
         self.coal = coal
+        self.timesteps = 1 # unfortunately cpd write only 4 digits after comma
+                           # so for small time steps we have to skip identical
+                           # values
         if folder != False:
             files = ["CPD_Result{}.dat".format(i) for i in range(1,5)]
             self.data   = {fn:CPDResult.readResults(folder + fn) for fn in files}
@@ -40,17 +43,17 @@ class CPDResult(PreProcResult):
                 print "cannot find", item, fn, names #TODO GO replace by error
         if not 'time' in item:
             fn, column = find_file(item)
-            return self.data[fn][column]
+            return self.data[fn][column][::self.timesteps]
         elif item == 'time':
             # make sure that we return time only
             # in SI units
             fn, column = find_file('time(ms)')
-            return self.data[fn][column]/1000.0
+            return self.data[fn][column][::self.timesteps]/1000.0
         elif item == 'time(ms)':
             # make sure that we return time only
             # in SI units
             fn, column = find_file('time(ms)')
-            return self.data[fn][column]
+            return self.data[fn][column][::self.timesteps]
 
     @property
     def _tsv(self):
