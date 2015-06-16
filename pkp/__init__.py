@@ -68,3 +68,8 @@ def plot_and_save(path, pre, model):
     plt.legend(loc="center left",
             bbox_to_anchor=(0.95, 0.75))
     fig.savefig(path + '/plot.png')
+    with open(path + '/parameters.dat', 'w') as p:
+        p.write(str(model.res[model.res.keys()[0]].name))
+        p.write(str(model.res[model.res.keys()[0]].paramNames))
+        for name, spec in model.res.iteritems():
+            p.write("\n{}: {}".format(name, spec.parameter))
