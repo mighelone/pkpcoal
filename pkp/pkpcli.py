@@ -42,7 +42,7 @@ class Generate(BaseProcess):
 
 class Fit(BaseProcess):
 
-    def startFittingProcedure(self, results, selectPyrolModel = False):
+    def startFittingProcedure(self, results, selectPyrolModel=False):
         """ starts the fitting procedure to calculate modeled rates and yields
             according to preprocessor results
 
@@ -53,11 +53,22 @@ class Fit(BaseProcess):
 
             Returns an array of fitted pyrolysis model objects
         """
+        # NOTE PyrolModelLauncher objects
+        # start fitting procedure immedatily
         import src.PyrolModelLauncher as pml
-        solver = results[0].solver
-        fit = (self.inputs[solver].get('fit','NONE')
-                if not selectPyrolModel else selectPyrolModel)
-        if fit not in pml.__dict__:
+
+        if not selectPyrolModel:
+            if self.inputs.get('FIT'):
+                fit = self.inputs['FIT']['Model']
+            else:
+                fit = 'NONE'
+        else:
+            fit = selectPyrolModel
+
+        if fit == 'NONE':
+            print "No pyrolysis model for fitting procedure selected."
+            return
+        elif fit not in pml.__dict__:
             print "Cannot find " + fit
             return
         return getattr(pml, fit)(self.inputs, results)
@@ -104,9 +115,10 @@ def ReadInputFile(input_file):
         return inp
     except Exception as e:
         print e
+        sys.exit(1)
 
 def generate(input_file=False, json_string=False, output_folder=False):
-    """ a factory method for the  Generate class
+    """ a factory method for the Generate class
         Returns result object from the solver
     """
     inputs = (json_string if json_string
@@ -117,14 +129,9 @@ def generate(input_file=False, json_string=False, output_folder=False):
     # print 'calculated Species: ',Case.SpeciesToConsider
     # self.plotResults(preProcResults, fittedModels)
 
-def fit(input_file=False, results=False, selectPyrolModel=None, json_string=False):
+def fit(input_file=False, selectPyrolModel=None, json_string=False):
     """ a factory method for the Fit class
         accepts a results file or a results  Object
     """
-    inputs = (json_string if json_string
-                else ReadInputFile(input_file))
-    fit = Fit(inputs)
-    fit.pyrolModel = "constantRate"
-    #return fit.startFittingProcedure(results)
-    return fit#.startFittingProcedure(results)
-
+    inputs = (json_string if json_string else ReadInputFile(input_file))
+    return Fit(inputs)
