@@ -93,7 +93,8 @@ class Model(object):
         yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4],
         linear interploated."""
 
-    def __init__(self, name, parameter, parameterBounds, inputs, species, calcMass, recalcMass, runs=False, constDt=False):
+    def __init__(self, name, parameter, parameterBounds, inputs,
+            species, calcMass, recalcMass, runs=False, constDt=False):
         print "Initialised {} Model".format(name)
         self.name = name
         self.initialParameter = parameter
@@ -441,7 +442,6 @@ class arrheniusRate(Model):
     relativeTolerance = 1.0e-6
 
     def __init__(self, inputs, runs, species):
-        print "runs", runs
         self.paramNames  = ['preExp', 'activationEnergy']
         parameter   = [inputs['arrheniusRate'][paramName] for paramName in self.paramNames]
         paramBounds = [inputs['arrheniusRate'].get(paramName+"Bounds",(None,None))
@@ -449,6 +449,7 @@ class arrheniusRate(Model):
         Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
             species, self.calcMassArrhenius, self.recalcMassArrhenius, runs=runs)
         self.updateParameter(self.parameter)
+        # FIXME this assumes that the final yield is run independent
         sel_run = runs.keys()[0] # FIXME
         self.final_yield = runs[sel_run][1][species][-1] # FIXME
         self.lowerT = inputs['arrheniusRate'].get('lowerDevolTemp', False)
