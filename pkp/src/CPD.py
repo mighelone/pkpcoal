@@ -321,7 +321,7 @@ class CPD(SetAndLaunchBase):
 {num_time:<20} ! number of time points
 {strTempProfile}
 {deltaT} {printIntervall} {deltaT} ! dt (s), print increment, max dt (s))
-0.03                    ! timax (maximum residence time [s] for calculations))
+{t_final:<20}  ! timax (maximum residence time [s] for calculations))
 {nmax:<20} ! nmax (maximum number of mers for tar molecular wt))
 """.format(**self.output_dict)
         ini.write(ini_str)
