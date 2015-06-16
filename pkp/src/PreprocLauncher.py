@@ -16,7 +16,8 @@ def Launch_CPD(inputs, output_folder):
      """
     def InitAndLaunch(*pargs,**kwargs):
         """ initialises and execute cpd calculation """
-        print 'Running CPD: ' + kwargs.get('runNr')
+        if kwargs.get('verbose', False):
+            print 'Running CPD: ' + kwargs.get('runNr')
         cpd = CPD.CPD(*pargs)
         return cpd.Run()
 
@@ -25,13 +26,20 @@ def Launch_CPD(inputs, output_folder):
     pressure = operatingConditions['pressure']
     from CoalThermoPhysics import Coal
     coal = Coal(inputs["Coal"])
-    return {'run'+str(run):(operatingConditions["run"+str(run)], InitAndLaunch(
+    # Check if number of runs is demanded explicitly
+    # if not iterate over all run keys
+    runs_exp = operatingConditions.get('runs')
+    if runs_exp:
+        runs = ['run' + str(i) for i in range(runs_exp)]
+    else:
+        runs = [runNr for runNr in operatingConditions.keys()
+                    if 'run' in runNr ]
+    return {run: (operatingConditions[run], InitAndLaunch(
                 coal,
-                operatingConditions["run"+str(run)],
+                operatingConditions[run],
                 pressure,
                 inputs['CPD']['deltaT'],
                 run,
                 output_folder,
                 runNr=str(run))
-        ) for run in range(operatingConditions['runs'])}
-
+        ) for i, run in enumerate(runs)}
