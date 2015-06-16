@@ -30,21 +30,24 @@ def test_arrhenius_init(arrhenius_fit):
     assert arrhenius_fit.species  == "Species"
     assert arrhenius_fit.calcMass == arrhenius_fit.calcMassArrhenius
 
-@pytest.mark.xfail
 def test_arrheniusRate_calcMass(arrhenius_fit):
     """ test if the constant rate calc mass function returns
         trivial results """
     import scipy as sp
+    from copy import deepcopy
     fit        = arrhenius_fit
     zeroRate   = [0.0, 0.0, 0.0]
     result     = linear_yield
     zeroResult = result*0.0
     # test if for zero rate the yielded mass is always zero
-    temp_array_interp = sp.interpolate.interp1d(temp_array, time_array)
+    time_array = deepcopy(temp_array)
+    time_array[0] = 0.0
+    temp_array[0] = 0.1
+    temp_array_interp = sp.interpolate.interp1d(time_array, temp_array,
+        bounds_error=True, fill_value=1.0)
     assert np.allclose(zeroResult,
                 fit.calcMass(zeroRate, 0.0, time_array, temp_array_interp))
 
-@pytest.mark.xfail
 def test_fit_arrheniusRate_model(arrhenius_fit):
     fit = arrhenius_fit
     optimizedParameter = fit.fit().x
@@ -54,7 +57,7 @@ def test_fit_arrheniusRate_model(arrhenius_fit):
             time,
             bounds_error=False,
             fill_value=temp_array[-1])
-    fittedYield = fit.calcMass(optimizedParameter, time, time, temp_array_interp)
+    fittedYield = fit.calcMass(optimizedParameter, 0.0, time, temp_array_interp)
     print fittedYield
 
     fig, axs = plt.subplots()
@@ -66,7 +69,6 @@ def test_fit_arrheniusRate_model(arrhenius_fit):
     axs.set_xlabel('time [s]')
     fig.savefig('tests/fit_arrhenius_rate_single.png')
 
-@pytest.mark.xfail
 def test_fit_arrheniusRate_model_multi(arrhenius_fit_multi):
     fit = arrhenius_fit_multi
     optimizedParameter = fit.fit().x

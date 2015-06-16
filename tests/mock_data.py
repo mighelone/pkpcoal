@@ -60,6 +60,16 @@ methane_as_coal = {'Coal': {
     },
 }
 
+co_as_coal = {'Coal': {
+    'Ultimate Analysis': {"Carbon": 12.0/28.0 , "Hydrogen": 0.0,
+        "Nitrogen": 0.0, "Oxygen": 16.0/28.0, "Sulphur": 0.0},
+    'Proximate Analysis': {"Fixed Carbon": 0.0, "Volatile Matter": 100, 
+        "Moisture": 0.0, "Ash": 0.0},
+    'hhv': 10159968,
+    'MW_PS': 28.0
+    },
+}
+
 propane_as_coal = {'Coal': {
     'Ultimate Analysis': {"Carbon": 36.0/44.0 , "Hydrogen": 1.0-36.0/44.0,
         "Nitrogen": 0.0, "Oxygen": 0.0, "Sulphur": 0.0},
