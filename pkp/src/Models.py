@@ -133,7 +133,7 @@ class Model(object):
         # NOTE needs fit to be run before, probably
         # some checking
         optParams = self.parameter
-        return self.recalcMass(optParams, time=self.runs[self.runs.keys()[0]][1]['time'])
+        return self.recalcMass(optParams, time=self.runs[self.runs.keys()[0]]['time'])
 
     def geneticOpt(self):
         from pyevolve import G1DList, GSimpleGA, Selectors
@@ -259,7 +259,7 @@ class Model(object):
         """
         # collect errors of individual runs
         func = Model.cumulative_error
-        ret = [self.errorPerRun(parameter, run[1], func, weightMass, weightRate)
+        ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate)
                     for run in self.runs.values()]
 
         # If we have a simple scalar list just sum the errors
@@ -451,9 +451,9 @@ class arrheniusRate(Model):
         self.updateParameter(self.parameter)
         # FIXME this assumes that the final yield is run independent
         sel_run = runs.keys()[0] # FIXME
-        self.final_yield = runs[sel_run][1][species][-1] # FIXME
+        self.final_yield = runs[sel_run][species][-1] # FIXME
         self.lowerT = inputs['arrheniusRate'].get('lowerDevolTemp', False)
-        self.temp = runs[sel_run][1].interpolate('temp')
+        self.temp = runs[sel_run].interpolate('temp')
 
     def updateParameter(self, parameter):
         self.A    = parameter[0]
