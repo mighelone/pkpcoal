@@ -32,10 +32,10 @@ def Launch_CPD(inputs, output_folder):
     else:
         runs = [runNr for runNr in operatingConditions.keys()
                     if 'run' in runNr ]
-    return {run: (operatingConditions[run], InitAndLaunch(
+    return {run: InitAndLaunch(
                 coal,
                 pressure,
                 inputs['CPD']['deltaT'],
                 run,
                 output_folder)
-        ) for i, run in enumerate(runs)}
+          for i, run in enumerate(runs)}
