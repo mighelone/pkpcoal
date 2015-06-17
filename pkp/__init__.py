@@ -53,13 +53,13 @@ def write_tsv(path, content):
 
 def plot_and_save(path, pre, model):
     import matplotlib.pyplot as plt
-    time = pre[pre.keys()[0]][1]['time']
+    time = pre[pre.keys()[0]]['time']
     print model.res['ftot'].fittedYield()
     fig, axs = plt.subplots()
     fig.set_size_inches(18.5, 10.5)
     colors = ['c', 'm', 'y', 'k', 'b', 'g', 'r', 'k', 'm']
     for runName, run in pre.iteritems():
-        for i, (name, data) in enumerate(run[1].iterspecies()):
+        for i, (name, data) in enumerate(run.iterspecies()):
             axs.plot(time, data, label=name, color=colors[i], ls='--')
             axs.plot(time, model.res[name].fittedYield(),
                      color=colors[i], label = name + "Model")
