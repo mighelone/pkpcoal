@@ -14,7 +14,7 @@ def arrhenius_fit(exp_preProc):
     """ initialize and estimate rates from mocked preproc data"""
     from pkp.src.Models import arrheniusRate
     print opt_params
-    return arrheniusRate(opt_params, {'run0': (0,exp_preProc)}, "Species")
+    return arrheniusRate(opt_params, {'run0': exp_preProc}, "Species")
 
 @pytest.fixture
 def arrhenius_fit_multi(exp_preProc):
@@ -22,7 +22,7 @@ def arrhenius_fit_multi(exp_preProc):
     from pkp.src.Models import arrheniusRate
     print opt_params
     return arrheniusRate(opt_params, 
-        {'run0':(0,exp_preProc), 'run1':(0,exp_preProc)}, "Species")
+        {'run0':exp_preProc, 'run1':exp_preProc}, "Species")
 
 def test_arrhenius_init(arrhenius_fit):
     """ test if instantiation of

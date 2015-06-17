@@ -18,13 +18,13 @@ def linear_cr_fit(linear_preProc):
 def exp_cr_fit(exp_preProc):
     """ initialize and estimate rates from mocked preproc data"""
     from pkp.src.Models import constantRate
-    return constantRate(opt_params, {'run0': (0,exp_preProc)}, "Species")
+    return constantRate(opt_params, {'run0': exp_preProc}, "Species")
 
 @pytest.fixture
 def exp_cr_fit_bounded(exp_preProc):
     """ initialize and estimate rates from mocked preproc data"""
     from pkp.src.Models import constantRate
-    return constantRate(opt_params_bounded, {'run0': (0,exp_preProc)}, "Species")
+    return constantRate(opt_params_bounded, {'run0': exp_preProc}, "Species")
 
 @pytest.fixture
 def exp_cr_fit_bounded_multi(exp_preProc):

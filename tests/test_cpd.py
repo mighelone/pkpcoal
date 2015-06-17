@@ -64,7 +64,7 @@ def test_cpd_results(cpd_run_single):
     from pkp.src.CoalThermoPhysics import Coal, R
     from pkp.src.PreProc import ManualQfactor
     from pkp.src.CoalThermoPhysics import PostulateSubstance
-    for runNr, (opCond, res) in cpd_run_single.iteritems():
+    for runNr, res in cpd_run_single.iteritems():
         q = res.qFactor
         print "qFactor", q
         ps = PostulateSubstance(ManualQfactor(coal=res.coal, qFactor=q))
@@ -79,8 +79,11 @@ def test_cpd_results_multi(cpd_run_multi):
     res = cpd_run_multi
     heating_rates, qfactor = [], []
 
-    for runNr,(operCond, result) in res.iteritems():
-        heating_rates.append(2200/operCond[1][0])
+    for runNr, result in res.iteritems():
+        t_end = result.tempProfile[1][0]
+        delta_T = (result.tempProfile[1][1] -
+                   result.tempProfile[0][1])
+        heating_rates.append(delta_T/t_end)
         qfactor.append(result.qFactor)
     
     fig, axs = plt.subplots()

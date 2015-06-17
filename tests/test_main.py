@@ -50,6 +50,22 @@ def cpd_run_multi():
     multi['Coal']['OperatingConditions']['runs'] = 19
     return Generate(multi).executeSolver()
 
+# def test_run_pkp_cli():
+#     """ test if pkp-cli installation was successful 
+#         and can be executed in the current folder """
+#     from pkp.__init__ import main as pkp_cli
+#     cli_args =  {'--file-input': 'inputs/inputs.inp',
+#                  '--fit-target': None,
+#                  '--help': False,
+#                  '--json-input': None,
+#                  '--results-folder': '/tmp/',
+#                  '-h': False,
+#                  'fit-only': False,
+#                  'generate': True,
+#                  'generate-only': False}
+#     pkp_cli(cli_args)
+
+
 class TestFittingProcedures():
     """ Test class to test preformance of fitting
         procedures
