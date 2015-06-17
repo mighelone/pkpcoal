@@ -26,6 +26,20 @@ class Generate(BaseProcess):
             and return list of results objects
         """
         from src import PreprocLauncher as Launcher
+        # FIXME The Operating Conditions are passed via
+        # the Coal dict to the CPDResult objects, hence
+        # OperatingConditions are needed in the Coal
+        # dict. This should be restructured some day
+        if (self.inputs.get('OperatingConditions')
+            and not self.inputs['Coal'].get('OperatingConditions')):
+            self.inputs['Coal']['OperatingConditions'] = \
+                self.inputs['OperatingConditions']
+        if (not self.inputs.get('OperatingConditions')
+            and self.inputs['Coal'].get('OperatingConditions')):
+            self.inputs['OperatingConditions'] = \
+                self.inputs['Coal']['OperatingConditions']
+
+        # END of hack
         def selector():
             if self.inputs['CPD']['active']:
                 return Launcher.Launch_CPD
