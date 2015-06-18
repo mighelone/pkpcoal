@@ -110,18 +110,25 @@ class Model(object):
 
     def fit(self, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
-        if len(self.runs) > 1:
-            from pkp.src import Evolve
-            optParams = self.geneticOpt()
-            self.initialParameter = optParams
-            self.parameterBounds = None # reset bounds
+        # do a rough estimation step first
+
+        delta = 0.05
+        from scipy.optimize import brute
+        print 'preliminary optimisation: ' + self.species
+        optimizedParameter = brute(
+            func=self.error_func,
+            ranges=self.parameterBounds,
+            Ns=int(1/delta))
+
+        postOptBounds = [(optParam*(1.0-delta), optParam*(1.0+delta))
+                            for optParam in optimizedParameter]
         if self.postGeneticOpt:
-            print 'start gradient based optimization, species: ' + self.species
+            print 'final optimisation: ' + self.species
             from scipy.optimize import minimize
             optimizedParameter = minimize(
                     fun  = self.error_func,
-                    x0   = self.initialParameter,
-                    bounds = self.parameterBounds,
+                    x0   = optimizedParameter,
+                    bounds = postOptBounds,
                     **kwargs
             )
             if not optimizedParameter.success:
@@ -134,45 +141,6 @@ class Model(object):
         # some checking
         optParams = self.parameter
         return self.recalcMass(optParams, time=self.runs[self.runs.keys()[0]]['time'])
-
-    def geneticOpt(self):
-        from pyevolve import G1DList, GSimpleGA, Selectors
-        from pyevolve import Initializators, Mutators, Consts, DBAdapters
-        import numpy as np
-        genome = G1DList.G1DList(len(self.parameter))
-        # genome.setParams(rangemin=self.parameterBounds[0],
-        #                  rangemax=self.parameterBounds[1])
-        genome.init, ializator.set(Initializators.G1DListInitializatorReal)
-        genome.mutator.set(Mutators.G1DListMutatorRealRange)
-        # The evaluator function (objective function)
-        genome.evaluator.set(self.error_func)
-        # Genetic Algorithm Instance
-        ga = GSimpleGA.GSimpleGA(genome)
-        ga.setMinimax(Consts.minimaxType["minimize"])
-        # set the population size
-        ga.setPopulationSize(500) #FIXME
-        # set the number of generation
-        ga.setGenerations(200) #FIXME
-        # Set the Roulette Wheel selector method,
-        # the number of generations and the termination criteria
-        ga.selector.set(Selectors.GRouletteWheel)
-        ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
-        ga.setMutationRate(0.4)
-        ga.setCrossoverRate(1.0)
-        # parallel processing
-        # ga.setMultiProcessing(True)
-        # Sets the DB Adapter, the resetDB flag will make the Adapter recreate
-        # the database and erase all data every run, you should use this flag
-        # just in the first time, after the pyevolve.db was created, you can
-        # omit it.
-        # sqlite_adapter = DBAdapters.DBSQLite(identify="koba", resetDB=True)
-        # ga.setDBAdapter(sqlite_adapter)
-        # Do the evolution, with stats dump, frequency of 20 generations
-        ga.evolve(freq_stats=10)
-        # Gets the best individual
-        best = ga.bestIndividual() # update or find best model
-        print best[0:]
-        return best[0:]
 
     def updateParameter(self, parameter):
         self.parameter  = parameter
