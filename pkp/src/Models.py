@@ -111,28 +111,33 @@ class Model(object):
     def fit(self, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
         # do a rough estimation step first
-
-        delta = 0.05
         from scipy.optimize import brute
         print 'preliminary optimisation: ' + self.species
-        optimizedParameter = brute(
+        delta = kwargs.get('delta', 0.05)
+        preOptimizedParameter = brute(
             func=self.error_func,
             ranges=self.parameterBounds,
+            finish=None,
             Ns=int(1/delta))
 
         postOptBounds = [(optParam*(1.0-delta), optParam*(1.0+delta))
-                            for optParam in optimizedParameter]
-        if self.postGeneticOpt:
-            print 'final optimisation: ' + self.species
-            from scipy.optimize import minimize
-            optimizedParameter = minimize(
-                    fun  = self.error_func,
-                    x0   = optimizedParameter,
-                    bounds = postOptBounds,
-                    **kwargs
-            )
-            if not optimizedParameter.success:
-                print "WARNING", optimizedParameter.status
+                            for optParam in preOptimizedParameter]
+        from scipy.optimize import minimize
+        self.parameter = preOptimizedParameter
+        if not kwargs.get('finalOpt', True):
+            return self
+
+        optimizedParameter = minimize(
+                fun  = self.error_func,
+                x0   = preOptimizedParameter,
+                bounds = postOptBounds,
+                **kwargs
+        )
+        if not optimizedParameter.success:
+            print ("WARNING final optimisation failed\nStatus: ",
+                   optimizedParameter.status,
+                   "using preliminary optimisation results")
+        else:
             self.parameter = optimizedParameter.x
         return self
 
