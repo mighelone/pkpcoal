@@ -444,9 +444,16 @@ class arrheniusRate(Model):
         A, E = parameter[0], parameter[1]#, parameter[2] # TODO tuple unpacking?
         def dmdt(m, t):
             T = temp(t) # so temp is a function that takes t and returns T
+
             if self.lowerT and T < self.lowerT:
                return 0.0
             dm = self.final_yield - m # finalYield
+            exp = np.exp(-self.E/T)
+            if exp == np.inf:
+                print """Warning overflow in the exponential
+                      term detected, change parameter bounds
+                      of the activation Temperature """
+                return 0.0
             if False:
                 dmdt_ = (-A * dm  #FIXME this doesnt make sense!
                           * np.power(T, beta)
@@ -454,7 +461,7 @@ class arrheniusRate(Model):
                             )
             else:
                 # TODO this should be Ta instead of E
-                dmdt_ = (init_mass + A*dm*np.exp(-E/T))
+                dmdt_ = (init_mass + A*dm*exp)
             #print "dmdt, t, m, dm, T ",  dmdt_, t, m, dm, T
             # sets values < 0 to 0.0, to avoid further problems
             return float(dmdt_) #np.where(dmdt_ > 1e-64, dmdt_, 0.0)
