@@ -14,18 +14,16 @@ import platform
 
 class BalancedComposition(object):
     """ Class for compostion that ensures componenents sum up to a
-        certain value
-    """
+        certain value  """
 
     def __init__(self, inp, target=100.00):
         """ From a given input dictionary and a target sum a
-            dictionary with scaled composition is created
-        """
+            dictionary with scaled composition is created """
+
         self.target = target
         self.basis = sum(inp.values())
         scaling_factor = target/self.basis
         self.elems = {key:value*scaling_factor for key,value in inp.iteritems()}
-
 
     def __getitem__(self,item):
         """ """
@@ -46,8 +44,8 @@ class BalancedComposition(object):
 
     def remove_elem_mass_rebalance(self, elem, amount):
         """ select an element an subtract a percentage
-            mass and rebalance the result
-        """
+            mass and rebalance the result """
+
         from copy import deepcopy
         input_dict = deepcopy(self.elems)
         input_dict[elem] = input_dict[elem] - amount
@@ -91,7 +89,7 @@ class Model(object):
         the outputed results equal the dt to solve the ODE. If set
         TimeVectorToInterplt=[t0,t1,t2,t3,t4] (t: floats) then is the
         yields result returned at method calcMass the yields at [t0,t1,t2,t3,t4],
-        linear interploated."""
+        linear interploated. """
 
     def __init__(self, name, parameter, parameterBounds, inputs,
             species, calcMass, recalcMass, runs=False, constDt=False):
@@ -153,8 +151,8 @@ class Model(object):
 
     def computeTimeDerivative(self, mass, deltaT=False, times=False):
         """ Return time derivatives for a given deltat array
-            and a mass array
-        """
+            and a mass array """
+
         from numpy import gradient
         if deltaT:
             return gradient(mass, deltat)
@@ -165,9 +163,9 @@ class Model(object):
         """ computes actual release reates for a given species
             by a time array and temperature array
 
-            the preProcResults are used for initial values
+            the preProcResults are used for initial values """
             #TODO GO can time be taken from preProcResult?
-        """
+        
         mass = self.calcMass(preProcResult, time, temp, species)
         return self.computeTimeDerivative(mass, times = time)
 
@@ -177,22 +175,20 @@ class Model(object):
 
     def ErrorYield(self, preProcResult, Species):
         """ Returns the absolute deviation per point between the fitted
-            pyrolysis model and the original preprocessor yield
-        TODO GO: why only take some arrays from preProcResults
-        """
+            pyrolysis model and the original preprocessor yield """
+        # TODO GO: why only take some arrays from preProcResults
         pass
 
     def ErrorRate(self, preProcResult, species):
         """ Returns the absolute deviation per point between
-            the fitted and the original rate curve.
-        """
+            the fitted and the original rate curve. """
         pass
 
     def _mkInterpolatedRes(self,InputVecYields,Time):
         """ Generates the result vector. Outputs the result vector at the
             corresponding time steps corresponding to the imported time at
-            method calcMass. Requiered for Pc Coal Lab (only few reported points).
-        """
+            method calcMass. Requiered for Pc Coal Lab (only few reported 
+            points). """
         # t for for interplt, t_points, y_points
         return np.interp(Time,self.constDtVec,InputVecYields)
 
@@ -203,8 +199,8 @@ class Model(object):
         (when applying method calcMass Time = [t0,t1,t2,t3,t4]. If these time steps
         are too large, then is this defined dt used to solve the ODE and the results
         are linear interploated that way that they correspond to the imported time
-        vector. To reset it, just set constantDt to False.
-        """
+        vector. To reset it, just set constantDt to False. """
+
      if constantDt != False:
          self.constDt = float(constantDt)
 
@@ -212,8 +208,8 @@ class Model(object):
         """ Time is the original time vector calculated by exact model, e.g. CPD.
             This class generates the internal dt vector if the dt defined by the
             user file is too large. A time step must be defined in Method
-            setDt4Intergrate before.
-        """
+            setDt4Intergrate before. """
+
         if self.constDt != False:
          self.constDtVec = np.arange(Time[0], Time[-1], self.constDt)
 
@@ -246,8 +242,8 @@ class Model(object):
 
             Computation of the error is based on given function func,
             since we either want a the global error or the error per point
-            for least squares
-         """
+            for least squares """
+
         times      = run['time']
         targetMass = run[self.species]
         targetRate = run[self.species] #FIXME
@@ -276,8 +272,8 @@ class Model(object):
                       tm: target mass
                       mm: model mass
                       nr: weight paramater rate
-                      nm: weight parameter mass
-        """
+                      nm: weight parameter mass """
+
         ErrorMass = Model.totModelErrorAbsPerc(tm, mm)
         ErrorRate = Model.totModelErrorAbsPerc(tr, mr)
         return (ErrorMass*nm + ErrorRate*nr)
@@ -285,22 +281,19 @@ class Model(object):
     @classmethod
     def modelErrori(cls, target, model):
         """ compute the deviation between modeled values and the target values
-            from the pre processor
-        """
+            from the pre processor """
         return abs(target - model)
 
     @classmethod
     def modelErrorSquared(cls, target, model):
         """ compute the deviation between modeled values and the target values
-            from the pre processor
-        """
+            from the pre processor """
         return np.power(target - model, 2.0)
 
     @classmethod
     def modelErrorAbs(cls, target, model):
         """ compute the deviation between modeled values and the target values
-            from the pre processor
-        """
+            from the pre processor """
         return np.abs(target - model)
 
     @classmethod
@@ -321,10 +314,7 @@ class constantRate(Model):
     """ The model calculating the mass
         with m(t)  =  m_s0+(m_s0-m_s,e)*exp(-k*(t-t_start))
              dm/dt = -k*(m-m_s,e).
-        The Parameter to optimize are k and t_start.
-    """
-    #TODO store initial parameter to see test if parameters have been changed
-    #TODO GO parameter[2] is not specified in inputs example
+        The Parameter to optimize are k and t_start. """
 
     def __init__(self, inputs, runs, species):
         self.paramNames  = ['k', 'tstart', 'finalYield']
@@ -333,11 +323,6 @@ class constantRate(Model):
                          for paramName in self.paramNames]
         Model.__init__(self, "ConstantRate", parameter, paramBounds, inputs,
             species, self.calcMassConstRate, self.recalcMass, runs)
-        # self.k           = parameter["k"]
-        # self.start_time  = parameter["tstart"]
-        # self.final_yield = parameter.get('finalYield',False)
-        # if set to false, the numerical time step corresponding to the outputed
-        # by the detailled model (e.g CPD) is used; define a value to use instead this
 
     # def __repr__(self):
     #     return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
@@ -348,8 +333,7 @@ class constantRate(Model):
             reuses init_mass, time and temp from previous
             computation, needed for genetic algorithm
             since we only get the best parameters back
-            and need to adjust the model
-        """
+            and need to adjust the model """
         return self.calcMassConstRate(parameter, init_mass=None, time=time)
 
     def calcMassConstRate(self, parameter, init_mass, time, temp=False):
@@ -362,8 +346,7 @@ class constantRate(Model):
 
             NOTE: the function doesnt implicitly modifiy state of the
                   constantRate Model, to modify the released mass
-                  use instance.mass = calcMassConstRate(...)
-        """
+                  use instance.mass = calcMassConstRate(...) """
         # TODO better use a classmethod?
         k = parameter[0]
         start_time = parameter[1]
@@ -408,11 +391,7 @@ class constantRate(Model):
 class arrheniusRate(Model):
     """ The Arrhenius model in the standart notation:
             dm/dt=A*(T**b)*exp(-E/T)*(m_s-m)
-        with the parameters a,b,E to optimize.
-    """
-    ODE_hmax = 1.e-2 #TODO what is this??
-    absoluteTolerance = 1.0e-8
-    relativeTolerance = 1.0e-6
+        with the parameters a,b,E to optimize. """
 
     def __init__(self, inputs, runs, species):
         self.paramNames  = ['preExp', 'activationEnergy']
@@ -429,19 +408,20 @@ class arrheniusRate(Model):
         self.temp = runs[sel_run].interpolate('temp')
 
     def updateParameter(self, parameter):
-        self.A    = parameter[0]
-        #self.beta = parameter[1]
-        self.E    = parameter[1]
+        self.A = parameter[0]
+        self.E = parameter[1]
+        return self
         ##print "Parameter update " + str(parameter)
 
     def recalcMassArrhenius(self, parameter, time):
         return self.calcMassArrhenius(parameter, init_mass=0.0, time=time, temp=self.temp)
 
     def calcMassArrhenius(self, parameter, init_mass, time, temp):
-        """Outputs the mass(t) using the model specific equation."""
-        """ dm/dt=A*(T**0)*exp(-E/T)*(m_s-m)  """
-        #A, beta, E = parameter[0], parameter[1], parameter[2] # TODO tuple unpacking?
-        A, E = parameter[0], parameter[1]#, parameter[2] # TODO tuple unpacking?
+        """ Outputs the mass(t) using the model specific equation.
+            dm/dt=A*(T**0)*exp(-E/T)*(m_s-m) """
+        # TODO replace Ta by E
+
+        A, E = parameter[0], parameter[1]
         def dmdt(m, t):
             T = temp(t) # so temp is a function that takes t and returns T
 
@@ -460,19 +440,11 @@ class arrheniusRate(Model):
                           * np.exp(-self.E/T)
                             )
             else:
-                # TODO this should be Ta instead of E
                 dmdt_ = (init_mass + A*dm*exp)
-            #print "dmdt, t, m, dm, T ",  dmdt_, t, m, dm, T
+            # print "dmdt, t, m, dm, T ",  dmdt_, t, m, dm, T
             # sets values < 0 to 0.0, to avoid further problems
             return float(dmdt_) #np.where(dmdt_ > 1e-64, dmdt_, 0.0)
-        m_out = sp.integrate.odeint(
-                func=dmdt,
-                y0=0.0,
-                t=time,
-                # atol=self.absoluteTolerance,
-                # rtol=self.relativeTolerance,
-                # hmax=self.ODE_hmax,
-            )
+        m_out = sp.integrate.odeint(func=dmdt, y0=0.0, t=time)
         m_out = m_out[:, 0]
         if self.constDt == False: # TODO GO shouldnt interpolation be used for var dt?
             #print "modeled_mass " + str(released_mass)
@@ -480,15 +452,10 @@ class arrheniusRate(Model):
         else: #returns the short, interpolated list (e.g. for PCCL)
             return self._mkInterpolatedRes(m_out, time)
 
-    def ConvertKinFactors(self,ParameterVector):
-        """ Dummy function actual has to convert the
-            parameter to standard Arrhenius notation.
-        """
-        #does nothing, just to have the same way of use for all notations
-        return ParameterVector
-
 class Kobayashi(Model):
-    """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation."""
+    """ Calculates the devolatilization reaction using the Kobayashi model.
+        The Arrhenius equation inside are in the standard notation. """
+
     def __init__(self,InitialParameterVector):
         print 'Kobayashi Model initialized'
         self._modelName = 'Kobayashi'
@@ -497,8 +464,10 @@ class Kobayashi(Model):
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
 
     def calcMass(self,preProcResult,time,T,Name):
-        """Outputs the mass(t) using the model specific equation. The input Vector is [A1,E1,A2,E2,alpha1,alpha2]"""
-        # question whether the dt from DetailledModel result file or from a constant dt should be used
+        """ Outputs the mass(t) using the model specific equation. 
+            The input Vector is [A1, E1, A2, E2, alpha1, alpha2] """
+        # question whether the dt from DetailledModel result file or 
+        # from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
             timeInt = time
         else: #if dt in DM results file has too large dt
@@ -525,7 +494,8 @@ class Kobayashi(Model):
         m_out=m_out[:,0]
         m_out=np.insert(m_out,0,0.0)
         if self.constDt == False:
-            if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or ParamVec[3]<0 or ParamVec[4]<0  or ParamVec[5]>1  ):
+            if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or 
+                ParamVec[3]<0 or ParamVec[4]<0 or ParamVec[5]>1):
                 m_out[:]=float('inf')
                 return m_out
             else:
@@ -535,7 +505,13 @@ class Kobayashi(Model):
 
 
 class KobayashiPCCL(Model):
-    """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the standard notation. The fitting parameter are as in PCCL A1,A2,E1,alpha1. TimeVectorToInterplt allows the option to define the discrete time points, where to interpolate the results. If set to False (standard), then is are the outputted results equal the dt to solve the ODE."""
+    """ Calculates the devolatilization reaction using the Kobayashi model.
+        The Arrhenius equation inside are in the standard notation. The fitting
+        parameter are as in PCCL A1, A2, E1, alpha1. TimeVectorToInterplt 
+        allows the option to define the discrete time points, where to
+        interpolate the results. If set to False (standard), then is are the 
+        outputted results equal the dt to solve the ODE. """
+
     def __init__(self,InitialParameterVector):
         print 'Kobayashi Model initialized'
         self._modelName = 'KobayashiPCCL'
@@ -544,7 +520,7 @@ class KobayashiPCCL(Model):
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
 
     def calcMass(self,preProcResult,time,T,Name):
-        """Outputs the mass(t) using the model specific equation."""
+        """ Outputs the mass(t) using the model specific equation. """
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
             timeInt = time
@@ -582,20 +558,23 @@ class KobayashiPCCL(Model):
 
 
     def ConvertKinFactors(self,ParameterVector):
-        """Outputs the Arrhenius equation factors in the shape [A1,E1,A2,E2]. Here where the real Arrhenius model is in use only a dummy function."""
+        """ Outputs the Arrhenius equation factors in the shape 
+            [A1, E1, A2, E2]. Here where the real Arrhenius model 
+            is in use only a dummy function. """
+
         P=self.ParamVector()
         return [P[0],P[1],P[2],P[3]]
 
     def setKobWeights(self,alpha2):
-        """Sets the two Kobayashi weights alpha2."""
+        """ Sets the two Kobayashi weights alpha2. """
         self.__alpha2=alpha2
 
     def KobWeights(self):
-        """Returns the two Kobayashi weights alpha2."""
+        """ Returns the two Kobayashi weights alpha2. """
         return self.__alpha2
 
     def setE2Diff(self,DifferenceE1E2):
-        """Sets the dE in E2=E1+dE."""
+        """ Sets the dE in E2=E1+dE. """
         self.__E2diff=DifferenceE1E2
 
     def E2Diff(self):
@@ -603,7 +582,10 @@ class KobayashiPCCL(Model):
         return self.__E2diff
 
 class KobayashiA2(Model):
-    """Calculates the devolatilization reaction using the Kobayashi model. The Arrhenius equation inside are in the secend alternative notation (see class ArrheniusModelAlternativeNotation2)."""
+    """ Calculates the devolatilization reaction using the Kobayashi model.
+        The Arrhenius equation inside are in the secend alternative notation
+        (see class ArrheniusModelAlternativeNotation2). """
+
     def __init__(self,InitialParameterVector):
         print 'Kobayashi Model initialized'
         self._ParamVector=InitialParameterVector
@@ -611,7 +593,7 @@ class KobayashiA2(Model):
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
 
     def calcMass(self,preProcResult,time,T,Name):
-        """Outputs the mass(t) using the model specific equation."""
+        """ Outputs the mass(t) using the model specific equation. """
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
             timeInt = time
@@ -653,7 +635,10 @@ class KobayashiA2(Model):
             return self._mkInterpolatedRes(m_out,time)
 
     def ConvertKinFactors(self,ParameterVector):
-        """Converts the alternative notaion Arrhenius factors into the satndard Arrhenius factors and return them in the shape  [A1,E1], [A2,E2]"""
+        """ Converts the alternative notaion Arrhenius factors into the 
+            standard Arrhenius factors and return them in the 
+            shape [A1,E1], [A2,E2] """
+
         A1=np.exp( -self.c*ParameterVector[0]/self.T_min + self.c*ParameterVector[1]/self.T_max )
         E1=self.c*ParameterVector[1]-self.c*ParameterVector[0]
         A2=np.exp( -self.c*ParameterVector[2]/self.T_min + self.c*ParameterVector[3]/self.T_max )
@@ -661,17 +646,18 @@ class KobayashiA2(Model):
         return [A1,E1,A2,E2]
 
     def setKobWeights(self,alpha1,alpha2):
-        """Sets the two Kobayashi weights alpha1 and alpha2."""
+        """ Sets the two Kobayashi weights alpha1 and alpha2. """
         self.__alpha1=alpha1
         self.__alpha2=alpha2
 
     def KobWeights(self):
-        """Returns the two Kobayashi weights alpha1 and alpha2."""
+        """ Returns the two Kobayashi weights alpha1 and alpha2. """
         return self.__alpha1, self.__alpha2
 
 
 class DAEM(Model):
-    """Calculates the devolatilization reaction using the Distributed Activation Energy Model."""
+    """ Calculates the devolatilization reaction using the 
+        Distributed Activation Energy Model. """
     def __init__(self,InitialParameterVector):
         print 'DAEM initialized'
         self._modelName = 'DAEM'
@@ -681,15 +667,18 @@ class DAEM(Model):
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
 
     def setNrOfActivationEnergies(self,NrOfE):
-        """Define for how many activation energies of the range of the whole distribution the integral shall be solved (using Simpson Rule)."""
+        """ Define for how many activation energies of the range 
+            of the whole distribution the integral shall be solved 
+            (using Simpson Rule)."""
         self.NrOfActivationEnergies=NrOfE
 
     def NrOfActivationEnergies(self):
-        """Returns the number of activation enrgies the integral shall be solved for (using Simpson Rule)."""
+        """ Returns the number of activation enrgies the integral shall 
+            be solved for (using Simpson Rule). """
         return self.NrOfActivationEnergies
 
     def calcMass(self,preProcResult,time,T,Name):
-        """Outputs the mass(t) using the model specific equation."""
+        """ Outputs the mass(t) using the model specific equation. """
         self.E_List=np.arange(int(self._ParamVector[1]-3.*self._ParamVector[2]),int(self._ParamVector[1]+3.*self._ParamVector[2]),int((6.*self._ParamVector[2])/self.NrOfActivationEnergies)) #integration range E0 +- 3sigma, see [Cai 2008]
         # question whether the dt from DetailledModel result file or from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
