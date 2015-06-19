@@ -25,7 +25,7 @@ class CPDResult(PreProcResult):
         folder=False, dct=False):
         self.coal = coal
         self.tempProfile = coal.d['OperatingConditions'][runNr]
-        self.timesteps = 1 # unfortunately cpd write only 4 digits after comma
+        self.timesteps = 1 # unfortunately cpd writes only 4 digits after comma
                            # so for small time steps we have to skip identical
                            # values
         if folder != False:
@@ -133,7 +133,7 @@ class CPDResult(PreProcResult):
         # T for ODE (requires more time t the end):
         OrderOfTimeInterpolation=1
         t = self.__getitem__('time')
-        t = np.append(np.array(0), t)
+        t = np.append(np.array(0.0), t) # CPD's first time is at 0+deltaT
         data = self.__getitem__(field)
         data = np.append(np.array(data[0]), data)
         return scipy.interpolate.interp1d(
