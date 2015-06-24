@@ -10,12 +10,16 @@ opt_params = {
      'weightRate': 0.0,
      'constantRate': {
             'k':1.0,
+            'kBounds': [1e-6, 0.99],
             'tstart':0.0,
-            'finalYield': 1.0},
+            'tstartBounds': [0.0, 1.0],
+            'finalYield': 1.0,
+            'finalYieldBounds': [0.0, 1.0]},
      'arrheniusRate': {
             'preExp':1.0,
-            'beta':0.0,
-            'activationEnergy': 1.0},
+            'preExpBounds': [0.0, 1.0e10],
+            'activationEnergy': 1.0,
+            'activationEnergyBounds': [0.0, 1.0e6]},
 }
 
 mock_ua = {"Carbon": 69.20, "Hydrogen": 4.40,
@@ -32,7 +36,7 @@ mock_cpd = {
 }
 
 
-T_init = [0,300]
+T_init = [0.0, 300.0]
 mock_opcond = {
     'run' + str(nr): [T_init, [0.000005*i, 2500]] for nr,i in enumerate(range(1,40,1))
 }
@@ -98,8 +102,8 @@ opt_params_bounded = copy.deepcopy(opt_params)
 opt_params_bounded['constantRate'].update(
     {'tstartBounds': (1e-6, 1e-5), 'finalYieldBounds': (1.0, 1.0)})
 
-time_array   = np.arange(0.0, 1.001, 0.01)
-time_array_ms= np.arange(0.0, 1.001, 0.01)/1000.0
+time_array   = np.arange(0.01, 1.011, 0.01)
+time_array_ms= np.arange(0.01, 1.011, 0.01)/1000.0
 linear_yield = np.arange(0.0, 1.001, 0.01)
 exp_yield    = 1.0 - np.exp(-time_array*5)
 temp_array   = time_array

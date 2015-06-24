@@ -55,12 +55,8 @@ def test_fit_arrheniusRate_model(arrhenius_fit):
     optimizedParameter = fit.parameter
     time = np.arange(0.0, 1.01, 0.01)
     print "optparams_single", optimizedParameter
-    temp_array_interp = sp.interpolate.interp1d(temp_array,
-            time,
-            bounds_error=False,
-            fill_value=temp_array[-1])
-    fittedYield = fit.calcMass(optimizedParameter, 0.0, time, temp_array_interp)
-    print fittedYield
+    fittedYield = fit.fittedYield()
+    print "test_fit_arrheniusRate_model, fittedYield: ", fittedYield
 
     fig, axs = plt.subplots()
     axs.plot(time, fittedYield, color='k', label="modeled yield")

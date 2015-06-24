@@ -18,20 +18,23 @@ Coal:
 
 FIT:
     #Model: ['constantRate', 'arrheniusRate'] #, 'ArrheniusNoB', 'Kobayashi', 'DAEM', 'None']
-    #Model: arrheniusRate
-    Model: constantRate
+    Model: arrheniusRate
+    #Model: constantRate
     # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
     Species: [ftot]
     constantRate:
         k :  1.0
+        kBounds :  [0.0, 1.0]
         tstart : 0.0
         tstartBounds : [0.0, 1.0]
         finalYield : 1.0
+        finalYieldBounds: [0.0, 1.0]
     arrheniusRate:
         preExp: 79.0
+        preExpBounds: [0, 10000]
         beta : 0.0
         activationEnergy : 0
-        betaBounds : (0.0, 0.0)
+        activationEnergyBounds : [0, 1000]
         lowerDevolTemp : 800.0
 
 # TODO MV: names of empirical models should be modified for being more coherent with publication in Fuel 2013 
