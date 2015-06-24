@@ -45,7 +45,7 @@ config = {
     'install_requires'       : [
          'numpy',
          'docopt',
-         'scipy',
+         'scipy==0.14.0',
          'pyevolve',
     ],
    'name'                    : 'pkp',
