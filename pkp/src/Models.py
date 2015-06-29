@@ -428,7 +428,7 @@ class arrheniusRate(Model):
             if self.lowerT and T < self.lowerT:
                return 0.0
             dm = self.final_yield - m # finalYield
-            exp = np.exp(-self.E/T)
+            exp = np.exp(-E/T)
             if exp == np.inf:
                 print """Warning overflow in the exponential
                       term detected, change parameter bounds
@@ -437,7 +437,7 @@ class arrheniusRate(Model):
             if False:
                 dmdt_ = (-A * dm  #FIXME this doesnt make sense!
                           * np.power(T, beta)
-                          * np.exp(-self.E/T)
+                          * np.exp(-E/T)
                             )
             else:
                 dmdt_ = (init_mass + A*dm*exp)
