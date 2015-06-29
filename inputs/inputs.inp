@@ -21,7 +21,7 @@ FIT:
     Model: arrheniusRate
     #Model: constantRate
     # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
-    Species: [ftot]
+    Species: [ftot] # empty list for all availible species
     constantRate:
         k :  1.0
         kBounds :  [0.0, 1.0]
@@ -30,12 +30,12 @@ FIT:
         finalYield : 1.0
         finalYieldBounds: [0.0, 1.0]
     arrheniusRate:
-        preExp: 79.0
-        preExpBounds: [0, 10000]
+        preExp: 0.0
+        preExpBounds: [0, 10000.0]
         beta : 0.0
         activationEnergy : 0
-        activationEnergyBounds : [0, 1000]
-        lowerDevolTemp : 800.0
+        activationEnergyBounds : [100.0, 100000.0]
+        lowerDevolTemp : 600.0
 
 # TODO MV: names of empirical models should be modified for being more coherent with publication in Fuel 2013 
 # Arrhenius -> SFOR (single first order reaction)
@@ -89,7 +89,7 @@ Calibration:
 OperatingConditions:
     pressure    : 1.0 #atmosphere
     runs: 1
-    run0        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    run0        : [ [ 0, 400], [ 0.5, 2000] ]
     run1        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
     run2        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
     run3        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
