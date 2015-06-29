@@ -39,11 +39,14 @@ def genericRate(inputs, results, pyrolModelName):
     model_inputs = inputs['FIT']
     #FIXME very hacky
     species_names = results[results.keys()[0]].speciesNames
+    presc_spec = inputs['FIT'].get('Species', [])
+    spec_lst = (presc_spec if presc_spec else species_names)
     return FitResult({species_name : model(
                 inputs  = model_inputs,
                 runs    = results,
                 species = species_name).fit()
-        for species_name in species_names})
+        for species_name in species_names
+        if species_name in spec_lst})
 
 class FitResult(object):
 
