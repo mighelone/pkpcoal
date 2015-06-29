@@ -55,18 +55,30 @@ def plot_and_save(path, pre, model):
     import matplotlib.pyplot as plt
     time = pre[pre.keys()[0]]['time']
     print model.res['ftot'].fittedYield()
-    fig, axs = plt.subplots()
+    fig, (axs, axt) = plt.subplots(2,1)
     fig.set_size_inches(18.5, 10.5)
     colors = ['c', 'm', 'y', 'k', 'b', 'g', 'r', 'k', 'm']
+    modeled_species = model.res.keys()
+    leg = []
+    legp = []
     for runName, run in pre.iteritems():
-        for i, (name, data) in enumerate(run.iterspecies()):
-            axs.plot(time, data, label=name, color=colors[i], ls='--')
-            axs.plot(time, model.res[name].fittedYield(),
+        for i, name in enumerate(modeled_species):
+            data = run[name]
+            prep, = axs.plot(time, data, label=name, color=colors[i], ls='--')
+            mod, = axs.plot(time, model.res[name].fittedYield(),
                      color=colors[i], label = name + "Model")
+            leg.append(name)
+            leg.append(name+"Model")
+            legp.append(prep)
+            legp.append(mod)
+    axt.plot(time, pre[pre.keys()[0]]['temp'])
+    axt.get_yaxis().get_label().set_text('Temperature [K]')
+    axs.get_yaxis().get_label().set_text('Species Yield [kg/kg_daf]')
+    axt.get_xaxis().get_label().set_text('Time [s]')
     # axs.set_xlim([0, 0.00004])
     axs.set_ylim([0, 1])
-    plt.legend(loc="center left",
-            bbox_to_anchor=(0.95, 0.75))
+    plt.legend(legp,leg,loc="center left",
+            bbox_to_anchor=(0.85, 2.1))
     fig.savefig(path + '/plot.png')
     with open(path + '/parameters.dat', 'w') as p:
         p.write(str(model.res[model.res.keys()[0]].name))
