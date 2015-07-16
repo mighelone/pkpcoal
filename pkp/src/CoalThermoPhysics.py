@@ -146,7 +146,6 @@ class Coal(object):
         self.hhv = input_dict["hhv"] #in kJ/kg
         self.MW_PS = input_dict.get("MW_PS", 100)
 
-    #FIXME make it a testable function
     @property
     def hhv_daf(self):
         """ HHV_{daf} = HHV_{as-recieved}/(f_{FC}+f_{VM}) """
@@ -167,7 +166,36 @@ class Coal(object):
     @property
     def lhv_daf(self):
         """ LHV_{daf} = HHV_{daf} - h_{latent,H2O}(MW_O+2MW_H)/(2MW_H)f_{UA,H} """
-        return self.hhv_daf - LatentHeat['H2O']/(2.0*H2O.fractions['Hydrogen'])
+        return self.hhv_daf - self.ua['Hydrogen']/100.0*EnthOfVap['H2O']/MolWeights['H2O']/(H2O.fractions['Hydrogen'])
+
+    def plot_composition(self):
+        # TODO refactor
+        f, ax = plt.subplots(1,3)
+        f.set_figwidth(18)
+        f.set_figheight(5.5)
+        ax[0].pie(self.pa.values(),
+            labels=self.pa.elems.keys(),
+            autopct='%.0f%%',
+            explode=[0.05 for _ in self.pa.values()],
+            colors=['w' for _ in self.pa.values()])
+        ax[0].set_title("Prox. Ana.")
+
+        ax[1].pie(self.pa_daf.values(),
+            labels=self.pa_daf.elems.keys(),
+            autopct='%.0f%%',
+            explode=[0.05 for _ in self.pa_daf.values()],
+            colors=['w' for _ in self.pa_daf.values()])
+        ax[1].set_title("Prox. Ana. DAF")
+
+        ax[2].pie(self.ua.values(),
+            labels=self.ua.elems.keys(),
+            autopct='%.0f%%',
+            explode=[0.05 for _ in self.ua.values()],
+            colors=['w' for _ in self.ua.values()])
+        ax[2].set_title("Ultimate. Ana. DAF")
+        plt.suptitle("Elemental Compostion Coal")
+        return f, ax
+
 
 def composition(species, scale=1.0):
     """ returns the elemental composition for mixture of species
