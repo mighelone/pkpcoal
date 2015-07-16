@@ -53,8 +53,6 @@ def write_tsv(path, content):
 
 def plot_and_save(path, pre, model):
     import matplotlib.pyplot as plt
-    time = pre[pre.keys()[0]]['time']
-    print model.res['ftot'].fittedYield()
     fig, (axs, axt) = plt.subplots(2,1)
     fig.set_size_inches(18.5, 10.5)
     colors = ['c', 'm', 'y', 'k', 'b', 'g', 'r', 'k', 'm']
@@ -62,16 +60,18 @@ def plot_and_save(path, pre, model):
     leg = []
     legp = []
     for runName, run in pre.iteritems():
+        print runName
         for i, name in enumerate(modeled_species):
             data = run[name]
-            prep, = axs.plot(time, data, label=name, color=colors[i], ls='--')
-            mod, = axs.plot(time, model.res[name].fittedYield(),
-                     color=colors[i], label = name + "Model")
+            col = str(0.0 + i/(len(modeled_species)+1))
+            prep, = axs.plot(run['time'], data, label=name, color=col, ls='--')
+            mod, = axs.plot(run['time'], model.res[name].fittedYield(run),
+                     color=col, label = name + "Model")
             leg.append(name)
             leg.append(name+"Model")
             legp.append(prep)
             legp.append(mod)
-    axt.plot(time, pre[pre.keys()[0]]['temp'])
+        axt.plot(run['time'], run['temp'], color=col)
     axt.get_yaxis().get_label().set_text('Temperature [K]')
     axs.get_yaxis().get_label().set_text('Species Yield [kg/kg_daf]')
     axt.get_xaxis().get_label().set_text('Time [s]')
