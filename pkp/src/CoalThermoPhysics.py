@@ -1,4 +1,5 @@
 """ Database for all thermo physical data """
+import matplotlib.pyplot as plt
 
 from Models import BalancedComposition
 
@@ -11,7 +12,7 @@ CoresProd = {
 
 
 MolWeights = { #g/mol
-    'Oxygen':15.999,
+    'Oxygen':16.0,
     'Carbon':12.011,
     'Hydrogen':1.008,
     'Nitrogen':14.007,
@@ -20,27 +21,41 @@ MolWeights = { #g/mol
     'H2O': 18.016,
     'OH': 17.0,
     'H2': 2.016,
-    'N2': 28.014,
-    'O2': 32.0,
-    'CH4': 16.0,
+    'N2': 28.013,
+    'O2': 31.999,
+    'CH4': 16.043,
     'C2H2': 26.0,
     'C2': 24.0,
     'Char': 12.0,
+    'CH3OH': 32.04,
+    'C2H5OH': 46.07,
+    'C7H6O2': 122.12,
+    'C6H12O6': 180.16,
+    'C6H10O5': 162.0,
+    'CH3OOH': 48.4, # http://pubchem.ncbi.nlm.nih.gov/compound/Methyl_hydroperoxide#section=Chemical-and-Physical-Properties
+    'CH2O': 30.0,
 }
 
-EnthOfForm = { # in [kJ/kmol]
+EnthOfForm = { # in [kJ/kmol], gaseous
     'CO':  -110541.0, # Turns p. 622
     'CO2': -393546.0, # Turns p. 623
     'H2O': -241845.0, # Turns p. 632
     'OH': 38987.0,
-    'CH4': -74870,
+    'CH4': -74831.0,
     'C2H2': 226880.0, #http://en.wikipedia.org/wiki/Acetylene
     'Char': 0,
+    'CH3OH': -201000, #https://de.wikipedia.org/wiki/Methanol
+    'C2H5OH': -235000, #https://en.wikipedia.org/wiki/Standard_enthalpy_change_of_formation_%28data_table%29
+    'C7H6O2': -385000,
+    'C6H12O6': -1271000,
+    'C6H10O5': -963000,
+    'CH3OOH': 0.0, # Missing
+    'CH2O': -108600.0,  # http://webbook.nist.gov/cgi/cbook.cgi?ID=C50000&Mask=1
 }
 
-LatentHeat = { # in [kJ/kg]
-    'H2O': 2263.073
-}
+EnthOfVap = { #kJ/kmol
+    "H2O": 44010
+    }
 
 EnthOfFormKG = {name: value/MolWeights[name]
         for name, value in EnthOfForm.iteritems()}
@@ -48,10 +63,12 @@ EnthOfFormKG = {name: value/MolWeights[name]
 
 class Species(object):
 
-    def __init__(self, name, molecular_weight, components):
+    def __init__(self, name, molecular_weight,
+            enthalpy_of_formation, components):
         self.name = name
         self.molecular_weight = molecular_weight
         self.components = components
+        self.enthalpy_of_formation = enthalpy_of_formation
 
     def fraction(self, elem):
         """ the fraction of mass MW_el/MW_tot """
@@ -61,20 +78,57 @@ class Species(object):
             return 0.0
 
     @property
+    def hf_perKg(self):
+        return self.enthalpy_of_formation/self.molecular_weight
+
+    @property
+    def hf_perMol(self):
+        return self.enthalpy_of_formation
+
+    @property
     def fractions(self):
         return {elem:self.fraction(elem) for elem in self.components}
 
 #TODO replace instantiation by parser
-CO = Species('CO', MolWeights['CO'], {'Carbon': MolWeights['Carbon'], 'Oxygen': MolWeights['Oxygen']})
-OH = Species('OH', MolWeights['OH'], {'Hydrogen': MolWeights['Hydrogen'] ,'Oxygen': MolWeights['Oxygen'] })
-CH4 = Species('CH4', MolWeights['CH4'], {'Hydrogen': 4*MolWeights['Hydrogen'] ,'Carbon': MolWeights['Carbon'] })
-C2H2 = Species('C2H2', MolWeights['C2H2'], {'Hydrogen': 2*MolWeights['Hydrogen'] ,'Carbon': 2*MolWeights['Carbon'] })
-N2 = Species('N2', MolWeights['N2'], {'Nitrogen': 2*MolWeights['Nitrogen']})
-H2 = Species('H2', MolWeights['H2'], {'Hydrogen': 2*MolWeights['Hydrogen']})
-O2 = Species('O2', MolWeights['O2'], {'Oxygen': 2*MolWeights['Oxygen']})
-H2O = Species('H2O', MolWeights['H2O'], {'Hydrogen': 2*MolWeights['Hydrogen'],'Oxygen': MolWeights['Oxygen']})
-CO2 = Species('CO2', MolWeights['CO2'], {'Carbon': MolWeights['Carbon'], 'Oxygen': 2*MolWeights['Oxygen']})
-C2 = Species('C2', MolWeights['C2'], {'Carbon': 2*MolWeights['Carbon']}) #FOR DEBUG ONLY
+CO   = Species('CO', MolWeights['CO'], EnthOfForm['CO'], {'Carbon': MolWeights['Carbon'], 'Oxygen': MolWeights['Oxygen']})
+OH   = Species('OH', MolWeights['OH'], EnthOfForm['OH'], {'Hydrogen': MolWeights['Hydrogen'] ,'Oxygen': MolWeights['Oxygen']})
+CO2  = Species('CO2', MolWeights['CO2'], EnthOfForm['CO2'], {'Carbon': MolWeights['Carbon'], 'Oxygen': 2*MolWeights['Oxygen']})
+CH4  = Species('CH4', MolWeights['CH4'], EnthOfForm['CH4'], {'Hydrogen': 4*MolWeights['Hydrogen'] ,'Carbon': MolWeights['Carbon']})
+C2H2 = Species('C2H2', MolWeights['C2H2'], EnthOfForm['C2H2'], {'Hydrogen': 2*MolWeights['Hydrogen'] ,'Carbon': 2*MolWeights['Carbon']})
+N2   = Species('N2', MolWeights['N2'], 0.0, {'Nitrogen': 2*MolWeights['Nitrogen']})
+H2   = Species('H2', MolWeights['H2'], 0.0, {'Hydrogen': 2*MolWeights['Hydrogen']})
+O2   = Species('O2', MolWeights['O2'], 0.0, {'Oxygen': 2*MolWeights['Oxygen']})
+H2O  = Species('H2O', MolWeights['H2O'], EnthOfForm['H2O'], {'Hydrogen': 2*MolWeights['Hydrogen'],'Oxygen': MolWeights['Oxygen']})
+C2   = Species('C2', MolWeights['C2'], 0.0, {'Carbon': 2*MolWeights['Carbon']}) #FOR DEBUG ONLY
+
+# Methanol
+CH3OH = Species('CH3OH', MolWeights['CH3OH'], EnthOfForm['CH3OH'],
+    {'Hydrogen': 4*MolWeights['Hydrogen'], 'Oxygen': MolWeights['Oxygen'], 'Carbon': MolWeights['Carbon']})
+
+# Ethanol
+C2H5OH = Species('C2H5OH', MolWeights['C2H5OH'], EnthOfForm['C2H5OH'],
+    {'Hydrogen': 6*MolWeights['Hydrogen'], 'Oxygen': MolWeights['Oxygen'], 'Carbon': 2*MolWeights['Carbon']})
+
+# Benzoic Acid
+C7H6O2 = Species('C7H6O2', MolWeights['C7H6O2'], EnthOfForm['C7H6O2'],
+    {'Hydrogen': 6*MolWeights['Hydrogen'], 'Oxygen': 2*MolWeights['Oxygen'], 'Carbon': 7*MolWeights['Carbon']})
+
+# Glucose
+C6H12O6 = Species('C6H12O6', MolWeights['C6H12O6'], EnthOfForm['C6H12O6'],
+    {'Hydrogen': 12*MolWeights['Hydrogen'], 'Oxygen': 6*MolWeights['Oxygen'], 'Carbon': 6*MolWeights['Carbon']})
+
+# Cellulose
+C6H10O5 = Species('C6H10O5', MolWeights['C6H10O5'], EnthOfForm['C6H10O5'],
+    {'Hydrogen': 10*MolWeights['Hydrogen'], 'Oxygen': 5*MolWeights['Oxygen'], 'Carbon': 6*MolWeights['Carbon']})
+
+#  Methyl hydroperoxide # Enthalpy of Formation is missing
+CH3OOH = Species('CH3OOH', MolWeights['CH3OOH'], EnthOfForm['CH3OOH'],
+    {'Hydrogen': 4*MolWeights['Hydrogen'], 'Oxygen': 2*MolWeights['Oxygen'], 'Carbon': 1*MolWeights['Carbon']})
+
+# Formaldehyde
+CH2O  = Species('CH2O', MolWeights['CH2O'], EnthOfForm['CH2O'],
+    {'Hydrogen': 2*MolWeights['Hydrogen'], 'Oxygen': MolWeights['Oxygen'], 'Carbon': MolWeights['Carbon']})
+
 
 class Coal(object):
     """ Class to hold all coal properties """
