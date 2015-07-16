@@ -11,6 +11,7 @@ import scipy as sp
 import scipy.integrate
 import scipy.interpolate
 import platform
+import matplotlib.pyplot as plt
 
 class BalancedComposition(object):
     """ Class for compostion that ensures componenents sum up to a
@@ -105,6 +106,27 @@ class Model(object):
         self.runs = (runs if runs else [])
         self.postGeneticOpt = True
         self.recalcMass = recalcMass
+
+    def plot_yield(self, axis="time"):
+        f, ax = plt.subplots(1, 2)
+        for runNr, run in self.runs.iteritems():
+            modelYield = self.fittedYield(run)
+            modelRate = self.fittedRate(run)
+            targetYield = run[self.species]
+            ax[0].plot(run[axis], targetYield, label=run.solver)
+            ax[0].plot(run[axis], modelYield, label=self.name)
+            ax[1].plot(run[axis], run.rate(self.species), label=run.solver)
+            ax[1].plot(run[axis], modelRate, label=self.name)
+        xlabel = 'Time [s]' if axis=="time" else 'Temp [K]'
+        ax[0].get_yaxis().get_label().set_text('Yield [kg/kg_daf]')
+        ax[0].get_xaxis().get_label().set_text(xlabel)
+        ax[1].get_yaxis().get_label().set_text('Yield Rate [kg/kg_daf/s]')
+        ax[1].get_xaxis().get_label().set_text(xlabel)
+        plt.legend()
+        return f, ax
+
+
+
 
     def fit(self, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
