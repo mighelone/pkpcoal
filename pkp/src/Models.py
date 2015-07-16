@@ -196,7 +196,7 @@ class Model(object):
 
             the preProcResults are used for initial values """
             #TODO GO can time be taken from preProcResult?
-        
+
         mass = self.calcMass(preProcResult, time, temp, species)
         return self.computeTimeDerivative(mass, times = time)
 
@@ -218,7 +218,7 @@ class Model(object):
     def _mkInterpolatedRes(self,InputVecYields,Time):
         """ Generates the result vector. Outputs the result vector at the
             corresponding time steps corresponding to the imported time at
-            method calcMass. Requiered for Pc Coal Lab (only few reported 
+            method calcMass. Requiered for Pc Coal Lab (only few reported
             points). """
         # t for for interplt, t_points, y_points
         return np.interp(Time,self.constDtVec,InputVecYields)
@@ -262,10 +262,8 @@ class Model(object):
         ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate)
                     for run in self.runs.values()]
 
-        # If we have a simple scalar list just sum the errors
-        # else we component wise sum the error and return a vector
-        # of errors per point
-        self.error = (sum(ret) if type(ret[0]) != list else map(np.add, ret))
+        # We simply sum up the individual error per run
+        self.error = sum(ret)
         return self.error
 
     def errorPerRun(self, parameter, run, func, weightMass, weightRate):
@@ -358,7 +356,7 @@ class constantRate(Model):
     # def __repr__(self):
     #     return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
 
-    def recalcMass(self, parameter, time):
+    def recalcMass(self, parameter, time, temp):
         """ recalculate mass release after updateParameter
 
             reuses init_mass, time and temp from previous
@@ -430,13 +428,12 @@ class arrheniusRate(Model):
         paramBounds = [inputs['arrheniusRate'].get(paramName+"Bounds",(None,None))
                          for paramName in self.paramNames]
         Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
-            species, self.calcMassArrhenius, self.recalcMassArrhenius, runs=runs)
+            species, self.calcMassArrhenius, self.recalcMassPerRunArrhenius, runs=runs)
         self.updateParameter(self.parameter)
         # FIXME this assumes that the final yield is run independent
         sel_run = runs.keys()[0] # FIXME
         self.final_yield = runs[sel_run][species][-1] # FIXME
         self.lowerT = inputs['arrheniusRate'].get('lowerDevolTemp', False)
-        self.temp = runs[sel_run].interpolate('temp')
 
     def updateParameter(self, parameter):
         self.A = parameter[0]
@@ -445,7 +442,12 @@ class arrheniusRate(Model):
         ##print "Parameter update " + str(parameter)
 
     def recalcMassArrhenius(self, parameter, time):
+        print "!! Warning dont use recalcMass, use recalcMassPerRun"
         return self.calcMassArrhenius(parameter, init_mass=0.0, time=time, temp=self.temp)
+
+    def recalcMassPerRunArrhenius(self, parameter, run):
+        print "OK"
+        return self.calcMassArrhenius(parameter, init_mass=0.0, time=run['time'], temp=run.interpolate('temp'))
 
     def calcMassArrhenius(self, parameter, init_mass, time, temp):
         """ Outputs the mass(t) using the model specific equation.
@@ -494,10 +496,10 @@ class Kobayashi(Model):
         self.ODE_hmax=1.e-2
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
 
-    def calcMass(self,preProcResult,time,T,Name):
-        """ Outputs the mass(t) using the model specific equation. 
+    def calcMass(self, preProcResult, time, T, Name):
+        """ Outputs the mass(t) using the model specific equation.
             The input Vector is [A1, E1, A2, E2, alpha1, alpha2] """
-        # question whether the dt from DetailledModel result file or 
+        # question whether the dt from DetailledModel result file or
         # from a constant dt should be used
         if self.constDt == False: # dt for integrate = dt from DM result file
             timeInt = time
@@ -525,7 +527,7 @@ class Kobayashi(Model):
         m_out=m_out[:,0]
         m_out=np.insert(m_out,0,0.0)
         if self.constDt == False:
-            if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or 
+            if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or
                 ParamVec[3]<0 or ParamVec[4]<0 or ParamVec[5]>1):
                 m_out[:]=float('inf')
                 return m_out
@@ -538,9 +540,9 @@ class Kobayashi(Model):
 class KobayashiPCCL(Model):
     """ Calculates the devolatilization reaction using the Kobayashi model.
         The Arrhenius equation inside are in the standard notation. The fitting
-        parameter are as in PCCL A1, A2, E1, alpha1. TimeVectorToInterplt 
+        parameter are as in PCCL A1, A2, E1, alpha1. TimeVectorToInterplt
         allows the option to define the discrete time points, where to
-        interpolate the results. If set to False (standard), then is are the 
+        interpolate the results. If set to False (standard), then is are the
         outputted results equal the dt to solve the ODE. """
 
     def __init__(self,InitialParameterVector):
@@ -589,8 +591,8 @@ class KobayashiPCCL(Model):
 
 
     def ConvertKinFactors(self,ParameterVector):
-        """ Outputs the Arrhenius equation factors in the shape 
-            [A1, E1, A2, E2]. Here where the real Arrhenius model 
+        """ Outputs the Arrhenius equation factors in the shape
+            [A1, E1, A2, E2]. Here where the real Arrhenius model
             is in use only a dummy function. """
 
         P=self.ParamVector()
@@ -666,8 +668,8 @@ class KobayashiA2(Model):
             return self._mkInterpolatedRes(m_out,time)
 
     def ConvertKinFactors(self,ParameterVector):
-        """ Converts the alternative notaion Arrhenius factors into the 
-            standard Arrhenius factors and return them in the 
+        """ Converts the alternative notaion Arrhenius factors into the
+            standard Arrhenius factors and return them in the
             shape [A1,E1], [A2,E2] """
 
         A1=np.exp( -self.c*ParameterVector[0]/self.T_min + self.c*ParameterVector[1]/self.T_max )
@@ -687,7 +689,7 @@ class KobayashiA2(Model):
 
 
 class DAEM(Model):
-    """ Calculates the devolatilization reaction using the 
+    """ Calculates the devolatilization reaction using the
         Distributed Activation Energy Model. """
     def __init__(self,InitialParameterVector):
         print 'DAEM initialized'
@@ -698,13 +700,13 @@ class DAEM(Model):
         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
 
     def setNrOfActivationEnergies(self,NrOfE):
-        """ Define for how many activation energies of the range 
-            of the whole distribution the integral shall be solved 
+        """ Define for how many activation energies of the range
+            of the whole distribution the integral shall be solved
             (using Simpson Rule)."""
         self.NrOfActivationEnergies=NrOfE
 
     def NrOfActivationEnergies(self):
-        """ Returns the number of activation enrgies the integral shall 
+        """ Returns the number of activation enrgies the integral shall
             be solved for (using Simpson Rule). """
         return self.NrOfActivationEnergies
 
