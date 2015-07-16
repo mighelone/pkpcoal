@@ -153,6 +153,17 @@ class Coal(object):
         #NOTE the factor 100.0 comes from the fact that pa is in percents
         return self.hhv*100.0/(self.pa['Fixed Carbon'] + self.pa['Volatile Matter'])
 
+
+    @property
+    def hhv_dulong(self):
+        """ HHV_{as_recieved} approximated by the Dulong formula in [MJ/kg_{ar} """
+        ua = self.ua
+        return (  0.3279*ua['Carbon']
+                + 1.504*(ua['Hydrogen'] - ua['Oxygen']/8.0)
+                + 0.0926*ua['Sulphur']
+                + 0.0497*ua['Oxygen']
+                + 0.0242*ua['Nitrogen'])
+
     @property
     def lhv_daf(self):
         """ LHV_{daf} = HHV_{daf} - h_{latent,H2O}(MW_O+2MW_H)/(2MW_H)f_{UA,H} """
@@ -177,51 +188,56 @@ class Yield(object):
     def __init__(self,
         preProcessorResults,
         targetSpecies=None,
-        preProcSpecies=None
     ):
         self.pre = preProcessorResults
         self.targetSpecies = targetSpecies
         self.target_map = {pos: name for pos, name in enumerate(targetSpecies)}
+        self.composition =  [False for _ in targetSpecies]
 
-    #TODO Move this to PreProc class?
+    # ALIASES
     @property
     def VolatileCompositionMass(self):
-        """ m_species/m_tot
-            where:
-                m_tot = m_h + m_o + m_vc_cur
-
-            The difficulty is to know the carbon content of the
-            volatile yield.
-            Units: [kg/kg_yield]
-        """
-        ua = self.pre.coal.ua_vm
-        pa = self.pre.coal.pa_daf
-        amount = -(self.pre.qFactor-1.0)*pa['Volatile Matter']
-        return ua.remove_elem_mass_rebalance('Carbon', amount)
+        # TODO inheritance instead of delegation ?
+        return self.pre.VolatileCompositionMass
 
     @property
     def VolatileCompositionMol(self):
-        """ the species composition of the fuel in mol per mol yield
-            Units [mol/mol_yield]
-        """
-        molar_mass_vm = self.pre.coal.MW_PS
-        comp_mass = self.VolatileCompositionMass
-        # species_mass_fraction*mw = moles of species per kg fuel
-        # and we normalise that by multiplying with molar_mass_vm
-        # to get moles of species per mol fuel
-        # TODO: Does this make sense? This probably doesnt sum up to one!
-        #       The function has been tested but what is the effect of
-        #       arbitray MW_PS. Do we need to rescale?
-        return {elem: comp_mass[elem]/mw*molar_mass_vm
-                for elem, mw in MolWeights.iteritems()
-                if elem in comp_mass}
+        return self.pre.VolatileCompositionMol
 
     @property
-    def lhv(self):
+    def hhv_daf(self):
+        return self.pre.coal.hhv_daf
+
+    @property
+    def lhv_daf(self):
+        return self.pre.coal.lhv_daf
+
+    @property
+    def q_release_char_yield(self):
+        """ heat released by char conversion
+            kJ/kg_yield """
+        return (392.0/12.0*self.pre.pa_raw['Fixed Carbon']/100.0*1000.0)
+
+    @property
+    def lhv_yield(self):
         """ LHV_{yield} = (LHV_{daf} - f_{char} LHV_{char})/f_{yield} """
         f_yield = self.pre.ftot
         f_char =  1.0 - f_yield
-        return (LowerHeatingValue['Char']*f_char)/f_yield
+        return (self.lhv_daf - self.q_release_char_yield)/(self.pre.pa_raw['Volatile Matter']/100.0)
+
+    @property
+    def hhv_yield(self):
+        """ LHV_{yield} = (LHV_{daf} - f_{char} LHV_{char})/f_{yield} """
+        f_yield = self.pre.ftot
+        f_char =  1.0 - f_yield
+        return (self.hhv_daf - self.q_release_char_yield)/(self.pre.pa_raw['Volatile Matter']/100.0)
+
+    @property
+    def lhv_yield_species(self):
+        """ The heating value computed based on
+            species composition and individial species
+            enthalpies """
+        return -(self.EnthalpyBalanceProds - self.EnthalpyOfFormation)
 
     def error_func(self, species_massfractions):
         """ compute the cumulated percentual error of composition
