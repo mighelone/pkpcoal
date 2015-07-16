@@ -154,18 +154,27 @@ class Model(object):
                 **kwargs
         )
         if not optimizedParameter.success:
-            print ("WARNING final optimisation failed\nStatus: ",
+            print ("WARNING final optimisation failed Status: ",
                    optimizedParameter.status,
                    "using preliminary optimisation results")
         else:
             self.parameter = optimizedParameter.x
         return self
 
-    def fittedYield(self):
+    def fittedYield(self, run):
         # NOTE needs fit to be run before, probably
         # some checking
         optParams = self.parameter
-        return self.recalcMass(optParams, time=self.runs[self.runs.keys()[0]]['time'])
+        return self.recalcMass(optParams, run=run)
+
+    def fittedRate(self, run):
+        """ returns the release rate of the species """
+        import numpy as np
+        species = self.fittedYield(run)
+        time = run["time"]
+        dt = np.diff(time)
+        dt = np.append(time[0], dt)
+        return np.gradient(species, dt)
 
     def updateParameter(self, parameter):
         self.parameter  = parameter
