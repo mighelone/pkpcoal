@@ -87,38 +87,6 @@ class Fit(BaseProcess):
             return
         return getattr(pml, fit)(self.inputs, results)
 
-    def plotResults(self, preProcResults, fittedModels):
-        """ Creates plots of preProcResults against fittedModels
-        """
-        # NOTE: we implement a simple pyplot version for now
-        #       finally a way to select different plotting backends
-        #       would be desirable
-        import matplotlib.pyplot as plt
-        fig, axs = plt.subplots()
-        colors = ['c', 'm', 'y', 'k']
-        marker = ['.','x','+']
-        for color, preProc in zip(colors, preProcResults[0].iterspecies()):
-            name, data =  preProc
-            for i, run in enumerate(preProcResults):
-                axs.scatter(
-                         x=run['time(ms)']*1e-3,
-                         y=run[name],
-                         color = color,
-                         label = name+ "_run_" + str(i),
-                         marker = marker[i],
-                    )
-
-            model_data = fittedModels[name]
-            axs.plot(
-                 preProcResults[-1]['time(ms)']*1e-3,
-                 model_data.mass,
-                 color = color,
-                 label = name,
-                 linewidth = 2
-            )
-
-        plt.legend()
-        plt.show(fig)
 
 def ReadInputFile(input_file):
     """ Read params from input file and generate Input objects """
