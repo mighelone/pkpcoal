@@ -284,8 +284,11 @@ class Yield(object):
 
     def fit_composition(self, optimizer):
         from scipy.optimize import brute
+        from collections import OrderedDict
         res = optimizer()
-        return {self.target_map[i].name: x for i, x in enumerate(res)}
+        od = OrderedDict([(self.target_map[i].name, x) for i, x in enumerate(res)])
+        self.composition = od.values()
+        return od
 
     def ProductCompositionMass(self, partialOx=True):
         """ Same as ProductCompositionMol but on mass basis
@@ -307,9 +310,11 @@ class Yield(object):
         # but the old basis is still availible
         return BalancedComposition({spec: COx, 'H2O': H2O, 'N2': N2})
 
-    def ProductMass(self, partialOx=True):
+    def ProductsMass(self, partialOx=True):
         """ [kg/kg_yield] """
-        pass
+        return {name: comp/self.Fuel_to_Product_Mass/100.0
+                for name, comp in self.ProductCompositionMass(partialOx).iteritems()
+        }
 
 
     def ProductCompositionMol(self, partialOx=True):
@@ -326,6 +331,15 @@ class Yield(object):
         return BalancedComposition(
                 {spec: val/MolWeights[spec] for spec, val in comp.iteritems()})
 
+
+    def ProductMols(self, partialOx=True):
+        """ compute the the number of mols of
+            product species per mol Yield """
+        return {name: comp/MolWeights[name]*self.MW
+                for name, comp in self.ProductsMass(partialOx).iteritems()
+        }
+
+
     @property
     def Oxygen_from_yield(self):
         """ the amount of oxygen in products coming from the yield
@@ -336,11 +350,12 @@ class Yield(object):
 
     @property
     def Fuel_to_Product_Mass(self):
+        # kg_yield/kg_products
         return 100.0/self.ProductCompositionMass(partialOx=False).basis
 
     @property
     def FOx(self):
-        """ the Fuel to Oxygen ratio on molar basis
+        """ the Fuel to Oxygen ratio on mass basis
             m_Fuel + m_O2 -> m_Prod
             FOx = m_Fuel/m_O2
             m_O2 = m_O_Products * (1-r)
@@ -353,16 +368,77 @@ class Yield(object):
         return 1.0/m_O2
 
     @property
-    def enthalpy_balance_products(self):
-        """ kJ/kg_yield """
-        f = self.Fuel_to_Product_Mass
-        return enthalpy_balance(self.ProductCompositionMass(partialOx=False))/(100.0/f)
+    def MW(self):
+        """ Return the molecular weight of the yield
+            ATTENTION the right composition needs to be
+            set before hand """
+        if False in self.composition:
+            print "WARNING composition hasn't been computed yet"
+            return 0.0
+        return MolecularWeight(
+                    self.targetSpecies,
+                    self.composition
+               )
 
+    @property
+    def FOx_molar(self):
+        """ the Fuel to Oxygen ratio on molar basis """
+        return (self.MW/MolWeights["O2"])/self.FOx
+
+    def mechanism(self, partialOx=True):
+        """ Return a string of the reaction mechanism """
+        vol = self.VolatileCompositionMol
+        prods = self.ProductMols(partialOx=partialOx)
+        prodName = ('CO' if partialOx else 'CO2')
+        nO2 = self.FOx_molar
+        yield_ = "+".join([_.name for _ in self.targetSpecies])
+        reaction = "({}) + {}O2 -> {}{} + {}H2O + {}N2".format(
+           yield_, nO2, prods[prodName], prodName, prods['H2O'], prods['N2'])
+        return reaction
+
+    @property
+    def EnthalpyBalanceProds(self):
+        """ kJ/kg_yield """
+        return enthalpy_balance(self.ProductsMass(partialOx=False))
+
+    @property
+    def EnthalpyBalanceProdsMol(self):
+        """ kJ/kmol_yield """
+        return enthalpy_balance_mol(self.ProductMols(partialOx=False))
+
+    @property
+    def EnthalpyOfFormation(self):
+        """ Enthalpy of formation of the yield from
+            products and given heating value [kJ/kg] """
+        # if we have species and a composion
+        # we can compute the the enthalpy of formation
+        # from the individual species
+        if (all([isinstance(s, Species)
+                for s in self.targetSpecies])
+            and all([isinstance(s, float)
+                for s in self.composition])):
+            return sum([s.hf_perKg*w for s,w in zip(self.targetSpecies, self.composition)])
+
+        print "Warning computing the yield enthalpy of formation from energy balance instead of individual species"
+        # other wise we fallback to compute the
+        # enthalpy of formation from the energy balance
+        LHV = self.pre.coal.hhv # kJ/kg_yield
+        return LHV + self.EnthalpyBalanceProds
+
+    @property
+    def EnthalpyOfFormationMol(self):
+        """ Enthalpy of formation of the yield from
+            products and given heating value [kJ/kmol] """
+        return self.EnthalpyOfFormation*self.MW
+
+    @property
+    def EnthalpyOfDevol(self):
+        """ kJ/kg """
+        return -self.lhv_yield + self.lhv_yield_species
 
 def enthalpy_balance(composition):
     """ returns the sum of the enthalpies of formation weighted by the composition
-        in kJ/kg
-    """
+        in kJ/kg """
     # NOTE all species that are not in EnthOfForm are assumed to have 0
     #      enthalpy of formation DANGEROUS
     return sum([val*EnthOfFormKG[spec]
@@ -379,36 +455,28 @@ def enthalpy_balance_mol(composition):
                 for spec, val in composition.iteritems()
                 if spec in EnthOfForm])
 
+def generatePostulateSubstanceSpecies(preProc):
+    """ generate a single postulate ^substance species """
+    mw = preProc.coal.MW_PS
+    hf = Yield(preProc, ['CxHyOz']).EnthalpyOfFormationMol
+    return Species("CxHyOz", mw, hf, preProc.VolatileCompositionMass)
 
-class PostulateSubstance(Yield):
+def MolecularWeight(species, composition):
+    """ compute the molecular weight of a given composition """
+    return sum([f*s.molecular_weight for f, s in zip(composition, species)])
 
-    def __init__(self, preProc):
-        Yield.__init__(self, preProc, ['CxHyOz'])
+def PreProcFromCoalInp(coalDict, qFactor=1.0, targetSpecies=None):
+    """ a factory method to create a preProc object
+        directly from a coal input dict and a qFactor
+        ommiting any pre-processor """
+    from pkp.src.PreProc import ManualQfactor
+    return ManualQfactor(Coal(coalDict), qFactor=qFactor)
 
+def YieldFromCoalInp(coalDict, qFactor, targetSpecies):
+    """ a factory method to create a yield object
+        directly from a coal input dict and a qFactor
+        ommiting any pre-processor """
+    from pkp.src.PreProc import ManualQfactor
+    preProc = ManualQfactor(Coal(coalDict), qFactor=qFactor)
+    return Yield(preProc, targetSpecies)
 
-    def EnthalpyOfFormation(self):
-        """ Computes the enthalpy of formation of the volatile matter
-
-            h_react = LHV + sum(n_i h_prod_i) with n beeing stoich factor
-        """
-        vol_comp = self.ProductCompositionMol(partialOx=False)
-        H_products = 0.0
-        # for every element in the volatile composition we get the
-        # corresponding product and its enthapy of formation kJ/kmol
-        LHV = self.pre.coal.hhv
-        molar_mass_vm = self.pre.coal.MW_PS
-        for name, mol in vol_comp.iteritems():
-            h_prod = EnthOfForm.get(name, 0.0)
-            H_products += mol*h_prod
-        h_0f = (LHV*molar_mass_vm+H_products) # [kJ/kmol]
-        return h_0f
-
-    def mechanism(self, partialOx=True):
-        vol = self.VolatileCompositionMol
-        prods = self.ProductCompositionMol(partialOx=partialOx)
-        prodName = ('CO' if partialOx else 'CO2')
-        nO2prod = (prods[prodName] if partialOx else 2*prods[prodName])
-        nO2 = (nO2prod + prods['H2O'] - vol['Oxygen'] * 0.5)*0.5 #TODO correct?
-        reaction = "CxHyOz + {}O2 -> {}{} + {}H2O + {}N2".format(
-            nO2, prods[prodName], prodName, prods['H2O'], prods['N2'])
-        return reaction
