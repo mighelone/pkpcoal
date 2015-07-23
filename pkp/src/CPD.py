@@ -25,9 +25,9 @@ class CPDResult(PreProcResult):
         folder=False, dct=False):
         self.coal = coal
         self.tempProfile = coal.d['OperatingConditions'][runNr]
-        self.timesteps = 1 # unfortunately cpd writes only 4 digits after comma
-                           # so for small time steps we have to skip identical
-                           # values
+        self.timesteps = 1 #TODO this can be modified in the CPD fortran file
+                            # unfortunately cpd writes only 4 digits after comma
+                           # so for small time steps we have to skip identical values
         if folder != False:
             files = ["CPD_Result{}.dat".format(i) for i in range(1,5)]
             self.data   = {fn:CPDResult.readResults(folder + fn) for fn in files}

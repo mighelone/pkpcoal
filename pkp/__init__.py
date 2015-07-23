@@ -54,29 +54,35 @@ def write_tsv(path, content):
 def plot_and_save(path, pre, model):
     import matplotlib.pyplot as plt
     time = pre[pre.keys()[0]]['time']
-    print model.res['ftot'].fittedYield()
+    #print model.res['ftot'].fittedYield()
     fig, (axs, axt) = plt.subplots(2,1)
     fig.set_size_inches(18.5, 10.5)
     colors = ['c', 'm', 'y', 'k', 'b', 'g', 'r', 'k', 'm']
     modeled_species = model.res.keys()
     leg = []
     legp = []
-    for runName, run in pre.iteritems():
-        for i, name in enumerate(modeled_species):
-            data = run[name]
+    # TODO MV: it should be created a file for each species fitted otherwise there will be too many lines
+    # TODO MV: the function Models.fittedYield should be modified, it is just returning the yield of the first run
+    for i, (runName, run) in enumerate(pre.iteritems()):
+        time = run['time']
+        for _, name in enumerate(modeled_species):
+            data = run[name] # yield for the given species (name)
             prep, = axs.plot(time, data, label=name, color=colors[i], ls='--')
-            mod, = axs.plot(time, model.res[name].fittedYield(),
+            r = model.res[name] # fitted model for the given species by name
+            par = r.parameter
+            mod, = axs.plot(run['time'], r.calcMass(par, 0.0, run['time'], run.interpolate('temp')),
                      color=colors[i], label = name + "Model")
             leg.append(name)
             leg.append(name+"Model")
             legp.append(prep)
             legp.append(mod)
-    axt.plot(time, pre[pre.keys()[0]]['temp'])
+        axt.plot(time, run['temp'],color = colors[i])
+
     axt.get_yaxis().get_label().set_text('Temperature [K]')
     axs.get_yaxis().get_label().set_text('Species Yield [kg/kg_daf]')
     axt.get_xaxis().get_label().set_text('Time [s]')
     # axs.set_xlim([0, 0.00004])
-    axs.set_ylim([0, 1])
+    #axs.set_ylim([0, 1])
     plt.legend(legp,leg,loc="center left",
             bbox_to_anchor=(0.85, 2.1))
     fig.savefig(path + '/plot.png')
