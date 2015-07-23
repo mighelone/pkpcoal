@@ -106,23 +106,45 @@ class Model(object):
         self.postGeneticOpt = True
         self.recalcMass = recalcMass
 
-    def fit(self, **kwargs):
+    def fit(self, delta=0.05, finalOpt=True, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
         # do a rough estimation step first
+
+        def check_limits(x,bounds):
+            '''
+            check if the optimized solution lies on the boundary limits
+            :param x:
+            :param bounds:
+            :return:
+            '''
+            check = []
+            for i,xi in enumerate(x):
+                check.extend([xi <= bounds[i][0],xi >= bounds[i][1]])
+            if any(check):
+                print('WARNING: optimal solution lies in the bounds\nTry to increase the boundling limits!')
+                print('var\tmin\topt\tmax')
+                print(''.join('{:d}\t{:f}\t{:f}\t{:f}\n'.format(i,bounds[i][0],xi,bounds[i][1]) for i,xi in enumerate(x)))
+            return None
+
         from scipy.optimize import brute
         print 'preliminary optimisation: ' + self.species
-        delta = kwargs.get('delta', 0.05)
+        delta = delta
         preOptimizedParameter = brute(
             func=self.error_func,
             ranges=self.parameterBounds,
             finish=None,
             Ns=int(1/delta))
 
+        opt_value = self.error_func(preOptimizedParameter)
+        print('Brute force optimization\nF(x) = {:e}'.format(opt_value))
+        print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(preOptimizedParameter)))
+        check_limits(preOptimizedParameter,self.parameterBounds)
+        # TODO MV: to limit the minimization with the constrains from the brute search step it might be too limiting
         postOptBounds = [(optParam*(1.0-delta), optParam*(1.0+delta))
                             for optParam in preOptimizedParameter]
         from scipy.optimize import minimize
         self.parameter = preOptimizedParameter
-        if not kwargs.get('finalOpt', True):
+        if not finalOpt:
             return self
 
         optimizedParameter = minimize(
@@ -131,10 +153,14 @@ class Model(object):
                 bounds = postOptBounds,
                 **kwargs
         )
+        print('Minimize Optimization\nF(x) = {:e}'.format(optimizedParameter.fun))
+        print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(optimizedParameter.x)))
+        check_limits(optimizedParameter.x,postOptBounds)
         if not optimizedParameter.success:
             print ("WARNING final optimisation failed\nStatus: ",
                    optimizedParameter.status,
                    "using preliminary optimisation results")
+            self.parameter = preOptimizedParameter
         else:
             self.parameter = optimizedParameter.x
         return self
