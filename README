@@ -1,2 +1,9 @@
-Readme some interesting stuff
-OK
+# PKP #
+
+## Install ##
+
+```
+#!python
+
+python setup.py install --user
+```
