@@ -107,6 +107,10 @@ class Model(object):
         self.recalcMass = recalcMass
         self.inputs = inputs
 
+    def printOptimalResults(self,opt_string,opt_value,opt_parameters):
+        print('{} \nF(x) = {:e}'.format(opt_string,opt_value))
+        print(''.join('{}\t{}\t{:f}\n'.format(i, self.paramNames[i], xi) for i,xi in enumerate(opt_parameters)))
+
     def fit(self, delta=0.05, finalOpt=True, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
         # do a rough estimation step first
@@ -127,7 +131,6 @@ class Model(object):
                 print(''.join('{:d}\t{:f}\t{:f}\t{:f}\n'.format(i,bounds[i][0],xi,bounds[i][1]) for i,xi in enumerate(x)))
             return None
 
-
         print 'preliminary optimisation: ' + self.species
         delta = delta
         #delta = 0.25
@@ -143,8 +146,7 @@ class Model(object):
                     finish=None,
                     Ns=int(1/delta))
                 opt_value = self.error_func(preOptimizedParameter)
-                print('Brute force optimization\nF(x) = {:e}'.format(opt_value))
-                print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(preOptimizedParameter)))
+                self.printOptimalResults('Brute force optimization',opt_value,preOptimizedParameter)
                 check_limits(preOptimizedParameter,self.parameterBounds)
                 # TODO MV: to limit the minimization with the constrains from the brute search step it might be too limiting
                 postOptBounds = [(optParam*(1.0-delta), optParam*(1.0+delta))
@@ -154,8 +156,7 @@ class Model(object):
                 print('Start Evolve GA optimization...')
                 preOptimizedParameter = self.geneticOpt()
                 opt_value = self.error_func(preOptimizedParameter)
-                print('GA optimization\nF(x) = {:e}'.format(opt_value))
-                print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(preOptimizedParameter)))
+                self.printOptimalResults('GA evolve optimization',opt_value,preOptimizedParameter)
                 #TODO add name of variable in the print
                 check_limits(preOptimizedParameter,self.parameterBounds)
                 postOptBounds = self.parameterBounds
@@ -176,6 +177,7 @@ class Model(object):
         )
         print('Minimize Optimization\nF(x) = {:e}'.format(optimizedParameter.fun))
         print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(optimizedParameter.x)))
+        self.printOptimalResults('Fmin optimization', optimizedParameter.fun, optimizedParameter.x)
         check_limits(optimizedParameter.x,postOptBounds)
         if not optimizedParameter.success:
             print ("WARNING final optimisation failed\nStatus: ",
