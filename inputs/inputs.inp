@@ -20,6 +20,18 @@ FIT:
     #Model: ['constantRate', 'arrheniusRate'] #, 'ArrheniusNoB', 'C2SM', 'DAEM', 'None']
     #Model: arrheniusRate
     Model: C2SM
+    # FitMethod: choose different methods for optimising the parameters
+    # fmin: run only "fmin" from scipy
+    # brute: run only "brute" optimiziation from scipy
+    # evolve: run only "evolve" optimization using GA
+    # brute+fmin: run fmin after brute optimization
+    # evolve+fmin: run fmin after evolve optimization
+    FitMethod: 'evolve+fmin'
+    bruteSettings:
+        delta: 0.05 # step for brute optimization
+    evolveSettings:
+        nGenerations: 5
+        nPopulation: 20
     #Model: constantRate
     # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
     Species: [ftot] # empty list for all availible species
@@ -39,16 +51,16 @@ FIT:
         lowerDevolTemp : 600.0
     C2SM:
         alpha1: 0.0
-        alpha1Bounds: [0.0, 0.4]
-        A1: 0.0
-        A1Bounds: [0, 10000.]
-        E1: 0.0
-        E1Bounds: [1000.0, 10000.0]
-        alpha2: 0.0
+        alpha1Bounds: [0.1, 0.4]
+        A1: 0.2
+        A1Bounds: [500, 10000.]
+        E1: 1000.0
+        E1Bounds: [2000.0, 10000.0]
+        alpha2: 0.6
         alpha2Bounds: [0.4, 1]
-        A2: 0.0
+        A2: 10000.
         A2Bounds: [5000, 30000.]
-        E2: 0.0
+        E2: 10000.0
         E2Bounds: [1500.0, 20000.0]
 
 

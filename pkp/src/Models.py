@@ -105,6 +105,7 @@ class Model(object):
         self.runs = (runs if runs else [])
         self.postGeneticOpt = True
         self.recalcMass = recalcMass
+        self.inputs = inputs
 
     def fit(self, delta=0.05, finalOpt=True, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
@@ -127,27 +128,46 @@ class Model(object):
             return None
 
 
-        from scipy.optimize import brute
         print 'preliminary optimisation: ' + self.species
         delta = delta
-        preOptimizedParameter = brute(
-            func=self.error_func,
-            ranges=self.parameterBounds,
-            finish=None,
-            Ns=int(1/delta))
-
-        opt_value = self.error_func(preOptimizedParameter)
-        print('Brute force optimization\nF(x) = {:e}'.format(opt_value))
-        print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(preOptimizedParameter)))
-        check_limits(preOptimizedParameter,self.parameterBounds)
-        # TODO MV: to limit the minimization with the constrains from the brute search step it might be too limiting
-        postOptBounds = [(optParam*(1.0-delta), optParam*(1.0+delta))
+        #delta = 0.25
+        optimization_mode = self.inputs['FitMethod'].split('+')
+        if len(optimization_mode) == 2:
+            if optimization_mode[0] == 'brute':
+                print "Start brute force optimization..."
+                from scipy.optimize import brute
+                delta = self.inputs['bruteSettings']['delta']
+                preOptimizedParameter = brute(
+                    func=self.error_func,
+                    ranges=self.parameterBounds,
+                    finish=None,
+                    Ns=int(1/delta))
+                opt_value = self.error_func(preOptimizedParameter)
+                print('Brute force optimization\nF(x) = {:e}'.format(opt_value))
+                print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(preOptimizedParameter)))
+                check_limits(preOptimizedParameter,self.parameterBounds)
+                # TODO MV: to limit the minimization with the constrains from the brute search step it might be too limiting
+                postOptBounds = [(optParam*(1.0-delta), optParam*(1.0+delta))
                             for optParam in preOptimizedParameter]
+                self.parameter = preOptimizedParameter
+            elif optimization_mode[0] == 'evolve':
+                print('Start Evolve GA optimization...')
+                preOptimizedParameter = self.geneticOpt()
+                opt_value = self.error_func(preOptimizedParameter)
+                print('GA optimization\nF(x) = {:e}'.format(opt_value))
+                print(''.join('{:d}\t{:f}\n'.format(i,xi) for i,xi in enumerate(preOptimizedParameter)))
+                #TODO add name of variable in the print
+                check_limits(preOptimizedParameter,self.parameterBounds)
+                postOptBounds = self.parameterBounds
+        else:
+            postOptBounds = self.parameterBounds
+            preOptimizedParameter = self.parameter
+
+        # minimize with fmin
         from scipy.optimize import minimize
-        self.parameter = preOptimizedParameter
         if not finalOpt:
             return self
-
+        print 'Start fmin optimization...'
         optimizedParameter = minimize(
                 fun  = self.error_func,
                 x0   = preOptimizedParameter,
@@ -161,7 +181,10 @@ class Model(object):
             print ("WARNING final optimisation failed\nStatus: ",
                    optimizedParameter.status,
                    "using preliminary optimisation results")
-            self.parameter = preOptimizedParameter
+            if optimizedParameter.fun < opt_value:
+                self.parameter = optimizedParameter.x
+            else:
+                self.parameter = preOptimizedParameter
         else:
             self.parameter = optimizedParameter.x
         return self
@@ -195,6 +218,67 @@ class Model(object):
         
         mass = self.calcMass(preProcResult, time, temp, species)
         return self.computeTimeDerivative(mass, times = time)
+
+    def geneticOpt(self):
+        from pyevolve import G1DList, GSimpleGA, Selectors
+        from pyevolve import Initializators, Mutators, Consts, DBAdapters
+        # define genome
+        genome = G1DList.G1DList(len(self.parameter))
+        genome.setParams(rangemin=0.0, rangemax=1.0)
+        genome.initializator.set(Initializators.G1DListInitializatorReal)
+        genome.mutator.set(Mutators.G1DListMutatorRealRange)
+        # The evaluator function (objective function)
+        genome.evaluator.set(self.error_funcGA)
+        # Genetic Algorithm Instance
+        ga = GSimpleGA.GSimpleGA(genome)
+        ga.setMinimax(Consts.minimaxType["minimize"])
+        # set the population size
+        ga.setPopulationSize(self.inputs['evolveSettings']['nPopulation']) #FIXME
+        # set the number of generation
+        ga.setGenerations(self.inputs['evolveSettings']['nGenerations']) #FIXME
+        # Set the Roulette Wheel selector method,
+        # the number of generations and the termination criteria
+        ga.selector.set(Selectors.GRouletteWheel)
+        ga.terminationCriteria.set(GSimpleGA.ConvergenceCriteria)
+        sqlite_adapter = DBAdapters.DBSQLite(identify="GA", resetDB=True)
+        ga.setDBAdapter(sqlite_adapter)
+        # Do the evolution, with stats dump, frequency of 20 generations
+        ga.evolve(freq_stats=1)
+        # Gets the best individual
+        best=ga.bestIndividual()
+        #selects the bestiniviual
+        return self.dimensionalParameters(best)
+
+    def nonDimensionalParameters(self,parameters):
+        '''
+        convert dimensional parameters to non dimensional form
+        fof GA.
+        xnd = (x-min(x))/(min(x)-max(x))
+        :param parameters: dimensional parameter
+        :return: list non dimensional parameter
+        '''
+        return [(parameters[i]-self.parameterBounds[i][0])/
+                (self.parameterBounds[i][1]-self.parameterBounds[i][1])
+                for i,_ in enumerate(parameters)]
+
+    def dimensionalParameters(self,nonDimensionalParameters):
+        '''
+        convert non-dimensional parameters to dimensional form
+        after GA
+        xnd = (x-min(x))/(min(x)-max(x))
+        x = min(x) + (max(x) - min(x))*xnd
+        :param parameters: dimensional parameter
+        :return: list dimensional parameter
+        '''
+        return [self.parameterBounds[i][0] +
+                (self.parameterBounds[i][1]-self.parameterBounds[i][0])*nonDimensionalParameters[i]
+                for i,_ in enumerate(nonDimensionalParameters)]
+
+    def error_funcGA(self, nonDimensionalParameters, func="cummulative", weightMass=1.0, weightRate=0.0):
+        # converto to dimensional parameters
+        parameters = self.dimensionalParameters(nonDimensionalParameters)
+        return self.error_func(parameters)
+
 
     @classmethod
     def yieldDelta(cls, mass):
@@ -262,7 +346,7 @@ class Model(object):
         # else we component wise sum the error and return a vector
         # of errors per point
         self.error = (sum(ret) if type(ret[0]) != list else map(np.add, ret))
-        print parameter, self.error
+        #print parameter, self.error
         return self.error
 
     def errorPerRun(self, parameter, run, func, weightMass, weightRate):
