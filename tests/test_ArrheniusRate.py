@@ -45,7 +45,7 @@ def test_arrheniusRate_calcMass(arrhenius_fit):
     time_array[0] = 0.0
     temp_array[0] = 0.1
     temp_array_interp = sp.interpolate.interp1d(time_array, temp_array,
-        bounds_error=True, fill_value=1.0)
+        bounds_error=False, fill_value=1.0)
     assert np.allclose(zeroResult,
                 fit.calcMass(zeroRate, 0.0, time_array, temp_array_interp))
 

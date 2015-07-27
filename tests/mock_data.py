@@ -20,6 +20,20 @@ opt_params = {
             'preExpBounds': [0.0, 1.0e10],
             'activationEnergy': 1.0,
             'activationEnergyBounds': [0.0, 1.0e6]},
+     'C2SM': {
+        'alpha1': 0.2,
+        'alpha1Bounds': [0.0, 0.4],
+        'A1': 1000.0,
+        'A1Bounds': [0, 10000.],
+        'E1': 5000.0,
+        'E1Bounds': [1000.0, 10000.0],
+        'alpha2': 0.8,
+        'alpha2Bounds': [0.4, 1],
+        'A2': 8000.0,
+        'A2Bounds': [5000, 30000.],
+        'E2': 9000.0,
+        'E2Bounds': [1500.0, 20000.0]
+     }
 }
 
 mock_ua = {"Carbon": 69.20, "Hydrogen": 4.40,

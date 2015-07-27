@@ -153,5 +153,5 @@ OperatingConditions:
 ```
 
 
-[Vascellari et al.]: http://dx.doi.org/10.1016/j.fuel "Vascellari M, Arora R, Pollack M, Hasse C. Simulation of entrained flow gasification with advanced coal conversion submodels. Part 1: Pyrolysis. Fuel 2013;113:654–669."
+[Vascellari et al.]: 10.1016/j.fuel.2013.06.014 "Vascellari M, Arora R, Pollack M, Hasse C. Simulation of entrained flow gasification with advanced coal conversion submodels. Part 1: Pyrolysis. Fuel 2013;113:654–669."
 

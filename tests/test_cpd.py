@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+import sys
+#sys.path.append('../')
 
 import pkp.src.CPD as cpdsl
 from test_main import (linear_preProc, 

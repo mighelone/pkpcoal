@@ -13,6 +13,9 @@ def constantRate(inputs, results):
 def arrheniusRate(inputs, results):
     return genericRate(inputs, results, "arrheniusRate")
 
+def C2SM(inputs, results):
+    return genericRate(inputs, results, "C2SM")
+
 def genericRate(inputs, results, pyrolModelName):
     """ Generates the results for constant Rate.
 
