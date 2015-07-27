@@ -170,8 +170,6 @@ class Model(object):
             bounds=postOptBounds,
             **kwargs
         )
-        print('Minimize Optimization\nF(x) = {:e}'.format(optimizedParameter.fun))
-        print(''.join('{:d}\t{:f}\n'.format(i, xi) for i, xi in enumerate(optimizedParameter.x)))
         self.printOptimalResults('Fmin optimization', optimizedParameter.fun, optimizedParameter.x)
         check_limits(optimizedParameter.x, postOptBounds)
         if not optimizedParameter.success:
@@ -263,7 +261,7 @@ class Model(object):
         after GA
         xnd = (x-min(x))/(min(x)-max(x))
         x = min(x) + (max(x) - min(x))*xnd
-        :param parameters: dimensional parameter
+        :param nonDimensionalParameters: non dimensional parameter used in GA
         :return: list dimensional parameter
         """
         return [self.parameterBounds[i][0] +
@@ -571,6 +569,7 @@ class arrheniusRate(Model):
 class C2SM(Model):
     """
     The C2SM Kobayashi model
+    note that the optimization uses the log values of A1 and A2
     """
 
     def __init__(self, inputs, runs, species):
@@ -578,21 +577,16 @@ class C2SM(Model):
         parameter = [inputs['C2SM'][paramName] for paramName in self.paramNames]
         paramBounds = [inputs['C2SM'].get(paramName + "Bounds", (None, None))
                        for paramName in self.paramNames]
+        # modify parameters 1 and 4 to log
+        for i in [1,4]:
+            parameter[i] = np.log(parameter[i])
+            paramBounds[i] = [np.log(par) for par in paramBounds[i]]
+            self.paramNames[i] = 'log'+self.paramNames[i]
         Model.__init__(self, "C2SM", parameter, paramBounds, inputs,
                        species, self.calcMassC2SM, self.recalcMassC2SM, runs=runs)
-        self.updateParameter(parameter)
         sel_run = runs.keys()[0]  # FIXME
         # self.final_yield = runs[sel_run][species][-1] # FIXME
         # self.temp = runs[sel_run].interpolate('temp')
-
-    def updateParameter(self, parameter):
-        self.alpha1 = parameter[0]
-        self.A1 = parameter[1]
-        self.E1 = parameter[2]
-        self.alpha2 = parameter[3]
-        self.A2 = parameter[4]
-        self.E2 = parameter[5]
-        return self
 
     def recalcMassC2SM(self, parameter, time):
         return self.calcMassC2SM(parameter, init_mass=0.0, time=time, temp=self.temp)
@@ -601,7 +595,6 @@ class C2SM(Model):
     #    return 0.0
 
     def calcMassC2SM(self, parameter, init_mass, time, temp):
-        self.updateParameter(parameter=parameter)
 
         def dmdt(m, t):
             """
@@ -616,18 +609,24 @@ class C2SM(Model):
              """
             s = m[0]
             y = m[1]
+            alpha1 = parameter[0]
+            A1 = np.exp(parameter[1])
+            E1 = parameter[2]
+            alpha2 = parameter[3]
+            A2 = np.exp(parameter[4])
+            E2 = parameter[5]
             T = temp(t)  # so temp is a function that takes t and returns T
-            exp1 = np.exp(-self.E1 / T)
-            exp2 = np.exp(-self.E2 / T)
+            exp1 = np.exp(-E1 / T)
+            exp2 = np.exp(-E2 / T)
             if exp1 == np.inf or exp2 == np.inf:
                 print """Warning overflow in the exponential
                        term detected, change parameter bounds
                        of the activation Temperature """
                 return 0.0
-            k1 = self.A1 * exp1
-            k2 = self.A2 * exp2
+            k1 = A1 * exp1
+            k2 = A2 * exp2
             dsdt = -(k1 + k2) * s
-            dydt = (self.alpha1 * k1 + self.alpha2 * k2) * s
+            dydt = (alpha1 * k1 + alpha2 * k2) * s
             return [dsdt, dydt]
             #
 
