@@ -8,6 +8,7 @@ The launcher function return a list of results objects
 """
 
 from Models import BalancedComposition
+from PreProc import MultiRun
 import CPD
 
 def Launch_CPD(inputs, output_folder):
@@ -32,10 +33,10 @@ def Launch_CPD(inputs, output_folder):
     else:
         runs = [runNr for runNr in operatingConditions.keys()
                     if 'run' in runNr ]
-    return {run: InitAndLaunch(
+    return MultiRun({run: InitAndLaunch(
                 coal,
                 pressure,
                 inputs['CPD']['deltaT'],
                 run,
                 output_folder)
-          for i, run in enumerate(runs)}
+          for i, run in enumerate(runs)})
