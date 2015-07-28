@@ -1,4 +1,46 @@
+import matplotlib.pyplot as plt
 from CoalThermoPhysics import MolWeights
+
+class MultiRun(dict):
+    """ A class to wrap around multiple CPD runs, provind plotting functions
+        and simple extraction of data """
+
+    def set_timesteps(self, num):
+        """ sets the timestep attribute to all runs """
+        for runnr, run in self.iteritems():
+            setattr(run, 'timesteps', num)
+
+    def plot_multi_species(self, species, axis="time"):
+        f, ax = plt.subplots(1, 2)
+        for runnr, run in self.iteritems():
+            ax[0].plot(run[axis], run[species],label=runnr)
+            ax[1].plot(run[axis], run.rate(species), label=runnr)
+
+        xlabel = 'Time [s]' if axis=="time" else 'Temp [K]'
+        ax[0].get_yaxis().get_label().set_text('Yield [kg/kg_daf]')
+        ax[0].get_xaxis().get_label().set_text(xlabel)
+        ax[1].get_yaxis().get_label().set_text('Yield Rate [kg/kg_daf/s]')
+        ax[1].get_xaxis().get_label().set_text(xlabel)
+        plt.legend()
+        return f, ax
+
+    def plot_multi_temps(self):
+        """ """
+        f, ax = plt.subplots(1, 2)
+        for runnr, run in self.iteritems():
+            ax[0].plot(run["time"], run["temp"],label=runnr)
+            ax[1].plot(run["time"], run.rate("temp"), label=runnr)
+
+        ax[0].get_yaxis().get_label().set_text('Temperature [K]')
+        ax[0].get_xaxis().get_label().set_text('Time [s]')
+        ax[1].get_yaxis().get_label().set_text('Heating Rate [K/s]')
+        ax[1].get_xaxis().get_label().set_text('Time [s]')
+        plt.legend()
+        return f, ax
+
+    @property
+    def qFactors(self):
+        return {runnr:run.qFactor for runnr, run in self.iteritems()}
 
 class PreProcResult(object):
     """ Base class for the various preprocessors """
@@ -55,4 +97,4 @@ class ManualQfactor(PreProcResult):
     def __init__(self, coal, qFactor):
         PreProcResult.__init__(self, coal)
         self.qFactor = qFactor
-    
+
