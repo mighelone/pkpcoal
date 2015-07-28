@@ -24,7 +24,8 @@ class BalancedComposition(object):
         self.target = target
         self.basis = sum(inp.values())
         scaling_factor = target/self.basis
-        self.elems = {key:value*scaling_factor for key,value in inp.iteritems()}
+        self.elems = {key:value*scaling_factor
+                for key,value in inp.iteritems()}
 
     def __getitem__(self,item):
         """ """
@@ -74,6 +75,65 @@ class BalancedComposition(object):
     def iteritems(self):
         return self.elems.iteritems()
 
+class ParticleHeatUp(object):
+
+    def __init__(self, cp, rho, d, sigma, epsilon, T_wall, Nu=2.0):
+        self.cp = cp
+        self.rho = rho
+        self.d = d
+        self.sigma = sigma
+        self.epsilon = epsilon
+        self.Nu = 2.0
+        self.T_wall = T_wall
+
+    def computeParticleTemperature(self, time, t_gas,
+            start_temp=300, dt=1e-5, t_end=0.1):
+        def updateTg(T_old, T_gas, dt):
+            return T_old + dTdt(T_gas, T_old)*dt
+
+        def dTdt(gas_temp, particle_temp):
+            T4diff = (particle_temp**4.0 - self.T_wall**4.0)*self.sigma*self.epsilon
+            h = self.Nu*self.lambda_g(gas_temp)/self.d
+            Tdiff = (particle_temp - gas_temp)
+            a = -3.0/(self.cp*self.rho*self.d/2.0)
+            return  a*(T4diff + h*Tdiff)
+
+        Temps, Times = [start_temp], [0]
+        for i in range(int(t_end/dt)):
+            time_ = dt*(i+1) # current time
+            T = np.interp(time_, time, t_gas) # interpolate temperature
+            start_temp = updateTg(start_temp, T, dt) # update temperature
+            Temps.append(start_temp)
+            Times.append(time_)
+        return Times, Temps
+
+    def particle_response_time(self, cp, rho, d, T_gas, lambda_g):
+        """ compute particle response time based on
+            Formula 1.93b Page 44 from PARTICLES, DROPS AND BUBBLES:
+            FLUID DYNAMICS AND NUMERICAL METHODS, E. Loth """
+
+        return (cp*rho*d**2)/(12.0*lambda_g(T_gas))
+
+    def rho_g(self, temp):
+        """ p/rho  = R_s*T"""
+        return 1.0 /(8.314*temp)
+
+    def lambda_g(self, temp):
+        """ compute the conductivity of dry air"""
+        # http://www.nist.gov/data/PDFfiles/jpcrd283.pdf
+        gamma = 25.98e-3 # [W/mK]
+        c1,c2,c3,c4,c5,c6,c7 = [0.2395, 0.0064, 1.0, -1.9261,
+                                2.0038, -1.0755, 0.2294]
+        d1,d2,d3,d4,d5 = [0.4022, 0.3566, -0.1631, 0.1380,
+                          -0.0201]
+        T = temp/132.5
+        r = self.rho_g(temp)/314.3
+        return (gamma * (c1*T + c2*T**0.5 + c3
+                        + c4*T**(-1.0) + c5*T**(-2.0)
+                        + c6*T**(-3.0) + c7*T**(-4.0)
+                        + d1*r + d2*r**2.0 + d3*r**3.0
+                        + d4*r**4.0 + d5*r**4.0))
+
 class Model(object):
     """ Parent class of the children ConstantRateModel,
         the three Arrhenius Models (notations) and the Kobayashi models.
@@ -113,20 +173,17 @@ class Model(object):
             modelYield = self.fittedYield(run)
             modelRate = self.fittedRate(run)
             targetYield = run[self.species]
-            ax[0].plot(run[axis], targetYield, label=run.solver)
+            ax[0].plot(run[axis], targetYield, ls='--', label=run.solver)
             ax[0].plot(run[axis], modelYield, label=self.name)
-            ax[1].plot(run[axis], run.rate(self.species), label=run.solver)
+            ax[1].plot(run[axis], run.rate(self.species), ls='--', label=run.solver)
             ax[1].plot(run[axis], modelRate, label=self.name)
         xlabel = 'Time [s]' if axis=="time" else 'Temp [K]'
-        ax[0].get_yaxis().get_label().set_text('Yield [kg/kg_daf]')
-        ax[0].get_xaxis().get_label().set_text(xlabel)
-        ax[1].get_yaxis().get_label().set_text('Yield Rate [kg/kg_daf/s]')
-        ax[1].get_xaxis().get_label().set_text(xlabel)
+        ylabels = ['Yield [kg/kg_daf]', 'Yield Rate [kg/kg_daf/s]']
+        for a, ylabel in zip(ax, ylabels):
+            a.get_yaxis().get_label().set_text(ylabel)
+            a.get_xaxis().get_label().set_text(xlabel)
         plt.legend()
         return f, ax
-
-
-
 
     def fit(self, **kwargs):
         # print 'initial parameter: ' + str(self.initialParameter)
@@ -446,7 +503,6 @@ class arrheniusRate(Model):
         return self.calcMassArrhenius(parameter, init_mass=0.0, time=time, temp=self.temp)
 
     def recalcMassPerRunArrhenius(self, parameter, run):
-        print "OK"
         return self.calcMassArrhenius(parameter, init_mass=0.0, time=run['time'], temp=run.interpolate('temp'))
 
     def calcMassArrhenius(self, parameter, init_mass, time, temp):
