@@ -240,14 +240,17 @@ class Model(object):
             boundsP = [lowerupper(l, u) for l, u in bounds]
             boundsP = list(product(*boundsP)) if nThreads > 1 else bounds
             start_time = time.time()
-            optParams = parmap(preOpt, boundsP)
-            smallest = np.inf
-            choosenParams = None
-            for i, opt in enumerate(optParams):
-                if opt[1] < smallest:
-                    smallest =  opt[1]
-                    choosenParams = opt[0]
-
+            if nThreads > 1:
+                optParams = parmap(preOpt, boundsP)
+                smallest = np.inf
+                choosenParams = None
+                for i, opt in enumerate(optParams):
+                    if opt[1] < smallest:
+                        smallest =  opt[1]
+                        choosenParams = opt[0]
+            else:
+                optParams = preOpt(boundsP)
+                choosenParams, smallest  = optParams[0:2]
             print "--- run {} params {} error {} {}s seconds ---".format(
                     _, str(choosenParams), smallest, (time.time() - start_time))
             n = kwargs.get('narrowing', 0.75)
