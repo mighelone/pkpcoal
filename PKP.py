@@ -23,7 +23,6 @@ import Evolve                   #contains the generic algortihm optimizer
 import numpy as np
 import platform
 import shutil
-import coalPolimi
 
 import pylab as plt
 #
@@ -474,9 +473,9 @@ class MainProcess(object):
 #    elif (CPD_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='CPD') or (FG_FittingKineticParameter_Select=='DAEM' and PyrolProgram=='FGDVC'):
         PredictionDAEM=[2e10,20e3,5e3,0.5]
         outfile = open(PyrolProgram+'-Results_DAEM.txt', 'w')
-        outfile.write("Species                  A1 [1/s]               E_a1 [K]          sigma [K]   Final Yield\n\n")
+        outfile.write("Species                  A1 [1/s]               E_a1 [kJ/kmol]          sigma [kJ/kmol]   Final Yield\n\n")
         self.KinModel=Models.DAEM(PredictionDAEM)
-        self.KinModel.setNrOfActivationEnergies(GlobalOptParam.NrOFActivtionEnergies)
+        #self.KinModel.setNrOfActivationEnergies(GlobalOptParam.NrOFActivtionEnergies)
         if PyrolProgram=='PCCL':
                 self.KinModel.setDt4Intergrate(self.FG_dt)
         #######
@@ -511,7 +510,7 @@ class MainProcess(object):
             self.Solution=self.KinModel.ParamVector()
             #
             self.KinModel.plot(Fit,Species)
-            outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %11.4f  %6.4f  ' %(self.Solution[0],self.Solution[1],self.Solution[2],self.Solution[3])+'\n')
+            outfile.write(str(Fit[0].SpeciesName(Species))+'\t'+'%.6e  %11.4f  %11.4f  %6.4f  ' %(self.Solution[0],self.Solution[1]/1e6,self.Solution[2]/1e6,self.Solution[3])+'\n')
         outfile.close()
         if oSystem=='Linux' or oSystem == 'Darwin':
             shutil.move(PyrolProgram+'-Results_DAEM.txt','Result/'+PyrolProgram+'-Results_DAEM.txt')
@@ -528,7 +527,7 @@ class MainProcess(object):
             if PyrolProgram=='CPD':
                 print 'CPD energy and mass balance...'
                 Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
-            if PyrolProgram=='FGDVC':    
+            if PyrolProgram=='FGDVC':
                 print 'FG-DVC energy and mass balance...'
                 Compos_and_Energy.FGPC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr,'FGDVC')
                 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
@@ -820,7 +819,7 @@ class MainProcess(object):
         #
         self.SpeciesEnergy('FGDVC',FGFile,self.FG_FittingKineticParameter_Select)
             #
-    
+
     ####Pc Coal Lab####
     def MakeResults_PCCL(self):
         """generates the result for PC Coal Lab"""
@@ -918,7 +917,7 @@ class MainProcess(object):
         run PMSKD
         '''
         # create object
-
+        import coalPolimi
         try:
             coal = coalPolimi.coalPolimi(name = 'COAL', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.PMSKD_mechfile)
         except coalPolimi.compositionError:
@@ -995,4 +994,4 @@ if __name__ == "__main__":
     if Case.PCCL_select==True:
         Case.MakeResults_PCCL()
     print 'calculated Species: ',Case.SpeciesToConsider
-        
+
