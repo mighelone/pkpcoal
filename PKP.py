@@ -23,7 +23,6 @@ import Evolve                   #contains the generic algortihm optimizer
 import numpy as np
 import platform
 import shutil
-import coalPolimi
 
 import pylab as plt
 #
@@ -528,7 +527,7 @@ class MainProcess(object):
             if PyrolProgram=='CPD':
                 print 'CPD energy and mass balance...'
                 Compos_and_Energy.CPD_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr)
-            if PyrolProgram=='FGDVC':    
+            if PyrolProgram=='FGDVC':
                 print 'FG-DVC energy and mass balance...'
                 Compos_and_Energy.FGPC_SpeciesBalance(File[runNr],self.UAC,self.UAH,self.UAN,self.UAO,self.UAS,self.PAVM_asrec,self.PAFC_asrec,self.PAmoist,self.PAash,self.HHV,self.MTar,self.densityDryCoal,runNr,'FGDVC')
                 #    SpecCPD=Compos_and_Energy.CPD_SpeciesBalance(File[0],UAC,UAH,UAN,UAO,PAVM_asrec,PAFC_asrec,HHV,MTar,0)
@@ -820,7 +819,7 @@ class MainProcess(object):
         #
         self.SpeciesEnergy('FGDVC',FGFile,self.FG_FittingKineticParameter_Select)
             #
-    
+
     ####Pc Coal Lab####
     def MakeResults_PCCL(self):
         """generates the result for PC Coal Lab"""
@@ -918,7 +917,7 @@ class MainProcess(object):
         run PMSKD
         '''
         # create object
-
+        import coalPolimi
         try:
             coal = coalPolimi.coalPolimi(name = 'COAL', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.PMSKD_mechfile)
         except coalPolimi.compositionError:
@@ -995,4 +994,4 @@ if __name__ == "__main__":
     if Case.PCCL_select==True:
         Case.MakeResults_PCCL()
     print 'calculated Species: ',Case.SpeciesToConsider
-        
+
