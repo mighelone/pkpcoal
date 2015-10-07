@@ -707,7 +707,7 @@ class DAEM(Model):
 
     def calcMass(self,preProcResult,time,T,Name):
         """Outputs the mass(t) using the model specific equation."""
-        A0 = self._ParamVector[0]
+        A0 = np.power(10.,self._ParamVector[0])
         E0 = self._ParamVector[1]
         sigma = self._ParamVector[2]
         Y0 = self._ParamVector[3]

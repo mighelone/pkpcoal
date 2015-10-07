@@ -20,9 +20,9 @@ EvAKobMax=[1e8,50000,1e8,500000,0.7,1.]
 EvAKobInit=[100157.0037,5849.84292004,85011813.05,12648.7543183,0.45,0.65]
 #
 #For Kobayashi:
-EvADAEMMin=[0.5e13,150e6,15e6] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
-EvADAEMMax=[5.e13,300e6,50e6] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
-EvADAEMInit=[1.67e13,212e6,29.4e6]
+EvADAEMMin=[10,150e6,15e6] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
+EvADAEMMax=[15,300e6,50e6] # one less pair; the range is set from minimum yields to maximum yields in Pyrolysis.py
+EvADAEMInit=[13,212e6,29.4e6]
 #
 #Nr Of activation Enrgies to solve the dE Integral for
 NrOFActivtionEnergies=50
