@@ -2,43 +2,40 @@ pressure in atm:
 1
 
 FG-DVC: constant (numerical) time step; CPD: maximum time step
-0.5e-4
+1.e-5
 
 Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
 Total
 
 Time History: first column time in seconds, second column: Temperature in K. Last point must contain the final time. The final time has to be equal in each case.
 Number of Temperature Histories to include:
-2
+3
 Start Time History 1
-0.0,  463.0
-0.04,  600.0
-0.05,  1800.0
-0.1,  1800.0
+0.0,  300.0
+0.01,  1600.0
+0.02,  1600.0
 End Time History 1
 
 Start Time History 2
-0.0,  463.0
-0.05,  600.0
-0.07,  1700.0
-0.1,  1700.0
+0.0,  300.0
+0.01,  2000.0
+0.02,  2000.0
 End Time History 2
 
 Start Time History 3
-0.0,  463.0
-0.04,  600.0
-0.05,  1700.0
-0.1,  1700.0
+0.0,  300.0
+0.005,  2000.0
+0.02,  2000.0
 End Time History 3
 
 Start Time History 4
-0.0,  600.0
-0.007,  2000.0
-0.03,  2000.0
+0.0,  300.0
+0.01,  1600.0
+0.05,  1600.0
 End Time History 4
 
 Start Time History 5
-0.0,  600.0
-0.0056,  2000.0
-0.03,  2000.0
+0.0,  300.0
+0.01,  1600.0
+0.05,  1600.0
 End Time History 5

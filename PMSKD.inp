@@ -1,5 +1,5 @@
 usePMSKD?:
-No
+Yes
 selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
 None
 
