@@ -199,7 +199,7 @@ class coalPolimi(coal):
             self._updateReactor(t,m)
             #omegai = self._coalCantera.netProductionRates()
             omegai = self._coalCantera.net_production_rates
-            dmdt = omegai * self._Mw / self._rhoDry
+            dmdt = omegai * self._Mw / self._coalCantera.density #/ self._rhoDry
             return dmdt
 
         #self._Mw = self._coalCantera.molarMasses()
@@ -238,11 +238,6 @@ class coalPolimi(coal):
             self._r=np.concatenate((self._r, [dmidt(solver.t,solver.y)]))
 
         warnings.resetwarnings()
-
-
-
-
-
 
 
     def _updateReactor(self,t,m):
