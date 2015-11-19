@@ -44,7 +44,6 @@ M_dt='FG-DVC: constant (numerical) time step; CPD: maximum time step'
 
 
 
-
 class ReadFile(object):
     """general parent class for the reading objects CPDFile and FGDVCFile"""
     def __init__(self,InputFile):

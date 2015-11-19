@@ -1,0 +1,26 @@
+useBioPolimi?:
+Yes
+selected fitting Approximation: 'constantRate', 'Arrhenius', 'ArrheniusNoB', 'Kobayashi', 'DAEM' or 'None'; selectedFit:
+None
+
+Species of to Fit (when Arrhenius is selected): 'Total', 'MainSpecies', 'allSpecies'
+Total
+
+# cell=0.8,hemi=0.05,ligc=0.15,ligo=0,ligh=0,file='Biomass.xml'
+Cellulose:
+0.8
+
+Hemicellulose:
+0.05
+
+LigninC:
+0.15
+
+LigninO:
+0
+
+LigninH:
+0
+
+Mechanism file:
+Biomass.xml

@@ -129,6 +129,20 @@ class MainProcess(object):
         #print self.PMSKD_ArrhSpec
         #print self.PMSKD_npoint
         #print self.PMSKD_mechfile
+        print 'Reading bioPolimi.inp ...'
+        BioInput = InformationFiles.ReadFile(workingDir+'bioPolimi.inp')
+
+        self.bio_dict = {}
+        self.bio_dict['Use'] = BioInput.UsePyrolProgr('useBioPolimi?:')
+        self.bio_dict['FittingKineticParameter_Select']= BioInput.Fitting(InformationFiles.M_selFit)
+        self.bio_dict['ArrhSpec']=BioInput.getText(InformationFiles.M_selArrhSpec)
+        self.bio_dict['mechanism'] = BioInput.getText('Mechanism file:')
+        # self.bio_dict['Cellulose'] = BioInput.getText('Cellulose:')
+        # self.bio_dict['Hemicellulose'] = BioInput.getText('Hemicellulose:')
+        # self.bio_dict['LigninC'] = BioInput.getText('LigninC:')
+        # self.bio_dict['LigninH'] = BioInput.getText('LigninH:')
+        # self.bio_dict['LigninO'] = BioInput.getText('LigninO:')
+
         #
         #PC Coal Lab Properties:
         #
@@ -978,7 +992,61 @@ class MainProcess(object):
         #
         #self.SpeciesEnergy('PMSKD',FGFile)
 
+    def RunBioPolimi(self):
+        '''
+        run BioPolimi
+        '''
+        # create object
+        print("Run BioPolimi...")
+        import bioPolimi
+        try:
+            biomass = bioPolimi.bioPolimi(name = 'biomass', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.bio_dict['mechanism'])
+        except bioPolimi.compositionError:
+            print 'Composition outside of triangle of definition'
+            sys.exit()
 
+        # organize TimeTemp
+        bioPolimiFile=[]
+        bioPolimiFit=[]
+        for runNr in range(self.NrOfRuns):
+            print 'Running BioPolimi n. '+str(runNr)
+            biomass.setHeatingRate(self.timeHR[runNr],self.temperatureHR[runNr])
+            biomass.solvePyrolysis()
+            CurrentBioPolimiFit=FitInfo.Fit_one_run(biomass)
+            #PMSKDFile.append(CurrentFGFile)
+            bioPolimiFit.append(CurrentBioPolimiFit)
+
+            biomass.reset()
+
+        # if self.PMSKD_FittingKineticParameter_Select=='constantRate':
+        #     self.MakeResults_CR('PMSKD','',PMSKDFit)
+        #     currentDict={'PMSKD':'constantRate'}
+        # elif self.PMSKD_FittingKineticParameter_Select=='Arrhenius':
+        #     self.MakeResults_Arrh('PMSKD','',PMSKDFit)
+        #     currentDict={'PMSKD':'Arrhenius'}
+        # elif self.PMSKD_FittingKineticParameter_Select=='ArrheniusNoB':
+        #     self.MakeResults_ArrhNoB('PMSKD','',PMSKDFit)
+        #     currentDict={'PMSKD':'ArrheniusNoB'}
+        # elif self.PMSKD_FittingKineticParameter_Select=='Kobayashi':
+        #     self.MakeResults_Kob('PMSKD','',PMSKDFit)
+        #     currentDict={'PMSKD':'Kobayashi'}
+        # elif self.PMSKD_FittingKineticParameter_Select=='DAEM':
+        #     self.MakeResults_DEAM('PMSKD','',PMSKDFit)
+        #     currentDict={'PMSKD':'DAEM'}
+        # elif self.PMSKD_FittingKineticParameter_Select==None:
+        #     currentDict={'PMSKD':'None'}
+        #     for Species in PMSKDFit[0].SpeciesNames():
+        #         M=Models.Model()
+        #         M.mkSimpleResultFiles(PMSKDFit,Species)
+        #         if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+        #             self.SpeciesToConsider.append(Species)
+        # else:
+        #     print 'undefined PMSKD_FittingKineticParameter_Select'
+        #     currentDict={}
+        #     #
+        # self.ProgramModelDict.update(currentDict)
+        # #
+        # #self.SpeciesEnergy('PMSKD',FGFile)
 
 #Main Part starting
 if __name__ == "__main__":
@@ -993,5 +1061,7 @@ if __name__ == "__main__":
         Case.RunPMSKD()
     if Case.PCCL_select==True:
         Case.MakeResults_PCCL()
+    if Case.bio_dict['Use']==True:
+        Case.RunBioPolimi()
     print 'calculated Species: ',Case.SpeciesToConsider
 
