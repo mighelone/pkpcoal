@@ -1,5 +1,6 @@
 import numpy as np
 from coal import coal
+from coalPolimi import triangle, compositionError
 import sys
 #sys.path.append('/usr/local/lib/python2.7/site-packages/')
 import cantera
@@ -7,42 +8,6 @@ from scipy.integrate import odeint,ode
 
 import warnings
 
-
-
-
-class triangle(object):
-    '''
-    calculate properties of biomass
-    using triangolation
-    '''
-    def __init__(self,x0=np.array([0,0]),x1=np.array([1,0]),x2=np.array([0,1])):
-        self.x0 = x0
-        self.x1 = x1
-        self.x2 = x2
-
-    def _coeff(self,x=np.array([0,0])):
-        '''
-        calculate coefficient of linear combination of x
-        x-x0 = a*(x1-x0)+b*(x2-x0)
-        '''
-        v1 = self.x1-self.x0
-        v2 = self.x2-self.x0
-        v = x-self.x0
-        matr=np.transpose(np.array([v1,v2]))
-        return np.linalg.solve(matr,v)
-
-    def isInside(self,x=np.array([0,0])):
-        '''
-        verify is point x is inside the triangle
-        '''
-        coeff = self._coeff(x)
-        if (coeff[0]>=0 and coeff[1] >=0 and sum(coeff)<=1):
-            return True
-        else:
-            return False
-
-class compositionError(Exception):
-    pass
 
 class bioPolimi(coal):
     '''
@@ -67,7 +32,7 @@ class bioPolimi(coal):
         '''
         reset object to the initial condition
         '''
-        self._bioCantera.set(Y=self._compositionString)
+        self._bioCantera.TPY = self._bioCantera.T, self._bioCantera.P, self._compositionString
 
 
     def _referenceBiomass(self):
@@ -197,9 +162,14 @@ class bioPolimi(coal):
         #
         #del(sol)
         backend = 'dopri5'
+        #backend = 'cvode'
+        #backend = 'lsoda'
+        #backend = 'dop853'
+        print ("ODE backend {}".format(backend))
         self._Mw = self._bioCantera.X
         t0 = self.timeHR[0]
         m0=self._bioCantera.Y
+        #solver = ode(dmidt).set_integrator(backend, nsteps=1, rtol=1e-5, atol=1e-6, verbosity=3)
         solver = ode(dmidt).set_integrator(backend, nsteps=1)
         solver.set_initial_value(m0, t0)
         solver._integrator.iwork[2] = -1
@@ -208,6 +178,7 @@ class bioPolimi(coal):
         self._r = [dmidt(t0,m0)]
         warnings.filterwarnings("ignore", category=UserWarning)
         timeEnd = np.max(self.timeHR)
+        print("Start ODE calculation")
         while solver.t < timeEnd:
             # print solver.t
             solver.integrate(timeEnd, step=True)
@@ -216,8 +187,14 @@ class bioPolimi(coal):
             self._r=np.concatenate((self._r, [dmidt(solver.t,solver.y)]))
         #print self._y[-1,:]
         warnings.resetwarnings()
+        print('Finish ODE calculation')
 
 
+    def get_sumspecies(self, species):
+        sumspecies = np.empty_like(self._y[:, 0])
+        for sp in species:
+            sumspecies += self._y[:, self._bioCantera.species_index(sp)]
+        return sumspecies
 
 
 
@@ -252,41 +229,27 @@ class bioPolimi(coal):
                self._y[:,self._bioCantera.speciesIndex('LIGH')]
 
     def getCharCoal(self):
-        return self._y[:,self._bioCantera.speciesIndex('Char')]+ \
-               self._y[:,self._bioCantera.speciesIndex('CELL')]+ \
-               self._y[:,self._bioCantera.speciesIndex('CELLA')]+ \
-               self._y[:,self._bioCantera.speciesIndex('HCE')]+ \
-               self._y[:,self._bioCantera.speciesIndex('HCE1')]+ \
-               self._y[:,self._bioCantera.speciesIndex('HCE2')]+ \
-               self._y[:,self._bioCantera.speciesIndex('ACQUA')]+ \
-               self._y[:,self._bioCantera.speciesIndex('LIGC')] + \
-               self._y[:,self._bioCantera.speciesIndex('LIGO')] + \
-               self._y[:,self._bioCantera.speciesIndex('LIGH')]+ \
-               self._y[:,self._bioCantera.speciesIndex('LIGOH')] + \
-               self._y[:,self._bioCantera.speciesIndex('LIGCC')]+ \
-               self._y[:,self._bioCantera.speciesIndex('LIG')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCO2')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCO')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCOH2')]+\
-               self._y[:,self._bioCantera.speciesIndex('GH2')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCH4')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCH3OH')]+\
-               self._y[:,self._bioCantera.speciesIndex('GC2H4')]
-
-
-
-
-                #
-               ##+\
-               #self._y[:,self._bioCantera.speciesIndex('GCO2')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCO')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCOH2')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GH2')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCH4')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCH3OH')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GC2H4')]
-
-
+        char_species = ['Char',
+                        'CELL',
+                        'CELLA',
+                        'HCE',
+                        'HCE1',
+                        'HCE2',
+                        'ACQUA',
+                        'LIGC',
+                        'LIGO',
+                        'LIGH',
+                        'LIGOH',
+                        'LIGCC',
+                        'LIG',
+                        'GCO2',
+                        'GCO',
+                        'GCOH2',
+                        'GH2',
+                        'GCH4',
+                        'GCH3OH',
+                        'GC2H4']
+        return self.get_sumspecies(char_species)
 
     #def getCH4(self):
     #    return self._y[:,self._bioCantera.speciesIndex('CH4')]
@@ -328,40 +291,33 @@ class bioPolimi(coal):
         """
         :rtype : object
         """
-        volatiles = self._y[:,self._bioCantera.speciesIndex('HAA')] +\
-               self._y[:,self._bioCantera.speciesIndex('HMFU')] +\
-               self._y[:,self._bioCantera.speciesIndex('LVG')] +\
-               self._y[:,self._bioCantera.speciesIndex('XYLOSE')] +\
-               self._y[:,self._bioCantera.speciesIndex('Glyoxal')] +\
-               self._y[:,self._bioCantera.speciesIndex('Phenol')] +\
-               self._y[:,self._bioCantera.speciesIndex('pCoumaryl')] +\
-               self._y[:,self._bioCantera.speciesIndex('C11H12O4')] +\
-               self._y[:,self._bioCantera.speciesIndex('C3H6O2')] +\
-               self._y[:,self._bioCantera.speciesIndex('C3H4O2')] +\
-               self._y[:,self._bioCantera.speciesIndex('ALD3')] +\
-               self._y[:,self._bioCantera.speciesIndex('MECHO ')] +\
-               self._y[:,self._bioCantera.speciesIndex('C2H6OH')] +\
-               self._y[:,self._bioCantera.speciesIndex('C2H4')]+\
-               self._y[:,self._bioCantera.speciesIndex('CH3OH')]+\
-               self._y[:,self._bioCantera.speciesIndex('CH4')]+\
-               self._y[:,self._bioCantera.speciesIndex('CO2')]+\
-               self._y[:,self._bioCantera.speciesIndex('CO')]+\
-               self._y[:,self._bioCantera.speciesIndex('H2O')]+\
-               self._y[:,self._bioCantera.speciesIndex('H2')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCO2')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCO')]+\
-               self._y[:,self._bioCantera.speciesIndex('GCOH2')]+\
-               self._y[:,self._bioCantera.speciesIndex('GH2')]+\
-               self._y[:,self._bioCantera.speciesIndex('EtOH')]+\
-               self._y[:,self._bioCantera.speciesIndex('HCOOH')]#+\
-               #self._y[:,self._bioCantera.speciesIndex('GCO2')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCO')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCOH2')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GH2')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCH4')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GCH3OH')]+\
-               #self._y[:,self._bioCantera.speciesIndex('GC2H4')]
-        return volatiles
+        volatile_species = ['HAA',
+                            'HMFU',
+                            'LVG',
+                            'XYLOSE',
+                            'Glyoxal',
+                            'Phenol',
+                            'pCoumaryl',
+                            'C11H12O4',
+                            'C3H6O2',
+                            'C3H4O2',
+                            'ALD3',
+                            'MECHO',
+                            'C2H6OH',
+                            'C2H4',
+                            'CH3OH',
+                            'CH4',
+                            'CO2',
+                            'CO',
+                            'H2O',
+                            'H2',
+                            'GCO2',
+                            'GCO',
+                            'GCOH2',
+                            'GH2',
+                            'EtOH',
+                            'HCOOH']
+        return self.get_sumspecies(volatile_species)
 
 
     def getTime(self):
