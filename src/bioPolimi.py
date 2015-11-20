@@ -332,22 +332,22 @@ class bioPolimi(coal):
         return yields as daf fraction
         using format required by PKP
         '''
-        self.__yields=np.zeros(( int(len(self.time)),4) )  #shapes new Matrix containing all necessary information;
-        self.__yields[:,0]=self.time
-        self.__yields[:,1]=self.getTemperature() # temp
-        self.__yields[:,2]=self.getVolatile()#self.getTAR() # total volatile yield
-        self.__yields[:,3]=self.getCharCoal()#1.-self.__yields[:,2]
-        #self.__yields[:,3]=self.getLightGases()
-        #self.__yields[:,5]=self.getVolatile()
-        #self.__yields[:,4]=1.-self.__yields[:,5]
-        #self.__yields[:,6]=self.getH2O()
-        #self.__yields[:,7]=self.getCO2()
-        #self.__yields[:,8]=self.getCH4()
-        #self.__yields[:,9]=self.getCO()
-        #self.__yields[:,10]=self.getH2()
-        #self.__yields[:,11]=self._y[:,self._bioCantera.speciesIndex('CH2')]
-        #self.__yields[:,12]=self._y[:,self._bioCantera.speciesIndex('CH3O')]
-        #self.__yields[:,13]=self._y[:,self._bioCantera.speciesIndex('BTX2')]
+        self._yields=np.zeros((int(len(self.time)), 4))  #shapes new Matrix containing all necessary information;
+        self._yields[:, 0]=self.time
+        self._yields[:, 1]=self.getTemperature() # temp
+        self._yields[:, 2]=self.getVolatile()#self.getTAR() # total volatile yield
+        self._yields[:, 3]=self.getCharCoal()#1.-self._yields[:,2]
+        #self._yields[:,3]=self.getLightGases()
+        #self._yields[:,5]=self.getVolatile()
+        #self._yields[:,4]=1.-self._yields[:,5]
+        #self._yields[:,6]=self.getH2O()
+        #self._yields[:,7]=self.getCO2()
+        #self._yields[:,8]=self.getCH4()
+        #self._yields[:,9]=self.getCO()
+        #self._yields[:,10]=self.getH2()
+        #self._yields[:,11]=self._y[:,self._bioCantera.speciesIndex('CH2')]
+        #self._yields[:,12]=self._y[:,self._bioCantera.speciesIndex('CH3O')]
+        #self._yields[:,13]=self._y[:,self._bioCantera.speciesIndex('BTX2')]
         self.Yields2Cols={'Time':0,'Temp':1,'Total':2,'Solid':3}#,'HCE':4,'HCE1':5,'HCE2':6,'LIGC':7,'LIGH':8,'LIGO':9,'LIG':10,'LIGCC':11,'LIGOH':12,'Char':13,'HAA':14,'HMFU':15,'LVG':16,'XYLOSE':17,'Glyoxal':18,'Phenol':19,'pCoumaryl':20,'C11H12O4':21,'C3H6O2':22,'C3H4O2':23,'C3H6O':24,'CH3CHO':25,'C2H6OH':26,'C2H4':27,'CH3OH':28,'CH2O':29,'CH4':30,'CO2':31,'CO':32,'H2O':33,'H2':34,'GCO2':35,'GCO':36,'GCOH2':36,'GH2':37,'EtOH':38}
         self.Cols2Yields={0:'Time',1:'Temp',2:'Total',3:'Solid'}#2:'Tar',3:'Gas',4:'Solid',5:'Total',
                           #6:'H2O',7:'CO2',8:'CH4',9:'CO',10:'H2',
@@ -356,7 +356,7 @@ class bioPolimi(coal):
     def Yields_all(self):
         """Returns the whole result matrix of the yields."""
         self._calculateYields()
-        return self.__yields
+        return self._yields
 
     def Rates_all(self):
         """Returns the whole result matrix of the rates"""
@@ -373,7 +373,7 @@ class bioPolimi(coal):
 
     def FinalYields(self):
         """Returns the last line of the Array, containing the yields at the time=time_End"""
-        return self.__yields[-1,:]
+        return self._yields[-1, :]
 
     def Name(self):
         """returns 'CPD' as the name of the Program"""

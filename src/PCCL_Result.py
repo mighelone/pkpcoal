@@ -52,7 +52,7 @@ class PCCL_Result(object):
             self.__rates[-1,i]=(self.__yields[-1,i]-self.__yields[-2,i])/(self.__yields[-1,0]-self.__yields[-2,0])
 #        #
 #        #
-#        print '\nimported PC Coal Lab data-fields, size(rows,columns): ',yieldsSmall.shape,'  and interpolated to: ',self.__yields.shape,'\n'
+#        print '\nimported PC Coal Lab data-fields, size(rows,columns): ',yieldsSmall.shape,'  and interpolated to: ',self._yields.shape,'\n'
     
     def Yields_all(self):
         """Returns the whole result matrix of the yields."""

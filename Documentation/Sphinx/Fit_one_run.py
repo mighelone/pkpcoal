@@ -201,7 +201,7 @@ class Fit_one_run(object):
         if type(species)==str:
             return self.__yields[:,self.SpeciesIndex(species)]
         #elif species != 'Solid' and species != self.Yields2Cols['Solid']:
-        #    return self.__yields[:,self.SpeciesIndex(species)]
+        #    return self._yields[:,self.SpeciesIndex(species)]
         #elif species == 'Solid' or species == self.Yields2Cols['Solid']:
         #    return self.MassVM_s()
 
@@ -212,7 +212,7 @@ class Fit_one_run(object):
         if type(species)==str:
             return self.__rates[:,self.SpeciesIndex(species)]
         #elif species != 'Solid' and species != self.Yields2Cols('Solid'):
-        #    return self.__rates[:,self.SpeciesIndex(species)]
+        #    return self._rates[:,self.SpeciesIndex(species)]
         #elif species == 'Solid' or species == self.Yields2Cols('Solid'):
         #    return self.RateSingleSpec('Solid')
 

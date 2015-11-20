@@ -7,8 +7,8 @@ class Fit_one_run(object):
     """Imports from the Result objects the arrays. It provides the fitting objects with the yields and rates over time for the specific species. This class futher offers the option to plot the generated fitting results."""
     def __init__(self,ResultObject):
         #importes yields and rates arrays
-        self.__yields=ResultObject.Yields_all()
-        self.__rates=ResultObject.Rates_all()
+        self._yields=ResultObject.Yields_all()
+        self._rates=ResultObject.Rates_all()
         #imports dictionaries:
         self.Yields2Cols=ResultObject.DictYields2Cols()
         self.Cols2Yields=ResultObject.DictCols2Yields()
@@ -29,7 +29,7 @@ class Fit_one_run(object):
 
     def plt_YieldVsTime(self,ColumnNumber):
         """Plots the original yield output of the pyrolysis program (as e.g. CPD) of the species marke with the columns number"""
-        plt.plot(self.__yields[:,0],self.__yields[:,ColumnNumber],label=self.SpeciesName(ColumnNumber))
+        plt.plot(self._yields[:, 0], self._yields[:, ColumnNumber], label=self.SpeciesName(ColumnNumber))
  #       plt.axis([0,max(self.yields[:,Yields2Cols['Time']]),0,max(self.yields[:,Yields2Cols['Total_Yields']])])
         plt.xlabel('t in s')
         plt.ylabel('yield in wt%')
@@ -40,7 +40,7 @@ class Fit_one_run(object):
 
     def plt_RateVsTime(self,ColumnNumber):
         """Plots the original rates output of the pyrolysis program (as e.g. CPD) of the species marke with the columns number"""
-        plt.plot(self.__rates[:,0],self.__rates[:,ColumnNumber],label=self.SpeciesName(ColumnNumber))
+        plt.plot(self._rates[:, 0], self._rates[:, ColumnNumber], label=self.SpeciesName(ColumnNumber))
  #       plt.axis([0,max(self.yields[:,Yields2Cols['Time']]),0,max(self.yields[:,Yields2Cols['Total_Yields']])])
         plt.xlabel('t in s')
         plt.ylabel('rate in wt%/s')
@@ -51,27 +51,27 @@ class Fit_one_run(object):
 
     def Time(self):
         """Returns the time vector"""
-        return self.__yields[:,self.SpeciesIndex('Time')]
+        return self._yields[:, self.SpeciesIndex('Time')]
 
     def Yield(self, species):
         """Returns the Vector of the species yield(t). The species can be inputted with the Column number (integer) or the name corresponding to the dictionary saved in the result class (string)."""
         if type(species)==int:
-            return self.__yields[:,(species)]
+            return self._yields[:, (species)]
         if type(species)==str:
-            return self.__yields[:,self.SpeciesIndex(species)]
+            return self._yields[:, self.SpeciesIndex(species)]
         #elif species != 'Solid' and species != self.Yields2Cols['Solid']:
-        #    return self.__yields[:,self.SpeciesIndex(species)]
+        #    return self._yields[:,self.SpeciesIndex(species)]
         #elif species == 'Solid' or species == self.Yields2Cols['Solid']:
         #    return self.MassVM_s()
 
     def Rate(self, species):
         """Returns the Vector of the species rate(t). The species can be inputted with the Column number (integer) or the name corresponding to the dictionary saved in the result class (string)."""
         if type(species)==int:
-            return self.__rates[:,(species)]
+            return self._rates[:, (species)]
         if type(species)==str:
-            return self.__rates[:,self.SpeciesIndex(species)]
+            return self._rates[:, self.SpeciesIndex(species)]
         #elif species != 'Solid' and species != self.Yields2Cols('Solid'):
-        #    return self.__rates[:,self.SpeciesIndex(species)]
+        #    return self._rates[:,self.SpeciesIndex(species)]
         #elif species == 'Solid' or species == self.Yields2Cols('Solid'):
         #    return self.RateSingleSpec('Solid')
 
@@ -90,12 +90,12 @@ class Fit_one_run(object):
 
     def NPoints(self):
         """returns number of Points for each species over time. Is equal the number of time points."""
-        number=len(self.__yields[:,self.SpeciesIndex('Time')])
+        number=len(self._yields[:, self.SpeciesIndex('Time')])
         return int(number)
         
     def RateSingleSpec(self,NameSpecies):
         """Returns the Rate of the species (inputted as string) by calculate it from the yields by using a CDS"""
-        u=self.__yields[:,self.SpeciesIndex(NameSpecies)]
+        u= self._yields[:, self.SpeciesIndex(NameSpecies)]
         dt=self.Dt()
         uDot=np.zeros(self.NPoints())
         uDot[0]=(u[1]-u[0])/dt[0]
