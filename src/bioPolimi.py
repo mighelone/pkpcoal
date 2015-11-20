@@ -166,7 +166,7 @@ class bioPolimi(coal):
         #backend = 'lsoda'
         #backend = 'dop853'
         print ("ODE backend {}".format(backend))
-        self._Mw = self._bioCantera.X
+        self._Mw = self._bioCantera.molecular_weights
         t0 = self.timeHR[0]
         m0=self._bioCantera.Y
         #solver = ode(dmidt).set_integrator(backend, nsteps=1, rtol=1e-5, atol=1e-6, verbosity=3)
@@ -191,13 +191,10 @@ class bioPolimi(coal):
 
 
     def get_sumspecies(self, species):
-        sumspecies = np.empty_like(self._y[:, 0])
+        sumspecies = np.ones_like(self._y[:, 0])
         for sp in species:
             sumspecies += self._y[:, self._bioCantera.species_index(sp)]
         return sumspecies
-
-
-
 
 
     def _updateReactor(self,t,m):

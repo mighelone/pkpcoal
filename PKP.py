@@ -1012,41 +1012,40 @@ class MainProcess(object):
             print 'Running BioPolimi n. '+str(runNr)
             biomass.setHeatingRate(self.timeHR[runNr],self.temperatureHR[runNr])
             biomass.solvePyrolysis()
-            CurrentBioPolimiFit=FitInfo.Fit_one_run(biomass)
-            #PMSKDFile.append(CurrentFGFile)
-            bioPolimiFit.append(CurrentBioPolimiFit)
-
+            # print biomass.Yields_all()
+            bioPolimiFit.append(FitInfo.Fit_one_run(biomass))
             biomass.reset()
 
-        # if self.PMSKD_FittingKineticParameter_Select=='constantRate':
-        #     self.MakeResults_CR('PMSKD','',PMSKDFit)
-        #     currentDict={'PMSKD':'constantRate'}
-        # elif self.PMSKD_FittingKineticParameter_Select=='Arrhenius':
-        #     self.MakeResults_Arrh('PMSKD','',PMSKDFit)
-        #     currentDict={'PMSKD':'Arrhenius'}
-        # elif self.PMSKD_FittingKineticParameter_Select=='ArrheniusNoB':
-        #     self.MakeResults_ArrhNoB('PMSKD','',PMSKDFit)
-        #     currentDict={'PMSKD':'ArrheniusNoB'}
-        # elif self.PMSKD_FittingKineticParameter_Select=='Kobayashi':
-        #     self.MakeResults_Kob('PMSKD','',PMSKDFit)
-        #     currentDict={'PMSKD':'Kobayashi'}
-        # elif self.PMSKD_FittingKineticParameter_Select=='DAEM':
-        #     self.MakeResults_DEAM('PMSKD','',PMSKDFit)
-        #     currentDict={'PMSKD':'DAEM'}
-        # elif self.PMSKD_FittingKineticParameter_Select==None:
-        #     currentDict={'PMSKD':'None'}
-        #     for Species in PMSKDFit[0].SpeciesNames():
-        #         M=Models.Model()
-        #         M.mkSimpleResultFiles(PMSKDFit,Species)
-        #         if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
-        #             self.SpeciesToConsider.append(Species)
-        # else:
-        #     print 'undefined PMSKD_FittingKineticParameter_Select'
-        #     currentDict={}
-        #     #
-        # self.ProgramModelDict.update(currentDict)
-        # #
-        # #self.SpeciesEnergy('PMSKD',FGFile)
+        if self.bio_dict['FittingKineticParameter_Select'] == 'constantRate':
+            self.MakeResults_CR('bioPolimi','',bioPolimiFit)
+            currentDict={'bioPolimi':'constantRate'}
+        elif self.bio_dict['FittingKineticParameter_Select'] == 'Arrhenius':
+            self.MakeResults_Arrh('bioPolimi','',bioPolimiFit)
+            currentDict={'PMSKD':'Arrhenius'}
+        elif self.bio_dict['FittingKineticParameter_Select']=='ArrheniusNoB':
+            self.MakeResults_ArrhNoB('bioPolimi','',bioPolimiFit)
+            currentDict={'bioPolimi':'ArrheniusNoB'}
+        elif self.bio_dict['FittingKineticParameter_Select']=='Kobayashi':
+            self.MakeResults_Kob('bioPolimi','',bioPolimiFit)
+            currentDict={'bioPolimi':'Kobayashi'}
+        elif self.bio_dict['FittingKineticParameter_Select']=='DAEM':
+            self.MakeResults_DEAM('bioPolimi','',bioPolimiFit)
+            currentDict={'bioPolimi':'DAEM'}
+        elif self.bio_dict['FittingKineticParameter_Select']==None:
+            currentDict={'bioPolimi':'None'}
+            for Species in bioPolimiFit[0].SpeciesNames():
+                M=Models.Model()
+                if Species != 'Temp' and Species != 'Time':
+                    M.mkSimpleResultFiles(bioPolimiFit, Species)
+                if (Species not in self.SpeciesToConsider) and (Species!='Temp') and (Species!='Time'):
+                    self.SpeciesToConsider.append(Species)
+        else:
+            print 'undefined PMSKD_FittingKineticParameter_Select'
+            currentDict={}
+            #
+        self.ProgramModelDict.update(currentDict)
+        #
+        #self.SpeciesEnergy('PMSKD',FGFile)
 
 #Main Part starting
 if __name__ == "__main__":
