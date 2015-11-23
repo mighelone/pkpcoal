@@ -5,6 +5,7 @@ import numpy as np
 from coal import coal
 import cantera
 from scipy.integrate import odeint,ode
+import csv
 
 import warnings
 
@@ -107,6 +108,7 @@ class coalPolimi(coal):
             self._inside = '123'
             self.triangle = t123
             self._interpolateCoal()
+            print self._compositionString
             return
         raise compositionError('Composition outside of triangle!')
 
@@ -187,7 +189,7 @@ class coalPolimi(coal):
         temp = np.interp(t,self.timeHR,self.temperatureHR)
         return temp
 
-    def solvePyrolysis(self):
+    def solvePyrolysis(self, filename=None):
         '''
         solve pyrolysis
         '''
@@ -231,12 +233,20 @@ class coalPolimi(coal):
         self._r = [dmidt(t0,m0)]
         warnings.filterwarnings("ignore", category=UserWarning)
         timeEnd = np.max(self.timeHR)
+        if filename:
+            f = open(filename, 'w')
+            w = csv.writer(f, delimiter='\t')
+            w.writerow(['t', 'T']+self._coalCantera.species_names)
+            w.writerow(np.concatenate(([0, self._coalCantera.T], self._coalCantera.Y)))
         while solver.t < timeEnd:
             solver.integrate(timeEnd, step=True)
+            if filename:
+                w.writerow(np.concatenate(([solver.t, self._coalCantera.T], self._coalCantera.Y)))
             self.time = np.concatenate((self.time, [solver.t]))
             self._y=np.concatenate((self._y, [solver.y]))
             self._r=np.concatenate((self._r, [dmidt(solver.t,solver.y)]))
-
+        if filename:
+            f.close()
         warnings.resetwarnings()
 
 
@@ -261,14 +271,18 @@ class coalPolimi(coal):
 
 
     def getRawCoal(self):
-        return self._y[:,self._coalCantera.species_index('COAL1')] + \
-               self._y[:,self._coalCantera.species_index('COAL2')] + \
-               self._y[:,self._coalCantera.species_index('COAL3')]
+        raw = ['COAL1', 'COAL2', 'COAL3']
+        # return self._y[:,self._coalCantera.species_index('COAL1')] + \
+        #        self._y[:,self._coalCantera.species_index('COAL2')] + \
+        #        self._y[:,self._coalCantera.species_index('COAL3')]
+        return self.get_sumspecies(raw)
 
     def getCharCoal(self):
-        return self._y[:,self._coalCantera.species_index('CHAR')] +\
-               self._y[:,self._coalCantera.species_index('CHARH')] +\
-               self._y[:,self._coalCantera.species_index('CHARG')]
+        char = ['CHAR', 'CHARH', 'CHARG']
+        # return self._y[:,self._coalCantera.species_index('CHAR')] +\
+        #        self._y[:,self._coalCantera.species_index('CHARH')] +\
+        #        self._y[:,self._coalCantera.species_index('CHARG')]
+        return self.get_sumspecies(char)
 
     def getCH4(self):
         return self._y[:,self._coalCantera.species_index('CH4')]
@@ -288,35 +302,27 @@ class coalPolimi(coal):
         return self._y[:,self._coalCantera.species_index('CH2')]
 
     def getTAR(self):
-        return self._y[:,self._coalCantera.species_index('VTAR1')]+ \
-               self._y[:,self._coalCantera.species_index('VTAR2')]+ \
-               self._y[:,self._coalCantera.species_index('VTAR3')]
+        TAR = ['VTAR1', 'VTAR2', 'VTAR3']
+        # return self._y[:,self._coalCantera.species_index('VTAR1')]+ \
+        #        self._y[:,self._coalCantera.species_index('VTAR2')]+ \
+        #        self._y[:,self._coalCantera.species_index('VTAR3')]
+        return self.get_sumspecies(TAR)
 
     def getLightGases(self):
-        return self.getCO() + \
-               self.getCO2() + \
-               self.getH2O() + \
-               self.getH2() + \
-               self.getCH4() + \
-               self.getCH2() + \
-               self._y[:,self._coalCantera.species_index('CH3O')] + \
-               self._y[:,self._coalCantera.species_index('BTX2')]
+        # return self.getCO() + \
+        #        self.getCO2() + \
+        #        self.getH2O() + \
+        #        self.getH2() + \
+        #        self.getCH4() + \
+        #        self.getCH2() + \
+        #        self._y[:,self._coalCantera.species_index('CH3O')] + \
+        #        self._y[:,self._coalCantera.species_index('BTX2')]
+        light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH2', 'CH3O', 'BTX2']
+        return self.get_sumspecies(light_gas)
 
     def getMetaplast(self):
-        metaplast = self._y[:,self._coalCantera.species_index('GCH2')] +\
-               self._y[:,self._coalCantera.species_index('TAR1')] +\
-               self._y[:,self._coalCantera.species_index('GBTX2')] +\
-               self._y[:,self._coalCantera.species_index('GCH4')] +\
-               self._y[:,self._coalCantera.species_index('GCOH2')] +\
-               self._y[:,self._coalCantera.species_index('GCO2S')] +\
-               self._y[:,self._coalCantera.species_index('GH2O')] +\
-               self._y[:,self._coalCantera.species_index('GCOL')] +\
-               self._y[:,self._coalCantera.species_index('TAR2')] +\
-               self._y[:,self._coalCantera.species_index('GCO2TS')] +\
-               self._y[:,self._coalCantera.species_index('GCOAL3')] +\
-               self._y[:,self._coalCantera.species_index('GCO2')] +\
-               self._y[:,self._coalCantera.species_index('TAR3')] +\
-               self._y[:,self._coalCantera.species_index('GCOLS')]
+        metaplast = ['GCH2', 'TAR1', 'GBTX2', 'GCH4', 'GCOH2', 'GCO2S', 'GH2O', 'GCOL', 'TAR2', 'GCO2TS',
+                     'GCOAL3', 'GCO2', 'TAR3', 'GCOLS' ]
         return metaplast
 
 
@@ -388,6 +394,11 @@ class coalPolimi(coal):
         """returns 'CPD' as the name of the Program"""
         return 'PMSKD'
 
+    def get_sumspecies(self, species):
+        sumspecies = np.ones_like(self._y[:, 0])
+        for sp in species:
+            sumspecies += self._y[:, self._coalCantera.species_index(sp)]
+        return sumspecies
 
 
 

@@ -947,7 +947,7 @@ class MainProcess(object):
             #set heating rate
             coal.setHeatingRate(self.timeHR[runNr],self.temperatureHR[runNr])
             #coal.setTimeStep(self.PMSKD_npoint)
-            coal.solvePyrolysis()
+            coal.solvePyrolysis(filename='Result/PMSKD_{}.dat'.format(runNr))
             #plt.figure(runNr)
             #plt.plot(coal.getTemperature(),coal.getVolatile())
             #read result:
