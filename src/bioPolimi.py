@@ -191,7 +191,7 @@ class bioPolimi(coal):
 
 
     def get_sumspecies(self, species):
-        sumspecies = np.ones_like(self._y[:, 0])
+        sumspecies = np.zeros_like(self._y[:, 0])
         for sp in species:
             sumspecies += self._y[:, self._bioCantera.species_index(sp)]
         return sumspecies
