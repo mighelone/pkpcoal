@@ -131,7 +131,7 @@ class bioPolimi(coal):
         temp = np.interp(t,self.timeHR,self.temperatureHR)
         return temp
 
-    def solvePyrolysis(self):
+    def solvePyrolysis(self, nPoints=None):
         '''
         solve pyrolysis
         '''
@@ -144,6 +144,16 @@ class bioPolimi(coal):
             omegai = self._bioCantera.net_production_rates/ self._bioCantera.density
             dmdt = omegai * self._Mw #/ self._rhoDry
             return dmdt
+
+        def reduce_points(x, n):
+            '''
+            Reduce the number of points to n
+            '''
+            #x_last = x[-1]
+            return x[::n]
+            # check if the last point is included
+            #if x_new[-1] != x_last
+            #    x_new = np.append(x_new, x_last)
 
         #self._Mw = self._coalCantera.molarMasses()
         #m0=self._coalCantera.massFractions()
@@ -188,6 +198,12 @@ class bioPolimi(coal):
         #print self._y[-1,:]
         warnings.resetwarnings()
         print('Finish ODE calculation')
+        if nPoints < len(self.time):
+            step = len(self.time)/nPoints
+            self.time = reduce_points(self.time, step)
+            self._y = reduce_points(self._y, step)
+            self._r = reduce_points(self._r, step)
+
 
 
     def get_sumspecies(self, species):

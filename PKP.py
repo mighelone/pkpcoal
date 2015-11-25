@@ -137,6 +137,7 @@ class MainProcess(object):
         self.bio_dict['FittingKineticParameter_Select']= BioInput.Fitting(InformationFiles.M_selFit)
         self.bio_dict['ArrhSpec']=BioInput.getText(InformationFiles.M_selArrhSpec)
         self.bio_dict['mechanism'] = BioInput.getText('Mechanism file:')
+        self.bio_dict['nPoints'] = int(BioInput.getText('nPoints:'))
         # self.bio_dict['Cellulose'] = BioInput.getText('Cellulose:')
         # self.bio_dict['Hemicellulose'] = BioInput.getText('Hemicellulose:')
         # self.bio_dict['LigninC'] = BioInput.getText('LigninC:')
@@ -1011,7 +1012,7 @@ class MainProcess(object):
         for runNr in range(self.NrOfRuns):
             print 'Running BioPolimi n. '+str(runNr)
             biomass.setHeatingRate(self.timeHR[runNr],self.temperatureHR[runNr])
-            biomass.solvePyrolysis()
+            biomass.solvePyrolysis(self.bio_dict['nPoints'])
             # print biomass.Yields_all()
             bioPolimiFit.append(FitInfo.Fit_one_run(biomass))
             biomass.reset()
