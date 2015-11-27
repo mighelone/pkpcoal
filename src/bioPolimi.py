@@ -1,6 +1,6 @@
 import numpy as np
 from coal import coal
-from coalPolimi import triangle, compositionError
+from coalPolimi import triangle, compositionError, coalPolimi
 import sys
 #sys.path.append('/usr/local/lib/python2.7/site-packages/')
 import cantera
@@ -9,31 +9,18 @@ from scipy.integrate import odeint,ode
 import warnings
 
 
-class bioPolimi(coal):
+class bioPolimi(coalPolimi):
     '''
     coal class customized for polimi model
     inherit methods from general coal class
 
     No N and S are assigned for this coal
     '''
-    def __init__(self,name='',c=0.8,h=0.05,o=0.15,n=0,s=0,file='Biomass.xml'):
-        '''
-        init class
-        '''
-        coal.__init__(self,name=name,c=c,h=h,o=o,n=0.,s=0.)
-        self._calculateBiomassComposition()
-        self._setCanteraObject(file=file)
-
-        # define default parameter for pyrolysis
-        self.setHeatingRate()
-        self.setTimeStep()
-
-    def reset(self):
-        '''
-        reset object to the initial condition
-        '''
-        self._bioCantera.TPY = self._bioCantera.T, self._bioCantera.P, self._compositionString
-
+    #def __init__(self,name='',c=0.8,h=0.05,o=0.15,n=0,s=0,file='Biomass.xml'):
+    #    '''
+    #    init class
+    #    '''
+    #    #super(bioPolimi, self).__init__(name=name, c=c, h=h, o=o, n=0, s=0, file=file)
 
     def _referenceBiomass(self):
         '''
@@ -49,7 +36,7 @@ class bioPolimi(coal):
         self._bioS2 = coal(name='S2',c=0.59,h=0.0544,o=0.3556,n=0,s=0)
         self._bioS3 = coal(name='S3',c=0.619,h=0.064,o=0.3172,n=0,s=0)
 
-    def _calculateBiomassComposition(self):
+    def _calculateComposition(self):
         '''
         calculate the composition of the actual biomass according to the reference biomasses
         '''
@@ -93,133 +80,6 @@ class bioPolimi(coal):
         self._compositionString = 'CELL:'+str(components[0])+',HCE:'+str(components[1])+',LIGC:'+str(components[2])+',LIGO:'+str(components[3])+',LIGH:'+str(components[4])+',ACQUA:'+str(components[5])
         print self._compositionString
 
-    def _setCanteraObject(self,file='Biomass.xml'):
-        '''
-        set cantera solution object
-        '''
-        #self._coalCantera = IdealGasMix('COAL.xml')
-        self._bioCantera = cantera.Solution(file)
-        self._bioCantera.TPY = 300, cantera.one_atm, self._compositionString
-
-    def setHeatingRate(self,time=np.array([0,0.1]),temperature=np.array([400,1000])):
-        '''
-        define heating rate during pyrolysis
-        using two NP array for time and temperature
-        '''
-        self.timeHR = time
-        self.temperatureHR = temperature
-
-    #def setTimeStep(self,dt=1e-3):
-    #    '''
-    #    define time step for printing results of pyrolysis
-    #    '''
-    #    self.dt = dt
-    #    self.time = np.linspace(min(self.timeHR),max(self.timeHR))
-    def setTimeStep(self,npoint=100):
-        '''
-        define time step for printing results of pyrolysis
-        '''
-        self.time = np.linspace(min(self.timeHR), max(self.timeHR),npoint)
-        self.dt = self.time[1]-self.time[0]
-
-    def _getInterpTemperature(self,t):
-        '''
-        get the interpolated temperature for a given time
-        using the heating rate
-        '''
-        # check if the time is inside the range
-        temp = np.interp(t,self.timeHR,self.temperatureHR)
-        return temp
-
-    def solvePyrolysis(self, nPoints=None):
-        '''
-        solve pyrolysis
-        '''
-        def dmidt(t,m):
-            '''
-            calculate the derivative of the mass of each species i
-            dm_i/dt = omega_i * Mw_i
-            '''
-            self._updateReactor(t,m)
-            omegai = self._bioCantera.net_production_rates/ self._bioCantera.density
-            dmdt = omegai * self._Mw #/ self._rhoDry
-            return dmdt
-
-        def reduce_points(x, n):
-            '''
-            Reduce the number of points to n
-            '''
-            #x_last = x[-1]
-            return x[::n]
-            # check if the last point is included
-            #if x_new[-1] != x_last
-            #    x_new = np.append(x_new, x_last)
-
-        #self._Mw = self._coalCantera.molarMasses()
-        #m0=self._coalCantera.massFractions()
-        ##sol = ode(dydt).set_integrator('dopri5',rtol=1e-9,atol=1e-6) #, method='bdf')
-        ##sol = ode(dydt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-6)
-        #sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-9,atol=1e-5)
-        ##sol = ode(dmidt).set_integrator('vode',method='bdf',rtol=1e-4,atol=1e-2)
-        #sol.set_initial_value(m0,0)
-        #self._y = [m0]
-        #self._r = [dmidt(0,m0)]
-        #for t in self.time[1:]:
-        #    sol.integrate(t)
-        #    self._y=np.concatenate((self._y, [sol.y]))
-        #    self._r=np.concatenate((self._y, [dmidt(sol.t,sol.y)]))
-        #    #print 'coal0='+str(sol.y[iCoal3])
-        #
-        #del(sol)
-        backend = 'dopri5'
-        #backend = 'cvode'
-        #backend = 'lsoda'
-        #backend = 'dop853'
-        print ("ODE backend {}".format(backend))
-        self._Mw = self._bioCantera.molecular_weights
-        t0 = self.timeHR[0]
-        m0=self._bioCantera.Y
-        #solver = ode(dmidt).set_integrator(backend, nsteps=1, rtol=1e-5, atol=1e-6, verbosity=3)
-        solver = ode(dmidt).set_integrator(backend, nsteps=1)
-        solver.set_initial_value(m0, t0)
-        solver._integrator.iwork[2] = -1
-        self.time = [t0]
-        self._y = [m0]
-        self._r = [dmidt(t0,m0)]
-        warnings.filterwarnings("ignore", category=UserWarning)
-        timeEnd = np.max(self.timeHR)
-        print("Start ODE calculation")
-        while solver.t < timeEnd:
-            # print solver.t
-            solver.integrate(timeEnd, step=True)
-            self.time = np.concatenate((self.time, [solver.t]))
-            self._y=np.concatenate((self._y, [solver.y]))
-            self._r=np.concatenate((self._r, [dmidt(solver.t,solver.y)]))
-        #print self._y[-1,:]
-        warnings.resetwarnings()
-        print('Finish ODE calculation')
-        if nPoints < len(self.time):
-            step = len(self.time)/nPoints
-            self.time = reduce_points(self.time, step)
-            self._y = reduce_points(self._y, step)
-            self._r = reduce_points(self._r, step)
-
-
-
-    def get_sumspecies(self, species):
-        sumspecies = np.zeros_like(self._y[:, 0])
-        for sp in species:
-            sumspecies += self._y[:, self._bioCantera.species_index(sp)]
-        return sumspecies
-
-
-    def _updateReactor(self,t,m):
-        ''' update reactor '''
-        temp = self._getInterpTemperature(t)
-        #print 'temp='+str(temp)
-        pressure=self._bioCantera.P
-        self._bioCantera.TPY =  temp, pressure, m
-
     def __repr__(self):
         out = coal.__repr__(self)
         out += '\nCELL:'+str(self._bioComposition[0])
@@ -229,17 +89,15 @@ class bioPolimi(coal):
         out += '\nLIGH:'+str(self._bioComposition[4])+'\n'
         return out
 
-
     def getBioComposition(self):
         return self._bioComposition
 
-
     def getRawBiomass(self):
-        return self._y[:,self._bioCantera.speciesIndex('CELL')] + \
-               self._y[:,self._bioCantera.speciesIndex('HCE')]  + \
-               self._y[:,self._bioCantera.speciesIndex('LIGC')] + \
-               self._y[:,self._bioCantera.speciesIndex('LIGO')] + \
-               self._y[:,self._bioCantera.speciesIndex('LIGH')]
+        return self._y[:, self._solid.speciesIndex('CELL')] + \
+               self._y[:, self._solid.speciesIndex('HCE')] + \
+               self._y[:, self._solid.speciesIndex('LIGC')] + \
+               self._y[:, self._solid.speciesIndex('LIGO')] + \
+               self._y[:, self._solid.speciesIndex('LIGH')]
 
     def getCharCoal(self):
         char_species = ['Char',
@@ -265,24 +123,24 @@ class bioPolimi(coal):
         return self.get_sumspecies(char_species)
 
     #def getCH4(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('CH4')]
+    #    return self._y[:,self._solid.speciesIndex('CH4')]
 
     #def getH2(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('H2')]
+    #    return self._y[:,self._solid.speciesIndex('H2')]
 
     #def getH2O(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('H2O')]
+    #    return self._y[:,self._solid.speciesIndex('H2O')]
 
 
     #def getCO(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('CO')]
+    #    return self._y[:,self._solid.speciesIndex('CO')]
     #def getCO2(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('CO2')]
+    #    return self._y[:,self._solid.speciesIndex('CO2')]
     #def getCH2(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('CH2O')]
+    #    return self._y[:,self._solid.speciesIndex('CH2O')]
 
     #def getTAR(self):
-    #    return self._y[:,self._bioCantera.speciesIndex('XYLOSE')]
+    #    return self._y[:,self._solid.speciesIndex('XYLOSE')]
 
     #def getLightGases(self):
     #    return self.getCO() + \
@@ -291,12 +149,12 @@ class bioPolimi(coal):
     #           self.getH2() + \
     #           self.getCH4() + \
     #           self.getCH2() + \
-    #           self._y[:,self._bioCantera.speciesIndex('CH3OH')]
+    #           self._y[:,self._solid.speciesIndex('CH3OH')]
 
     #def getMetaplast(self):
-    #    metaplast = self._y[:,self._bioCantera.speciesIndex('GCO2')] +\
-    #           self._y[:,self._bioCantera.speciesIndex('GCO')] +\
-    #           self._y[:,self._bioCantera.speciesIndex('GCOH2')]
+    #    metaplast = self._y[:,self._solid.speciesIndex('GCO2')] +\
+    #           self._y[:,self._solid.speciesIndex('GCO')] +\
+    #           self._y[:,self._solid.speciesIndex('GCOH2')]
     #    return metaplast
 
 
@@ -358,9 +216,9 @@ class bioPolimi(coal):
         #self._yields[:,8]=self.getCH4()
         #self._yields[:,9]=self.getCO()
         #self._yields[:,10]=self.getH2()
-        #self._yields[:,11]=self._y[:,self._bioCantera.speciesIndex('CH2')]
-        #self._yields[:,12]=self._y[:,self._bioCantera.speciesIndex('CH3O')]
-        #self._yields[:,13]=self._y[:,self._bioCantera.speciesIndex('BTX2')]
+        #self._yields[:,11]=self._y[:,self._solid.speciesIndex('CH2')]
+        #self._yields[:,12]=self._y[:,self._solid.speciesIndex('CH3O')]
+        #self._yields[:,13]=self._y[:,self._solid.speciesIndex('BTX2')]
         self.Yields2Cols={'Time':0,'Temp':1,'Total':2,'Solid':3}#,'HCE':4,'HCE1':5,'HCE2':6,'LIGC':7,'LIGH':8,'LIGO':9,'LIG':10,'LIGCC':11,'LIGOH':12,'Char':13,'HAA':14,'HMFU':15,'LVG':16,'XYLOSE':17,'Glyoxal':18,'Phenol':19,'pCoumaryl':20,'C11H12O4':21,'C3H6O2':22,'C3H4O2':23,'C3H6O':24,'CH3CHO':25,'C2H6OH':26,'C2H4':27,'CH3OH':28,'CH2O':29,'CH4':30,'CO2':31,'CO':32,'H2O':33,'H2':34,'GCO2':35,'GCO':36,'GCOH2':36,'GH2':37,'EtOH':38}
         self.Cols2Yields={0:'Time',1:'Temp',2:'Total',3:'Solid'}#2:'Tar',3:'Gas',4:'Solid',5:'Total',
                           #6:'H2O',7:'CO2',8:'CH4',9:'CO',10:'H2',
