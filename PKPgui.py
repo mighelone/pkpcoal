@@ -11,7 +11,7 @@ import platform
 import shutil
 
 OSys=platform.system()
-sys.path.append('src')
+sys.path.append('pkp')
 import PKP
 import InformationFiles
 import GUI_ErrorPrompt

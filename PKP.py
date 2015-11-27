@@ -1,32 +1,29 @@
 import sys
-sys.path.append('src')
 import os
-#
-os.environ['QT_API'] = 'pyside'
-import matplotlib
-matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
 
-import CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
-import FGDVC_SetAndLaunch       #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
-import PCCL_SetAndLaunch       #writes PCCL instruction file and alunches the exe
-import FGDVC_Result             #contains the information of the FG-DVC output file
-import CPD_Result               #contains the information of the CPD output file
-import PCCL_Result               #contains the information of the PCCL output file
-import Fitter                   #The optimizer class
-import Models                   #the models like Arrhenius or Kobayashi
-import FitInfo                  #supports the Fitting with the yield information
-import Compos_and_Energy        #Species balance and energy balance for CPD and FG-DVC
-import InformationFiles         #reads the user input files, writes FG-DVC coalsd.exe coal generation file
-import GlobalOptParam           #contains the Information of the Number Of Runs for the Global Optimum search
-import Evolve                   #contains the generic algortihm optimizer
+#
+#os.environ['QT_API'] = 'pyside'
+#import matplotlib
+#matplotlib.use('Qt4Agg')
+#matplotlib.rcParams['backend.qt4']='PySide'
+
+import pkp.CPD_SetAndLaunch as CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
+import pkp.FGDVC_SetAndLaunch as FGDVC_SetAndLaunch     #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
+import pkp.PCCL_SetAndLaunch as PCCL_SetAndLaunch       #writes PCCL instruction file and alunches the exe
+import pkp.FGDVC_Result as FGDVC_Result                 #contains the information of the FG-DVC output file
+import pkp.CPD_Result as CPD_Result                     #contains the information of the CPD output file
+import pkp.PCCL_Result as PCCL_Result                   #contains the information of the PCCL output file
+import pkp.Fitter as Fitter                             #The optimizer class
+import pkp.Models as Models                             #the models like Arrhenius or Kobayashi
+import pkp.FitInfo as FitInfo                           #supports the Fitting with the yield information
+import pkp.Compos_and_Energy as Compos_and_Energy       #Species balance and energy balance for CPD and FG-DVC
+import pkp.InformationFiles as InformationFiles         #reads the user input files, writes FG-DVC coalsd.exe coal generation file
+import GlobalOptParam                                   #contains the Information of the Number Of Runs for the Global Optimum search
+import pkp.Evolve as Evolve                             #contains the generic algortihm optimizer
 import numpy as np
 import platform
 import shutil
 
-import pylab as plt
-#
-#
 #Which operating Sytem?
 oSystem=platform.system()
 #if oSystem == 'Darwin':
@@ -999,10 +996,10 @@ class MainProcess(object):
         '''
         # create object
         print("Run BioPolimi...")
-        import bioPolimi
+        import pkp.bioPolimi
         try:
-            biomass = bioPolimi.bioPolimi(name = 'biomass', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.bio_dict['mechanism'])
-        except bioPolimi.compositionError:
+            biomass = pkp.bioPolimi.bioPolimi(name = 'biomass', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.bio_dict['mechanism'])
+        except pkp.bioPolimi.compositionError:
             print 'Composition outside of triangle of definition'
             sys.exit()
 
