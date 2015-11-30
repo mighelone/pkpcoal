@@ -8,38 +8,8 @@ individual species the rates and energy balancing methods
 import numpy as np
 import scipy as sp
 import scipy.integrate
-import scipy.interpolate
-import platform
 import matplotlib.pyplot as plt
 
-
-from itertools import izip, product
-
-import multiprocessing
-
-def fun(f,q_in,q_out):
-    while True:
-        i,x = q_in.get()
-        if i is None:
-            break
-        q_out.put((i,f(x)))
-
-def parmap(f, X, nprocs = multiprocessing.cpu_count()):
-    q_in   = multiprocessing.Queue(1)
-    q_out  = multiprocessing.Queue()
-
-    proc = [multiprocessing.Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
-    for p in proc:
-        p.daemon = True
-        p.start()
-
-    sent = [q_in.put((i,x)) for i,x in enumerate(X)]
-    [q_in.put((None,None)) for _ in range(nprocs)]
-    res = [q_out.get() for _ in range(len(sent))]
-
-    [p.join() for p in proc]
-
-    return [x for i,x in sorted(res)]
 
 class BalancedComposition(object):
     """ Class for compostion that ensures componenents sum up to a
@@ -98,7 +68,6 @@ class BalancedComposition(object):
 
     def iteritems(self):
         return self.elems.iteritems()
-
 
 class ParticleHeatUp(object):
 
@@ -513,10 +482,8 @@ class Model(object):
         modeledRate = self.computeTimeDerivative(modeledMass, times=times)
         dt = False
         # normalisation factor
-
         def norm(weight, target):
             return weight / np.power(Model.yieldDelta(target), 2.0)
-
         normMass = norm(weightMass, targetMass)
         normRate = norm(weightRate, targetRate)
         return func(targetRate, modeledRate,
@@ -571,7 +538,6 @@ class Model(object):
     @classmethod
     def totModelErrorSquaredPerc(cls, target, model):
         return np.sum(Model.modelErrorSquared(target, model)) / len(target)
-
 
 ################ children classes ####################
 
