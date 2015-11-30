@@ -61,6 +61,7 @@ def plot_and_save(path, pre, model):
     modeled_species = model.res.keys()
     leg = []
     legp = []
+
     # TODO MV: it should be created a file for each species fitted otherwise there will be too many lines
     # TODO MV: the function Models.fittedYield should be modified, it is just returning the yield of the first run
     for i, (runName, run) in enumerate(pre.iteritems()):
@@ -72,10 +73,12 @@ def plot_and_save(path, pre, model):
             par = r.parameter
             mod, = axs.plot(run['time'], r.calcMass(par, 0.0, run['time'], run.interpolate('temp')),
                      color=colors[i], label = name + "Model")
+
             leg.append(name)
             leg.append(name+"Model")
             legp.append(prep)
             legp.append(mod)
+
         axt.plot(time, run['temp'],color = colors[i])
 
     axt.get_yaxis().get_label().set_text('Temperature [K]')

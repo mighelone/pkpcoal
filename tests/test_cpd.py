@@ -4,8 +4,8 @@ import sys
 #sys.path.append('../')
 
 import pkp.src.CPD as cpdsl
-from test_main import (linear_preProc, 
-    cpd_linear, cpd_run_single, 
+from test_main import (linear_preProc,
+    cpd_linear, cpd_run_single,
     cpd_run_multi, cpd_run_ifrf)
 from mock_data import *
 
@@ -65,16 +65,19 @@ class TestCPDLauncher():
 def test_cpd_results(cpd_run_single):
     from pkp.src.CoalThermoPhysics import Coal, R
     from pkp.src.PreProc import ManualQfactor
-    from pkp.src.CoalThermoPhysics import PostulateSubstance
+    from pkp.src.CoalThermoPhysics import (Yield,
+            generatePostulateSubstanceSpecies)
     for runNr, res in cpd_run_single.iteritems():
         q = res.qFactor
         print "qFactor", q
-        ps = PostulateSubstance(ManualQfactor(coal=res.coal, qFactor=q))
-        print ps.VolatileCompositionMass
-        print ps.VolatileCompositionMol
-        print ps.ProductCompositionMol()
-        print ps.mechanism() 
-        print "a6: ", ps.EnthalpyOfFormation() / R 
+
+        ps = generatePostulateSubstanceSpecies(res)
+        y = Yield(res, [ps])
+        print y.VolatileCompositionMass
+        print y.VolatileCompositionMol
+        print y.ProductCompositionMol()
+        print y.mechanism()
+        print "a6: ", y.EnthalpyOfFormation / R
 
 
 def test_cpd_results_multi(cpd_run_multi):
@@ -87,7 +90,7 @@ def test_cpd_results_multi(cpd_run_multi):
                    result.tempProfile[0][1])
         heating_rates.append(delta_T/t_end)
         qfactor.append(result.qFactor)
-    
+
     fig, axs = plt.subplots()
     axs.scatter(heating_rates, qfactor, label="qFactor")
 

@@ -8,7 +8,38 @@ individual species the rates and energy balancing methods
 import numpy as np
 import scipy as sp
 import scipy.integrate
+import scipy.interpolate
+import platform
+import matplotlib.pyplot as plt
 
+
+from itertools import izip, product
+
+import multiprocessing
+
+def fun(f,q_in,q_out):
+    while True:
+        i,x = q_in.get()
+        if i is None:
+            break
+        q_out.put((i,f(x)))
+
+def parmap(f, X, nprocs = multiprocessing.cpu_count()):
+    q_in   = multiprocessing.Queue(1)
+    q_out  = multiprocessing.Queue()
+
+    proc = [multiprocessing.Process(target=fun,args=(f,q_in,q_out)) for _ in range(nprocs)]
+    for p in proc:
+        p.daemon = True
+        p.start()
+
+    sent = [q_in.put((i,x)) for i,x in enumerate(X)]
+    [q_in.put((None,None)) for _ in range(nprocs)]
+    res = [q_out.get() for _ in range(len(sent))]
+
+    [p.join() for p in proc]
+
+    return [x for i,x in sorted(res)]
 
 class BalancedComposition(object):
     """ Class for compostion that ensures componenents sum up to a
@@ -22,6 +53,7 @@ class BalancedComposition(object):
         self.basis = sum(inp.values())
         scaling_factor = target / self.basis
         self.elems = {key: value * scaling_factor for key, value in inp.iteritems()}
+
 
     def __getitem__(self, item):
         """ """
@@ -67,6 +99,65 @@ class BalancedComposition(object):
     def iteritems(self):
         return self.elems.iteritems()
 
+
+class ParticleHeatUp(object):
+
+    def __init__(self, cp, rho, d, sigma, epsilon, T_wall, Nu=2.0):
+        self.cp = cp
+        self.rho = rho
+        self.d = d
+        self.sigma = sigma
+        self.epsilon = epsilon
+        self.Nu = 2.0
+        self.T_wall = T_wall
+
+    def computeParticleTemperature(self, time, t_gas,
+            start_temp=300, dt=1e-5, t_end=0.1):
+        def updateTg(T_old, T_gas, dt):
+            return T_old + dTdt(T_gas, T_old)*dt
+
+        def dTdt(gas_temp, particle_temp):
+            T4diff = (particle_temp**4.0 - self.T_wall**4.0)*self.sigma*self.epsilon
+            h = self.Nu*self.lambda_g(gas_temp)/self.d
+            Tdiff = (particle_temp - gas_temp)
+            a = -3.0/(self.cp*self.rho*self.d/2.0)
+            return  a*(T4diff + h*Tdiff)
+
+        Temps, Times = [start_temp], [0]
+        for i in range(int(t_end/dt)):
+            time_ = dt*(i+1) # current time
+            T = np.interp(time_, time, t_gas) # interpolate temperature
+            start_temp = updateTg(start_temp, T, dt) # update temperature
+            Temps.append(start_temp)
+            Times.append(time_)
+        return Times, Temps
+
+    def particle_response_time(self, cp, rho, d, T_gas, lambda_g):
+        """ compute particle response time based on
+            Formula 1.93b Page 44 from PARTICLES, DROPS AND BUBBLES:
+            FLUID DYNAMICS AND NUMERICAL METHODS, E. Loth """
+
+        return (cp*rho*d**2)/(12.0*lambda_g(T_gas))
+
+    def rho_g(self, temp):
+        """ p/rho  = R_s*T"""
+        return 1.0 /(8.314*temp)
+
+    def lambda_g(self, temp):
+        """ compute the conductivity of dry air"""
+        # http://www.nist.gov/data/PDFfiles/jpcrd283.pdf
+        gamma = 25.98e-3 # [W/mK]
+        c1,c2,c3,c4,c5,c6,c7 = [0.2395, 0.0064, 1.0, -1.9261,
+                                2.0038, -1.0755, 0.2294]
+        d1,d2,d3,d4,d5 = [0.4022, 0.3566, -0.1631, 0.1380,
+                          -0.0201]
+        T = temp/132.5
+        r = self.rho_g(temp)/314.3
+        return (gamma * (c1*T + c2*T**0.5 + c3
+                        + c4*T**(-1.0) + c5*T**(-2.0)
+                        + c6*T**(-3.0) + c7*T**(-4.0)
+                        + d1*r + d2*r**2.0 + d3*r**3.0
+                        + d4*r**4.0 + d5*r**4.0))
 
 class Model(object):
     """ Parent class of the children ConstantRateModel,
@@ -182,13 +273,85 @@ class Model(object):
                 self.parameter = preOptimizedParameter
         else:
             self.parameter = optimizedParameter.x
-        return self
 
-    def fittedYield(self):
+    def plot_yield(self, axis="time"):
+        f, ax = plt.subplots(1, 2)
+        f.set_figwidth(15)
+        cols = plt.rcParams['axes.color_cycle']
+        for col, (runNr, run) in zip(cols, self.runs.iteritems()):
+            modelYield = self.fittedYield(run)
+            modelRate = self.fittedRate(run)
+            targetYield = run[self.species]
+            ax[0].plot(run[axis], targetYield, ls='--', label=run.solver, color=col)
+            ax[0].plot(run[axis], modelYield, label=self.name, color=col )
+            ax[1].plot(run[axis], run.rate(self.species), ls='--', label=run.solver, color=col)
+            ax[1].plot(run[axis], modelRate, label=self.name, color=col)
+        xlabel = 'Time [s]' if axis=="time" else 'Temp [K]'
+        ylabels = ['Yield [kg/kg_daf]', 'Yield Rate [kg/kg_daf/s]']
+        for a, ylabel in zip(ax, ylabels):
+            a.get_yaxis().get_label().set_text(ylabel)
+            a.get_xaxis().get_label().set_text(xlabel)
+        plt.legend()
+        return f, ax
+
+    # def fit(self, **kwargs):
+    #     # print 'initial parameter: ' + str(self.initialParameter)
+    #     # do a rough estimation step first
+    #     from scipy.optimize import brute
+    #     import time
+    #     print 'preliminary optimisation: ' + self.species
+    #     nThreads = kwargs.get('splits', 1)
+    #     delta = kwargs.get('delta', 0.05)*nThreads # delta per Thread
+    #     bounds = self.parameterBounds
+    #     def preOpt(bounds):
+    #         print "bounds ", bounds , " delta ", delta
+    #         return brute(
+    #             func=self.error_func,
+    #             ranges=bounds,
+    #             finish=None,
+    #             full_output=True,
+    #             Ns=int(1/delta))
+    #     lower = lambda l, u: np.linspace(l, u-((u-l)/float(nThreads)), nThreads)
+    #     upper = lambda l, u: np.linspace(l+((u-l)/float(nThreads)), u, nThreads)
+    #     lowerupper = lambda l1, u1: (lower(l1, u1).tolist(), upper(l1, u1).tolist())
+    #     for _ in range(kwargs.get('preOptRefinements', 1)):
+    #         boundsP = [lowerupper(l, u) for l, u in bounds]
+    #         boundsP = list(product(*boundsP)) if nThreads > 1 else bounds
+    #         start_time = time.time()
+    #         if nThreads > 1:
+    #             optParams = parmap(preOpt, boundsP)
+    #             smallest = np.inf
+    #             choosenParams = None
+    #             for i, opt in enumerate(optParams):
+    #                 if opt[1] < smallest:
+    #                     smallest =  opt[1]
+    #                     choosenParams = opt[0]
+    #         else:
+    #             optParams = preOpt(boundsP)
+    #             choosenParams, smallest  = optParams[0:2]
+    #         print "--- run {} params {} error {} {}s seconds ---".format(
+    #                 _, str(choosenParams), smallest, (time.time() - start_time))
+    #         n = kwargs.get('narrowing', 0.75)
+    #         bounds = [(param*(1.0-delta*n**_), param*(1.0+delta*n**_)) for param in choosenParams]
+    #         self.parameter = choosenParams
+    #         if kwargs.get('plot'):
+    #             self.plot_yield()
+    #     return self
+
+    def fittedYield(self, run):
         # NOTE needs fit to be run before, probably
         # some checking
         optParams = self.parameter
-        return self.recalcMass(optParams, time=self.runs[self.runs.keys()[0]]['time'])
+        return self.recalcMass(optParams, run=run)
+
+    def fittedRate(self, run):
+        """ returns the release rate of the species """
+        import numpy as np
+        species = self.fittedYield(run)
+        time = run["time"]
+        dt = np.diff(time)
+        dt = np.append(time[0], dt)
+        return np.gradient(species, dt)
 
     def updateParameter(self, parameter):
         self.parameter = parameter
@@ -208,8 +371,6 @@ class Model(object):
             by a time array and temperature array
 
             the preProcResults are used for initial values """
-        # TODO GO can time be taken from preProcResult?
-
         mass = self.calcMass(preProcResult, time, temp, species)
         return self.computeTimeDerivative(mass, times=time)
 
@@ -291,7 +452,7 @@ class Model(object):
     def _mkInterpolatedRes(self, InputVecYields, Time):
         """ Generates the result vector. Outputs the result vector at the
             corresponding time steps corresponding to the imported time at
-            method calcMass. Requiered for Pc Coal Lab (only few reported 
+            method calcMass. Requiered for Pc Coal Lab (only few reported
             points). """
         # t for for interplt, t_points, y_points
         return np.interp(Time, self.constDtVec, InputVecYields)
@@ -334,12 +495,8 @@ class Model(object):
         func = Model.cumulative_error
         ret = [self.errorPerRun(parameter, run, func, weightMass, weightRate)
                for run in self.runs.values()]
-
-        # If we have a simple scalar list just sum the errors
-        # else we component wise sum the error and return a vector
-        # of errors per point
-        self.error = (sum(ret) if type(ret[0]) != list else map(np.add, ret))
-        # print parameter, self.error
+        # We simply sum up the individual error per run
+        self.error = sum(ret)
         return self.error
 
     def errorPerRun(self, parameter, run, func, weightMass, weightRate):
@@ -435,7 +592,7 @@ class constantRate(Model):
     # def __repr__(self):
     #     return  "Const Rate k {} tstart {}".format(self.k, self.start_time)
 
-    def recalcMass(self, parameter, time):
+    def recalcMass(self, parameter, time, temp):
         """ recalculate mass release after updateParameter
 
             reuses init_mass, time and temp from previous
@@ -509,13 +666,12 @@ class arrheniusRate(Model):
                        for paramName in self.paramNames]
         Model.__init__(self, "ArrheniusRate", parameter, paramBounds, inputs,
                        species, self.calcMassArrhenius, self.recalcMassArrhenius, runs=runs)
-        # define parameters
+
         self.updateParameter(self.parameter)
         # FIXME this assumes that the final yield is run independent
         sel_run = runs.keys()[0]  # FIXME
         self.final_yield = runs[sel_run][species][-1]  # FIXME
         self.lowerT = inputs['arrheniusRate'].get('lowerDevolTemp', False)
-        self.temp = runs[sel_run].interpolate('temp')
 
     def updateParameter(self, parameter):
         self.A = parameter[0]
@@ -524,8 +680,11 @@ class arrheniusRate(Model):
 
 
     def recalcMassArrhenius(self, parameter, time):
+        print "!! Warning dont use recalcMass, use recalcMassPerRun"
         return self.calcMassArrhenius(parameter, init_mass=0.0, time=time, temp=self.temp)
 
+    def recalcMassPerRunArrhenius(self, parameter, run):
+        return self.calcMassArrhenius(parameter, init_mass=0.0, time=run['time'], temp=run.interpolate('temp'))
 
     def calcMassArrhenius(self, parameter, init_mass, time, temp):
         """ Outputs the mass(t) using the model specific equation.
@@ -637,265 +796,3 @@ class C2SM(Model):
             return m_out
         else:  # returns the short, interpolated list (e.g. for PCCL)
             return self._mkInterpolatedRes(m_out, time)
-
-# class Kobayashi(Model):
-#     """ Calculates the devolatilization reaction using the Kobayashi model.
-#         The Arrhenius equation inside are in the standard notation. """
-#
-#     def __init__(self,InitialParameterVector):
-#         print 'Kobayashi Model initialized'
-#         self._modelName = 'Kobayashi'
-#         self._ParamVector=InitialParameterVector
-#         self.ODE_hmax=1.e-2
-#         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
-#
-#     def calcMass(self,preProcResult,time,T,Name):
-#         """ Outputs the mass(t) using the model specific equation.
-#             The input Vector is [A1, E1, A2, E2, alpha1, alpha2] """
-#         # question whether the dt from DetailledModel result file or
-#         # from a constant dt should be used
-#         if self.constDt == False: # dt for integrate = dt from DM result file
-#             timeInt = time
-#         else: #if dt in DM results file has too large dt
-#             self._mkDt4Integrate(time)
-#             timeInt = self.constDtVec
-#         self.preProcResult=preProcResult
-#         timeInt=np.delete(timeInt,0)
-#         self.__Integral=0.0
-#         tList=[0.0]
-#         k1k2=[0.0]
-#         ParamVec=self.ParamVector()
-#         #
-#         def dmdt(m,t):
-#             k1=ParamVec[0]*np.exp(-ParamVec[1]/(T(t)))
-#             k2=ParamVec[2]*np.exp(-ParamVec[3]/(T(t)))
-#             tList.append(t)
-#             k1k2.append(k1+k2)
-#             self.__Integral+=0.5*(tList[-1]-tList[-2])*(k1k2[-1]+k1k2[-2])
-#             dmdt_out = ( (ParamVec[4]*k1+ParamVec[5]*k2)*np.exp(-self.__Integral) )
-#             dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problem(nan)
-#             return dmdt_out
-#         InitialCondition=[0]
-#         m_out=sp.integrate.odeint(dmdt,InitialCondition,timeInt,atol=1.e-5,rtol=1.e-4,hmax=1.e-2)
-#         m_out=m_out[:,0]
-#         m_out=np.insert(m_out,0,0.0)
-#         if self.constDt == False:
-#             if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or
-#                 ParamVec[3]<0 or ParamVec[4]<0 or ParamVec[5]>1):
-#                 m_out[:]=float('inf')
-#                 return m_out
-#             else:
-#                 return m_out
-#         else: #returns the short, interpolated list (e.g. for PCCL)
-#             return self._mkInterpolatedRes(m_out,time)
-#
-#
-# class KobayashiPCCL(Model):
-#     """ Calculates the devolatilization reaction using the Kobayashi model.
-#         The Arrhenius equation inside are in the standard notation. The fitting
-#         parameter are as in PCCL A1, A2, E1, alpha1. TimeVectorToInterplt
-#         allows the option to define the discrete time points, where to
-#         interpolate the results. If set to False (standard), then is are the
-#         outputted results equal the dt to solve the ODE. """
-#
-#     def __init__(self,InitialParameterVector):
-#         print 'Kobayashi Model initialized'
-#         self._modelName = 'KobayashiPCCL'
-#         self._ParamVector=InitialParameterVector
-#         self.ODE_hmax=1.e-2
-#         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
-#
-#     def calcMass(self,preProcResult,time,T,Name):
-#         """ Outputs the mass(t) using the model specific equation. """
-#         # question whether the dt from DetailledModel result file or from a constant dt should be used
-#         if self.constDt == False: # dt for integrate = dt from DM result file
-#             timeInt = time
-#         else: #if dt in DM results file has too large dt
-#             self._mkDt4Integrate(time)
-#             timeInt = self.constDtVec
-#         self.preProcResult=preProcResult
-#         timeInt=np.delete(timeInt,0)
-#         self.__Integral=0.0
-#         tList=[0.0]
-#         k1k2=[0.0]
-#         ParamVec=self.ParamVector()
-#         #
-#         def dmdt(m,t):
-#             k1=ParamVec[0]*np.exp(-ParamVec[2]/(T(t)))
-#             k2=ParamVec[1]*np.exp(-(ParamVec[2]+self.__E2diff)/(T(t)))
-#             tList.append(t)
-#             k1k2.append(k1+k2)
-#             self.__Integral+=0.5*(tList[-1]-tList[-2])*(k1k2[-1]+k1k2[-2])
-#             dmdt_out = ( (ParamVec[3]*k1+self.__alpha2*k2)*np.exp(-self.__Integral) )
-#             dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problem(nan)
-#             return dmdt_out
-#         InitialCondition=[0]
-#         m_out=sp.integrate.odeint(dmdt,InitialCondition,timeInt,atol=1.e-5,rtol=1.e-4,hmax=1.e-2)
-#         m_out=m_out[:,0]
-#         m_out=np.insert(m_out,0,0.0)
-#         if self.constDt == False:
-#             if (ParamVec[0]<0 or ParamVec[1]<0 or ParamVec[2]<0 or ParamVec[3]<0):
-#                 m_out[:]=float('inf')
-#                 return m_out
-#             else:
-#                 return m_out
-#         else: #returns the short, interpolated list (e.g. for PCCL)
-#             return self._mkInterpolatedRes(m_out,time)
-#
-#
-#     def ConvertKinFactors(self,ParameterVector):
-#         """ Outputs the Arrhenius equation factors in the shape
-#             [A1, E1, A2, E2]. Here where the real Arrhenius model
-#             is in use only a dummy function. """
-#
-#         P=self.ParamVector()
-#         return [P[0],P[1],P[2],P[3]]
-#
-#     def setKobWeights(self,alpha2):
-#         """ Sets the two Kobayashi weights alpha2. """
-#         self.__alpha2=alpha2
-#
-#     def KobWeights(self):
-#         """ Returns the two Kobayashi weights alpha2. """
-#         return self.__alpha2
-#
-#     def setE2Diff(self,DifferenceE1E2):
-#         """ Sets the dE in E2=E1+dE. """
-#         self.__E2diff=DifferenceE1E2
-#
-#     def E2Diff(self):
-#         """Returns the dE in E2=E1+dE."""
-#         return self.__E2diff
-#
-# class KobayashiA2(Model):
-#     """ Calculates the devolatilization reaction using the Kobayashi model.
-#         The Arrhenius equation inside are in the secend alternative notation
-#         (see class ArrheniusModelAlternativeNotation2). """
-#
-#     def __init__(self,InitialParameterVector):
-#         print 'Kobayashi Model initialized'
-#         self._ParamVector=InitialParameterVector
-#         self.ODE_hmax=1.e-2
-#         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
-#
-#     def calcMass(self,preProcResult,time,T,Name):
-#         """ Outputs the mass(t) using the model specific equation. """
-#         # question whether the dt from DetailledModel result file or from a constant dt should be used
-#         if self.constDt == False: # dt for integrate = dt from DM result file
-#             timeInt = time
-#         else: #if dt in DM results file has too large dt
-#             self._mkDt4Integrate(time)
-#             timeInt = self.constDtVec
-#         self.preProcResult=preProcResult
-#         T_general=preProcResult.Rate('Temp')
-#         self.T_min=min(T_general)
-#         self.T_max=max(T_general)
-#         self.c=1./(1./self.T_max-1./self.T_min)
-#         #alpha has to be greater equal zero:
-#         absoluteTolerance = 1.0e-8
-#         relativeTolerance = 1.0e-6
-#         self.tList=[0.0]
-#         #deletes to solve trapezian rule:
-#         timeInt=np.delete(timeInt,0)
-#         self.Integral=0.0
-#         self.k1k2=[0.0]
-#         ParamVec=self.ParamVector()
-#         u=preProcResult.Yield(Name)
-#         #
-#         def dmdt(m,t):
-#             k1=np.exp( self.c*( ParamVec[0]*(1./T(t)-1./self.T_min) - ParamVec[1]*(1./T(t)-1./self.T_max) ) )
-#             k2=np.exp( self.c*( ParamVec[2]*(1./T(t)-1./self.T_min) - ParamVec[3]*(1./T(t)-1./self.T_max) ) )
-#             self.tList.append(t)
-#             self.k1k2.append(k1+k2)
-#             self.Integral+=0.5*(self.tList[-1]-self.tList[-2])*(self.k1k2[-1]+self.k1k2[-2])
-#             dmdt_out = ( (self.__alpha1*k1+self.__alpha2*k2)*np.exp(-self.Integral) )
-#             dmdt_out=np.where(abs(dmdt_out)>1.e-300,dmdt_out,0.0) #sets values<0 =0.0, otherwise it will further cause problem(nan)
-#             return dmdt_out
-#         InitialCondition=[u[0]]
-#         m_out=sp.integrate.odeint(dmdt,InitialCondition,timeInt,atol=absoluteTolerance,rtol=relativeTolerance,hmax=self.ODE_hmax)
-#         m_out=m_out[:,0]
-#         m_out=np.insert(m_out,0,0.0)
-#         if self.constDt == False:
-#             return m_out
-#         else: #returns the short, interpolated list (e.g. for PCCL)
-#             return self._mkInterpolatedRes(m_out,time)
-#
-#     def ConvertKinFactors(self,ParameterVector):
-#         """ Converts the alternative notaion Arrhenius factors into the
-#             standard Arrhenius factors and return them in the
-#             shape [A1,E1], [A2,E2] """
-#
-#         A1=np.exp( -self.c*ParameterVector[0]/self.T_min + self.c*ParameterVector[1]/self.T_max )
-#         E1=self.c*ParameterVector[1]-self.c*ParameterVector[0]
-#         A2=np.exp( -self.c*ParameterVector[2]/self.T_min + self.c*ParameterVector[3]/self.T_max )
-#         E2=self.c*ParameterVector[3]-self.c*ParameterVector[2]
-#         return [A1,E1,A2,E2]
-#
-#     def setKobWeights(self,alpha1,alpha2):
-#         """ Sets the two Kobayashi weights alpha1 and alpha2. """
-#         self.__alpha1=alpha1
-#         self.__alpha2=alpha2
-#
-#     def KobWeights(self):
-#         """ Returns the two Kobayashi weights alpha1 and alpha2. """
-#         return self.__alpha1, self.__alpha2
-#
-#
-# class DAEM(Model):
-#     """ Calculates the devolatilization reaction using the
-#         Distributed Activation Energy Model. """
-#     def __init__(self,InitialParameterVector):
-#         print 'DAEM initialized'
-#         self._modelName = 'DAEM'
-#         self._ParamVector=InitialParameterVector
-#         self.ODE_hmax=1.e-2
-#         self.NrOfActivationEnergies=50
-#         self.constDt = False # if set to false, the numerical time step corresponding to the outputted by the dtailled model (e.g CPD) is used; define a value to use instead this
-#
-#     def setNrOfActivationEnergies(self,NrOfE):
-#         """ Define for how many activation energies of the range
-#             of the whole distribution the integral shall be solved
-#             (using Simpson Rule)."""
-#         self.NrOfActivationEnergies=NrOfE
-#
-#     def NrOfActivationEnergies(self):
-#         """ Returns the number of activation enrgies the integral shall
-#             be solved for (using Simpson Rule). """
-#         return self.NrOfActivationEnergies
-#
-#     def calcMass(self,preProcResult,time,T,Name):
-#         """ Outputs the mass(t) using the model specific equation. """
-#         self.E_List=np.arange(int(self._ParamVector[1]-3.*self._ParamVector[2]),int(self._ParamVector[1]+3.*self._ParamVector[2]),int((6.*self._ParamVector[2])/self.NrOfActivationEnergies)) #integration range E0 +- 3sigma, see [Cai 2008]
-#         # question whether the dt from DetailledModel result file or from a constant dt should be used
-#         if self.constDt == False: # dt for integrate = dt from DM result file
-#             timeInt = time
-#         else: #if dt in DM results file has too large dt
-#             self._mkDt4Integrate(time)
-#             timeInt = self.constDtVec
-#         #Inner Integral Funktion
-#         def II_dt(t,E_i):
-#             return np.exp( -E_i/T(t) )
-#         #outer Integral for one activation energy from t0 to tfinal
-#         #stores all values of the inner Integrals (time,ActivationEnergy) in a 2D-Array
-#         InnerInts=np.zeros([len(timeInt),len(self.E_List)])
-#         CurrentInnerInt=np.zeros(len(timeInt))
-#         for Ei in range(len(self.E_List)):
-#             CurrentInnerInt[:]=II_dt(timeInt[:],self.E_List[Ei])
-#             InnerInts[1:,Ei] = sp.integrate.cumtrapz(CurrentInnerInt,timeInt[:])
-#         #
-#         def OI_dE(EIndex,tIndex):
-#             m = np.exp(-self._ParamVector[0]*InnerInts[tIndex,EIndex])*(1./(self._ParamVector[2]*(2.*np.pi)**0.5))*np.exp(-(self.E_List[EIndex]-self._ParamVector[1])**2/(2.*self._ParamVector[2]**2))
-# #            print 'InnerInt',InnerInt,'mass',dm_dt
-#             return m
-#         m_out=np.zeros(np.shape(timeInt))
-#         mE=np.zeros(np.shape(self.E_List))
-#         for ti in range(len(timeInt)):
-#             for Ei in range(len(self.E_List)):
-#                 mE[Ei]=OI_dE(Ei,ti)
-#             m_out[ti]=sp.integrate.simps(mE,self.E_List)
-#         #descaling
-#         m_out = self._ParamVector[3]*(1.-m_out)
-#         if self.constDt == False:
-#             return m_out
-#         else: #returns the short, interpolated list (e.g. for PCCL)
-#             return self._mkInterpolatedRes(m_out,time)

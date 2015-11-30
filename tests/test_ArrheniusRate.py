@@ -55,7 +55,7 @@ def test_fit_arrheniusRate_model(arrhenius_fit):
     optimizedParameter = fit.parameter
     time = np.arange(0.0, 1.01, 0.01)
     print "optparams_single", optimizedParameter
-    fittedYield = fit.fittedYield()
+    fittedYield = fit.fittedYield(fit.runs['run0'])
     print "test_fit_arrheniusRate_model, fittedYield: ", fittedYield
 
     fig, axs = plt.subplots()

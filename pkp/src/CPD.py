@@ -6,6 +6,7 @@ import shutil
 from scipy.integrate import odeint
 import scipy.interpolate
 import platform
+import matplotlib.pyplot as plt
 
 from Models import BalancedComposition
 from PreProc import PreProcResult
@@ -176,18 +177,38 @@ class CPDResult(PreProcResult):
         return self.ftot*100.0/vm
 
     @property
-    def pa_raw(self):
-        """ the composition of the raw molecule """
-        ftot = self.ftot*100.0
-        return {'Fixed Carbon': 100.0 - ftot,
-                'Volatile Matter': ftot}
-
-    @property
     def ftot(self):
         """ the total yield as kg/kg_coal_daf
-            #TODO is ftot based on daf or as recieved?
-         """
+            overwrites PreProcs ftot """
         return self.__getitem__("ftot")[-1]
+
+    def plot_temp(self):
+        f, ax = plt.subplots(1, 2)
+        ax[0].plot(self["time"], self["temp"])
+        ax[1].plot(self["time"], self.rate("temp"))
+
+        # TODO refactor this
+        ax[0].get_yaxis().get_label().set_text('Temperature [K]')
+        ax[0].get_xaxis().get_label().set_text('Time [s]')
+        ax[1].get_yaxis().get_label().set_text('Heating Rate [K/s]')
+        ax[1].get_xaxis().get_label().set_text('Time [s]')
+        return f, ax
+
+    def plot_species(self, axis="time"):
+        f, ax = plt.subplots(1, 2)
+        for s in self.speciesNames:
+            ax[0].plot(self[axis], self[s], label=s)
+            ax[1].plot(self[axis], self.rate(s), label=s)
+
+        # TODO refactor this
+        xlabel = 'Time [s]' if axis=="time" else 'Temp [K]'
+        ax[0].get_yaxis().get_label().set_text('Yield [kg/kg_daf]')
+        ax[0].get_xaxis().get_label().set_text(xlabel)
+        ax[1].get_yaxis().get_label().set_text('Yield Rate [kg/kg_daf/s]')
+        ax[1].get_xaxis().get_label().set_text(xlabel)
+        plt.legend()
+        return f, ax
+
 
 class SetAndLaunchBase(object):
     runNr=0
