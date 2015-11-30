@@ -186,7 +186,7 @@ class coalPolimi(coal):
         temp = np.interp(t,self.timeHR,self.temperatureHR)
         return temp
 
-    def solvePyrolysis(self, nPoints=None):
+    def solvePyrolysis(self, filename=None, nPoints=None):
         '''
         solve pyrolysis
         '''
@@ -225,15 +225,24 @@ class coalPolimi(coal):
         self._r = [dmidt(t0,m0)]
         warnings.filterwarnings("ignore", category=UserWarning)
         timeEnd = np.max(self.timeHR)
+        if filename:
+            f = open(filename, 'w')
+            w = csv.writer(f, delimiter='\t')
+            w.writerow(['t', 'T']+self._solid.species_names)
+            w.writerow(np.concatenate(([0, self._solid.T], self._solid.Y)))
         while solver.t < timeEnd:
             # print solver.t
             solver.integrate(timeEnd, step=True)
+            if filename:
+                w.writerow(np.concatenate(([solver.t, self._solid.T], self._solid.Y)))
             self.time = np.concatenate((self.time, [solver.t]))
             self._y=np.concatenate((self._y, [solver.y]))
             self._r=np.concatenate((self._r, [dmidt(solver.t,solver.y)]))
         #print self._y[-1,:]
         warnings.resetwarnings()
-        if nPoints < len(self.time):
+        if filename:
+            f.close()
+        if nPoints and nPoints < len(self.time):
             step = len(self.time)/nPoints
             self.time = reduce_points(self.time, step)
             self._y = reduce_points(self._y, step)

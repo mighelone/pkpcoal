@@ -14,7 +14,7 @@ import shutil
 from PyQt4.Qt import QWidget, QMainWindow
 
 OSys=platform.system()
-sys.path.append('src')
+sys.path.append('pkp')
 import PKP
 import InformationFiles
 

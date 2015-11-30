@@ -2,10 +2,10 @@ import sys
 import platform
 OSys=platform.system()
 #if OSys=='Linux':
-#    sys.path.append('../src')
+#    sys.path.append('../pkp')
 #if OSys=='Linux':
-#    sys.path.append('..\\src')
-sys.path.append('src')
+#    sys.path.append('..\\pkp')
+sys.path.append('pkp')
 import shutil
 import numpy as np
 import InformationFiles

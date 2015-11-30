@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'Done2.ui'
 
 import sys,os
-sys.path.append('src')
+sys.path.append('pkp')
 from PyQt4 import QtCore, QtGui
 from matplotlibwidgetFile import matplotlibWidget
 import numpy as np

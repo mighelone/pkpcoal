@@ -929,10 +929,11 @@ class MainProcess(object):
         run PMSKD
         '''
         # create object
-        import coalPolimi
+        import pkp.coalPolimi
         try:
-            coal = coalPolimi.coalPolimi(name = 'COAL', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,file=self.PMSKD_mechfile)
-        except coalPolimi.compositionError:
+            coal = pkp.coalPolimi.coalPolimi(name = 'COAL', c=self.UAC,h=self.UAH,o=self.UAO,n=self.UAN,s=self.UAS,
+                                             file=self.PMSKD_mechfile)
+        except pkp.coalPolimi.compositionError:
             print 'Composition outside of triangle of definition'
             sys.exit()
         # organize TimeTemp

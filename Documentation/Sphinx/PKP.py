@@ -1,5 +1,5 @@
 import sys
-sys.path.append('src')
+sys.path.append('pkp')
 #
 import CPD_SetAndLaunch         #writes CPD-instruct File, launches CPD
 import FGDVC_SetAndLaunch       #writes FG-DVC-instruct File, launches FG-DVC and fittes using eq. (68 ) (BachelorThesis)
