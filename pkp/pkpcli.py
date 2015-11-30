@@ -1,10 +1,5 @@
 import sys
-import os
-import platform
 
-#PKP imports
-import numpy as np
-#
 sys.path.append('src')
 
 class BaseProcess(object):
