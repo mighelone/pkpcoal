@@ -28,7 +28,7 @@ FIT:
   # evolve+fmin: run fmin after evolve optimization
   FitMethod: 'evolve'
   # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
-  Species: [ftot] # empty list for all availible species
+  Species: [ftot] # empty list for all available species
   SCR:
     k :  1.0
     kBounds :  [0.0, 1.0]
@@ -71,7 +71,7 @@ CPD:
   active : true
   fit: None
   deltaT : 1e-5
-  increment: 5
+  increment: 10
   MW_TAR : 50
 
 FGDVC:
@@ -102,8 +102,8 @@ FLASHCHAIN:
 
 # Polimi Multi-Step Kinetic Devolatilization
 PMSKD:  
-  active      :   false
-  fit         :   None #?
+  active      :   true
+  fit         :   ArrheniusNoB #?
   # number of step
   nStep       :   100
   # Mechanism file for Cantera (only use xml!!!)
@@ -125,9 +125,9 @@ Calibration:
 
 OperatingConditions:
     pressure    : 1.0 #atmosphere
-    runs: 1
-    run1        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
-    run2        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
-    run3        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
-    run4        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
-    run5        : [ [ 0, 400], [ 0.1, 1400], [ 0.5, 2000] ]
+    runs: 3
+    run1        : [ [ 0, 500], [ 0.0016, 1300], [ 0.01, 1300] ]
+    run2        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
+    run3        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]
+    run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
+    run5        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
