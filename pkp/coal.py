@@ -1,8 +1,9 @@
-__author__ = 'vascella'
 import numpy as np
 
+
 class coal():
-    def __init__(self,name ='',c=0.845,h=0.05,o=0.1,n=0.05,s=0.):
+
+    def __init__(self, name='', c=0.845, h=0.05, o=0.1, n=0.05, s=0.):
         '''
         coal(name='',c=0.845,h=0.05,o=0.1,n=0.05,s=0.):
         create coal object, assigning the ultimate analysis
@@ -10,7 +11,7 @@ class coal():
         self._Mc = 12.
         self._Mh = 1.
         self._Mo = 16.
-        self.setUA(c,h,o,n,s)
+        self.setUA(c, h, o, n, s)
         self.setName(name)
         '''
         self._cdaf = 0.845
@@ -26,8 +27,7 @@ class coal():
         self._rhoDry = 1400
         self._rhoH2O = 1000
 
-
-    def setUA(self,c=0.845,h=0.05,o=0.1,n=0.05,s=0.):
+    def setUA(self, c=0.845, h=0.05, o=0.1, n=0.05, s=0.):
         '''
         def setUA(self,c,h,o,n,s)
         set ultimate analysis of coal
@@ -35,13 +35,13 @@ class coal():
         if sum is different from 1 values are sclaled
         '''
         sumUA = c + h + o + n + s
-        self._c = c/sumUA
-        self._h = h/sumUA
-        self._o = o/sumUA
-        self._n = n/sumUA
-        self._s = s/sumUA
+        self._c = c / sumUA
+        self._h = h / sumUA
+        self._o = o / sumUA
+        self._n = n / sumUA
+        self._s = s / sumUA
 
-    def setPA(self,moisture=0.1,char=0.4,vm=0.5,ash=0.1):
+    def setPA(self, moisture=0.1, char=0.4, vm=0.5, ash=0.1):
         sumPA = moisture + char + vm + ash
         self._moist = moisture/sumPA
         self._ash = self._ash/sumPA

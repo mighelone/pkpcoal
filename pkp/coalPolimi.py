@@ -4,12 +4,10 @@ __author__ = 'vascella'
 import numpy as np
 from coal import coal
 import cantera
-from scipy.integrate import odeint,ode
+from scipy.integrate import odeint, ode
 import csv
 
 import warnings
-
-
 
 
 class triangle(object):

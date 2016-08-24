@@ -2,7 +2,9 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import pkp.cpd
+import pkp.coalnew
 import numpy as np
+import platform
 
 ua = {'C': 69,
       'H': 5,
@@ -19,11 +21,16 @@ op_cond = [[0, 500],
            [0.001, 1400],
            [0.01, 1400]]
 
-cpd_exe = './cpdnlg'
+if platform.system() == 'Darwin':
+    cpd_exe = './cpdnlg.x'
+elif platform.system() == 'Linux':
+    cpd_exe = './cpdnlg.x'
+elif platform.system() == 'Windows':
+    cpd_exe = './cpdnlg.exe'
 
 
 def init_coal():
-    return pkp.cpd.Coal(proximate_analysis=pa, ultimate_analysis=ua)
+    return pkp.coalnew.Coal(proximate_analysis=pa, ultimate_analysis=ua)
 
 
 def init_cpd():
@@ -31,7 +38,7 @@ def init_cpd():
 
 
 def test_normalize_dictionary():
-    ua_norm = pkp.cpd.normalize_dictionary(ua)
+    ua_norm = pkp.coalnew.normalize_dictionary(ua)
     assert sum(ua_norm.itervalues()) == 1
     assert ua['C'] / sum(ua.itervalues()) == ua_norm['C']
 
@@ -48,7 +55,7 @@ def test_coal_init():
     ua_new = ua.copy()
     ua_new['C'] = 60
     coal.ultimate_analysis = ua_new
-    assert pkp.cpd.normalize_dictionary(
+    assert pkp.coalnew.normalize_dictionary(
         ua_new) == coal.ultimate_analysis
 
 
@@ -82,7 +89,9 @@ def test_write_input_file():
                                  increment=2,
                                  dt_max=1e-5)
     cpd.operating_conditions = op_cond
-    set_file, io_file = cpd.write_input_files(fname='test')
+    cpd.write_input_files(fname='test')
     cpd.run(fname='test', solver=cpd_exe)
+    cpd.read_results(fname='test')
+    return cpd
 
-test_write_input_file()
+results = test_write_input_file()

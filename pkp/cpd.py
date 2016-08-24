@@ -6,10 +6,11 @@ from __future__ import print_function, unicode_literals
 
 import numpy as np
 import os
+import subprocess
+import pandas as pd
 
-pa_keys = ['FC', 'VM', 'Ash', 'Moist']
-pa_keys_daf = pa_keys[: 2]
-ua_keys = ['C', 'H', 'O', 'N', 'S']
+import pkp.coalnew
+
 
 cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
                             [421.957, 1301.41, 0.489809, -52.1054],
@@ -26,115 +27,7 @@ cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
                              -0.0000826717]])
 
 
-def normalize_dictionary(d):
-    '''
-    Normalize dictionary d and return a new one
-    '''
-    sum_d = sum(d.itervalues())
-    return {el: (val / sum_d) for el, val in d.iteritems()}
-
-
-class Coal(object):
-    '''
-    Coal class used as parent class for Devolatilization models
-    '''
-
-    def __init__(self, proximate_analysis, ultimate_analysis,
-                 pressure=101325):
-        self.ultimate_analysis = ultimate_analysis
-        self.proximate_analysis = proximate_analysis
-        self.pressure = pressure
-        self._path = os.getcwd()
-        self._operating_conditions = None
-
-    @property
-    def ultimate_analysis(self):
-        return self._ultimate_analysis
-
-    @ultimate_analysis.setter
-    def ultimate_analysis(self, ultimate_analysis):
-        if not all((key in ultimate_analysis for key in ua_keys)):
-            raise ValueError(
-                'Ultimate analysis keys should be {}'.format(ua_keys))
-        self._ultimate_analysis = normalize_dictionary(
-            ultimate_analysis)
-
-    @property
-    def proximate_analysis(self):
-        return self._proximate_analysis
-
-    @proximate_analysis.setter
-    def proximate_analysis(self, proximate_analysis):
-        if not all((key in proximate_analysis for key in pa_keys)):
-            raise ValueError(
-                'Proximate analysis keys should be {}'.format(pa_keys))
-        self._proximate_analysis = normalize_dictionary(
-            proximate_analysis)
-        self._daf = sum((self._proximate_analysis[key]
-                         for key in pa_keys_daf))
-        self._proximate_analysis_daf = {
-            key: (self.proximate_analysis[key] / self._daf)
-            for key in pa_keys_daf}
-
-    @property
-    def proximate_analysis_daf(self):
-        return self._proximate_analysis_daf
-
-    @property
-    def daf(self):
-        return self._daf
-
-    @property
-    def pressure(self):
-        return self._pressure
-
-    @pressure.setter
-    def pressure(self, value):
-        self._pressure = value
-
-    @property
-    def operating_conditions(self):
-        return self._operating_conditions
-
-    @operating_conditions.setter
-    def operating_conditions(self, conditions):
-        '''
-        Define operating conditions for evaluating pyrolysis
-
-        Parameters
-        ----------
-        conditions: np.ndarray, list
-            [[t0, T0], ..., [tn, Tn]]
-        '''
-        if not isinstance(conditions, (np.ndarray, list)):
-            raise TypeError('Define conditions as list or numpy array')
-        elif isinstance(conditions, list):
-            conditions = np.array(conditions)
-        if not conditions.ndim == 2:
-            raise ValueError('Define conditions as array Nx2')
-        if not conditions.shape[-1] == 2:
-            raise ValueError('Define conditions as array Nx2')
-        self._operating_conditions = conditions
-
-    def set_numerical_parameters(self, **kwargs):
-        pass
-
-    def calc_model_parameters(self, **kwargs):
-        pass
-
-    def write_input_files(self, **kwargs):
-        pass
-
-    @property
-    def path(self):
-        return self._path
-
-    @path.setter
-    def path(self, value):
-        self._path = os.path.abspath(value)
-
-
-class CPD(Coal):
+class CPD(pkp.coalnew.Coal):
     '''
     Class to run and store results from CPD model
     '''
@@ -218,7 +111,7 @@ class CPD(Coal):
             [setattr(self, key, Y[i])
              for i, key in enumerate(parameters_keys[:4])]
 
-    def write_input_files(self):
+    def write_input_files(self, fname='CPD_input'):
         def writeline(key):
             f.write('{}           !{}\n'.format(
                     getattr(self, key), key))
@@ -226,7 +119,7 @@ class CPD(Coal):
         def empty_lines(n=1):
             [f.write('\n') for _ in range(n)]
 
-        cpd_inp_file = os.path.join(self.path, 'CPD_input.dat')
+        cpd_inp_file = self.input_file(fname)
         with open(cpd_inp_file, 'w') as f:
             [writeline(key)
              for key in ['p0', 'c0', 'sig', 'mw', 'mdel']]
@@ -304,7 +197,7 @@ class CPD(Coal):
                 delimiter=r'\s+',
                 escapechar='c',
                 index_col=0)
-        results = pd.concat([read_file(n) for n in range(4)], axis=1)
+        return pd.concat([read_file(n) for n in range(1, 5)], axis=1)
         # results.plot(y='ftot', kind='line', use_index=True)
         # reset index
         # r_res = r.reset_index()
