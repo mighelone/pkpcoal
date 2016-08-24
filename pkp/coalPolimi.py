@@ -15,7 +15,8 @@ class triangle(object):
     calculate properties of coal
     using triangolation
     '''
-    def __init__(self,x0=np.array([0,0]),x1=np.array([1,0]),x2=np.array([0,1])):
+
+    def __init__(self, x0=np.array([0, 0]), x1=np.array([1, 0]), x2=np.array([0, 1])):
         self.x0 = x0
         self.x1 = x1
         self.x2 = x2

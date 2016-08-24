@@ -93,5 +93,3 @@ def test_write_input_file():
     cpd.run(fname='test', solver=cpd_exe)
     cpd.read_results(fname='test')
     return cpd
-
-results = test_write_input_file()

@@ -8,6 +8,8 @@ import os
 import numpy as np
 import tabulate
 
+from scipy.interpolate import interp1d
+
 pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
 ua_keys = ['C', 'H', 'O', 'N', 'S']
@@ -34,6 +36,7 @@ class Coal(object):
         self.pressure = pressure
         self._path = os.getcwd()
         self._operating_conditions = None
+        self.T = None
         self.rho_dry = 1000.0
         self.name = name
 
@@ -118,6 +121,10 @@ class Coal(object):
         conditions: np.ndarray, list
             [[t0, T0], ..., [tn, Tn]]
         '''
+        if conditions is None:
+            self.T = None
+            self._operating_conditions = None
+            return
         if not isinstance(conditions, (np.ndarray, list)):
             raise TypeError('Define conditions as list or numpy array')
         elif isinstance(conditions, list):
@@ -127,6 +134,8 @@ class Coal(object):
         if not conditions.shape[-1] == 2:
             raise ValueError('Define conditions as array Nx2')
         self._operating_conditions = conditions
+        self.T = interp1d(conditions[:, 0], conditions[:, 1],
+                          kind='linear')
 
     @property
     def path(self):
@@ -146,6 +155,9 @@ class Coal(object):
         pass
 
     def read_results(self, **kwargs):
+        pass
+
+    def run(self, **kwargs):
         pass
 
     @property

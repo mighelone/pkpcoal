@@ -6,13 +6,29 @@ import pkp.coalPolimi
 import cantera
 import numpy as np
 import tabulate
-
 import itertools
+import warnings
+import pandas as pd
 
 from pkp.coalnew import M_elements
+from scipy.integrate import ode
 
 
 def set_reference_coal(name, atoms):
+    '''
+    Set the reference coals based on the atomic composition
+
+    Parameters
+    ----------
+    name: str
+        Coal name
+    atoms: dict
+        Atom coefficient of the coal raw molecule
+
+    Return
+    ------
+    pkp.coalnew.Coal
+    '''
     atoms['N'] = 0
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
@@ -23,12 +39,14 @@ def set_reference_coal(name, atoms):
                                                 'Ash': 0,
                                                 'Moist': 0})
 
+# set the reference coals
 coal1 = set_reference_coal('COAL1', atoms={'C': 12, 'H': 11, 'O': 0})
 coal2 = set_reference_coal('COAL2', atoms={'C': 14, 'H': 10, 'O': 1})
 coal3 = set_reference_coal('COAL3', atoms={'C': 12, 'H': 12, 'O': 5})
 char = set_reference_coal('CHAR', atoms={'C': 1, 'H': 0, 'O': 0})
 
 
+# Exceptions
 class MechanismError(Exception):
     pass
 
@@ -42,10 +60,18 @@ class OutsideTriangleError(Exception):
 
 
 class Triangle(object):
-
+    '''
+    Triangle class. Used for triangulation calculations
+    '''
     headers = ['x', 'y']
 
     def __init__(self, x0=None, x1=None, x2=None):
+        '''
+        Parameters
+        ----------
+        x0, x1, x2, np.ndarray, list 
+            2D Array or list of the triangle vertices
+        '''
         if x0 is None:
             x0 = np.array([0, 0])
         if x1 is None:
@@ -58,7 +84,7 @@ class Triangle(object):
 
     def _coeff(self, x):
         '''
-        calculate coefficient of linear combination of x
+        Calculate coefficient of linear combination of x
         x-x0 = a*(x1-x0)+b*(x2-x0)
         '''
         v1 = self.x1 - self.x0
@@ -81,6 +107,16 @@ class Triangle(object):
         '''
         Weights for the triangolation of vector x
         http://math.stackexchange.com/questions/1727200/compute-weight-of-a-point-on-a-3d-triangle
+
+        Parameters
+        ----------
+        x: array, list
+            Point for which weights are calculated
+
+        Return
+        ------
+        np.ndarray
+            Weights array
         '''
         if not self.is_inside(x):
             raise OutsideTriangleError(
@@ -110,10 +146,19 @@ class Triangle(object):
 
 
 class TriangleCoal(Triangle):
+    '''
+    Triangle class based on coal Van Kravelen diagram
+    '''
 
     headers = ['O:C', 'H:C']
 
     def __init__(self, coal0, coal1, coal2):
+        '''
+        Parameters
+        ----------
+        coal0, coal1, coal2: Coal, Polimi
+            Coal vertices of the triangles, based on VK diagram
+        '''
         self.coal0 = coal0
         self.coal1 = coal1
         self.coal2 = coal2
@@ -144,12 +189,12 @@ class TriangleCoal(Triangle):
 
     def itercoals(self):
         '''
-        Iterate over coals
+        Iterate over coals returning coal vertices
         '''
         for c in [self.coal0, self.coal1, self.coal2]:
             yield c
 
-
+# set the reference triangles
 triangle_012 = TriangleCoal(char,
                             coal1,
                             coal2)
@@ -164,9 +209,30 @@ triangle_123 = TriangleCoal(coal1,
 
 
 class Polimi(pkp.coalnew.Coal):
+    '''
+    Polimi Multiple Step Kinetic Model for coal devolatilization
+    Based on Sommariva (2010).
+    '''
+    tar = ['VTAR1', 'VTAR2', 'VTAR3']
+    light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH2', 'CH3O',
+                 'BTX2']
+    raw = ['COAL1', 'COAL2', 'COAL3']
+    metaplast = ['GCH2', 'TAR1', 'GBTX2', 'GCH4', 'GCOH2',
+                 'GCO2S', 'GH2O', 'GCOL', 'TAR2', 'GCO2TS',
+                 'GCOAL3', 'GCO2', 'TAR3', 'GCOLS']
+    char = ['CHAR', 'CHARH', 'CHARG']
 
     def __init__(self, proximate_analysis, ultimate_analysis,
                  pressure=101325, name='Coal', mechanism='COAL.xml'):
+        '''
+        Parameters
+        ----------
+        proximate_analysis: dict
+        ultimate_analysis: dict
+        pressure: float
+        name: str
+        mechanism: str, cantera.Solution
+        '''
         super(Polimi, self).__init__(
             proximate_analysis=proximate_analysis,
             ultimate_analysis=ultimate_analysis,
@@ -183,10 +249,15 @@ class Polimi(pkp.coalnew.Coal):
     def mechanism(self, value):
         try:
             self._mechanism = cantera.Solution(value)
+            self.mechanism.TP = 300, self.pressure
         except:
             raise MechanismError('Cannot read {}'.format(value))
 
     def set_triangle(self):
+        '''
+        Define in which triangle is the coal and calculate the
+        composition based on the reference coals
+        '''
         if triangle_012.is_inside(self):
             self.triangle = triangle_012
             self.inside = '012'
@@ -202,3 +273,49 @@ class Polimi(pkp.coalnew.Coal):
         self.composition = {c.name: self.triangle_weights[i]
                             for i, c in enumerate(
             self.triangle.itercoals())}
+
+    def run(self):
+        mechanism = self.mechanism
+
+        def dmidt(t, m):
+            '''Calculate reaction rates'''
+            mechanism.TPY = self.T(t), self.pressure, m
+            return (mechanism.net_production_rates *
+                    mechanism.molecular_weights / mechanism.density)
+
+        backend = 'dopri5'
+        # backend = 'cvode'
+        # backend = 'lsoda'
+        # backend = 'dop853'
+        t0 = self.operating_conditions[0, 0]
+        mechanism.Y = self.composition
+        m0 = mechanism.Y
+
+        solver = ode(dmidt).set_integrator(backend, nsteps=1)
+        solver.set_initial_value(m0, t0)
+        solver._integrator.iwork[2] = -1
+        t = [t0]
+        y = [m0]
+        r = [dmidt(t0, m0)]
+        warnings.filterwarnings("ignore", category=UserWarning)
+        time_end = self.operating_conditions[-1, 0]
+
+        while solver.t < time_end:
+            print(solver.t)
+            solver.integrate(time_end, step=True)
+            t.append(solver.t)
+            y.append(solver.y)
+            r.append(dmidt(solver.t, solver.y))
+
+        t = np.array(t)
+        data = pd.DataFrame(data=y,
+                            columns=mechanism.species_names,
+                            index=t)
+        data.index.name = 'Time, s'
+        data['T'] = self.T(t)
+        for v in ('metaplast', 'tar', 'light_gas', 'raw', 'char'):
+            data[v] = data[getattr(self, v)].sum(axis=1)
+
+        data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
+        data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
+        return data
