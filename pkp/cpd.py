@@ -10,6 +10,7 @@ import subprocess
 import pandas as pd
 
 import pkp.coalnew
+import platform
 
 
 cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
@@ -31,8 +32,11 @@ class CPD(pkp.coalnew.Coal):
     '''
     Class to run and store results from CPD model
     '''
+    nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
+    num_parameters = ['dt', 'increment', 'dt_max']
 
-    def __init__(self, ultimate_analysis, proximate_analysis):
+    def __init__(self, ultimate_analysis, proximate_analysis,
+                 pressure=101325, name='CPD coal'):
         '''
         Parameters
         ----------
@@ -59,13 +63,10 @@ class CPD(pkp.coalnew.Coal):
         self.ensig = 0
         self.nmax = 20
 
-        # numerical parameters default
-        self.dt = 1e-5
-        self.increment = 1
-        self.dt_max = 1e-5
-
         super(CPD, self).__init__(proximate_analysis=proximate_analysis,
-                                  ultimate_analysis=ultimate_analysis)
+                                  ultimate_analysis=ultimate_analysis,
+                                  pressure=pressure,
+                                  name=name)
 
         # check if they are in %
         self.fcar = self.ultimate_analysis['C']
@@ -74,12 +75,115 @@ class CPD(pkp.coalnew.Coal):
         self.foxy = self.ultimate_analysis['O']
         self.VMdaf = self.proximate_analysis_daf['VM']
 
-    def set_numerical_parameters(self, dt, increment, dt_max):
+        # set parameters -> this can be changed using
+        # self.set_parameters
+        self._set_NMR_parameters()
+        self._set_numerical_parameters()
+        self.basename = None
+        self.solver = None
+
+    def set_parameters(self, **kwargs):
+        '''
+        Set parameters for CPD calculation.
+        If a parameter is not defined it is not changed.
+        If None the default value is setted.
+
+        Parameters
+        ----------
+        nmr_parameters: dict
+            NMR parameters dictionary. Keys are:
+            ['mdel', 'mw', 'p0', 'sig', 'c0']
+            If None values are calculated using Genetti correlation
+        dt: float
+            Time step
+        increment: int
+            Number of time step saved
+        dt_max: float
+            Max. time step
+        solver: str
+            CPD solver path
+        basename: str
+            Basename for CPD output files
+        '''
+        if 'nmr_parameters' in kwargs:
+            self._set_NMR_parameters(
+                nmr_parameters=kwargs['nmr_parameters'])
+
+        num_parameters = ('dt', 'increment', 'dt_max')
+        if any(p in kwargs for p in num_parameters):
+            self._set_numerical_parameters(**kwargs)
+
+        if 'solver' in kwargs:
+            self.solver = kwargs['solver']
+
+        if 'basename' in kwargs:
+            self.basename = kwargs['basename']
+
+    def get_parameters(self):
+        nmr = {p: getattr(self, p)
+               for p in self.nmr_parameters}
+        par = {p: getattr(self, p)
+               for p in self.num_parameters +
+               ['basename', 'solver']}
+        par['nmr_parameters'] = nmr
+        return par
+
+    @property
+    def basename(self):
+        return self._basename
+
+    @basename.setter
+    def basename(self, value):
+        '''
+        Define file base name for CPD results
+        '''
+        if value is None:
+            value = 'CPD_' + self.name.replace(' ', '_')
+        self._basename = value
+        self._io_file = os.path.join(self.path, 'input_' +
+                                     self._basename)
+        self._input_file = os.path.join(self.path,
+                                        self._basename + '.inp')
+
+    @property
+    def io_file(self):
+        return self._io_file
+
+    @property
+    def input_file(self):
+        return self._input_file
+
+    @property
+    def solver(self):
+        return self._solver
+
+    @solver.setter
+    def solver(self, value):
+        if value is None:
+            if platform.system() == 'Darwin':
+                value = './cpdnlg.x'
+            elif platform.system() == 'Linux':
+                value = './cpdnlg.x'
+            elif platform.system() == 'Windows':
+                value = './cpdnlg.exe'
+        self._solver = os.path.abspath(value)
+
+    def _set_numerical_parameters(self, dt=None, increment=None,
+                                  dt_max=None, **kwargs):
+        '''
+        Set numerical parameters
+        '''
+        if dt is None:
+            dt = 1e-5
+        if increment is None:
+            increment = 1
+        if dt_max is None:
+            dt_max = 1e-5
         self.dt = dt
         self.increment = increment
         self.dt_max = dt_max
 
-    def calc_model_parameters(self, parameters=None):
+    def _set_NMR_parameters(self, nmr_parameters=None):
         '''
         Calc parameters using Genetti correlation
 
@@ -89,10 +193,9 @@ class CPD(pkp.coalnew.Coal):
             Manually set parameters using a dictionary
             {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
         '''
-        parameters_keys = ['mdel', 'mw', 'p0', 'sig', 'c0']
-        if parameters:
-            [setattr(self, key, parameters[key])
-             for key in self.parameters_keys]
+        if nmr_parameters:
+            [setattr(self, key, nmr_parameters[key])
+             for key in self.nmr_parameters]
         else:
             c = cpd_correlation.copy()
             self.c0 = (min(0.36,
@@ -109,9 +212,12 @@ class CPD(pkp.coalnew.Coal):
                  c[8] * (self.VMdaf * 100) +
                  c[9] * (self.VMdaf * 100)**2)
             [setattr(self, key, Y[i])
-             for i, key in enumerate(parameters_keys[:4])]
+             for i, key in enumerate(self.nmr_parameters[:4])]
 
-    def write_input_files(self, fname='CPD_input'):
+    def _write_input_files(self):
+        '''
+        Write the input files required for the CPD calculation
+        '''
         def writeline(key):
             f.write('{}           !{}\n'.format(
                     getattr(self, key), key))
@@ -119,8 +225,7 @@ class CPD(pkp.coalnew.Coal):
         def empty_lines(n=1):
             [f.write('\n') for _ in range(n)]
 
-        cpd_inp_file = self.input_file(fname)
-        with open(cpd_inp_file, 'w') as f:
+        with open(self.input_file, 'w') as f:
             [writeline(key)
              for key in ['p0', 'c0', 'sig', 'mw', 'mdel']]
             empty_lines(1)
@@ -158,46 +263,39 @@ class CPD(pkp.coalnew.Coal):
                     self.operating_conditions[-1, 0]))
             writeline('nmax')
 
-        cpd_io = self.io_file(fname)
-        with open(cpd_io, 'w') as f:
-            f.write('{}\n'.format(cpd_inp_file))
+        with open(self.io_file, 'w') as f:
+            f.write('{}\n'.format(self.input_file))
             [f.write(
-                os.path.join(self.path, fname +
+                os.path.join(self.path, self.basename +
                              '_{}.out\n'.format(n)))
              for n in range(1, 5)]
-        return cpd_inp_file, cpd_io
 
-    def io_file(self, fname):
-        '''Return IO file '''
-        return os.path.join(self.path, 'input_' + fname)
-
-    def input_file(self, fname):
-        '''return cinfiguration file'''
-        return os.path.join(self.path, fname + '.inp')
-
-    def run(self, fname='CPD_input', solver='./cpdnlg'):
-        solver = os.path.abspath(solver)
-        io_file = self.io_file(fname)
-        with open(io_file, 'r') as f_in:
+    def run(self):
+        self._write_input_files()
+        with open(self.io_file, 'r') as f_in:
             with open('test.out', 'w') as f_out:
                 with open('test.err', 'w') as f_err:
                     code_run = subprocess.call(
-                        [solver, ],
+                        [self.solver, ],
                         stdin=f_in,
                         stdout=f_out,
                         stderr=f_err)
         if code_run:
             raise RuntimeError(
-                'Error running CPD with {}'.format(io_file))
+                'Error running CPD with {}'.format(self.io_file))
+        return self._read_results()
 
-    def read_results(self, fname='CPD_input'):
+    def _read_results(self):
         def read_file(n):
             return pd.read_csv(
-                os.path.join(self.path, fname + '_{}.out'.format(n)),
+                os.path.join(self.path, self.basename +
+                             '_{}.out'.format(n)),
                 delimiter=r'\s+',
                 escapechar='c',
                 index_col=0)
-        return pd.concat([read_file(n) for n in range(1, 5)], axis=1)
+        df = pd.concat([read_file(n) for n in range(1, 5)], axis=1)
+        df.index.rename('Time(ms)', inplace=True)
+        return df
         # results.plot(y='ftot', kind='line', use_index=True)
         # reset index
         # r_res = r.reset_index()
