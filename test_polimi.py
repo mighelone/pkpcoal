@@ -5,14 +5,22 @@ import pkp.polimi
 from test_cpd import ua, pa, op_cond
 import matplotlib.pyplot as plt
 import itertools
+import pytest
 
 try:
     plt.style.use(['mystyle'])
 except:
     plt.style.use(['ggplot'])
 
+ua0 = {'C': 1,
+       'H': 0,
+       'O': 0,
+       'N': 0,
+       'S': 0}
 
-def init_polimi():
+
+@pytest.fixture
+def coal():
     return pkp.polimi.Polimi(ultimate_analysis=ua,
                              proximate_analysis=pa,
                              pressure=101325,
@@ -20,14 +28,25 @@ def init_polimi():
                              mechanism='COAL.xml')
 
 
-def test_init():
-    coal = init_polimi()
+@pytest.fixture
+def triangle():
+    return pkp.polimi.Triangle()
 
 
-def test_triangle():
-    triangle = pkp.polimi.Triangle()
-    assert triangle.is_inside([0.2, 0.2])
+def test_init(coal):
+    assert coal.name == 'Polimi test'
+    assert hasattr(coal, 'van_kravelen')
+
+
+def test_triangle(triangle):
+    point_inside = [0.2, 0.2]
+    assert triangle.is_inside(point_inside)
     assert not triangle.is_inside([2, 2])
+
+    for i, point in enumerate(triangle):
+        assert triangle.weights(point)[i] == 1
+
+    #assert (triangle.weights(point_inside) == 0).all()
 
 
 def test_reference_coal():

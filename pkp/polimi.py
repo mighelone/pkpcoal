@@ -5,6 +5,9 @@ import pkp.coalnew
 import pkp.coalPolimi
 import cantera
 import numpy as np
+import tabulate
+
+import itertools
 
 from pkp.coalnew import M_elements
 
@@ -20,10 +23,10 @@ def set_reference_coal(name, atoms):
                                                 'Ash': 0,
                                                 'Moist': 0})
 
-coal1 = set_reference_coal('Coal1', atoms={'C': 12, 'H': 11, 'O': 0})
-coal2 = set_reference_coal('Coal2', atoms={'C': 14, 'H': 10, 'O': 1})
-coal3 = set_reference_coal('Coal3', atoms={'C': 12, 'H': 12, 'O': 5})
-char = set_reference_coal('Char', atoms={'C': 1, 'H': 0, 'O': 0})
+coal1 = set_reference_coal('COAL1', atoms={'C': 12, 'H': 11, 'O': 0})
+coal2 = set_reference_coal('COAL2', atoms={'C': 14, 'H': 10, 'O': 1})
+coal3 = set_reference_coal('COAL3', atoms={'C': 12, 'H': 12, 'O': 5})
+char = set_reference_coal('CHAR', atoms={'C': 1, 'H': 0, 'O': 0})
 
 
 class MechanismError(Exception):
@@ -34,7 +37,13 @@ class CompositionError(Exception):
     pass
 
 
+class OutsideTriangleError(Exception):
+    pass
+
+
 class Triangle(object):
+
+    headers = ['x', 'y']
 
     def __init__(self, x0=None, x1=None, x2=None):
         if x0 is None:
@@ -68,8 +77,41 @@ class Triangle(object):
             coeff[1] >= 0,
             coeff.sum() <= 1])
 
+    def weights(self, x):
+        '''
+        Weights for the triangolation of vector x
+        http://math.stackexchange.com/questions/1727200/compute-weight-of-a-point-on-a-3d-triangle
+        '''
+        if not self.is_inside(x):
+            raise OutsideTriangleError(
+                'x={} is outside triangle\n{}'.format(x, self))
+        w = np.cross(self.x0 - self.x1, self.x0 - self.x2)
+        # note use the abs value for being sure that all areas are
+        # negative
+        return np.abs([np.cross(x - x0, x - x1) / w
+                       for x0, x1 in itertools.combinations(
+            self.__iter__(), 2)
+        ])[::-1]
+
+    def __iter__(self):
+        for x in [self.x0, self.x1, self.x2]:
+            yield x
+
+    def __str__(self):
+        s = tabulate.tabulate([x.tolist() for x in self.__iter__()],
+                              headers=self.headers)
+        return s
+
+    def __repr__(self):
+        s = super(Triangle, self).__repr__()
+        s += '\n\n'
+        s += self.__str__()
+        return s
+
 
 class TriangleCoal(Triangle):
+
+    headers = ['O:C', 'H:C']
 
     def __init__(self, coal0, coal1, coal2):
         self.coal0 = coal0
@@ -80,21 +122,45 @@ class TriangleCoal(Triangle):
             x1=coal1.van_kravelen,
             x2=coal2.van_kravelen)
 
+    @staticmethod
+    def _coal_to_x(coal):
+        if isinstance(coal, (Polimi, pkp.coalnew.Coal)):
+            return coal.van_kravelen
+        else:
+            return coal
+
     def is_inside(self, coal):
-        super(TriangleCoal, self).is_inside(coal.van_krevelen)
+        return super(
+            TriangleCoal, self).is_inside(
+                self._coal_to_x(coal))
+
+    def weights(self, coal):
+        return super(TriangleCoal, self).weights(
+            self._coal_to_x(coal))
+
+    def _coeff(self, coal):
+        return super(TriangleCoal, self)._coeff(
+            self._coal_to_x(coal))
+
+    def itercoals(self):
+        '''
+        Iterate over coals
+        '''
+        for c in [self.coal0, self.coal1, self.coal2]:
+            yield c
 
 
-triangle_012 = TriangleCoal(x0=char,
-                            x1=coal1,
-                            x2=coal2)
+triangle_012 = TriangleCoal(char,
+                            coal1,
+                            coal2)
 
-triangle_023 = TriangleCoal(x0=char,
-                            x1=coal2,
-                            x2=coal3)
+triangle_023 = TriangleCoal(char,
+                            coal2,
+                            coal3)
 
-triangle_123 = TriangleCoal(x0=coal1,
-                            x1=coal2,
-                            x2=coal3)
+triangle_123 = TriangleCoal(coal1,
+                            coal2,
+                            coal3)
 
 
 class Polimi(pkp.coalnew.Coal):
@@ -132,6 +198,7 @@ class Polimi(pkp.coalnew.Coal):
             self.inside = '123'
         else:
             raise CompositionError('Composition outside triangles')
-
-    def triangolate(self):
-        pass
+        self.triangle_weights = self.triangle.weights(self)
+        self.composition = {c.name: self.triangle_weights[i]
+                            for i, c in enumerate(
+            self.triangle.itercoals())}
