@@ -312,6 +312,7 @@ class Polimi(pkp.coalnew.Coal):
             self.inside = '123'
         else:
             raise CompositionError('Composition outside triangles')
+        self.logger.debug('Coal is inside triangle %s', self.inside)
         self.triangle_weights = self.triangle.weights(self)
         self.composition = {c.name: self.triangle_weights[i]
                             for i, c in enumerate(
@@ -342,7 +343,7 @@ class Polimi(pkp.coalnew.Coal):
 
         while solver.t < time_end:
             # print(solver.t)
-            self.logger.debug('t=%s', solver.t)
+            # self.logger.debug('t=%s', solver.t)
             solver.integrate(time_end, step=True)
             t.append(solver.t)
             y.append(solver.y)
