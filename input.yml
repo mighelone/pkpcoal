@@ -71,8 +71,8 @@ CPD:
   active : true
   fit: 
   dt: 1e-5
-  increment: 10
-  dt_max: 2e-5
+  increment: 5
+  dt_max: 1e-5
   nmr_parameters: 
   solver:
 
