@@ -4,6 +4,8 @@ from __future__ import print_function, unicode_literals
 import pytest
 import pkp.empirical_model
 import numpy as np
+import matplotlib.pyplot as plt
+plt.style.use(['mystyle'])
 
 operating_conditions = [[0, 500], [0.1, 1000], [0.2, 1500]]
 
@@ -53,6 +55,33 @@ def test_rate(sfor):
 
     t = 0
     T = sfor.T(t)
-    rate = par['A'] * np.exp(-par['E'] / 8314.33 / T) * par['y0']
+    rate = - par['A'] * np.exp(-par['E'] / 8314.33 / T) * par['y0']
 
     assert np.isclose(sfor.rate(t=t, y=1), rate)
+
+
+def test_run(sfor):
+    parameters = {'A': 72e3,
+                  'E': 55e6,
+                  'y0': 0.5}
+    sfor.parameters = parameters
+    sfor.operating_conditions = [[0, 400],
+                                 [0.005, 1400],
+                                 [0.02, 1400]
+                                 ]
+    t, y = sfor.run()
+
+    fig, ax = plt.subplots()
+    ax.plot(t, y, label='Run Free t')
+
+    t_max = sfor.operating_conditions[-1, 0]
+    t0 = np.linspace(0, t_max, 100)
+
+    _, y0 = sfor.run(t=t0)
+
+    ax.plot(t0, y0, marker='x', linewidth=0, label='Run fix t')
+    ax.set_xlabel('t, s')
+    ax.set_ylabel('Daf solid mass fraction')
+    ax.legend(loc='best')
+    fig.savefig('test/test_run.pdf')
+    plt.close(fig)
