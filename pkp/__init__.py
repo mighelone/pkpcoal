@@ -23,7 +23,7 @@ class ReadConfiguration(object):
     def __init__(self, yml):
         self.logger = logging.getLogger(
             'main' + self.__class__.__name__)
-        if isinstance(yml, str):
+        if isinstance(yml, (str, unicode)):
             with open(yml, 'r') as f:
                 yml_input = yaml.load(f)
         elif isinstance(yml, dict):
@@ -65,26 +65,31 @@ class PKPRunner(object):
         if results_dir is None:
             results_dir = os.getcwd()
         results = {}
+        reader = self.reader
         for model in self.models:
             self.logger.info('Run %s model', model)
-            results[model] = {}
-            for n in range(
-                    self.reader.operating_conditions['runs']):
-                self.logger.debug('Initialize run %s for %s', n, model)
-                run = globals()[model](
-                    ultimate_analysis=self.reader.ultimate_analysis,
-                    proximate_analysis=self.reader.proximate_analysis,
-                    pressure=self.reader.operating_conditions[
-                        'pressure'],
-                    name='{}-Run{}'.format(model, n)
-                )
-                run.path = results_dir
-                self.logger.debug('Set property run %s for %s', n,
-                                  model)
-                run.set_parameters(**getattr(self.reader, model))
-                run.operating_conditions = (
-                    self.reader.operating_conditions['run{}'.format(n)])
-                self.logger.debug('Run %s for %s', n, model)
-                res = run.run()
-                results[model]['run{}'.format(n)] = res
-        return results
+            model_settings = getattr(reader, model)
+            if model_settings['active']:
+                results[model] = {}
+                for n in range(
+                        self.reader.operating_conditions['runs']):
+                    self.logger.debug(
+                        'Initialize run %s for %s', n, model)
+                    run = globals()[model](
+                        ultimate_analysis=reader.ultimate_analysis,
+                        proximate_analysis=reader.proximate_analysis,
+                        pressure=reader.operating_conditions[
+                            'pressure'],
+                        name='{}-Run{}'.format(model, n)
+                    )
+                    run.path = results_dir
+                    self.logger.debug('Set property run %s for %s', n,
+                                      model)
+                    # run.set_parameters(**getattr(self.reader, model))
+                    run.set_parameters(**model_settings)
+                    run.operating_conditions = (
+                        reader.operating_conditions['run{}'.format(n)])
+                    self.logger.debug('Run %s for %s', n, model)
+                    res = run.run()
+                    results[model]['run{}'.format(n)] = res
+            return results

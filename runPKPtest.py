@@ -17,6 +17,6 @@ if __name__ == '__main__':
     logger.info('Create runner')
     runner = pkp.PKPRunner()
     logger.info('Read settings')
-    runner.read(settings)
+    runner.read('input.yml')
     logger.info('Start run')
     results = runner.run(results_dir='test')

@@ -69,22 +69,22 @@ FIT:
 # constantRate -> SCR (single constant rate)
 CPD:
   active : true
-  fit: None
+  fit: 
   dt: 1e-5
   increment: 10
   dt_max: 2e-5
-  nmr_parameters: None
-  solver: None
+  nmr_parameters: 
+  solver:
 
-polimi:
+Polimi:
   active: true
-  fit: None
+  fit:
   backend: dopri5
-  mechanism: None
+  mechanism:
 
 FGDVC:
   active      : false
-  fit         : None #?
+  fit         : 
   dir         : C:\FGDVC_8-2-3\
   dirOut      : C:\FGDVC_8-2-3\FGDVC\
   #Choose Coal: 0 interpolate between library coals and generate own coal. Set 1 to 8 for a library coal.
@@ -98,7 +98,7 @@ FGDVC:
 # I rename PCCL to FLASHCHAIN
 FLASHCHAIN:
   active      :   false
-  fit         :   None #?
+  fit         :    #?
   # PC Coal Lab Main Path:
   dir         :   C:\Users\vascella\Documents\PCCL\
   # PC Coal Lab executable name:
@@ -117,7 +117,7 @@ PMSKD:
   # Mechanism file for Cantera (only use xml!!!)
   mechFile    :   COAL.xml
 
-BioPolimi:
+BioPolipomi:
   Use: false
   FittingKineticParameter_Select: None
   ArrhSpecies: Total
@@ -134,8 +134,8 @@ Calibration:
 operating_conditions:
     pressure    : 1.0 #atmosphere
     runs: 3
-    run1        : [ [ 0, 500], [ 0.0016, 1300], [ 0.01, 1300] ]
-    run2        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
-    run3        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]
+    run0        : [ [ 0, 500], [ 0.0016, 1300], [ 0.01, 1300] ]
+    run1        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
+    run2        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]
+    run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
     run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
-    run5        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
