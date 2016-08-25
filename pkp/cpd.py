@@ -79,8 +79,6 @@ class CPD(pkp.coalnew.Coal):
         # self.set_parameters
         self._set_NMR_parameters()
         self._set_numerical_parameters()
-        self.basename = None
-        self.solver = None
 
     def set_parameters(self, **kwargs):
         '''
@@ -128,22 +126,20 @@ class CPD(pkp.coalnew.Coal):
         par['nmr_parameters'] = nmr
         return par
 
-    @property
-    def basename(self):
-        return self._basename
+    def _get_basename(self):
+        return super(CPD, self)._get_basename()
 
-    @basename.setter
-    def basename(self, value):
+    def _set_basename(self, value):
         '''
         Define file base name for CPD results
         '''
-        if value is None:
-            value = 'CPD_' + self.name.replace(' ', '_')
-        self._basename = value
+        super(CPD, self)._set_basename(value)
         self._io_file = os.path.join(self.path, 'input_' +
                                      self._basename)
         self._input_file = os.path.join(self.path,
                                         self._basename + '.inp')
+
+    basename = property(_get_basename, _set_basename)
 
     @property
     def io_file(self):
@@ -295,6 +291,9 @@ class CPD(pkp.coalnew.Coal):
                 index_col=0)
         df = pd.concat([read_file(n) for n in range(1, 5)], axis=1)
         df.index.rename('Time(ms)', inplace=True)
+
+        # out_csv = os.path.join(self.path, self.basename + '.csv')
+        df.to_csv(self._out_csv)
         return df
         # results.plot(y='ftot', kind='line', use_index=True)
         # reset index

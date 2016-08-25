@@ -1,20 +1,20 @@
 #Proximate Analysis (in percent, as received):
 Coal:
-  Proximate Analysis:
-    Fixed Carbon    : 45.1
-    Volatile Matter : 50.6
-    Moisture        : 19.0
-    Ash             : 4.3
-  Ultimate Analysis:
+  proximate_analysis:
+    FC: 45.1
+    VM: 50.6
+    Moist: 19.0
+    Ash: 4.3
+  ultimate_analysis:
     C: 69
     H: 5
     N: 0.8
     O: 24.7
     S: 0.5
-  #Higher Heating Value, as received, in J/kg:
+  #Higher Heating Value, as received, in MJ/kg:
   HHV :   0.0 
   #Tar Molecule weight, MTar:
-  rhoDry : 1310 # kg/m3
+  rho_dry : 1310 # kg/m3
 
 FIT:
   #Model: ['SCR', 'C2SM', 'DAEM'] #, 'ArrheniusNoB', 'C2SM', 'DAEM', 'None']
@@ -70,9 +70,17 @@ FIT:
 CPD:
   active : true
   fit: None
-  deltaT : 1e-5
+  dt: 1e-5
   increment: 10
-  MW_TAR : 50
+  dt_max: 2e-5
+  nmr_parameters: None
+  solver: None
+
+polimi:
+  active: true
+  fit: None
+  backend: dopri5
+  mechanism: None
 
 FGDVC:
   active      : false
@@ -123,7 +131,7 @@ Calibration:
     # species to fit: total, mainSpecies, allSpecies
     speciesToFit    :   total 
 
-OperatingConditions:
+operating_conditions:
     pressure    : 1.0 #atmosphere
     runs: 3
     run1        : [ [ 0, 500], [ 0.0016, 1300], [ 0.01, 1300] ]

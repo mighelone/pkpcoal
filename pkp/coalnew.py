@@ -37,11 +37,16 @@ class Coal(object):
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
         self.pressure = pressure
-        self._path = os.getcwd()
+        self.name = name
+
         self._operating_conditions = None
         self.T = None
         self.rho_dry = 1000.0
-        self.name = name
+
+        self._basename = 'dummy'
+        self._path = 'dummy'
+        self.basename = None
+        self.path = None
 
     @property
     def name(self):
@@ -146,7 +151,12 @@ class Coal(object):
 
     @path.setter
     def path(self, value):
-        self._path = os.path.abspath(value)
+        if value is None:
+            self._path = os.getcwd()
+        else:
+            self._path = os.path.abspath(value)
+        # if you uodate the path update also the files
+        self._set_basename(self._basename)
 
     @property
     def van_kravelen(self):
@@ -156,6 +166,25 @@ class Coal(object):
         mol = {el: (self.ultimate_analysis[el] / M_elements[el])
                for el in ['C', 'H', 'O']}
         return np.array([mol['O'] / mol['C'], mol['H'] / mol['C']])
+
+    # use explicit property instead of a decorator to redefine in
+    # children classes
+    def _get_basename(self):
+        return self._basename
+
+    def _set_basename(self, value):
+        '''
+        Define file base name for CPD results
+        '''
+        if value is None:
+            value = (self.__class__.__name__ +
+                     '_' + self.name.replace(' ', '_'))
+        self._basename = value
+        self.logger.debug('basename: %s', self.basename)
+        self._out_csv = os.path.join(self.path, self.basename + '.csv')
+        self.logger.debug('Out CSV %s', self._out_csv)
+
+    basename = property(_get_basename, _set_basename)
 
     def __str__(self):
         str = ('Coal: {}\n'.format(self.name))

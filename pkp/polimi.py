@@ -327,9 +327,6 @@ class Polimi(pkp.coalnew.Coal):
                     mechanism.molecular_weights / mechanism.density)
 
         backend = self.backend
-        # backend = 'cvode'
-        # backend = 'lsoda'
-        # backend = 'dop853'
         t0 = self.operating_conditions[0, 0]
         mechanism.Y = self.composition
         m0 = mechanism.Y
@@ -362,4 +359,8 @@ class Polimi(pkp.coalnew.Coal):
 
         data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
         data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
+
+        self.logger.debug('Write %s', self._out_csv)
+        data.to_csv(self._out_csv)
+
         return data
