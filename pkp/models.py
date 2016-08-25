@@ -57,6 +57,9 @@ class Model(object):
                                 zip(self.parameters_names,
                                     par_values)}
 
+    @parameters
+    def operating_conditions(self):
+
 
 class SFOR(Model):
     '''

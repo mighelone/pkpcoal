@@ -1,8 +1,7 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import pkp.coalnew
-import pkp.coalPolimi
+import pkp.detailed_model
 import cantera
 import numpy as np
 import tabulate
@@ -10,7 +9,7 @@ import itertools
 import warnings
 import pandas as pd
 
-from pkp.coalnew import M_elements
+from pkp.detailed_model import M_elements
 from scipy.integrate import ode
 
 
@@ -27,17 +26,19 @@ def set_reference_coal(name, atoms):
 
     Return
     ------
-    pkp.coalnew.Coal
+    pkp.detailed_model.DetailedModel
     '''
     atoms['N'] = 0
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
           for el, val in atoms.iteritems()}
-    return pkp.coalnew.Coal(name=name, ultimate_analysis=ua,
-                            proximate_analysis={'FC': 50,
-                                                'VM': 50,
-                                                'Ash': 0,
-                                                'Moist': 0})
+    return pkp.detailed_model.DetailedModel(
+        name=name,
+        ultimate_analysis=ua,
+        proximate_analysis={'FC': 50,
+                            'VM': 50,
+                            'Ash': 0,
+                            'Moist': 0})
 
 # set the reference coals
 coal1 = set_reference_coal('COAL1', atoms={'C': 12, 'H': 11, 'O': 0})
@@ -169,7 +170,8 @@ class TriangleCoal(Triangle):
 
     @staticmethod
     def _coal_to_x(coal):
-        if isinstance(coal, (Polimi, pkp.coalnew.Coal)):
+        if isinstance(coal, (Polimi,
+                             pkp.detailed_model.DetailedModel)):
             return coal.van_kravelen
         else:
             return coal
@@ -208,7 +210,7 @@ triangle_123 = TriangleCoal(coal1,
                             coal3)
 
 
-class Polimi(pkp.coalnew.Coal):
+class Polimi(pkp.detailed_model.DetailedModel):
     '''
     Polimi Multiple Step Kinetic Model for coal devolatilization
     Based on Sommariva (2010).

@@ -1,5 +1,5 @@
 '''
-Coal class
+Detailed model class
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -25,13 +25,51 @@ def normalize_dictionary(d):
     return {el: (val / sum_d) for el, val in d.iteritems()}
 
 
-class Coal(object):
+class Reactor(object):
     '''
-    Coal class used as parent class for Devolatilization models
+    Base class for running devolatilization simulations
+    '''
+    def __init__():
+        self.operating_conditions = None
+
+    @property
+    def operating_conditions(self):
+        return self._operating_conditions
+
+    @operating_conditions.setter
+    def operating_conditions(self, conditions):
+        '''
+        Define operating conditions for evaluating pyrolysis
+
+        Parameters
+        ----------
+        conditions: np.ndarray, list
+            [[t0, T0], ..., [tn, Tn]]
+        '''
+        if conditions is None:
+            self.T = None
+            self._operating_conditions = None
+            return
+        if not isinstance(conditions, (np.ndarray, list)):
+            raise TypeError('Define conditions as list or numpy array')
+        elif isinstance(conditions, list):
+            conditions = np.array(conditions)
+        if not conditions.ndim == 2:
+            raise ValueError('Define conditions as array Nx2')
+        if not conditions.shape[-1] == 2:
+            raise ValueError('Define conditions as array Nx2')
+        self._operating_conditions = conditions
+        self.T = interp1d(conditions[:, 0], conditions[:, 1],
+                          kind='linear')
+
+
+class DetailedModel(Reactor):
+    '''
+    Detailed model class used as parent class for Devolatilization models
     '''
 
     def __init__(self, proximate_analysis, ultimate_analysis,
-                 pressure=101325, name='Coal'):
+                 pressure=101325, name='Detailed model'):
         self.logger = logging.getLogger(
             'main.' + self.__class__.__name__)
         self.ultimate_analysis = ultimate_analysis
@@ -114,36 +152,6 @@ class Coal(object):
     @pressure.setter
     def pressure(self, value):
         self._pressure = value
-
-    @property
-    def operating_conditions(self):
-        return self._operating_conditions
-
-    @operating_conditions.setter
-    def operating_conditions(self, conditions):
-        '''
-        Define operating conditions for evaluating pyrolysis
-
-        Parameters
-        ----------
-        conditions: np.ndarray, list
-            [[t0, T0], ..., [tn, Tn]]
-        '''
-        if conditions is None:
-            self.T = None
-            self._operating_conditions = None
-            return
-        if not isinstance(conditions, (np.ndarray, list)):
-            raise TypeError('Define conditions as list or numpy array')
-        elif isinstance(conditions, list):
-            conditions = np.array(conditions)
-        if not conditions.ndim == 2:
-            raise ValueError('Define conditions as array Nx2')
-        if not conditions.shape[-1] == 2:
-            raise ValueError('Define conditions as array Nx2')
-        self._operating_conditions = conditions
-        self.T = interp1d(conditions[:, 0], conditions[:, 1],
-                          kind='linear')
 
     @property
     def path(self):

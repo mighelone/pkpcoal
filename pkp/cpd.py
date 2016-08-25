@@ -9,7 +9,7 @@ import os
 import subprocess
 import pandas as pd
 
-import pkp.coalnew
+import pkp.detailed_model
 import platform
 
 
@@ -28,7 +28,7 @@ cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
                              -0.0000826717]])
 
 
-class CPD(pkp.coalnew.Coal):
+class CPD(pkp.detailed_model.DetailedModel):
     '''
     Class to run and store results from CPD model
     '''
