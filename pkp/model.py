@@ -1,5 +1,5 @@
 '''
-Models module
+Model module
 =============
 
 Define the empirical models:
@@ -14,8 +14,10 @@ from __future__ import print_function, unicode_literals
 
 import numpy as np
 
+import pkp.detailed_model
 
-class Model(object):
+
+class EmpiricalModel(pkp.detailed_model.Reactor):
     '''
     Parent class for model
     '''
@@ -24,6 +26,7 @@ class Model(object):
 
     def __init__(self):
         self.parameters = None
+        self.y0 = 1.0
 
     @property
     def len_parameters(self):
@@ -57,16 +60,21 @@ class Model(object):
                                 zip(self.parameters_names,
                                     par_values)}
 
-    @parameters
-    def operating_conditions(self):
 
-
-class SFOR(Model):
+class SFOR(EmpiricalModel):
     '''
     Single First Order Reaction (SFOR) model
     '''
-    parameters_names = ['A', 'E', 'Y0']
+    parameters_names = ['A', 'E', 'y0']
     parameters_default = [1e5, 50e6, 0.6]
 
     def __init__(self):
         self._parameters = {'A': 1e5, 'E': 50e6, 'y0': 0.6}
+
+    def rate(self, t, y):
+        '''
+        SFOR reaction rate, 1/s
+        '''
+        k = (self.parameters['A'] /
+             np.exp(self.parameters['E'] / 8314.33 / self.T(t)))
+        return k * (y + self.parameters['y0'] - 1)

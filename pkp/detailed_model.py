@@ -29,7 +29,8 @@ class Reactor(object):
     '''
     Base class for running devolatilization simulations
     '''
-    def __init__():
+
+    def __init__(self):
         self.operating_conditions = None
 
     @property
