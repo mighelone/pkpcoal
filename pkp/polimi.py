@@ -69,7 +69,7 @@ class Triangle(object):
         '''
         Parameters
         ----------
-        x0, x1, x2, np.ndarray, list 
+        x0, x1, x2, np.ndarray, list
             2D Array or list of the triangle vertices
         '''
         if x0 is None:
@@ -223,7 +223,7 @@ class Polimi(pkp.coalnew.Coal):
     char = ['CHAR', 'CHARH', 'CHARG']
 
     def __init__(self, proximate_analysis, ultimate_analysis,
-                 pressure=101325, name='Coal', mechanism='COAL.xml'):
+                 pressure=101325, name='Coal'):
         '''
         Parameters
         ----------
@@ -238,22 +238,65 @@ class Polimi(pkp.coalnew.Coal):
             ultimate_analysis=ultimate_analysis,
             pressure=pressure,
             name=name)
-        self.mechanism = mechanism
-        self.set_triangle()
+        self.mechanism = None
+        self.backend = None
+        self._define_triangle()
+
+    def set_parameters(self, **kwargs):
+        '''
+        '''
+        for key in ('mechanism', 'backend'):
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+    @property
+    def backend(self):
+        '''
+        Return ODE backend
+        '''
+        return self._backend
+
+    @backend.setter
+    def backend(self, value=None):
+        '''
+        Set ODE solver backend.
+
+        Parameters
+        ----------
+        value: str, default='dopri5'
+            'dopri5', 'cvode', 'lsoda', 'dop853'
+        Raise
+        -----
+        ValueError
+            If backend does not exist
+        '''
+        backend_keys = ['dopri5', 'cvode', 'lsoda', 'dop853']
+        if value is None:
+            self._backend = backend_keys[0]
+        elif value in backend_keys:
+            self._backend = value
+        else:
+            raise ValueError('Backend {} not allowed\n'
+                             'Use {}'.format(value, backend_keys))
 
     @property
     def mechanism(self):
         return self._mechanism
 
     @mechanism.setter
-    def mechanism(self, value):
+    def mechanism(self, value=None):
+        '''
+        Set mechanism. Default is COAL.xml
+        '''
+        if value is None:
+            value = 'COAL.xml'
         try:
             self._mechanism = cantera.Solution(value)
             self.mechanism.TP = 300, self.pressure
         except:
             raise MechanismError('Cannot read {}'.format(value))
 
-    def set_triangle(self):
+    def _define_triangle(self):
         '''
         Define in which triangle is the coal and calculate the
         composition based on the reference coals
@@ -283,7 +326,7 @@ class Polimi(pkp.coalnew.Coal):
             return (mechanism.net_production_rates *
                     mechanism.molecular_weights / mechanism.density)
 
-        backend = 'dopri5'
+        backend = self.backend
         # backend = 'cvode'
         # backend = 'lsoda'
         # backend = 'dop853'
@@ -301,7 +344,8 @@ class Polimi(pkp.coalnew.Coal):
         time_end = self.operating_conditions[-1, 0]
 
         while solver.t < time_end:
-            print(solver.t)
+            # print(solver.t)
+            self.logger.debug('t=%s', solver.t)
             solver.integrate(time_end, step=True)
             t.append(solver.t)
             y.append(solver.y)

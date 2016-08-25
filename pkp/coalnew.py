@@ -7,6 +7,7 @@ from __future__ import print_function, unicode_literals
 import os
 import numpy as np
 import tabulate
+import logging
 
 from scipy.interpolate import interp1d
 
@@ -31,6 +32,8 @@ class Coal(object):
 
     def __init__(self, proximate_analysis, ultimate_analysis,
                  pressure=101325, name='Coal'):
+        self.logger = logging.getLogger(
+            'main.' + self.__class__.__name__)
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
         self.pressure = pressure
@@ -145,21 +148,6 @@ class Coal(object):
     def path(self, value):
         self._path = os.path.abspath(value)
 
-    def set_numerical_parameters(self, **kwargs):
-        pass
-
-    def calc_model_parameters(self, **kwargs):
-        pass
-
-    def write_input_files(self, **kwargs):
-        pass
-
-    def read_results(self, **kwargs):
-        pass
-
-    def run(self, **kwargs):
-        pass
-
     @property
     def van_kravelen(self):
         '''
@@ -185,3 +173,19 @@ class Coal(object):
 
     def __repr__(self):
         return self.__str__()
+
+    # common interface for children classes
+    def set_parameters(self, **kwargs):
+        '''
+        Set the calculation parameters
+        '''
+        pass
+
+    def get_parameters(self):
+        '''
+        Return a dictionary parameters
+        '''
+        return {}
+
+    def run(self, **kwargs):
+        pass

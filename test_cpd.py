@@ -4,8 +4,8 @@ from __future__ import print_function, unicode_literals
 import pkp.cpd
 import pkp.coalnew
 import numpy as np
-import platform
 import pytest
+import os
 
 ua = {'C': 69,
       'H': 5,
@@ -107,7 +107,11 @@ def test_operating_conditions(cpd):
 
 
 def test_run(cpd):
-    cpd.path = './test'  # add path to set property
+    test_dir = './test'
+    test_dir = os.path.join(os.getcwd(), test_dir)
+    if not os.path.isdir(test_dir):
+        os.mkdir(test_dir)
+    cpd.path = test_dir  # add path to set property
     cpd.operating_conditions = op_cond
     cpd.set_parameters(dt=1e-5, increment=2, dt_max=1e-5,
                        basename='test', nmr_parameters=None)

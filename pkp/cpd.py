@@ -163,7 +163,7 @@ class CPD(pkp.coalnew.Coal):
             if platform.system() == 'Darwin':
                 value = './cpdnlg.x'
             elif platform.system() == 'Linux':
-                value = './cpdnlg.x'
+                value = './cpdnlg'
             elif platform.system() == 'Windows':
                 value = './cpdnlg.exe'
         self._solver = os.path.abspath(value)
