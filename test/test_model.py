@@ -2,7 +2,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import pytest
-import pkp.model
+import pkp.empirical_model
 import numpy as np
 
 operating_conditions = [[0, 500], [0.1, 1000], [0.2, 1500]]
@@ -10,7 +10,7 @@ operating_conditions = [[0, 500], [0.1, 1000], [0.2, 1500]]
 
 @pytest.fixture
 def sfor():
-    return pkp.model.SFOR()
+    return pkp.empirical_model.SFOR()
 
 
 def test_init_model(sfor):

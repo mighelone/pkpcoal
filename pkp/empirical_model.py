@@ -1,5 +1,5 @@
 '''
-Model module
+Empirical Model module
 =============
 
 Define the empirical models:
