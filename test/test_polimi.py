@@ -24,8 +24,7 @@ def coal():
     return pkp.polimi.Polimi(ultimate_analysis=ua,
                              proximate_analysis=pa,
                              pressure=101325,
-                             name='Polimi test',
-                             mechanism='COAL.xml')
+                             name='Polimi test')
 
 
 @pytest.fixture

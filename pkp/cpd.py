@@ -77,6 +77,7 @@ class CPD(pkp.detailed_model.DetailedModel):
 
         # set parameters -> this can be changed using
         # self.set_parameters
+        self.solver = None
         self._set_NMR_parameters()
         self._set_numerical_parameters()
 
