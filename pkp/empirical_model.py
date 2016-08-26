@@ -22,11 +22,14 @@ from scipy.integrate import ode
 
 class EmpiricalModel(pkp.detailed_model.Reactor):
     '''
-    Parent class for model
+    Parent class for model.
+    y is generally considered as the volatile yield released in the gas
+    phase. y
     '''
     parameters_names = ['foo', 'bar']
     parameters_default = [1, 1]
-    y0 = 1
+    # initial volatile yield
+    y0 = 0
 
     def __init__(self, parameters=None):
         self.parameters = parameters
@@ -139,4 +142,5 @@ class SFOR(EmpiricalModel):
         '''
         k = (self.parameters['A'] /
              np.exp(self.parameters['E'] / 8314.33 / self.T(t)))
-        return k * (1 - y - self.parameters['y0'])
+        # return k * (1 - y - self.parameters['y0'])
+        return k * (self.parameters['y0'] - y)

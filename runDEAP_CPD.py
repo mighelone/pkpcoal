@@ -55,7 +55,7 @@ calc = False
 res0 = calc_CPD() if calc else read_CPD()
 
 
-y_cpd = np.array(res0['fsolid'])
+y_cpd = np.array(res0['ftot'])
 t_cpd = np.array(res0.index) * 1e-3
 
 runner = pkp.PKPRunner('input.yml')
