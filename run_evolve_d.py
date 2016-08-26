@@ -29,31 +29,6 @@ toolbox.register("individual", tools.initRepeat,
 toolbox.register("population", tools.initRepeat, list,
                  toolbox.individual)
 
-
-# ind1 = toolbox.individual()
-# ind1.fitness.values = rosenbrock(ind1)
-# print(ind1)
-
-# print(rosenbrock(ind1))
-
-# mutant
-# mutant = toolbox.clone(ind1)
-# ind2, = tools.mutGaussian(mutant, mu=0.0, sigma=0.2, indpb=0.2)
-# del mutant.fitness.values
-
-# crossover
-# child1, child2 = [toolbox.clone(ind) for ind in (ind1, ind2)]
-# tools.cxBlend(child1, child2, 0.5)
-
-# del child1.fitness.values
-# del child2.fitness.values
-
-# selection
-# selected = tools.selBest([child1, child2], 1)
-# print(child1 in selected)
-# print(child2 in selected)
-
-
 toolbox.register('mate', tools.cxTwoPoint)
 toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1, indpb=0.2)
 toolbox.register('select', tools.selTournament, tournsize=3)

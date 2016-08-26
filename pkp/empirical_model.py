@@ -86,8 +86,12 @@ class EmpiricalModel(pkp.detailed_model.Reactor):
         if t is None:
             t, y = self._run_nostop(solver)
         else:
-            y = self._run_t(solver, t)
-        return t, y
+            t_calc, y = self._run_t(solver, t)
+
+            if not np.allclose(t, t_calc):
+                #raise RuntimeError('t and t_calc not the same!')
+                pass
+        return t, np.squeeze(y)
 
     def _run_nostop(self, solver):
         solver._integrator.iwork[2] = -1
@@ -108,12 +112,15 @@ class EmpiricalModel(pkp.detailed_model.Reactor):
 
     def _run_t(self, solver, t):
         y = []
+        t_calc = []
         for ti in t:
             solver.integrate(ti)
             # print(solver.t, solver.y)
             y.append(solver.y)
+            t_calc.append(solver.t)
+            # print(solver.t)
 
-        return np.array(y)
+        return np.array(t_calc), np.array(y)
 
     def rate(self, t, y):
         return 0

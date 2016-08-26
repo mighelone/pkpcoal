@@ -9,45 +9,27 @@ from deap import tools
 import random
 import numpy as np
 
+
 import pkp
 import pkp.empirical_model
 
 import matplotlib.pyplot as plt
 plt.style.use(['mystyle'])
 
-# calc CPD solution
-runner = pkp.PKPRunner('input.yml')
-runner.operating_conditions['runs'] = 1
-runner.Polimi['active'] = False
-res = runner.run(results_dir='./optdir')
-res0 = res['CPD']['run0']
-y_cpd = np.array(res0['fsolid'])
-# t = np.array(res0['time(ms)']) * 1e-3
-t_cpd = np.array(res0.index) * 1e-3
-operating_conditions = runner.operating_conditions['run0']
 
-# set a SFOR simulation
-# sfor_parameters = {'A': 72e3,
-#                   'E': 55e6,
-#                   'y0': 0.5}
+def calc_CPD():
+    '''Calc CPD'''
+    runner = pkp.PKPRunner('input.yml')
+    runner.operating_conditions['runs'] = 1
+    runner.Polimi['active'] = False
+    res = runner.run(results_dir='./optdir')
+    return res['CPD']['run0']
 
-# m = pkp.empirical_model.SFOR(parameters=sfor_parameters)
-# m.operating_conditions = operating_conditions
 
-# _, y = m.run(t=t)
-
-# fig, ax = plt.subplots()
-# ax.plot(t, y_cpd, label='CPD')
-# ax.plot(t, y, label='SFOR')
-# ax.set_xlabel('t, s')
-# ax.set_ylabel('y, daf')
-# ax.legend(loc='best')
-
-parameters_min = np.array([3., 100, 0.3])  # logA, E MJ/kg, y0
-parameters_max = np.array([5., 200, 0.4])
-delta_parameters = parameters_max - parameters_min
-
-parameters_0 = [4, 150, 0.5]
+def read_CPD():
+    '''Read CPD results'''
+    import pandas as pd
+    return pd.read_csv('optdir/CPD_CPD-Run0.csv', index_col=0)
 
 
 def scale_parameters(parameters):
@@ -55,7 +37,6 @@ def scale_parameters(parameters):
     par_scaled = parameters_min + par_array * delta_parameters
     par_scaled[0] = np.power(10.0, par_scaled[0])
     par_scaled[1] = par_scaled[1] * 1e6
-
     return par_scaled
 
 
@@ -66,14 +47,31 @@ def error(parameters):
         parameters=par_scaled)
     m.operating_conditions = operating_conditions
     _, y = m.run(t=t_cpd)
-    return np.mean(np.power((y - y_cpd), 2)),
+    return np.mean((y - y_cpd)**2),
 
-#print('Error: {}'.format(error(parameters_0)))
+
+calc = False
+
+res0 = calc_CPD() if calc else read_CPD()
+
+
+y_cpd = np.array(res0['fsolid'])
+t_cpd = np.array(res0.index) * 1e-3
+
+runner = pkp.PKPRunner('input.yml')
+operating_conditions = runner.operating_conditions['run0']
+
+parameters_min = np.array([3., 20, 0.4])  # logA, E MJ/kg, y0
+parameters_max = np.array([14, 300, 0.8])
+delta_parameters = parameters_max - parameters_min
+
+parameters_0 = [4, 150, 0.5]
+
 
 # GA parameters
 IND_SIZE = 3
-NPOP = 20
-CXPB, MUTPB, NGEN = 0.9, 0.1, 50
+NPOP = 40
+CXPB, MUTPB, NGEN = 0.7, 0.2, 30
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -113,7 +111,7 @@ if __name__ == '__main__':
         #                               stats=stats, halloffame=hof,
         #                               verbose=True)
         pop, log = algorithms.eaMuPlusLambda(pop, toolbox, mu=NPOP,
-                                             lambda_=50,
+                                             lambda_=30,
                                              cxpb=CXPB,
                                              mutpb=MUTPB,
                                              ngen=NGEN,
@@ -130,7 +128,7 @@ if __name__ == '__main__':
 
     best_parameters = scale_parameters(best)
 
-    print('Best population', best)
+    print('Best population', best, best_parameters)
 
     m = pkp.empirical_model.SFOR(parameters=best_parameters)
     m.operating_conditions = operating_conditions
