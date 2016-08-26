@@ -43,11 +43,11 @@ operating_conditions = runner.operating_conditions['run0']
 # ax.set_ylabel('y, daf')
 # ax.legend(loc='best')
 
-parameters_min = np.array([2., 10, 0.3])  # logA, E MJ/kg, y0
-parameters_max = np.array([5., 200, 0.7])
+parameters_min = np.array([3., 100, 0.3])  # logA, E MJ/kg, y0
+parameters_max = np.array([5., 200, 0.4])
 delta_parameters = parameters_max - parameters_min
 
-parameters_0 = [3, 50, 0.5]
+parameters_0 = [4, 150, 0.5]
 
 
 def scale_parameters(parameters):
@@ -72,8 +72,8 @@ def error(parameters):
 
 # GA parameters
 IND_SIZE = 3
-NPOP = 30
-CXPB, MUTPB, NGEN = 0.5, 0.2, 30
+NPOP = 20
+CXPB, MUTPB, NGEN = 0.9, 0.1, 50
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -108,9 +108,39 @@ if __name__ == '__main__':
     stats.register("max", np.max)
 
     try:
-        pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
-                                       mutpb=MUTPB, ngen=NGEN,
-                                       stats=stats, halloffame=hof,
-                                       verbose=True)
+        # pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
+        #                               mutpb=MUTPB, ngen=NGEN,
+        #                               stats=stats, halloffame=hof,
+        #                               verbose=True)
+        pop, log = algorithms.eaMuPlusLambda(pop, toolbox, mu=NPOP,
+                                             lambda_=50,
+                                             cxpb=CXPB,
+                                             mutpb=MUTPB,
+                                             ngen=NGEN,
+                                             stats=stats,
+                                             halloffame=hof,
+                                             verbose=True)
+
     except KeyboardInterrupt:
         print('Stop evolution!')
+
+    # plot the results
+    fitnesses = np.array([p.fitness.values for p in pop])
+    best = pop[fitnesses.argmin()]
+
+    best_parameters = scale_parameters(best)
+
+    print('Best population', best)
+
+    m = pkp.empirical_model.SFOR(parameters=best_parameters)
+    m.operating_conditions = operating_conditions
+    _, y_sfor = m.run(t=t_cpd)
+
+    fig, ax = plt.subplots()
+
+    ax.plot(t_cpd, y_cpd, label='CPD')
+    ax.plot(t_cpd, y_sfor, label='SFOR')
+
+    ax.legend()
+
+    plt.show()

@@ -19,3 +19,5 @@ if __name__ == '__main__':
     runner = pkp.PKPRunner(yml_file)
     logger.info('Start run')
     results = runner.run(results_dir='test')
+
+    # plot results
