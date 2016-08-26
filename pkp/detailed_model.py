@@ -7,9 +7,16 @@ from __future__ import print_function, unicode_literals
 import os
 import numpy as np
 import tabulate
+import pkp
+import pkp.reactor
 import logging
 
-from scipy.interpolate import interp1d
+
+def logged(class_):
+    print('Set logger decorator')
+    class_.logger = logging.getLogger(
+        'main.' + class_.__class__.__name__)
+    return class_
 
 pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
@@ -25,54 +32,16 @@ def normalize_dictionary(d):
     return {el: (val / sum_d) for el, val in d.iteritems()}
 
 
-class Reactor(object):
+@logged
+class DetailedModel(pkp.reactor.Reactor):
     '''
-    Base class for running devolatilization simulations
-    '''
-
-    def __init__(self):
-        self.operating_conditions = None
-
-    @property
-    def operating_conditions(self):
-        return self._operating_conditions
-
-    @operating_conditions.setter
-    def operating_conditions(self, conditions):
-        '''
-        Define operating conditions for evaluating pyrolysis
-
-        Parameters
-        ----------
-        conditions: np.ndarray, list
-            [[t0, T0], ..., [tn, Tn]]
-        '''
-        if conditions is None:
-            self.T = None
-            self._operating_conditions = None
-            return
-        if not isinstance(conditions, (np.ndarray, list)):
-            raise TypeError('Define conditions as list or numpy array')
-        elif isinstance(conditions, list):
-            conditions = np.array(conditions)
-        if not conditions.ndim == 2:
-            raise ValueError('Define conditions as array Nx2')
-        if not conditions.shape[-1] == 2:
-            raise ValueError('Define conditions as array Nx2')
-        self._operating_conditions = conditions
-        self.T = interp1d(conditions[:, 0], conditions[:, 1],
-                          kind='linear')
-
-
-class DetailedModel(Reactor):
-    '''
-    Detailed model class used as parent class for Devolatilization models
+    Detailed model class used as parent class for Devolatilization
+    models
     '''
 
     def __init__(self, proximate_analysis, ultimate_analysis,
                  pressure=101325, name='Detailed model'):
-        self.logger = logging.getLogger(
-            'main.' + self.__class__.__name__)
+        super(DetailedModel, self).__init__()
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
         self.pressure = pressure

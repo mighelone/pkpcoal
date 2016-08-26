@@ -8,6 +8,7 @@ from __future__ import print_function, unicode_literals
 import logging
 import ruamel_yaml as yaml
 import os
+import numpy as np
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
@@ -15,14 +16,21 @@ from pkp.polimi import Polimi
 models = ['CPD', 'Polimi']
 
 
+def logged(class_):
+    print('Set logger decorator')
+    class_.logger = logging.getLogger(
+        'main.' + class_.__class__.__name__)
+    return class_
+
+
+@logged
 class ReadConfiguration(object):
     '''
     Read configuration file for PKP
     '''
 
     def __init__(self, yml):
-        self.logger = logging.getLogger(
-            'main.' + self.__class__.__name__)
+        super(ReadConfiguration, self).__init__()
         if isinstance(yml, (str, unicode)):
             with open(yml, 'r') as f:
                 yml_input = yaml.load(f)
@@ -47,37 +55,12 @@ class ReadConfiguration(object):
         self.operating_conditions = yml_input['operating_conditions']
 
 
-class PKPRunner(object):
+@logged
+class PKPRunner(ReadConfiguration):
     '''
     Run PKP case
     '''
     models = models
-
-    def __init__(self, yml):
-        self.logger = logging.getLogger(
-            'main.' + self.__class__.__name__)
-        if isinstance(yml, (str, unicode)):
-            with open(yml, 'r') as f:
-                yml_input = yaml.load(f)
-        elif isinstance(yml, dict):
-            yml_input = yml
-        else:
-            raise ValueError('Define yml as file name or dictionary')
-
-        # coal settings
-        coal_settings = yml_input['Coal']
-        self.proximate_analysis = coal_settings['proximate_analysis']
-        self.ultimate_analysis = coal_settings['ultimate_analysis']
-        # convert HHV from MJ/kg to J/kg
-        self.HHV = coal_settings['HHV'] * 1e6
-        self.rho_dry = coal_settings['rho_dry']
-
-        # Solver settings
-        [setattr(self, model, yml_input[model])
-         for model in models]
-
-        # Solver settings
-        self.operating_conditions = yml_input['operating_conditions']
 
     def run(self, results_dir=None):
         if results_dir is None:

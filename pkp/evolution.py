@@ -6,6 +6,200 @@ Manage genetic evolution using DEAP
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+import pkp.detailed_model
+import pkp.empirical_model
+import numpy as np
+import logging
+import random
+
 from deap import base
 from deap import creator
 from deap import tools
+from deap import algorithms
+
+
+def logged(class_):
+    class_.logger = logging.getLogger(
+        'main.' + class_.__class__.__name__)
+    return class_
+
+
+@logged
+class Evolution(pkp.reactor.Reactor):
+    '''
+    Evolution manager based on DEAP
+    '''
+
+    def __init__(self, npop=40, ngen=30, cxpb=0.6, mtupb=0.2):
+        '''
+        Parameters
+        ----------
+        npop: int
+            Size of population
+        ngen: int
+            Number of generation
+        cxpb: float
+            Crossover probability (<1)
+        mutpb: float
+            Mutation probability (<1)
+        '''
+
+        # GA parameters
+        self._npop = 40
+        self._ngen = 30
+        self._cxpb = 0.6
+        self._mutpb = 0.2
+
+        self._ntargets = 0
+        self.ref_results = {}
+
+        self._empirical_model = pkp.empirical_model.SFOR
+        self._parameters_min = None
+        self._parameters_max = None
+
+    def set_target(self, t, y, every=1):
+        '''
+        Set the target conditions.
+        This operation has to be done as many times as necessary
+
+        Parameter
+        ---------
+        t: array
+            Time vector
+        y: array
+            Yield vector
+        '''
+        if not len(t) == len(y):
+            raise ValueError('Length of t and y should be the same')
+        self.ref_results['run{}'.format(self.n_targets)] = {
+            't': np.array(t)[::every],
+            'y': np.array(y)[::every]
+        }
+        self._ntargets += 1
+
+    @property
+    def n_targets(self):
+        return self._ntargets
+
+    @property
+    def empirical_model(self):
+        return self._empirical_model
+
+    @empirical_model.setter
+    def empirical_model(self, model):
+        '''
+        Set the empirical model for the calibration
+        '''
+        # check attributes using the EmpiricalModel attributes
+        self._empirical_model = model
+
+    def error(self, individual):
+        '''
+        Calculate the error for the given individual
+        '''
+        err = 0
+        parameters = self.unscale_parameters(individual)
+        for run, results in self.ref_results.iteritems():
+            m = self.empirical_model(parameters)
+            m.operating_conditions = self.operating_conditions
+            _, y = m.run(results['t'])
+            err += self.error_run(y, results['y'])
+            # del m
+        return err
+
+    @staticmethod
+    def error_run(y, y_t):
+        return np.mean((y - y_t)**2)
+
+    def generation(self, verbose=True):
+        '''
+        '''
+        toolbox = self.toolbox
+        pop = toolbox.population(n=self._npop)
+        hof = tools.HallOfFame(1)
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats.register("avg", np.mean)
+        stats.register("std", np.std)
+        stats.register("min", np.min)
+        stats.register("max", np.max)
+
+        try:
+            # pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
+            #                               mutpb=MUTPB, ngen=NGEN,
+            #                               stats=stats, halloffame=hof,
+            #                               verbose=True)
+            pop, log = algorithms.eaMuPlusLambda(pop, toolbox,
+                                                 mu=self._npop,
+                                                 lambda_=30,
+                                                 cxpb=self._cxpb,
+                                                 mutpb=self._mutpb,
+                                                 ngen=self._ngen,
+                                                 stats=stats,
+                                                 halloffame=hof,
+                                                 verbose=verbose)
+        # TODO this is must be done inside the algorithm
+        except KeyboardInterrupt:
+            print('Stop evolution!')
+        self.pop = pop
+        self.log = log
+
+        fitnesses = np.array([p.fitness.values for p in pop])
+        best = pop[fitnesses.argmin()]
+
+        best_parameters = self.unscale_parameters(best)
+
+        print('Best population', best, best_parameters)
+
+    def register(self):
+        '''
+        Register settings for the Evolution algorithm using DEAP
+        Check if this can be done inside a function
+        '''
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMin)
+
+        toolbox = base.Toolbox()
+        # Attribute generator
+        #toolbox.register("attr_float", random.randrange, -100, 100)
+        toolbox.register("attr_float", random.random)
+        # Structure initializers
+        toolbox.register("individual", tools.initRepeat,
+                         creator.Individual, toolbox.attr_float,
+                         n=len(self.empirical_model.parameters_names))
+        toolbox.register("population", tools.initRepeat, list,
+                         toolbox.individual)
+
+        toolbox.register('mate', tools.cxTwoPoint)
+        toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
+                         indpb=0.2)
+        toolbox.register('select', tools.selTournament, tournsize=3)
+        #toolbox.register('evaluate', rosenbrock)
+        # toolbox.register('evaluate', bohachevsky)
+        toolbox.register('evaluate', self.error)
+
+        self.toolbox = toolbox
+
+    def parameters_range(self, parameters_min, parameters_max):
+        len_model = len(self.empirical_model.parameters_names)
+        if (len(parameters_min) != len_model or
+                len(parameters_max) != len_model):
+            raise ValueError(
+                'Define parameters min and'
+                ' max with length {}'.format(len_model))
+        self._parameters_min = parameters_min
+        self._parameters_max = parameters_max
+
+    def unscale_parameters(self, norm_parameters):
+        '''
+        Unscale parameters for the given optimization.
+
+        Note first define min and max parameters using
+        `parameters_range`
+        '''
+        if (self._parameters_min is None or
+                self._parameters_max is None):
+            raise AssertionError(
+                'Define at first the range of parameters')
+        return self.empirical_model.unscale_parameters(
+            norm_parameters, self._parameters_min,
+            self._parameters_max)

@@ -16,11 +16,19 @@ import numpy as np
 
 import pkp.detailed_model
 import warnings
+import logging
 
 from scipy.integrate import ode
 
 
-class EmpiricalModel(pkp.detailed_model.Reactor):
+def logged(class_):
+    class_.logger = logging.getLogger(
+        'main.' + class_.__class__.__name__)
+    return class_
+
+
+@logged
+class EmpiricalModel(pkp.reactor.Reactor):
     '''
     Parent class for model.
     y is generally considered as the volatile yield released in the gas
@@ -128,7 +136,12 @@ class EmpiricalModel(pkp.detailed_model.Reactor):
     def rate(self, t, y):
         return 0
 
+    def unscale_parameters(self, norm_parameters,
+                           parameters_min, parameters_max):
+        return 0
 
+
+@logged
 class SFOR(EmpiricalModel):
     '''
     Single First Order Reaction (SFOR) model
@@ -144,3 +157,26 @@ class SFOR(EmpiricalModel):
              np.exp(self.parameters['E'] / 8314.33 / self.T(t)))
         # return k * (1 - y - self.parameters['y0'])
         return k * (self.parameters['y0'] - y)
+
+    @staticmethod
+    def unscale_parameters(norm_parameters, parameters_min,
+                           parameters_max):
+        '''
+        Unscale normalized parameters.
+        A is stored as logA
+
+        Return
+        ------
+        unsc_par: array
+            Unscaled paramters
+        '''
+        # todo check if the conversion to array is too expensive!!
+        parameters_min = np.array(parameters_min)
+        parameters_max = np.array(parameters_max)
+        norm_parameters = np.array(norm_parameters)
+        unsc_par = (parameters_min - norm_parameters *
+                    (parameters_max - parameters_min))
+
+        # calculate A = 10^log10(A)
+        unsc_par[0] = np.power(10., unsc_par[0])
+        return unsc_par
