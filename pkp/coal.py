@@ -1,6 +1,8 @@
 import numpy as np
+from autologging import logged
 
 
+@logged
 class coal():
 
     def __init__(self, name='', c=0.845, h=0.05, o=0.1, n=0.05, s=0.):
@@ -43,10 +45,10 @@ class coal():
 
     def setPA(self, moisture=0.1, char=0.4, vm=0.5, ash=0.1):
         sumPA = moisture + char + vm + ash
-        self._moist = moisture/sumPA
-        self._ash = self._ash/sumPA
-        self._vm = vm/sumPA
-        self._char = char/sumPA
+        self._moist = moisture / sumPA
+        self._ash = self._ash / sumPA
+        self._vm = vm / sumPA
+        self._char = char / sumPA
         self._daf = self._vm + self._char
 
     def setName(self,name):

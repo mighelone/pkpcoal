@@ -9,19 +9,13 @@ from __future__ import print_function, unicode_literals
 import pkp.detailed_model
 import pkp.empirical_model
 import numpy as np
-import logging
 import random
+from autologging import logged
 
 from deap import base
 from deap import creator
 from deap import tools
 from deap import algorithms
-
-
-def logged(class_):
-    class_.logger = logging.getLogger(
-        'main.' + class_.__class__.__name__)
-    return class_
 
 
 @logged

@@ -5,22 +5,14 @@ PKP Pyrolysis Kinetic Preprocessor
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import logging
+from autologging import logged
 import ruamel_yaml as yaml
 import os
-import numpy as np
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
 
 models = ['CPD', 'Polimi']
-
-
-def logged(class_):
-    print('Set logger decorator')
-    class_.logger = logging.getLogger(
-        'main.' + class_.__class__.__name__)
-    return class_
 
 
 @logged
@@ -65,7 +57,7 @@ class PKPRunner(ReadConfiguration):
     def run(self, results_dir=None):
         if results_dir is None:
             results_dir = os.getcwd()
-        self.logger.info('Run models %s', self.models)
+        self.__log.info('Run models %s', self.models)
         results = {}
         for model in self.models:
             res = self._run_model(model=model,
@@ -78,15 +70,15 @@ class PKPRunner(ReadConfiguration):
         '''
         Run simulations for the given model
         '''
-        self.logger.info('Run %s model', model)
+        self.__log.info('Run %s model', model)
         model_settings = getattr(self, model)
-        self.logger.debug('Model %s active %s', model,
-                          model_settings['active'])
+        self.__log.debug('Model %s active %s', model,
+                         model_settings['active'])
         if model_settings['active']:
             results = {}
             for n in range(
                     self.operating_conditions['runs']):
-                self.logger.debug(
+                self.__log.debug(
                     'Initialize run %s for %s', n, model)
                 run = globals()[model](
                     ultimate_analysis=self.ultimate_analysis,
@@ -95,14 +87,14 @@ class PKPRunner(ReadConfiguration):
                     name='{}-Run{}'.format(model, n)
                 )
                 run.path = results_dir
-                self.logger.debug('Set path to: %s', run.path)
+                self.__log.debug('Set path to: %s', run.path)
                 # run.set_parameters(**getattr(self.reader, model))
                 run.set_parameters(**model_settings)
-                self.logger.debug('Set property run %s for %s', n,
-                                  model)
+                self.__log.debug('Set property run %s for %s', n,
+                                 model)
                 run.operating_conditions = (
                     self.operating_conditions['run{}'.format(n)])
-                self.logger.debug('Run %s for %s', n, model)
+                self.__log.debug('Run %s for %s', n, model)
                 res = run.run()
                 results['run{}'.format(n)] = res
         else:

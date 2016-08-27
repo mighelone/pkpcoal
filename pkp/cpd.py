@@ -8,6 +8,7 @@ import numpy as np
 import os
 import subprocess
 import pandas as pd
+from autologging import logged
 
 import pkp.detailed_model
 import platform
@@ -28,6 +29,7 @@ cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
                              -0.0000826717]])
 
 
+@logged
 class CPD(pkp.detailed_model.DetailedModel):
     '''
     Class to run and store results from CPD model

@@ -16,15 +16,9 @@ import numpy as np
 
 import pkp.detailed_model
 import warnings
-import logging
+from autologging import logged
 
 from scipy.integrate import ode
-
-
-def logged(class_):
-    class_.logger = logging.getLogger(
-        'main.' + class_.__class__.__name__)
-    return class_
 
 
 @logged
@@ -172,11 +166,14 @@ class SFOR(EmpiricalModel):
         '''
         # todo check if the conversion to array is too expensive!!
         parameters_min = np.array(parameters_min)
+        parameters_min[0] = np.log10(parameters_min[0])
         parameters_max = np.array(parameters_max)
+        parameters_max[0] = np.log10(parameters_max[0])
         norm_parameters = np.array(norm_parameters)
-        unsc_par = (parameters_min - norm_parameters *
+        unsc_par = (parameters_min + norm_parameters *
                     (parameters_max - parameters_min))
 
         # calculate A = 10^log10(A)
-        unsc_par[0] = np.power(10., unsc_par[0])
+        unsc_par[0] = np.power(10, unsc_par[0])
+
         return unsc_par

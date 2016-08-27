@@ -57,7 +57,7 @@ def test_rate(sfor):
     T = sfor.T(t)
     rate = par['A'] * np.exp(-par['E'] / 8314.33 / T) * par['y0']
 
-    assert np.isclose(sfor.rate(t=t, y=1), rate)
+    assert np.isclose(sfor.rate(t=t, y=0), rate)
 
 
 def test_run(sfor):
@@ -93,5 +93,9 @@ def test_unscale(sfor):
     scal_par = np.array([0.2, 0.5, 0.4])
 
     unsc_par = sfor.unscale_parameters(scal_par, par_min, par_max)
-    assert np.allclose(unsc_par,
-                       par_min + scal_par * (par_max - par_min))
+    unsc_par_c = (par_min + scal_par * (par_max - par_min))
+    assert np.allclose(unsc_par[1:],
+                       unsc_par_c[1:])
+    assert np.isclose(np.log10(unsc_par[0]),
+                      (np.log10(par_min) + scal_par * (
+                          np.log10(par_max) - np.log10(par_min)))[0])

@@ -9,14 +9,8 @@ import numpy as np
 import tabulate
 import pkp
 import pkp.reactor
-import logging
-
-
-def logged(class_):
-    print('Set logger decorator')
-    class_.logger = logging.getLogger(
-        'main.' + class_.__class__.__name__)
-    return class_
+from autologging import logged
+from distutils.dir_util import mkpath
 
 pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
@@ -133,6 +127,11 @@ class DetailedModel(pkp.reactor.Reactor):
             self._path = os.getcwd()
         else:
             self._path = os.path.abspath(value)
+        self.__log.debug('Set path to %s', self._path)
+        if not os.path.isdir(self._path):
+            self.__log.debug('Create path %s', self._path)
+            # os.mkdir(self._path)
+            mkpath(self._path)
         # if you uodate the path update also the files
         self._set_basename(self._basename)
 
@@ -158,9 +157,9 @@ class DetailedModel(pkp.reactor.Reactor):
             value = (self.__class__.__name__ +
                      '_' + self.name.replace(' ', '_'))
         self._basename = value
-        self.logger.debug('basename: %s', self.basename)
+        self.__log.debug('basename: %s', self.basename)
         self._out_csv = os.path.join(self.path, self.basename + '.csv')
-        self.logger.debug('Out CSV %s', self._out_csv)
+        self.__log.debug('Out CSV %s', self._out_csv)
 
     basename = property(_get_basename, _set_basename)
 

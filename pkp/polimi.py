@@ -8,6 +8,7 @@ import tabulate
 import itertools
 import warnings
 import pandas as pd
+from autologging import logged
 
 from pkp.detailed_model import M_elements
 from scipy.integrate import ode
@@ -60,6 +61,7 @@ class OutsideTriangleError(Exception):
     pass
 
 
+@logged
 class Triangle(object):
     '''
     Triangle class. Used for triangulation calculations
@@ -146,6 +148,7 @@ class Triangle(object):
         return s
 
 
+@logged
 class TriangleCoal(Triangle):
     '''
     Triangle class based on coal Van Kravelen diagram
@@ -210,6 +213,7 @@ triangle_123 = TriangleCoal(coal1,
                             coal3)
 
 
+@logged
 class Polimi(pkp.detailed_model.DetailedModel):
     '''
     Polimi Multiple Step Kinetic Model for coal devolatilization
@@ -314,7 +318,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
             self.inside = '123'
         else:
             raise CompositionError('Composition outside triangles')
-        self.logger.debug('Coal is inside triangle %s', self.inside)
+        self.__log.debug('Coal is inside triangle %s', self.inside)
         self.triangle_weights = self.triangle.weights(self)
         self.composition = {c.name: self.triangle_weights[i]
                             for i, c in enumerate(
@@ -345,7 +349,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
 
         while solver.t < time_end:
             # print(solver.t)
-            # self.logger.debug('t=%s', solver.t)
+            # self.__log.debug('t=%s', solver.t)
             solver.integrate(time_end, step=True)
             t.append(solver.t)
             y.append(solver.y)
@@ -363,7 +367,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
         data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
         data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
 
-        self.logger.debug('Write %s', self._out_csv)
+        self.__log.debug('Write %s', self._out_csv)
         data.to_csv(self._out_csv)
 
         return data
