@@ -24,14 +24,14 @@ class Evolution(pkp.reactor.Reactor):
     Evolution manager based on DEAP
     '''
 
-    def __init__(self, npop=40, ngen=30, cxpb=0.6, mtupb=0.2):
+    def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2):
         '''
         Parameters
         ----------
         npop: int
             Size of population
         ngen: int
-            Number of generation
+            Number of evolve
         cxpb: float
             Crossover probability (<1)
         mutpb: float
@@ -39,10 +39,14 @@ class Evolution(pkp.reactor.Reactor):
         '''
 
         # GA parameters
-        self._npop = 40
-        self._ngen = 30
-        self._cxpb = 0.6
-        self._mutpb = 0.2
+        self._npop = npop
+        self._ngen = ngen
+        self._cxpb = cxpb
+        self._mutpb = mutpb
+        self.__log.debug('Set npop=%s', self._npop)
+        self.__log.debug('Set ngen=%s', self._ngen)
+        self.__log.debug('Set cxpb=%s', self._cxpb)
+        self.__log.debug('Set mutpb=%s', self._mutpb)
 
         self._ntargets = 0
         self.ref_results = {}
@@ -70,6 +74,7 @@ class Evolution(pkp.reactor.Reactor):
             'y': np.array(y)[::every]
         }
         self._ntargets += 1
+        self.__log.debug('Set target run(%s)', self._ntargets)
 
     @property
     def n_targets(self):
@@ -85,6 +90,9 @@ class Evolution(pkp.reactor.Reactor):
         Set the empirical model for the calibration
         '''
         # check attributes using the EmpiricalModel attributes
+        if not issubclass(model, pkp.empirical_model.EmpiricalModel):
+            raise TypeError('model has to be child of EmpiricalModel!')
+        self.__log.debug('Set empirical_model to %s', model)
         self._empirical_model = model
 
     def error(self, individual):
@@ -99,15 +107,20 @@ class Evolution(pkp.reactor.Reactor):
             _, y = m.run(results['t'])
             err += self.error_run(y, results['y'])
             # del m
-        return err
+        return err,
 
     @staticmethod
     def error_run(y, y_t):
         return np.mean((y - y_t)**2)
 
-    def generation(self, verbose=True):
+    def evolve(self, mu=None, lambda_=None, verbose=True):
         '''
+        Add mu/lambda parameters/
         '''
+        if mu is None:
+            mu = self._npop
+        if lambda_ is None:
+            lambda_ = int(self._npop / 2)
         toolbox = self.toolbox
         pop = toolbox.population(n=self._npop)
         hof = tools.HallOfFame(1)
@@ -123,8 +136,8 @@ class Evolution(pkp.reactor.Reactor):
             #                               stats=stats, halloffame=hof,
             #                               verbose=True)
             pop, log = algorithms.eaMuPlusLambda(pop, toolbox,
-                                                 mu=self._npop,
-                                                 lambda_=30,
+                                                 mu=mu,
+                                                 lambda_=lambda_,
                                                  cxpb=self._cxpb,
                                                  mutpb=self._mutpb,
                                                  ngen=self._ngen,
@@ -136,6 +149,7 @@ class Evolution(pkp.reactor.Reactor):
             print('Stop evolution!')
         self.pop = pop
         self.log = log
+        self.stats = stats
 
         fitnesses = np.array([p.fitness.values for p in pop])
         best = pop[fitnesses.argmin()]
@@ -143,6 +157,7 @@ class Evolution(pkp.reactor.Reactor):
         best_parameters = self.unscale_parameters(best)
 
         print('Best population', best, best_parameters)
+        return best_parameters
 
     def register(self):
         '''
