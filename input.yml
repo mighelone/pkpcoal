@@ -1,3 +1,5 @@
+# PKP input file
+# use empty for None
 #Proximate Analysis (in percent, as received):
 Coal:
   proximate_analysis:
@@ -16,19 +18,67 @@ Coal:
   #Tar Molecule weight, MTar:
   rho_dry : 1310 # kg/m3
 
+CPD:
+  active : true
+  fit: #more fitting can be defined here (names are arbitrarly)
+    fit0:
+      model: SFOR
+      species: ftot
+      parameters_min: [1e4, 50e6, 0.4]
+      parameters_max: [1e9, 200e6, 0.8]
+      parameters_init: [1e5, 100e6, 0.5] # not required by evolve
+      method: evolve
+      # from here parameters of evolve
+      npop: 60
+      ngen: 40
+      mu: 60
+      lambda_: 40
+      cxpb: 0.6
+      mutpb: 0.2
+        
+  dt: 1e-5
+  increment: 5
+  dt_max: 1e-5
+  nmr_parameters: 
+  solver:
+
+Polimi:
+  active: true
+  fit:
+  backend: dopri5
+  mechanism:
+
+
+Calibration:
+    weightYield     :   100.
+    weightRate      :   0.
+    # species to fit: total, mainSpecies, allSpecies
+    speciesToFit    :   total 
+
+operating_conditions:
+    pressure    : 1.0 #atmosphere
+    runs: 3
+    run0        : [ [ 0, 700], [ 0.005, 1500], [ 0.01, 1500] ]
+    run1        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
+    run2        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]
+    run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
+    run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
+
+
+    
 FIT:
-  #Model: ['SCR', 'C2SM', 'DAEM'] #, 'ArrheniusNoB', 'C2SM', 'DAEM', 'None']
-  #Model: arrheniusRate
-  Model: None
+  #Model: ['SFOR', 'C2SM', 'DAEM']
+
+  Model: SFOR
   # FitMethod: choose different methods for optimising the parameters
   # fmin: run only "fmin" from scipy
   # brute: run only "brute" optimiziation from scipy
   # evolve: run only "evolve" optimization using GA
   # brute+fmin: run fmin after brute optimization
   # evolve+fmin: run fmin after evolve optimization
-  FitMethod: 'evolve'
+  method: 'evolve'
   # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
-  Species: [ftot] # empty list for all available species
+  species: [volatiles] # empty list for all available species
   SCR:
     k :  1.0
     kBounds :  [0.0, 1.0]
@@ -67,20 +117,6 @@ FIT:
 # Kobayashi -> C2SM (Competing 2 steps model)
 # DAEM
 # constantRate -> SCR (single constant rate)
-CPD:
-  active : true
-  fit: 
-  dt: 1e-5
-  increment: 5
-  dt_max: 1e-5
-  nmr_parameters: 
-  solver:
-
-Polimi:
-  active: true
-  fit:
-  backend: dopri5
-  mechanism:
 
 FGDVC:
   active      : false
@@ -125,17 +161,3 @@ BioPolipomi:
   nPoints: 1000
   
 
-Calibration:
-    weightYield     :   100.
-    weightRate      :   0.
-    # species to fit: total, mainSpecies, allSpecies
-    speciesToFit    :   total 
-
-operating_conditions:
-    pressure    : 1.0 #atmosphere
-    runs: 3
-    run0        : [ [ 0, 700], [ 0.005, 1500], [ 0.01, 1500] ]
-    run1        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
-    run2        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]
-    run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
-    run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]

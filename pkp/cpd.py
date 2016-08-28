@@ -293,7 +293,9 @@ class CPD(pkp.detailed_model.DetailedModel):
                 escapechar='c',
                 index_col=0)
         df = pd.concat([read_file(n) for n in range(1, 5)], axis=1)
-        df.index.rename('Time(ms)', inplace=True)
+        df.index.rename('t', inplace=True)
+        df.index = df.index * 1e-3
+        self.__log.debug('CPD index max %s', df.index.max())
 
         # out_csv = os.path.join(self.path, self.basename + '.csv')
         df.to_csv(self._out_csv)

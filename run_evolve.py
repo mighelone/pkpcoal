@@ -8,6 +8,7 @@ import pkp
 import pkp.evolution
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 plt.style.use(['mystyle'])
 
 
@@ -27,13 +28,19 @@ lambda_ = 50
 parameters_min = [1e4, 50e6, 0.4]  # A, E, y0
 parameters_max = [1e10, 300e6, 0.8]
 
+logger = logging.getLogger('')
+logger.setLevel(logging.INFO)
+
 
 def calc_CPD():
     '''Calc CPD'''
     runner = pkp.PKPRunner('input.yml')
     runner.operating_conditions['runs'] = 1
     runner.Polimi['active'] = False
-    res = runner.run(results_dir='./optdir')
+    print(runner.CPD)
+    runner.CPD['fit'] = None
+    res, _ = runner.run(results_dir='./optdir')
+    logger.debug('res %s', res.keys())
     return res['CPD']['run0']
 
 
@@ -51,13 +58,14 @@ if __name__ == '__main__':
     t_cpd = np.array(res.index) * 1e-3
 
     reader = pkp.ReadConfiguration(yml_file_default)
-    operating_conditions = reader.operating_conditions['run0']
+    operating_conditions = reader.operating_conditions
 
     ga = pkp.evolution.Evolution(npop=npop, ngen=ngen, cxpb=cxpb,
                                  mutpb=mutpb)
     ga.empirical_model = pkp.empirical_model.SFOR
-    ga.operating_conditions = operating_conditions
-    ga.set_target(t=t_cpd, y=y_cpd)
+    # ga.operating_conditions = operating_conditions
+    ga.set_target(t=t_cpd, y=y_cpd,
+                  operating_conditions=operating_conditions['run0'])
     ga.parameters_range(parameters_min=parameters_min,
                         parameters_max=parameters_max)
 

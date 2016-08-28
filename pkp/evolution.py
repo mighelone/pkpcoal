@@ -19,7 +19,7 @@ from deap import algorithms
 
 
 @logged
-class Evolution(pkp.reactor.Reactor):
+class Evolution(object):
     '''
     Evolution manager based on DEAP
     '''
@@ -55,7 +55,7 @@ class Evolution(pkp.reactor.Reactor):
         self._parameters_min = None
         self._parameters_max = None
 
-    def set_target(self, t, y, every=1):
+    def set_target(self, t, y, operating_conditions, every=1):
         '''
         Set the target conditions.
         This operation has to be done as many times as necessary
@@ -71,7 +71,8 @@ class Evolution(pkp.reactor.Reactor):
             raise ValueError('Length of t and y should be the same')
         self.ref_results['run{}'.format(self.n_targets)] = {
             't': np.array(t)[::every],
-            'y': np.array(y)[::every]
+            'y': np.array(y)[::every],
+            'operating_conditions': operating_conditions
         }
         self._ntargets += 1
         self.__log.debug('Set target run(%s)', self._ntargets)
@@ -103,7 +104,7 @@ class Evolution(pkp.reactor.Reactor):
         parameters = self.unscale_parameters(individual)
         for run, results in self.ref_results.iteritems():
             m = self.empirical_model(parameters)
-            m.operating_conditions = self.operating_conditions
+            m.operating_conditions = results['operating_conditions']
             _, y = m.run(results['t'])
             err += self.error_run(y, results['y'])
             # del m
@@ -169,7 +170,7 @@ class Evolution(pkp.reactor.Reactor):
 
         toolbox = base.Toolbox()
         # Attribute generator
-        #toolbox.register("attr_float", random.randrange, -100, 100)
+        # toolbox.register("attr_float", random.randrange, -100, 100)
         toolbox.register("attr_float", random.random)
         # Structure initializers
         toolbox.register("individual", tools.initRepeat,
@@ -182,7 +183,7 @@ class Evolution(pkp.reactor.Reactor):
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)
         toolbox.register('select', tools.selTournament, tournsize=3)
-        #toolbox.register('evaluate', rosenbrock)
+        # toolbox.register('evaluate', rosenbrock)
         # toolbox.register('evaluate', bohachevsky)
         toolbox.register('evaluate', self.error)
 

@@ -16,7 +16,7 @@ import pkp
 yml_file_default = 'input.yml'
 
 if __name__ == '__main__':
-    #logger = logging.getLogger('main')
+    logger = logging.getLogger('')
     # logger.setLevel(logging.INFO)
     #ch = logging.StreamHandler()
     # formatter = logging.Formatter(
@@ -30,8 +30,10 @@ if __name__ == '__main__':
     parser.add_argument('yml_file', action="store",
                         help="YAML input file")
     parser.add_argument('-n', action="store", dest="n_p", type=int,
-                        default=1, help="Number of processor (NOT WORKING)")
-    parser.add_argument('-o', action="store", dest="results_dir", type=str,
+                        default=1,
+                        help="Number of processor (NOT WORKING)")
+    parser.add_argument('-o', action="store", dest="results_dir",
+                        type=str,
                         default="Results", help="Results directory")
     parser.add_argument('-d', action="store_true", dest="debug",
                         help="Print debug messages")
@@ -42,9 +44,10 @@ if __name__ == '__main__':
     else:
         log_level = logging.INFO
 
-    logging.basicConfig(
-        level=log_level, stream=sys.stdout,
-        format="%(levelname)s:%(name)s:%(funcName)s:%(message)s")
+    # logging.basicConfig(
+    #    level=log_level, stream=sys.stdout,
+    #    format="%(levelname)s:%(name)s:%(funcName)s:%(message)s")
+    logger.setLevel(log_level)
     yml_file = argument.yml_file
     logging.info('Create runner and read settings')
     runner = pkp.PKPRunner(yml_file)

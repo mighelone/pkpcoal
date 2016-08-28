@@ -11,6 +11,8 @@ import os
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
+import pkp.evolution
+import numpy as np
 
 models = ['CPD', 'Polimi']
 
@@ -46,6 +48,9 @@ class ReadConfiguration(object):
         # Solver settings
         self.operating_conditions = yml_input['operating_conditions']
 
+        # fit settings
+        self.fit_settings = yml_input['FIT']
+
 
 @logged
 class PKPRunner(ReadConfiguration):
@@ -55,16 +60,36 @@ class PKPRunner(ReadConfiguration):
     models = models
 
     def run(self, results_dir=None):
+        results_dir = self.set_results_dir(results_dir)
+        self.__log.info('Run models %s', self.models)
+        run_results = {}
+        fit_results = {}
+        for model in self.models:
+            self.__log.debug('Model %s', model)
+            model_settings = getattr(self, model)
+            results = self._run_model(model=model,
+                                      results_dir=results_dir)
+            if results:
+                run_results[model] = results
+                self.__log.debug('Finish run %s %s', model,
+                                 results.keys())
+            if model_settings['fit']:
+                fit_results[model] = {}
+                for fitname, fit in model_settings['fit'].iteritems():
+                    self.__log.debug('Fit %s model %s', fit, model)
+                    target_conditions = {
+                        run: {'t': np.array(res.index),
+                              'y': np.array(res[fit['species']])}
+                        for run, res in results.iteritems()}
+                    fit_results[model][fitname] = self._fit(
+                        target_conditions, fitname, fit, results_dir)
+        return run_results, fit_results
+
+    @staticmethod
+    def set_results_dir(results_dir):
         if results_dir is None:
             results_dir = os.getcwd()
-        self.__log.info('Run models %s', self.models)
-        results = {}
-        for model in self.models:
-            res = self._run_model(model=model,
-                                  results_dir=results_dir)
-            if res:
-                results[model] = res
-        return results
+        return results_dir
 
     def _run_model(self, model, results_dir):
         '''
@@ -76,6 +101,8 @@ class PKPRunner(ReadConfiguration):
                          model_settings['active'])
         if model_settings['active']:
             results = {}
+            self.__log.debug('Run %s',
+                             self.operating_conditions['runs'])
             for n in range(
                     self.operating_conditions['runs']):
                 self.__log.debug(
@@ -97,6 +124,51 @@ class PKPRunner(ReadConfiguration):
                 self.__log.debug('Run %s for %s', n, model)
                 res = run.run()
                 results['run{}'.format(n)] = res
+                self.__log.debug('Finish run %s', results.keys())
         else:
             results = None
         return results
+
+    def _fit(self, target_conditions, fitname, fit_settings,
+             results_dir):
+        model = fit_settings['model']
+        self.__log.debug('Fit with model %s', model)
+        parameters_min = fit_settings['parameters_min']
+        parameters_max = fit_settings['parameters_max']
+        parameters_init = fit_settings['parameters_init']
+        method = fit_settings['method']
+        fit_results = {}
+        if method == 'evolve':
+            npop = fit_settings['npop']
+            ngen = fit_settings['ngen']
+            mu = fit_settings['mu']
+            lambda_ = fit_settings['lambda_']
+            cxpb = fit_settings['cxpb']
+            mutpb = fit_settings['mutpb']
+
+            ga = pkp.evolution.Evolution(npop=npop, ngen=ngen,
+                                         cxpb=cxpb, mutpb=mutpb)
+            self.__log.debug('Init GA %s', ga)
+            ga.empirical_model = getattr(pkp.empirical_model, model)
+            self.__log.debug('Set GA model %s', ga.empirical_model)
+            ga.parameters_range(parameters_min=parameters_min,
+                                parameters_max=parameters_max)
+
+            self.__log.debug('Set GA par range %s, %s',
+                             ga._parameters_min, ga._parameters_max)
+
+            [ga.set_target(
+                t=res['t'], y=res['y'],
+                operating_conditions=self.operating_conditions[run])
+             for run, res in target_conditions.iteritems()]
+
+            # self.__log.debug('Op. conditions %s',
+            #                 ga.operating_conditions)
+
+            ga.register()
+            fit_results['best'] = ga.evolve(mu=mu, lambda_=lambda_)
+            # run model and add to fit_results
+        else:
+            raise NotImplementedError(
+                'Fit method {} not implemented!'.format(method))
+        return None
