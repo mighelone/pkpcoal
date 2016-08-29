@@ -11,6 +11,7 @@ import pandas as pd
 from autologging import logged
 
 import pkp.detailed_model
+import pkp.bins
 import platform
 
 
@@ -159,13 +160,16 @@ class CPD(pkp.detailed_model.DetailedModel):
     @solver.setter
     def solver(self, value):
         if value is None:
+            cpd_path = os.path.dirname(pkp.bins.__file__)
             if platform.system() == 'Darwin':
-                value = './cpdnlg.x'
+                cpd_file = 'cpdnlg.x'
             elif platform.system() == 'Linux':
-                value = './cpdnlg'
+                cpd_file = 'cpdnlg'
             elif platform.system() == 'Windows':
-                value = './cpdnlg.exe'
+                cpd_file = 'cpdnlg.exe'
+            value = os.path.join(cpd_path, cpd_file)
         self._solver = os.path.abspath(value)
+        self.__log.debug('Set CPD solver %s', self._solver)
 
     def _set_numerical_parameters(self, dt=None, increment=None,
                                   dt_max=None, **kwargs):
