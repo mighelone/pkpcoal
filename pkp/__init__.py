@@ -13,6 +13,7 @@ import pandas as pd
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
+from pkp.biopolimi import BioPolimi
 import pkp.evolution
 
 import matplotlib.pyplot as plt
@@ -25,7 +26,7 @@ colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 col_red = "#C54E6D"
 col_green = "#009380"
 
-models = ['CPD', 'Polimi']
+models = ['CPD', 'Polimi', 'BioPolimi']
 
 
 @logged

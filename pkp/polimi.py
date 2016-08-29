@@ -367,8 +367,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
                             index=t)
         data.index.name = 'Time, s'
         data['T'] = self.T(t)
-        # for v in ('metaplast', 'tar', 'light_gas', 'raw', 'char'):
-        for v in ['metaplast', 'char', 'raw', 'tar', 'light_gas']:
+        for v in ('metaplast', 'char', 'raw', 'tar', 'light_gas'):
             data[v] = data[getattr(self, v)].sum(axis=1)
 
         data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)

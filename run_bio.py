@@ -2,6 +2,7 @@ import pkp.biopolimi
 import matplotlib.pyplot as plt
 
 ua = pkp.biopolimi.bioS1.ultimate_analysis
+print(ua)
 pa = {'FC': 45.1,
       'VM': 50.6,
       'Ash': 4.3,
