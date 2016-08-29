@@ -15,8 +15,10 @@ from autologging import logged
 from deap import base
 from deap import creator
 from deap import tools
-#from deap import algorithms
+# from deap import algorithms
 from pkp import algorithms
+#import multiprocessing
+from scoop import futures
 
 
 @logged
@@ -25,7 +27,8 @@ class Evolution(object):
     Evolution manager based on DEAP
     '''
 
-    def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2):
+    def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2, mu=None,
+                 lambda_=None):
         '''
         Parameters
         ----------
@@ -34,9 +37,13 @@ class Evolution(object):
         ngen: int
             Number of evolve
         cxpb: float
-            Crossover probability (<1)
+            Crossover probability (<1).
         mutpb: float
-            Mutation probability (<1)
+            Mutation probability (<1).
+        mu: float
+            The number of individuals to select for the next generation.
+        lambda_: float
+            The number of children to produce at each generation.
         '''
 
         # GA parameters
@@ -44,6 +51,12 @@ class Evolution(object):
         self._ngen = ngen
         self._cxpb = cxpb
         self._mutpb = mutpb
+        if mu is None:
+            mu = npop
+        if lambda_ is None:
+            lambda_ = int(2 / 3 * npop)
+        self._mu = mu
+        self._lambda = lambda_
         self.__log.debug('Set npop=%s', self._npop)
         self.__log.debug('Set ngen=%s', self._ngen)
         self.__log.debug('Set cxpb=%s', self._cxpb)
@@ -115,15 +128,19 @@ class Evolution(object):
     def error_run(y, y_t):
         return np.mean((y - y_t)**2)
 
-    def evolve(self, mu=None, lambda_=None, verbose=True):
+    def evolve(self, n_p=1, verbose=True):
         '''
-        Add mu/lambda parameters/
+        Evolve the population using the MuPlusLambda evolutionary
+        algorith.
         '''
-        if mu is None:
-            mu = self._npop
-        if lambda_ is None:
-            lambda_ = int(self._npop / 2)
         toolbox = self.toolbox
+
+        # Process Pool of 4 workers
+        if n_p > 1:
+            # pool = multiprocessing.Pool(processes=4)
+            # toolbox.register("map", pool.map)
+            toolbox.register("map", futures.map)
+
         pop = toolbox.population(n=self._npop)
         hof = tools.HallOfFame(1)
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -132,23 +149,23 @@ class Evolution(object):
         stats.register("min", np.min)
         stats.register("max", np.max)
 
-        try:
-            # pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
-            #                               mutpb=MUTPB, ngen=NGEN,
-            #                               stats=stats, halloffame=hof,
-            #                               verbose=True)
-            pop, log = algorithms.eaMuPlusLambda(pop, toolbox,
-                                                 mu=mu,
-                                                 lambda_=lambda_,
-                                                 cxpb=self._cxpb,
-                                                 mutpb=self._mutpb,
-                                                 ngen=self._ngen,
-                                                 stats=stats,
-                                                 halloffame=hof,
-                                                 verbose=verbose)
-        # TODO this is must be done inside the algorithm
-        except KeyboardInterrupt:
-            print('Stop evolution!')
+        # pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
+        #                               mutpb=MUTPB, ngen=NGEN,
+        #                               stats=stats, halloffame=hof,
+        #                               verbose=True)
+        pop, log = algorithms.eaMuPlusLambda(pop, toolbox,
+                                             mu=self._mu,
+                                             lambda_=self._lambda,
+                                             cxpb=self._cxpb,
+                                             mutpb=self._mutpb,
+                                             ngen=self._ngen,
+                                             stats=stats,
+                                             halloffame=hof,
+                                             verbose=verbose)
+
+        # if n_p > 1:
+        # pool.close()
+
         self.pop = pop
         self.log = log
         self.stats = stats

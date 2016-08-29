@@ -29,9 +29,9 @@ if __name__ == '__main__':
     )
     parser.add_argument('yml_file', action="store",
                         help="YAML input file")
-    parser.add_argument('-n', action="store", dest="n_p", type=int,
+    parser.add_argument('-n', action="store", dest="np", type=int,
                         default=1,
-                        help="Number of processor (NOT WORKING)")
+                        help="Number of processor")
     parser.add_argument('-o', action="store", dest="results_dir",
                         type=str,
                         default="Results", help="Results directory")
@@ -52,6 +52,7 @@ if __name__ == '__main__':
     logging.info('Create runner and read settings')
     runner = pkp.PKPRunner(yml_file)
     logging.info('Start run')
-    results = runner.run(results_dir=argument.results_dir)
+    results = runner.run(results_dir=argument.results_dir,
+                         n_p=argument.np)
 
     # plot results

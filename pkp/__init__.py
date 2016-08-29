@@ -14,6 +14,14 @@ from pkp.polimi import Polimi
 import pkp.evolution
 import numpy as np
 
+import matplotlib.pyplot as plt
+try:
+    plt.style.use('mystyle')
+except:
+    plt.style.use('ggplot')
+
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
 models = ['CPD', 'Polimi']
 
 
@@ -59,7 +67,18 @@ class PKPRunner(ReadConfiguration):
     '''
     models = models
 
-    def run(self, results_dir=None):
+    def run(self, results_dir=None, n_p=1):
+        '''
+        Run detailed models and fit them.
+
+        Parameters
+        ----------
+        results_dir: str, default=None
+            Directory where results are stored. If None is specified is
+            used the directory from where PKP is launched.
+        np: int, default=1
+            Number of processors for evolution fitting
+        '''
         results_dir = self.set_results_dir(results_dir)
         self.__log.info('Run models %s', self.models)
         run_results = {}
@@ -82,7 +101,9 @@ class PKPRunner(ReadConfiguration):
                               'y': np.array(res[fit['species']])}
                         for run, res in results.iteritems()}
                     fit_results[model][fitname] = self._fit(
-                        target_conditions, fitname, fit, results_dir)
+                        target_conditions, '{}-{}'.format(
+                            model, fitname),
+                        fit, results_dir, n_p)
         return run_results, fit_results
 
     @staticmethod
@@ -130,7 +151,28 @@ class PKPRunner(ReadConfiguration):
         return results
 
     def _fit(self, target_conditions, fitname, fit_settings,
-             results_dir):
+             results_dir, n_p=1):
+        '''
+        Perform calibration fitting of the empirical model using
+        results of the detailed model.
+
+        Parameters
+        ----------
+        target_conditions: list
+            List of target conditions for the calibration. Each entry
+            of the list contains: 
+            `{t: array, 'y': array, operating_conditions: array}`
+            `t` and `y` time and volatile yield arrays of length
+            N_points.
+            operating_conditions: array (2, N_cond) containing the op.
+            conditions.
+        fit_settings: dict
+            Dictionary containing settings for the evolution algorithm.
+        results_dir: str
+            Path where results are stored
+        n_p: int
+            Number of processors for the evolution
+        '''
         model = fit_settings['model']
         self.__log.debug('Fit with model %s', model)
         parameters_min = fit_settings['parameters_min']
@@ -147,7 +189,8 @@ class PKPRunner(ReadConfiguration):
             mutpb = fit_settings['mutpb']
 
             ga = pkp.evolution.Evolution(npop=npop, ngen=ngen,
-                                         cxpb=cxpb, mutpb=mutpb)
+                                         cxpb=cxpb, mutpb=mutpb,
+                                         mu=mu, lambda_=lambda_)
             self.__log.debug('Init GA %s', ga)
             ga.empirical_model = getattr(pkp.empirical_model, model)
             self.__log.debug('Set GA model %s', ga.empirical_model)
@@ -166,8 +209,57 @@ class PKPRunner(ReadConfiguration):
             #                 ga.operating_conditions)
 
             ga.register()
-            fit_results['best'] = ga.evolve(mu=mu, lambda_=lambda_)
+            fit_results['best'] = ga.evolve(n_p=n_p, verbose=True)
             # run model and add to fit_results
+
+            # plot results (evolution history)
+            color = 'black'
+            color_min = 'red'
+            fig, ax = plt.subplots()
+            fit_min, fit_max, fit_avg, fit_std = ga.log.select(
+                'min', 'max', 'avg', 'std')
+            ax.plot(fit_min, label='Min', color=color_min)
+            ax.plot(fit_max, label='Max', color=color)
+            ax.plot(fit_avg, label='Avg', color=color,
+                    linestyle='dashed')
+            ax.set_yscale('log')
+            ax.legend(loc='best')
+            ax.set_xlabel('N. generations')
+            ax.set_ylabel('Fitness')
+            ax.set_title(fitname)
+            fig.savefig(os.path.join(results_dir,
+                                     'evolution_{}.png'.format(fitname)))
+            plt.close(fig)
+
+            # plot yield
+            self.__log.debug('Plot yields')
+            fig, ax = plt.subplots()
+            m = ga.empirical_model(fit_results['best'])
+            det_model, fitname0 = fitname.split('-')
+            for i, run in enumerate(sorted(target_conditions)):
+                res = target_conditions[run]
+                if i == 0:
+                    l = '{} {}'.format(run, det_model)
+                else:
+                    l = run
+                ax.plot(res['t'], res['y'], label=l, color=colors[i],
+                        linestyle='solid')
+                m.operating_conditions = self.operating_conditions[run]
+                t_fit, y_fit = m.run(res['t'])
+                if i == 0:
+                    l = '{} {}'.format(run, m.__class__.__name__)
+                else:
+                    l = None
+                ax.plot(t_fit, y_fit, color=colors[
+                        i], linestyle='dashed', label=l)
+            ax.set_ylabel('Yield')
+            ax.set_xlabel('t, s')
+            ax.legend(loc='best')
+            ax.set_title(fitname)
+            fig.savefig(os.path.join(results_dir,
+                                     'yield_{}.png'.format(fitname)))
+            plt.close(fig)
+
         else:
             raise NotImplementedError(
                 'Fit method {} not implemented!'.format(method))
