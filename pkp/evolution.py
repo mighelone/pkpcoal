@@ -17,8 +17,12 @@ from deap import creator
 from deap import tools
 # from deap import algorithms
 from pkp import algorithms
-import multiprocessing
+# import multiprocessing
 # from scoop import futures
+
+
+def error(individual):
+    return sum(individual),
 
 
 @logged
@@ -110,7 +114,7 @@ class Evolution(object):
         self.__log.debug('Set empirical_model to %s', model)
         self._empirical_model = model
 
-    def error(self, individual):
+    def __call__(self, individual):
         '''
         Calculate the error for the given individual
         '''
@@ -123,6 +127,9 @@ class Evolution(object):
             err += self.error_run(y, results['y'])
             # del m
         return err,
+
+    # def __call__(self, individual):
+    #    return sum(individual),
 
     @staticmethod
     def error_run(y, y_t):
@@ -137,9 +144,11 @@ class Evolution(object):
 
         # Process Pool of 4 workers
         if n_p > 1:
-            pool = multiprocessing.Pool(processes=4)
-            toolbox.register("map", pool.map)
-            # toolbox.register("map", futures.map)
+            # pool = multiprocessing.Pool(processes=4)
+            # toolbox.register("map", pool.map)
+            #toolbox.register("map", futures.map)
+            self.__log.warning('n_p not supported at the moment!\n'
+                               'Only serial run supported!')
 
         pop = toolbox.population(n=self._npop)
         hof = tools.HallOfFame(1)
@@ -163,8 +172,8 @@ class Evolution(object):
                                              halloffame=hof,
                                              verbose=verbose)
 
-        if n_p > 1:
-            pool.close()
+        # if n_p > 1:
+        #    pool.close()
 
         self.pop = pop
         self.log = log
@@ -201,9 +210,8 @@ class Evolution(object):
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)
         toolbox.register('select', tools.selTournament, tournsize=3)
-        # toolbox.register('evaluate', rosenbrock)
-        # toolbox.register('evaluate', bohachevsky)
-        toolbox.register('evaluate', self.error)
+        # toolbox.register('evaluate', self.error)
+        toolbox.register('evaluate', self)
 
         self.toolbox = toolbox
 

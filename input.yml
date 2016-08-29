@@ -29,12 +29,12 @@ CPD:
       parameters_init: [1e5, 100e6, 0.5] # not required by evolve
       method: evolve
       # from here parameters of evolve
-      npop: 60
-      ngen: 40
-      mu: 60
-      lambda_: 40
+      npop: 40
+      ngen: 100
+      mu: 40
+      lambda_: 20
       cxpb: 0.6
-      mutpb: 0.2
+      mutpb: 0.4
         
   dt: 1e-5
   increment: 5
