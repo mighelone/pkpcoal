@@ -21,6 +21,8 @@ except:
     plt.style.use('ggplot')
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+col_red = "#C54E6D"
+col_green = "#009380"
 
 models = ['CPD', 'Polimi']
 
@@ -57,7 +59,7 @@ class ReadConfiguration(object):
         self.operating_conditions = yml_input['operating_conditions']
 
         # fit settings
-        self.fit_settings = yml_input['FIT']
+        # self.fit_settings = yml_input['FIT']
 
 
 @logged
@@ -86,28 +88,29 @@ class PKPRunner(ReadConfiguration):
         for model in self.models:
             self.__log.debug('Model %s', model)
             model_settings = getattr(self, model)
-            results = self._run_model(model=model,
-                                      results_dir=results_dir)
-            if results:
-                run_results[model] = results
-                self.__log.debug('Finish run %s %s', model,
-                                 results.keys())
-            if model_settings['fit']:
-                fit_results[model] = {}
-                for fitname, fit in model_settings['fit'].iteritems():
-                    self.__log.debug('Fit %s model %s', fit, model)
-                    target_conditions = {
-                        run: {'t': np.array(res.index),
-                              'y': np.array(res[fit['species']])}
-                        for run, res in results.iteritems()}
-                    fit_dict = {'model': model,
-                                'fit': fitname,
-                                'species': fit['species']}
-                    fit_results[model][fitname] = self._fit(
-                        target_conditions, fit_dict,
-                        fit, results_dir, n_p)
-                    fit_results[model][fitname]['species'] = \
-                        fit['species']
+            if model_settings['active']:
+                results = self._run_model(model=model,
+                                          results_dir=results_dir)
+                if results:
+                    run_results[model] = results
+                    self.__log.debug('Finish run %s %s', model,
+                                     results.keys())
+                if model_settings['fit']:
+                    fit_results[model] = {}
+                    for fitname, fit in model_settings['fit'].iteritems():
+                        self.__log.debug('Fit %s model %s', fit, model)
+                        target_conditions = {
+                            run: {'t': np.array(res.index),
+                                  'y': np.array(res[fit['species']])}
+                            for run, res in results.iteritems()}
+                        fit_dict = {'model': model,
+                                    'fit': fitname,
+                                    'species': fit['species']}
+                        fit_results[model][fitname] = self._fit(
+                            target_conditions, fit_dict,
+                            fit, results_dir, n_p)
+                        fit_results[model][fitname]['species'] = \
+                            fit['species']
         return run_results, fit_results
 
     @staticmethod
@@ -158,6 +161,48 @@ class PKPRunner(ReadConfiguration):
                 res = run.run()
                 results['run{}'.format(n)] = res
                 self.__log.debug('Finish run %s', results.keys())
+
+                # plot results
+                fig, ax = plt.subplots()
+                for sp in ['tar', 'light_gas', 'char', 'solid',
+                           'volatiles']:
+                    if sp in res:
+                        ax.plot(res.index, res[sp], label=sp)
+                ax.set_xlabel('Time, s')
+                ax.set_ylabel('Yield, daf')
+                ax.legend(loc='best', frameon=False)
+                ax.set_title('Run{} Model {}'.format(n, model))
+
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_position(('outward', 20))
+                ax.spines['left'].set_position(('outward', 20))
+
+                ax.set_ylim([0, 1])
+                # ax.spines['left'].set_color(col_right)
+                # ax.spines['left'].set_color(col_right)
+
+                ax1 = ax.twinx()
+                ax1.plot(res.index, res['T'],
+                         label='T', color=col_green)
+                ax1.spines['top'].set_visible(False)
+                ax1.spines['left'].set_visible(False)
+                ax1.spines['bottom'].set_position(('outward', 20))
+                ax1.spines['right'].set_position(('outward', 20))
+                ax1.spines['right'].set_color(col_green)
+
+                ax1.tick_params(axis='y', colors=col_green)
+                ax1.set_ylabel('Other scale', color=col_green)
+                ax1.set_ylabel('Temperature, K')
+                ax1.set_ylim(
+                    [res['T'].min() - 100, res['T'].max() + 100])
+                ax1.grid(False)
+
+                fig.savefig(
+                    os.path.join(results_dir,
+                                 'yields_run{}_{}.png'.format(n,
+                                                              model)),
+                    bbox_inches='tight')
         else:
             results = None
         return results

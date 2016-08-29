@@ -8,6 +8,7 @@ import tabulate
 import itertools
 import warnings
 import pandas as pd
+import os
 from autologging import logged
 
 from pkp.detailed_model import M_elements
@@ -295,7 +296,8 @@ class Polimi(pkp.detailed_model.DetailedModel):
         Set mechanism. Default is COAL.xml
         '''
         if value is None:
-            value = 'COAL.xml'
+            value = os.path.join(os.path.dirname(pkp.bins.__file__),
+                                 'COAL.xml')
         try:
             self._mechanism = cantera.Solution(value)
             self.mechanism.TP = 300, self.pressure

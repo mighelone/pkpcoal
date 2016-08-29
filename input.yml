@@ -20,10 +20,10 @@ Coal:
 
 CPD:
   active : true
-  fit: #more fitting can be defined here (names are arbitrarly)
+  fit: 
     fit0:
       model: SFOR
-      species: ftot
+      species: volatiles
       parameters_min: [1e4, 50e6, 0.4]
       parameters_max: [1e9, 200e6, 0.8]
       parameters_init: [1e5, 100e6, 0.5] # not required by evolve
@@ -45,119 +45,28 @@ CPD:
 Polimi:
   active: true
   fit:
+    fit0:
+      model: SFOR
+      species: volatiles
+      parameters_min: [1e4, 50e6, 0.4]
+      parameters_max: [1e9, 200e6, 0.8]
+      parameters_init: [1e5, 100e6, 0.5] # not required by evolve
+      method: evolve
+      # from here parameters of evolve
+      npop: 60
+      ngen: 40
+      mu: 60
+      lambda_: 40
+      cxpb: 0.6
+      mutpb: 0.2
   backend: dopri5
   mechanism:
 
-
-Calibration:
-    weightYield     :   100.
-    weightRate      :   0.
-    # species to fit: total, mainSpecies, allSpecies
-    speciesToFit    :   total 
-
 operating_conditions:
     pressure    : 1.0 #atmosphere
-    runs: 2
-    run0        : [ [ 0, 700], [ 0.005, 1500], [ 0.01, 1500] ]
-    run1        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
-    run2        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]
+    runs: 3
+    run0        : [ [ 0, 500], [ 0.005, 1500], [ 0.02, 1500] ]
+    run1        : [ [ 0, 500], [ 0.003, 1300], [ 0.02, 1300] ]
+    run2        : [ [ 0, 500], [ 0.01, 1300], [ 0.02, 1300] ]
     run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
     run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
-
-
-    
-FIT:
-  #Model: ['SFOR', 'C2SM', 'DAEM']
-
-  Model: SFOR
-  # FitMethod: choose different methods for optimising the parameters
-  # fmin: run only "fmin" from scipy
-  # brute: run only "brute" optimiziation from scipy
-  # evolve: run only "evolve" optimization using GA
-  # brute+fmin: run fmin after brute optimization
-  # evolve+fmin: run fmin after evolve optimization
-  method: 'evolve'
-  # [ftot, fh20, fco, fco2, fch4, ftar, fgas, fother]
-  species: [volatiles] # empty list for all available species
-  SCR:
-    k :  1.0
-    kBounds :  [0.0, 1.0]
-    tstart : 0.0
-    tstartBounds : [0.0, 1.0]
-    finalYield : 1.0
-    finalYieldBounds: [0.0, 1.0]
-  SFOR:
-    preExp: 0.0
-    preExpBounds: [0, 10000.0]
-    beta : 0.0
-    activationEnergy : 0
-    activationEnergyBounds : [100.0, 100000.0]
-    lowerDevolTemp : 600.0
-  C2SM:
-    alpha1: 0.0
-    alpha1Bounds: [0.1, 0.4]
-    A1: 0.2
-    A1Bounds: [500, 10000.]
-    E1: 1000.0
-    E1Bounds: [2000.0, 10000.0]
-    alpha2: 0.6
-    alpha2Bounds: [0.4, 1]
-    A2: 10000.
-    A2Bounds: [5000, 30000.]
-    E2: 10000.0
-    E2Bounds: [1500.0, 20000.0]
-  DAEM:
-    alpha1
-      
-
-
-# TODO MV: names of empirical models should be modified for being more
-# coherent with publication in Fuel 2013 
-# Arrhenius -> SFOR (single first order reaction)
-# Kobayashi -> C2SM (Competing 2 steps model)
-# DAEM
-# constantRate -> SCR (single constant rate)
-
-FGDVC:
-  active      : false
-  fit         : 
-  dir         : C:\FGDVC_8-2-3\
-  dirOut      : C:\FGDVC_8-2-3\FGDVC\
-  #Choose Coal: 0 interpolate between library coals and generate own coal. Set 1 to 8 for a library coal.
-  refCoal     : 0 
-  #Model tar cracking? If no, set tar residence time equal 0. For a partial tar cracking enter the tar residence time in s. For full tar cracking write -1.
-  tarModel    : 0 
-  # time step
-  timeStep    : 1e-4
-
-    
-# I rename PCCL to FLASHCHAIN
-FLASHCHAIN:
-  active      :   false
-  fit         :    #?
-  # PC Coal Lab Main Path:
-  dir         :   C:\Users\vascella\Documents\PCCL\
-  # PC Coal Lab executable name:
-  execName    :   PCCoV41M1to7Par.exe
-  # Known PC Coal Lab Coal Calibration Factor? None or Value(float): ?
-  calibrationFactor   : None
-  # Particle Size in micrometer:
-  diameter    :   100.
-
-# Polimi Multi-Step Kinetic Devolatilization
-PMSKD:  
-  active      :   true
-  fit         :   ArrheniusNoB #?
-  # number of step
-  nStep       :   100
-  # Mechanism file for Cantera (only use xml!!!)
-  mechFile    :   COAL.xml
-
-BioPolipomi:
-  Use: false
-  FittingKineticParameter_Select: None
-  ArrhSpecies: Total
-  mechanism: Biomass.xml
-  nPoints: 1000
-  
-

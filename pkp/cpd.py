@@ -301,6 +301,12 @@ class CPD(pkp.detailed_model.DetailedModel):
         df.index = df.index * 1e-3
         self.__log.debug('CPD index max %s', df.index.max())
 
+        df.rename(columns={'fsolid': 'char',
+                           'ftar': 'tar',
+                           'fgas': 'light_gas',
+                           'ftot': 'volatiles',
+                           'temp': 'T'}, inplace=True)
+
         # out_csv = os.path.join(self.path, self.basename + '.csv')
         df.to_csv(self._out_csv)
         return df
