@@ -209,7 +209,10 @@ class PKPRunner(ReadConfiguration):
             #                 ga.operating_conditions)
 
             ga.register()
-            fit_results['best'] = ga.evolve(n_p=n_p, verbose=True)
+            best = ga.evolve(n_p=n_p, verbose=True)
+            fit_results['best'] = dict(
+                zip(ga.empirical_model.parameters_names, best))
+            fit_results['log'] = ga.log
             # run model and add to fit_results
 
             # plot results (evolution history)
@@ -218,6 +221,7 @@ class PKPRunner(ReadConfiguration):
             fig, ax = plt.subplots()
             fit_min, fit_max, fit_avg, fit_std = ga.log.select(
                 'min', 'max', 'avg', 'std')
+
             ax.plot(fit_min, label='Min', color=color_min)
             ax.plot(fit_max, label='Max', color=color)
             ax.plot(fit_avg, label='Avg', color=color,
@@ -237,6 +241,7 @@ class PKPRunner(ReadConfiguration):
             m = ga.empirical_model(fit_results['best'])
             det_model, fitname0 = fitname.split('-')
             for i, run in enumerate(sorted(target_conditions)):
+                fit_results[run] = {}
                 res = target_conditions[run]
                 if i == 0:
                     l = '{} {}'.format(run, det_model)
@@ -244,8 +249,11 @@ class PKPRunner(ReadConfiguration):
                     l = run
                 ax.plot(res['t'], res['y'], label=l, color=colors[i],
                         linestyle='solid')
+                fit_results[run]['t'] = res['t']
+                fit_results[run]['y'] = res['y']
                 m.operating_conditions = self.operating_conditions[run]
                 t_fit, y_fit = m.run(res['t'])
+                fit_results[run]['y_fit'] = y_fit
                 if i == 0:
                     l = '{} {}'.format(run, m.__class__.__name__)
                 else:
@@ -263,4 +271,4 @@ class PKPRunner(ReadConfiguration):
         else:
             raise NotImplementedError(
                 'Fit method {} not implemented!'.format(method))
-        return None
+        return fit_results
