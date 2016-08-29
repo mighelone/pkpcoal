@@ -100,10 +100,14 @@ class PKPRunner(ReadConfiguration):
                         run: {'t': np.array(res.index),
                               'y': np.array(res[fit['species']])}
                         for run, res in results.iteritems()}
+                    fit_dict = {'model': model,
+                                'fit': fitname,
+                                'species': fit['species']}
                     fit_results[model][fitname] = self._fit(
-                        target_conditions, '{}-{}'.format(
-                            model, fitname),
+                        target_conditions, fit_dict,
                         fit, results_dir, n_p)
+                    fit_results[model][fitname]['species'] = \
+                        fit['species']
         return run_results, fit_results
 
     @staticmethod
@@ -115,6 +119,14 @@ class PKPRunner(ReadConfiguration):
     def _run_model(self, model, results_dir):
         '''
         Run simulations for the given model
+
+        Parameters
+        ----------
+        model: str
+            Name of the detailed model. Note that it should be the same
+            of a defined class
+        results_dir: str
+            Path of results
         '''
         self.__log.info('Run %s model', model)
         model_settings = getattr(self, model)
@@ -150,7 +162,7 @@ class PKPRunner(ReadConfiguration):
             results = None
         return results
 
-    def _fit(self, target_conditions, fitname, fit_settings,
+    def _fit(self, target_conditions, fit_dict, fit_settings,
              results_dir, n_p=1):
         '''
         Perform calibration fitting of the empirical model using
@@ -166,6 +178,7 @@ class PKPRunner(ReadConfiguration):
             N_points.
             operating_conditions: array (2, N_cond) containing the op.
             conditions.
+        fit_dict: dict
         fit_settings: dict
             Dictionary containing settings for the evolution algorithm.
         results_dir: str
@@ -214,6 +227,11 @@ class PKPRunner(ReadConfiguration):
                 zip(ga.empirical_model.parameters_names, best))
             fit_results['log'] = ga.log
             # run model and add to fit_results
+            det_model, fitname = fit_dict['model'], fit_dict['fit']
+            m = ga.empirical_model(fit_results['best'])
+            emp_model = m.__class__.__name__
+            self.__log.debug('Emp model %s', emp_model)
+            filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
 
             # plot results (evolution history)
             color = 'black'
@@ -230,16 +248,19 @@ class PKPRunner(ReadConfiguration):
             ax.legend(loc='best')
             ax.set_xlabel('N. generations')
             ax.set_ylabel('Fitness')
-            ax.set_title(fitname)
-            fig.savefig(os.path.join(results_dir,
-                                     'evolution_{}.png'.format(fitname)))
+            ax.set_title(
+                'Fit {} with {}: fitness evolution ({})'.format(
+                    det_model, ga.empirical_model.__class__.__name__,
+                    fitname))
+            fig.savefig(os.path.join(
+                results_dir,
+                'evolution_{}.png'.format(filename)))
             plt.close(fig)
 
             # plot yield
             self.__log.debug('Plot yields')
             fig, ax = plt.subplots()
-            m = ga.empirical_model(fit_results['best'])
-            det_model, fitname0 = fitname.split('-')
+
             for i, run in enumerate(sorted(target_conditions)):
                 fit_results[run] = {}
                 res = target_conditions[run]
@@ -260,12 +281,17 @@ class PKPRunner(ReadConfiguration):
                     l = None
                 ax.plot(t_fit, y_fit, color=colors[
                         i], linestyle='dashed', label=l)
-            ax.set_ylabel('Yield')
+            ax.set_ylabel('Yield {}'.format(fit_dict['species']))
             ax.set_xlabel('t, s')
             ax.legend(loc='best')
-            ax.set_title(fitname)
+            ax.set_title(
+                'Fit {} from {} with {} ({})'.format(
+                    fit_dict['species'],
+                    det_model,
+                    emp_model,
+                    fitname))
             fig.savefig(os.path.join(results_dir,
-                                     'yield_{}.png'.format(fitname)))
+                                     'yield_{}.png'.format(filename)))
             plt.close(fig)
 
         else:
