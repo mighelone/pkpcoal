@@ -57,7 +57,7 @@ Calibration:
 
 operating_conditions:
     pressure    : 1.0 #atmosphere
-    runs: 3
+    runs: 1
     run0        : [ [ 0, 700], [ 0.005, 1500], [ 0.01, 1500] ]
     run1        : [ [ 0, 500], [ 0.003, 1300], [ 0.01, 1300] ]
     run2        : [ [ 0, 500], [ 0.001, 1300], [ 0.01, 1300] ]

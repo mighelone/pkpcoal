@@ -138,7 +138,12 @@ class EmpiricalModel(pkp.reactor.Reactor):
 @logged
 class SFOR(EmpiricalModel):
     '''
-    Single First Order Reaction (SFOR) model
+    Single First Order Reaction (SFOR) model.
+    The reaction rate is given by: :math:`r = k(T) (y0-y)` with
+    :math `k(T) = A \exp(-E/Rg T)`.
+
+    The class inherits the main methods from
+    :meth:`empirical_model.EmpiricalModel`
     '''
     parameters_names = ['A', 'E', 'y0']
     parameters_default = [1e5, 50e6, 0.6]

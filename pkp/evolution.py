@@ -15,7 +15,8 @@ from autologging import logged
 from deap import base
 from deap import creator
 from deap import tools
-from deap import algorithms
+#from deap import algorithms
+from pkp import algorithms
 
 
 @logged
