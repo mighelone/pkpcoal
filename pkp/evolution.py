@@ -17,8 +17,8 @@ from deap import creator
 from deap import tools
 # from deap import algorithms
 from pkp import algorithms
-#import multiprocessing
-from scoop import futures
+import multiprocessing
+# from scoop import futures
 
 
 @logged
@@ -137,9 +137,9 @@ class Evolution(object):
 
         # Process Pool of 4 workers
         if n_p > 1:
-            # pool = multiprocessing.Pool(processes=4)
-            # toolbox.register("map", pool.map)
-            toolbox.register("map", futures.map)
+            pool = multiprocessing.Pool(processes=4)
+            toolbox.register("map", pool.map)
+            # toolbox.register("map", futures.map)
 
         pop = toolbox.population(n=self._npop)
         hof = tools.HallOfFame(1)
@@ -163,8 +163,8 @@ class Evolution(object):
                                              halloffame=hof,
                                              verbose=verbose)
 
-        # if n_p > 1:
-        # pool.close()
+        if n_p > 1:
+            pool.close()
 
         self.pop = pop
         self.log = log

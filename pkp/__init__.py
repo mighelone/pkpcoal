@@ -8,11 +8,12 @@ from __future__ import print_function, unicode_literals
 from autologging import logged
 import ruamel_yaml as yaml
 import os
+import numpy as np
+import pandas as pd
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
 import pkp.evolution
-import numpy as np
 
 import matplotlib.pyplot as plt
 try:
@@ -111,6 +112,7 @@ class PKPRunner(ReadConfiguration):
                             fit, results_dir, n_p)
                         fit_results[model][fitname]['species'] = \
                             fit['species']
+
         return run_results, fit_results
 
     @staticmethod
@@ -139,6 +141,7 @@ class PKPRunner(ReadConfiguration):
             results = {}
             self.__log.debug('Run %s',
                              self.operating_conditions['runs'])
+            vol_composition = pd.DataFrame()
             for n in range(
                     self.operating_conditions['runs']):
                 self.__log.debug(
@@ -160,6 +163,10 @@ class PKPRunner(ReadConfiguration):
                 self.__log.debug('Run %s for %s', n, model)
                 res = run.run()
                 results['run{}'.format(n)] = res
+
+                # add last row to vol_composition
+                vol_composition = vol_composition.append(
+                    res.tail(1), ignore_index=True)
                 self.__log.debug('Finish run %s', results.keys())
 
                 # plot results
@@ -203,6 +210,17 @@ class PKPRunner(ReadConfiguration):
                                  'yields_run{}_{}.png'.format(n,
                                                               model)),
                     bbox_inches='tight')
+            vol_composition.index = [
+                'run{}'.format(n)
+                for n in range(self.operating_conditions['runs'])]
+            self.__log.debug('vol_composition index %s',
+                             vol_composition.index)
+            self.__log.debug('Export vol_composition to csv %s',
+                             'finalyield_{}.csv'.format(model))
+            vol_composition.to_csv(
+                os.path.join(results_dir,
+                             'finalyield_{}.csv'.format(model)),
+                index=True)
         else:
             results = None
         return results
@@ -217,7 +235,7 @@ class PKPRunner(ReadConfiguration):
         ----------
         target_conditions: list
             List of target conditions for the calibration. Each entry
-            of the list contains: 
+            of the list contains:
             `{t: array, 'y': array, operating_conditions: array}`
             `t` and `y` time and volatile yield arrays of length
             N_points.
