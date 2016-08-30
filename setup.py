@@ -11,5 +11,17 @@ setup(
     license='',
     author='Michele Vascellari',
     author_email='Michele.Vascellari@vtc.tu-freiberg.de',
-    description='Pyrolysis Kinetic Preporcessor'
+    description='Pyrolysis Kinetic Preporcessor',
+    requires=[
+        'numpy',
+        'matplotlib',
+        'scipy',
+        'argparse',
+        'autologging',
+        'ruamel_yaml',
+        'pandas',
+        'deap',
+        'cantera (>=2.2.0)',
+        'tabulate'
+    ]
 )

@@ -15,16 +15,32 @@ from autologging import logged
 from deap import base
 from deap import creator
 from deap import tools
+from deap.benchmarks import binary
 # from deap import algorithms
 from pkp import algorithms
-# import multiprocessing
 
+
+# import multiprocessing
 from pathos.multiprocessing import ProcessPool
 # from scoop import futures
 
 
-def error(individual):
-    return sum(individual),
+def error(cls_, individual):
+    '''
+    Calculate the error for the given individual
+    '''
+    err = 0
+    parameters = cls_.unscale_parameters(individual)
+    for run, results in cls_.ref_results.iteritems():
+        m = cls_.empirical_model(parameters)
+        m.operating_conditions = results['operating_conditions']
+        _, y = m.run(results['t'])
+        err += cls_.error_run(y, results['y'])
+        # del m
+    return err,
+
+#@binary.bin2float(0, 1, n_decoding)
+# def error_binary(cls_, individual):
 
 
 @logged
@@ -116,19 +132,19 @@ class Evolution(object):
         self.__log.debug('Set empirical_model to %s', model)
         self._empirical_model = model
 
-    def __call__(self, individual):
-        '''
-        Calculate the error for the given individual
-        '''
-        err = 0
-        parameters = self.unscale_parameters(individual)
-        for run, results in self.ref_results.iteritems():
-            m = self.empirical_model(parameters)
-            m.operating_conditions = results['operating_conditions']
-            _, y = m.run(results['t'])
-            err += self.error_run(y, results['y'])
-            # del m
-        return err,
+    # def __call__(self, individual):
+    #    '''
+    #    Calculate the error for the given individual
+    #    '''
+    #    err = 0
+    #    parameters = self.unscale_parameters(individual)
+    #    for run, results in self.ref_results.iteritems():
+    #        m = self.empirical_model(parameters)
+    #        m.operating_conditions = results['operating_conditions']
+    #        _, y = m.run(results['t'])
+    #        err += self.error_run(y, results['y'])
+    #        # del m
+    #    return err,
 
     # def __call__(self, individual):
     #    return sum(individual),
@@ -146,7 +162,7 @@ class Evolution(object):
 
         # Process Pool of 4 workers
         if n_p > 1:
-            #pool = multiprocessing.Pool(processes=4)
+            # pool = multiprocessing.Pool(processes=n_p)
             #pool = Pool(2)
             pool = ProcessPool(nodes=2)
             toolbox.register("map", pool.map)
@@ -176,8 +192,8 @@ class Evolution(object):
                                              halloffame=hof,
                                              verbose=verbose)
 
-        # if n_p > 1:
-        #    pool.close()
+        if n_p > 1:
+            pool.close()
 
         self.pop = pop
         self.log = log
@@ -202,11 +218,9 @@ class Evolution(object):
         toolbox = base.Toolbox()
         # Attribute generator
         # toolbox.register("attr_float", random.randrange, -100, 100)
-        toolbox.register("attr_float", random.random)
+
         # Structure initializers
-        toolbox.register("individual", tools.initRepeat,
-                         creator.Individual, toolbox.attr_float,
-                         n=len(self.empirical_model.parameters_names))
+        toolbox = self._individual(toolbox=toolbox)
         toolbox.register("population", tools.initRepeat, list,
                          toolbox.individual)
 
@@ -215,9 +229,17 @@ class Evolution(object):
                          indpb=0.2)
         toolbox.register('select', tools.selTournament, tournsize=3)
         # toolbox.register('evaluate', self.error)
-        toolbox.register('evaluate', self)
+        toolbox.register('evaluate', error, self)
 
         self.toolbox = toolbox
+
+    def _individual(self, toolbox):
+        '''Set individual enconding'''
+        toolbox.register("attr_float", random.random)
+        toolbox.register("individual", tools.initRepeat,
+                         creator.Individual, toolbox.attr_float,
+                         n=len(self.empirical_model.parameters_names))
+        return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
         len_model = len(self.empirical_model.parameters_names)
@@ -243,3 +265,35 @@ class Evolution(object):
         return self.empirical_model.unscale_parameters(
             norm_parameters, self._parameters_min,
             self._parameters_max)
+
+
+class EvolutionBinary(Evolution):
+    '''
+    Evolution class using binary representation
+    '''
+    n_decoding = 16
+
+    def _individual(self, toolbox):
+        '''Set individual enconding using binary'''
+        toolbox.register("attr_int", random.randint, 0, 1)
+        toolbox.register("individual", tools.initRepeat,
+                         creator.Individual, toolbox.attr_int,
+                         n=self.n_decoding * len(
+                             self.empirical_model.parameters_names))
+        return toolbox
+
+    #@binary.bin2float(0, 1, n_decoding)
+    # def __call__(self, individual):
+    #    '''
+    #    Calculate the error for the given individual
+    #    '''
+    #    return super(EvolutionBinary, self)(individual)
+        #err = 0
+        #parameters = self.unscale_parameters(individual)
+        # for run, results in self.ref_results.iteritems():
+        #    m = self.empirical_model(parameters)
+        #    m.operating_conditions = results['operating_conditions']
+        #    _, y = m.run(results['t'])
+        #    err += self.error_run(y, results['y'])
+        #    # del m
+        # return err,
