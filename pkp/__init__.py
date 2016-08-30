@@ -315,7 +315,7 @@ class PKPRunner(ReadConfiguration):
             cxpb = fit_settings['cxpb']
             mutpb = fit_settings['mutpb']
 
-            binary = False
+            binary = True
 
             if binary:
                 ga = pkp.evolution.EvolutionBinary(npop=npop, ngen=ngen,

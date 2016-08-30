@@ -146,23 +146,6 @@ class Evolution(object):
         self.__log.debug('Set empirical_model to %s', model)
         self._empirical_model = model
 
-    # def __call__(self, individual):
-    #    '''
-    #    Calculate the error for the given individual
-    #    '''
-    #    err = 0
-    #    parameters = self.unscale_parameters(individual)
-    #    for run, results in self.ref_results.iteritems():
-    #        m = self.empirical_model(parameters)
-    #        m.operating_conditions = results['operating_conditions']
-    #        _, y = m.run(results['t'])
-    #        err += self.error_run(y, results['y'])
-    #        # del m
-    #    return err,
-
-    # def __call__(self, individual):
-    #    return sum(individual),
-
     @staticmethod
     def error_run(y, y_t):
         return np.mean((y - y_t)**2)
@@ -216,7 +199,7 @@ class Evolution(object):
         fitnesses = np.array([p.fitness.values for p in pop])
         best = pop[fitnesses.argmin()]
 
-        best_parameters = self.unscale_parameters(best)
+        best_parameters = self.unscale_parameters_final(best)
 
         # print('Best population', best, best_parameters)
         return best_parameters
@@ -235,13 +218,7 @@ class Evolution(object):
 
         # Structure initializers
         toolbox = self._individual(toolbox=toolbox)
-        toolbox.register("population", tools.initRepeat, list,
-                         toolbox.individual)
 
-        toolbox.register('mate', tools.cxTwoPoint)
-        toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
-                         indpb=0.2)
-        toolbox.register('select', tools.selTournament, tournsize=3)
         # toolbox.register('evaluate', self.error)
 
         self.toolbox = toolbox
@@ -253,6 +230,13 @@ class Evolution(object):
                          creator.Individual, toolbox.attr_float,
                          n=len(self.empirical_model.parameters_names))
         toolbox.register('evaluate', error, self)
+        toolbox.register("population", tools.initRepeat, list,
+                         toolbox.individual)
+
+        toolbox.register('mate', tools.cxTwoPoint)
+        toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
+                         indpb=0.2)
+        toolbox.register('select', tools.selTournament, tournsize=3)
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
@@ -287,6 +271,10 @@ class Evolution(object):
             norm_parameters, self._parameters_min,
             self._parameters_max)
 
+    def unscale_parameters_final(self, norm_parameters):
+        '''Only for final step of evolution'''
+        return self.unscale_parameters(norm_parameters)
+
 
 class EvolutionBinary(Evolution):
     '''
@@ -303,4 +291,19 @@ class EvolutionBinary(Evolution):
                              self.empirical_model.parameters_names))
         # toolbox.register('evaluate', error_binary, self)
         toolbox.register('evaluate', error_binary, self)
+        toolbox.register("population", tools.initRepeat, list,
+                         toolbox.individual)
+
+        toolbox.register('mate', tools.cxTwoPoint)
+        toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+        toolbox.register('select', tools.selTournament, tournsize=3)
         return toolbox
+
+    def unscale_parameters_final(self, individual):
+        '''
+        First convert to float from binary and then unscale parameters
+        '''
+        @binary.bin2float(0, 1, 16)
+        def f(individual, cls):
+            return cls.unscale_parameters(individual)
+        return f(individual, self)

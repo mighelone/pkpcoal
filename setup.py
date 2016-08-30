@@ -5,7 +5,7 @@ setup(
     version='2.0.0',
     packages=['pkp', 'pkp.bins'],
     packages_dir={'pkp.bins': 'pkp/bins'},
-    package_data={'pkp.bins': ['cpdnlg*', 'COAL.xml']},
+    package_data={'pkp.bins': ['cpdnlg*', 'COAL.xml', 'Biomass.xml']},
     scripts=['runPKP'],
     url='',
     license='',

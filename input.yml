@@ -33,7 +33,7 @@ CPD:
       ngen: 100
       mu: 40
       lambda_: 40
-      cxpb: 0.5
+      cxpb: 0.0
       mutpb: 0.5
         
   dt: 1e-5
