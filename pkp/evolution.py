@@ -39,6 +39,16 @@ def error(cls_, individual):
         # del m
     return err,
 
+
+# @binary.bin2float(0, 1, 16)
+
+def error_binary(cls_, individual):
+    @binary.bin2float(0, 1, 16)
+    def f(individual, cls_):
+        return error(cls_, individual)
+    return f(individual, cls_)
+
+
 #@binary.bin2float(0, 1, n_decoding)
 # def error_binary(cls_, individual):
 
@@ -229,7 +239,6 @@ class Evolution(object):
                          indpb=0.2)
         toolbox.register('select', tools.selTournament, tournsize=3)
         # toolbox.register('evaluate', self.error)
-        toolbox.register('evaluate', error, self)
 
         self.toolbox = toolbox
 
@@ -239,6 +248,7 @@ class Evolution(object):
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_float,
                          n=len(self.empirical_model.parameters_names))
+        toolbox.register('evaluate', error, self)
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
@@ -280,6 +290,8 @@ class EvolutionBinary(Evolution):
                          creator.Individual, toolbox.attr_int,
                          n=self.n_decoding * len(
                              self.empirical_model.parameters_names))
+        #toolbox.register('evaluate', error_binary, self)
+        toolbox.register('evaluate', error_binary, self)
         return toolbox
 
     #@binary.bin2float(0, 1, n_decoding)

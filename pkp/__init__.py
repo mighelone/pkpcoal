@@ -265,9 +265,18 @@ class PKPRunner(ReadConfiguration):
             cxpb = fit_settings['cxpb']
             mutpb = fit_settings['mutpb']
 
-            ga = pkp.evolution.Evolution(npop=npop, ngen=ngen,
-                                         cxpb=cxpb, mutpb=mutpb,
-                                         mu=mu, lambda_=lambda_)
+            binary = False
+
+            if binary:
+                ga = pkp.evolution.EvolutionBinary(npop=npop, ngen=ngen,
+                                                   cxpb=cxpb,
+                                                   mutpb=mutpb,
+                                                   mu=mu,
+                                                   lambda_=lambda_)
+            else:
+                ga = pkp.evolution.Evolution(npop=npop, ngen=ngen,
+                                             cxpb=cxpb, mutpb=mutpb,
+                                             mu=mu, lambda_=lambda_)
             self.__log.debug('Init GA %s', ga)
             ga.empirical_model = getattr(pkp.empirical_model, model)
             self.__log.debug('Set GA model %s', ga.empirical_model)
