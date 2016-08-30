@@ -6,7 +6,12 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 from autologging import logged
-import ruamel_yaml as yaml
+try:
+    import ruamel.yaml as yaml
+except:
+    print('Loading standard yaml module ...\n'
+          'Note that it might give problems with exponetial decoding')
+    import yaml
 import os
 import numpy as np
 import pandas as pd
