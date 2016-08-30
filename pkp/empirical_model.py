@@ -20,6 +20,8 @@ from autologging import logged
 
 from scipy.integrate import ode
 
+Rgas = 8314.33
+
 
 @logged
 class EmpiricalModel(pkp.reactor.Reactor):
@@ -30,6 +32,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
     '''
     parameters_names = ['foo', 'bar']
     parameters_default = [1, 1]
+    mask = np.array([True] * len(parameters_default))
     # initial volatile yield
     y0 = 0
 
@@ -80,12 +83,17 @@ class EmpiricalModel(pkp.reactor.Reactor):
             the solver
         '''
         backend = 'dopri5'
-        #backend = 'vode'
+        # backend = 'vode'
+        # vode_settings = {'first_step': 1e-6,
+        #                 'max_step': 1e-4}
         t0 = self.operating_conditions[0, 0]
         solver = ode(self.rate).set_integrator(backend, nsteps=1,
                                                first_step=1e-6,
                                                max_step=1e-4,
                                                verbosity=1)
+        # solver = ode(self.rate)
+        # solver.set_integrator(backend)
+
         solver.set_initial_value(self.y0, t0)
 
         if t is None:
@@ -130,9 +138,33 @@ class EmpiricalModel(pkp.reactor.Reactor):
     def rate(self, t, y):
         return 0
 
-    def unscale_parameters(self, norm_parameters,
-                           parameters_min, parameters_max):
-        return 0
+    @classmethod
+    def unscale_parameters(cls, norm_parameters, parameters_min,
+                           parameters_max):
+        '''
+        Unscale normalized parameters.
+        A1 and A2 are stored as logA1, logA2
+
+        Return
+        ------
+        unsc_par: array
+            Unscaled paramters
+        '''
+        parameters_min = np.array(parameters_min)
+        parameters_max = np.array(parameters_max)
+        norm_parameters = np.array(norm_parameters)
+
+        mask = np.array(cls.mask)
+        parameters_min[mask] = np.log10(parameters_min[mask])
+        parameters_max[mask] = np.log10(parameters_max[mask])
+
+        unsc_par = (parameters_min + norm_parameters *
+                    (parameters_max - parameters_min))
+
+        # calculate A = 10^log10(A)
+        unsc_par[mask] = np.power(10, unsc_par[mask])
+
+        return unsc_par
 
 
 @logged
@@ -153,7 +185,7 @@ class SFOR(EmpiricalModel):
         SFOR reaction rate, 1/s
         '''
         k = (self.parameters['A'] /
-             np.exp(self.parameters['E'] / 8314.33 / self.T(t)))
+             np.exp(self.parameters['E'] / Rgas / self.T(t)))
         # return k * (1 - y - self.parameters['y0'])
         return k * (self.parameters['y0'] - y)
 
@@ -182,3 +214,29 @@ class SFOR(EmpiricalModel):
         unsc_par[0] = np.power(10, unsc_par[0])
 
         return unsc_par
+
+
+@logged
+class C2SM(EmpiricalModel):
+    '''
+    Competing 2 Step Model for pyrolysis
+    '''
+    parameters_names = ['A1', 'E1', 'y1', 'A2', 'E2', 'y2']
+    parameters_default = [49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58]
+    mask = np.array([True, False, False, True, False, False])
+
+    y0 = [0, 1]  # volatile yield, raw solid
+
+    def rate(self, t, y):
+        RT = Rgas * self.T(t)
+        k1, k2 = self._k(RT)
+        dsdt = - (k1 + k2) * y[1]
+        dydt = (self.parameters['y1'] * k1 +
+                self.parameters['y2'] * k2) * y[1]
+        return np.array([dydt, dsdt])
+
+    def _k(self, RT):
+        return (self.parameters['A1'] / np.exp(
+            self.parameters['E1'] / RT),
+            self.parameters['A2'] / np.exp(
+            self.parameters['E2'] / RT))

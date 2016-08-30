@@ -22,17 +22,17 @@ CPD:
   active : true
   fit: 
     fit0:
-      model: SFOR
+      model: C2SM
       species: volatiles
-      parameters_min: [1e4, 50e6, 0.4]
-      parameters_max: [1e9, 200e6, 0.8]
-      parameters_init: [1e5, 100e6, 0.5] # not required by evolve
+      parameters_min: [1e3, 20e6, 0.3, 1e6, 100e6, 0.6]
+      parameters_max: [1e6, 100e6, 0.5, 1e9, 200e6, 1]
+      parameters_init: [1e5, 50e6, 0.4, 1e8, 150e6, 0.7] # not required by evolve
       method: evolve
       # from here parameters of evolve
-      npop: 40
-      ngen: 100
-      mu: 40
-      lambda_: 40
+      npop: 30
+      ngen: 40
+      mu: 30
+      lambda_: 20
       cxpb: 0.5
       mutpb: 0.5
         
