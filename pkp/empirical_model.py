@@ -1,6 +1,6 @@
 '''
 Empirical Model module
-=============
+======================
 
 Define the empirical models:
 

@@ -110,8 +110,8 @@ class Evolution(object):
         Set the target conditions.
         This operation has to be done as many times as necessary
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         t: array
             Time vector
         y: array
