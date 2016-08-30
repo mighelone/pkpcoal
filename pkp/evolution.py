@@ -35,6 +35,9 @@ def error(cls_, individual):
         m = cls_.empirical_model(parameters)
         m.operating_conditions = results['operating_conditions']
         _, y = m.run(results['t'])
+        if y.ndim == 2:
+            # for multivariables case take only the first solution
+            y = y[:, 0]
         err += cls_.error_run(y, results['y'])
         # del m
     return err,
@@ -79,6 +82,7 @@ class Evolution(object):
         '''
 
         # GA parameters
+        self.__log.debug('Init Evolution')
         self._npop = npop
         self._ngen = ngen
         self._cxpb = cxpb
@@ -173,8 +177,8 @@ class Evolution(object):
         # Process Pool of 4 workers
         if n_p > 1:
             # pool = multiprocessing.Pool(processes=n_p)
-            #pool = Pool(2)
-            pool = ProcessPool(nodes=2)
+            # pool = Pool(2)
+            pool = ProcessPool(nodes=n_p)
             toolbox.register("map", pool.map)
             # toolbox.register("map", futures.map)
             self.__log.warning('n_p not supported at the moment!\n'
@@ -214,7 +218,7 @@ class Evolution(object):
 
         best_parameters = self.unscale_parameters(best)
 
-        print('Best population', best, best_parameters)
+        # print('Best population', best, best_parameters)
         return best_parameters
 
     def register(self):
@@ -252,7 +256,14 @@ class Evolution(object):
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
+        self.__log.debug('par min %s len %s', parameters_min,
+                         len(parameters_min))
+        self.__log.debug('par min %s len %s', parameters_max,
+                         len(parameters_max))
         len_model = len(self.empirical_model.parameters_names)
+        self.__log.debug('len_model %s is %s',
+                         self.empirical_model,
+                         len_model)
         if (len(parameters_min) != len_model or
                 len(parameters_max) != len_model):
             raise ValueError(
@@ -290,22 +301,6 @@ class EvolutionBinary(Evolution):
                          creator.Individual, toolbox.attr_int,
                          n=self.n_decoding * len(
                              self.empirical_model.parameters_names))
-        #toolbox.register('evaluate', error_binary, self)
+        # toolbox.register('evaluate', error_binary, self)
         toolbox.register('evaluate', error_binary, self)
         return toolbox
-
-    #@binary.bin2float(0, 1, n_decoding)
-    # def __call__(self, individual):
-    #    '''
-    #    Calculate the error for the given individual
-    #    '''
-    #    return super(EvolutionBinary, self)(individual)
-        #err = 0
-        #parameters = self.unscale_parameters(individual)
-        # for run, results in self.ref_results.iteritems():
-        #    m = self.empirical_model(parameters)
-        #    m.operating_conditions = results['operating_conditions']
-        #    _, y = m.run(results['t'])
-        #    err += self.error_run(y, results['y'])
-        #    # del m
-        # return err,

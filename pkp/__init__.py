@@ -298,6 +298,7 @@ class PKPRunner(ReadConfiguration):
             best = ga.evolve(n_p=n_p, verbose=True)
             fit_results['best'] = dict(
                 zip(ga.empirical_model.parameters_names, best))
+            self.__log.info('Best population: %s', fit_results['best'])
             fit_results['log'] = ga.log
             # run model and add to fit_results
             det_model, fitname = fit_dict['model'], fit_dict['fit']
@@ -334,19 +335,24 @@ class PKPRunner(ReadConfiguration):
             self.__log.debug('Plot yields')
             fig, ax = plt.subplots()
 
-            for i, run in enumerate(sorted(target_conditions)):
+            runs = list(sorted(target_conditions))
+            n_runs = len(runs)
+            for i, run in enumerate(runs):
                 fit_results[run] = {}
                 res = target_conditions[run]
                 if i == 0:
                     l = '{} {}'.format(run, det_model)
                 else:
                     l = run
+                self.__log.debug('Plot %s ', run)
                 ax.plot(res['t'], res['y'], label=l, color=colors[i],
                         linestyle='solid')
                 fit_results[run]['t'] = res['t']
                 fit_results[run]['y'] = res['y']
                 m.operating_conditions = self.operating_conditions[run]
                 t_fit, y_fit = m.run(res['t'])
+                if y_fit.ndim == 2:
+                    y_fit = y_fit[:, 0]
                 fit_results[run]['y_fit'] = y_fit
                 if i == 0:
                     l = '{} {}'.format(run, m.__class__.__name__)
@@ -356,7 +362,15 @@ class PKPRunner(ReadConfiguration):
                         i], linestyle='dashed', label=l)
             ax.set_ylabel('Yield {}'.format(fit_dict['species']))
             ax.set_xlabel('t, s')
-            ax.legend(loc='best')
+
+            # add an extra legend
+            # http://matplotlib.org/users/legend_guide.html#multiple-legend
+            ax.add_artist(plt.legend(ax.lines[::2], runs,
+                                     loc='upper right', frameon=False))
+
+            ax.legend(ax.lines[:2],
+                      [det_model, m.__class__.__name__],
+                      loc='lower right', frameon=False)
             ax.set_title(
                 'Fit {} from {} with {} ({})'.format(
                     fit_dict['species'],
@@ -364,7 +378,8 @@ class PKPRunner(ReadConfiguration):
                     emp_model,
                     fitname))
             fig.savefig(os.path.join(results_dir,
-                                     'yield_{}.png'.format(filename)))
+                                     'yield_{}.png'.format(filename)),
+                        bbox_inches='tight')
             plt.close(fig)
 
         else:
