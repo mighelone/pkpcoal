@@ -181,8 +181,8 @@ class Evolution(object):
             pool = ProcessPool(nodes=n_p)
             toolbox.register("map", pool.map)
             # toolbox.register("map", futures.map)
-            self.__log.warning('n_p not supported at the moment!\n'
-                               'Only serial run supported!')
+            # self.__log.warning('n_p not supported at the moment!\n'
+            #                   'Only serial run supported!')
 
         pop = toolbox.population(n=self._npop)
         hof = tools.HallOfFame(1)
