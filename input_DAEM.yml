@@ -22,17 +22,17 @@ CPD:
   active : true
   fit: 
     fit0:
-      model: SFOR
+      model: DAEM
       species: volatiles
-      parameters_min: [1e4, 50e6, 0.4]
-      parameters_max: [1e9, 200e6, 0.8]
-      parameters_init: [1e5, 100e6, 0.5] # not required by evolve
+      parameters_min: [1e5, 50e6, 1e6, 0.6]
+      parameters_max: [1e10, 200e6, 20e6, 0.7]
+      parameters_init: [1e5, 50e6, 0.4, 1e8, 150e6, 0.7] # not required by evolve
       method: evolve
       # from here parameters of evolve
-      npop: 40
-      ngen: 100
-      mu: 40
-      lambda_: 40
+      npop: 30
+      ngen: 40
+      mu: 30
+      lambda_: 20
       cxpb: 0.5
       mutpb: 0.5
         
@@ -43,24 +43,24 @@ CPD:
   solver:
 
 Polimi:
-  active: true
+  active: false
+  fit:
+    fit0:
+      model: SFOR
+      species: volatiles
+      parameters_min: [1e5, 50e6, 0.6]
+      parameters_max: [1e8, 200e6, 0.7]
+      parameters_init: [1e5, 100e6, 0.65] # not required by evolve
+      method: evolve
+      # from here parameters of evolve
+      npop: 60
+      ngen: 40
+      mu: 60
+      lambda_: 40
+      cxpb: 0.6
+      mutpb: 0.2
   backend: dopri5
   mechanism:
-  fit:
-#    fit0:
-#     model: SFOR
-#      species: volatiles
-#      parameters_min: [1e5, 50e6, 0.6]
-#      parameters_max: [1e8, 200e6, 0.7]
-#      parameters_init: [1e5, 100e6, 0.65] # not required by evolve
-#      method: evolve
-#      # from here parameters of evolve
-#      npop: 60
-#      ngen: 40
-#      mu: 60
-#      lambda_: 40
-#      cxpb: 0.6
-#      mutpb: 0.2
     
 BioPolimi:
   active: false
