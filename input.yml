@@ -43,7 +43,7 @@ CPD:
   solver:
 
 Polimi:
-  active: true
+  active: false
   fit:
     fit0:
       model: SFOR
@@ -59,6 +59,12 @@ Polimi:
       lambda_: 40
       cxpb: 0.6
       mutpb: 0.2
+  backend: dopri5
+  mechanism:
+    
+BioPolimi:
+  active: false
+  fit:
   backend: dopri5
   mechanism:
 

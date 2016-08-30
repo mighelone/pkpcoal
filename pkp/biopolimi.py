@@ -162,6 +162,11 @@ class BioPolimi(pkp.polimi.Polimi):
             points = np.array([v1, v2])
             ax.plot(points[:, 0], points[:, 1], color='black',
                     marker='o', markersize=6)
+        ref_biomasses = (bio1, bio2, bio3, bio4, bio5)
+        x_b = [b.van_kravelen[0] for b in ref_biomasses]
+        y_b = [b.van_kravelen[1] for b in ref_biomasses]
+        l_b = [b.name for b in ref_biomasses]
+        ax.scatter(x_b, y_b, 4, marker='o', color='grey')
         tr = self.van_kravelen
         self.__log.debug('tr[0] %s tr[1] %s', tr[0], tr[1])
         ax.plot(tr[0], tr[1], marker='o', markersize=10, color='red')
@@ -184,6 +189,12 @@ class BioPolimi(pkp.polimi.Polimi):
             self.__log.debug('c %s h %s', c, h)
             ax.plot(c, h, color='black',
                     marker='o', markersize=6)
+        ref_biomasses = (bio1, bio2, bio3, bio4, bio5)
+        x_b = [b.ultimate_analysis['C'] for b in ref_biomasses]
+        y_b = [b.ultimate_analysis['H'] for b in ref_biomasses]
+        l_b = [b.name for b in ref_biomasses]
+        ax.scatter(x_b, y_b, 4, marker='o', color='grey')
+
         ax.plot(self.ultimate_analysis['C'],
                 self.ultimate_analysis['H'],
                 marker='o', markersize=10, color='red')

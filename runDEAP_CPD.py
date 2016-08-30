@@ -9,6 +9,8 @@ from deap import tools
 import random
 import numpy as np
 
+import multiprocessing as mp
+from scoop import futures
 
 import pkp
 import pkp.empirical_model
@@ -71,7 +73,7 @@ parameters_0 = [4, 150, 0.5]
 # GA parameters
 IND_SIZE = 3
 NPOP = 40
-CXPB, MUTPB, NGEN = 0.7, 0.2, 30
+CXPB, MUTPB, NGEN = 0.6, 0.4, 30
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -105,22 +107,18 @@ if __name__ == '__main__':
     stats.register("min", np.min)
     stats.register("max", np.max)
 
-    try:
-        # pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
-        #                               mutpb=MUTPB, ngen=NGEN,
-        #                               stats=stats, halloffame=hof,
-        #                               verbose=True)
-        pop, log = algorithms.eaMuPlusLambda(pop, toolbox, mu=NPOP,
-                                             lambda_=30,
-                                             cxpb=CXPB,
-                                             mutpb=MUTPB,
-                                             ngen=NGEN,
-                                             stats=stats,
-                                             halloffame=hof,
-                                             verbose=True)
+    #pool = mp.Pool(processes=2)
+    #toolbox.register("map", pool.map)
+    toolbox.register("map", futures.map)
 
-    except KeyboardInterrupt:
-        print('Stop evolution!')
+    pop, log = algorithms.eaMuPlusLambda(pop, toolbox, mu=NPOP,
+                                         lambda_=30,
+                                         cxpb=CXPB,
+                                         mutpb=MUTPB,
+                                         ngen=NGEN,
+                                         stats=stats,
+                                         halloffame=hof,
+                                         verbose=True)
 
     # plot the results
     fitnesses = np.array([p.fitness.values for p in pop])

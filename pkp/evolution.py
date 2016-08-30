@@ -18,6 +18,8 @@ from deap import tools
 # from deap import algorithms
 from pkp import algorithms
 # import multiprocessing
+
+from pathos.multiprocessing import ProcessPool
 # from scoop import futures
 
 
@@ -144,9 +146,11 @@ class Evolution(object):
 
         # Process Pool of 4 workers
         if n_p > 1:
-            # pool = multiprocessing.Pool(processes=4)
-            # toolbox.register("map", pool.map)
-            #toolbox.register("map", futures.map)
+            #pool = multiprocessing.Pool(processes=4)
+            #pool = Pool(2)
+            pool = ProcessPool(nodes=2)
+            toolbox.register("map", pool.map)
+            # toolbox.register("map", futures.map)
             self.__log.warning('n_p not supported at the moment!\n'
                                'Only serial run supported!')
 
