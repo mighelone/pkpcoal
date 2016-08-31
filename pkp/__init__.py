@@ -1,13 +1,11 @@
 '''
-PKP Pyrolysis Kinetic Preprocessor
-==================================
 The module contains the class for reading and run pyrolysis
 calculations with PKP.
 
-Classes
--------
-* :class:`pkp.ReadConfiguration`
+Contains
+--------
 * :class:`pkp.PKPRunner`
+* :class:`pkp.ReadConfiguration`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -16,9 +14,13 @@ from autologging import logged
 try:
     import ruamel.yaml as yaml
 except:
-    print('Loading standard yaml module ...\n'
-          'Note that it might give problems with exponetial decoding')
-    import yaml
+    try:
+        import ruamel_yaml as yaml
+    except:
+        print('Loading standard yaml module ...\n'
+              'Note that it might give problems with'
+              ' exponetial decoding')
+        import yaml
 import json
 import os
 import numpy as np
@@ -44,7 +46,21 @@ models = ['CPD', 'Polimi', 'BioPolimi']
 
 
 def clean_dict(d, tolist=False):
-    '''Clean dictionary fron numpy and pandas object'''
+    '''
+    Clean dictionary fron numpy and pandas object. 
+
+    Parameters
+    ----------
+    d: dict
+        Dictionary to convert
+    tolist: bool, default=False
+        Convert numpy arrays and pandas dataframe to list
+
+    Returns
+    -------
+    d_new: dict
+        New cleaned dictionary
+    '''
     d_new = {}
     for k, v in d.iteritems():
         if isinstance(v, dict):
@@ -115,8 +131,10 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
 @logged
 class PKPRunner(ReadConfiguration):
     '''
-    Run PKP. Information about the run are inherited from
-    :class:``pkp.ReadConfiguration``.
+    PKP Runner manager class. It uses configuration in the *yaml* file
+    to run multiple simulations of coal pyrolysis using different
+    *detailed models* and fitting their results with 
+    :ref:`empmodels-label`.
     '''
     models = models
 
@@ -131,6 +149,14 @@ class PKPRunner(ReadConfiguration):
             used the directory from where PKP is launched.
         np: int, default=1
             Number of processors for evolution fitting
+
+        Returns
+        -------
+        run_results: dict
+            Dictionary with the results of the detailed models.
+        fit_results: dict
+            Dictionary with the results of the calibration of the
+            empirical models.
         '''
         results_dir = self.set_results_dir(results_dir)
         run_results = {}
@@ -195,19 +221,22 @@ class PKPRunner(ReadConfiguration):
 
         '''
         fit_results = {}
+        # loop over the fitting runs, fit0, fit1, etc.
         for fitname, fit in model_settings.iteritems():
-            self.__log.info('Fit %s model with %s', model, fit['model'])
-            target_conditions = {
-                run: {'t': np.array(res.index),
-                      'y': np.array(res[fit['species']])}
-                for run, res in results.iteritems()}
-            fit_dict = {'model': model,
-                        'fit': fitname,
-                        'species': fit['species']}
-            fit_results[fitname] = self._evolution(
-                target_conditions, fit_dict,
-                fit, results_dir, n_p)
-            fit_results[fitname]['species'] = fit['species']
+            if fit.get('active', True):
+                self.__log.info(
+                    'Fit %s model with %s', model, fit['model'])
+                target_conditions = {
+                    run: {'t': np.array(res.index),
+                          'y': np.array(res[fit['species']])}
+                    for run, res in results.iteritems()}
+                fit_dict = {'model': model,
+                            'fit': fitname,
+                            'species': fit['species']}
+                fit_results[fitname] = self._evolution(
+                    target_conditions, fit_dict,
+                    fit, results_dir, n_p)
+                fit_results[fitname]['species'] = fit['species']
         return fit_results
 
     @staticmethod

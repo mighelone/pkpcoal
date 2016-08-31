@@ -65,7 +65,9 @@ Use
       -o RESULTS_DIR  Results directory
       -d              Print debug messages
 
+
 .. _input-file-label:
+
 Input file
 ~~~~~~~~~~
 
