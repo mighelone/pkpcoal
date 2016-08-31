@@ -1,6 +1,13 @@
 '''
 PKP Pyrolysis Kinetic Preprocessor
 ==================================
+The module contains the class for reading and run pyrolysis
+calculations with PKP.
+
+Classes
+-------
+* :class:`pkp.ReadConfiguration`
+* :class:`pkp.PKPRunner`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -14,6 +21,7 @@ import pandas as pd
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
 from pkp.biopolimi import BioPolimi
+from pkp.detailed_model import M_elements, normalize_dictionary, hf
 import pkp.evolution
 
 import matplotlib.pyplot as plt
@@ -30,13 +38,19 @@ models = ['CPD', 'Polimi', 'BioPolimi']
 
 
 @logged
-class ReadConfiguration(object):
+class ReadConfiguration(pkp.detailed_model.DetailedModel):
     '''
     Read configuration file for PKP
     '''
 
     def __init__(self, yml):
-        super(ReadConfiguration, self).__init__()
+        '''
+        Parameters
+        ----------
+        yml: str, unicode, dict
+            Input dict or yaml file containing the configuration for
+            run PKP. See :ref:`input-file-label`.
+        '''
         if isinstance(yml, (str, unicode)):
             with open(yml, 'r') as f:
                 yml_input = yaml.load(f)
@@ -47,8 +61,17 @@ class ReadConfiguration(object):
 
         # coal settings
         coal_settings = yml_input['Coal']
-        self.proximate_analysis = coal_settings['proximate_analysis']
-        self.ultimate_analysis = coal_settings['ultimate_analysis']
+        # Solver settings
+
+        super(ReadConfiguration, self).__init__(
+            proximate_analysis=coal_settings['proximate_analysis'],
+            ultimate_analysis=coal_settings['ultimate_analysis'],
+            pressure=yml_input['operating_conditions'][
+                'pressure'] * 101325,
+            name=coal_settings['name'])
+
+        self.operating_conditions = yml_input['operating_conditions']
+
         # convert HHV from MJ/kg to J/kg
         self.HHV = coal_settings['HHV'] * 1e6
         self.rho_dry = coal_settings['rho_dry']
@@ -57,14 +80,20 @@ class ReadConfiguration(object):
         [setattr(self, model, yml_input[model])
          for model in models]
 
-        # Solver settings
-        self.operating_conditions = yml_input['operating_conditions']
+    @property
+    def operating_conditions(self):
+        return self._operating_conditions
+
+    @operating_conditions.setter
+    def operating_conditions(self, value):
+        self._operating_conditions = value
 
 
 @logged
 class PKPRunner(ReadConfiguration):
     '''
-    Run PKP case
+    Run PKP. Information about the run are inherited from
+    :class:``pkp.ReadConfiguration``.
     '''
     models = models
 
@@ -82,6 +111,18 @@ class PKPRunner(ReadConfiguration):
         '''
         results_dir = self.set_results_dir(results_dir)
         run_results = {}
+
+        # define a information structure for the coal properties
+        # TODO improve this part
+
+        run_results['coal'] = {
+            'name': self.name,
+            'ultimate_analysis': self.ultimate_analysis,
+            'proximate_analysis': self.proximate_analysis,
+            'proximate_analysis_daf': self.proximate_analysis_daf,
+            'HHV': self.HHV,
+            'rho_dry': self.rho_dry
+        }
         fit_results = {}
         for model in self.models:
             model_settings = getattr(self, model)
@@ -128,7 +169,7 @@ class PKPRunner(ReadConfiguration):
         '''
         fit_results = {}
         for fitname, fit in model_settings.iteritems():
-            self.__log.info('Fit %s model %s', fit, model)
+            self.__log.info('Fit %s model %s', fitname, model)
             target_conditions = {
                 run: {'t': np.array(res.index),
                       'y': np.array(res[fit['species']])}
@@ -347,6 +388,7 @@ class PKPRunner(ReadConfiguration):
             ga.register()
             best = ga.evolve(n_p=n_p, verbose=True)
 
+            # TODO this has to be done inside the Evolution class
             fit_results['best'] = dict(
                 zip(ga.empirical_model.parameters_names, best))
             self.__log.info('Best population: %s', fit_results['best'])
@@ -360,10 +402,16 @@ class PKPRunner(ReadConfiguration):
             self.__log.debug('Emp model %s', emp_model)
             filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
 
+            # calculate postulate substance
+            # it is calculated only for fix y0 variables
+            if 'y0' in m.parameters_names:
+                fit_results[
+                    'postulate_volatiles'] = self._postulate_species(
+                        fit_results['best']['y0'])
+
             # plot results (evolution history)
             self._plot_evolution(det_model, filename, fitname, ga,
                                  results_dir)
-
             # plot yield
             self._plot_yieldfit(det_model, emp_model, filename,
                                 fit_dict, fit_results, fitname, m,
@@ -400,7 +448,6 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Plot yields')
         fig, ax = plt.subplots()
         runs = list(sorted(target_conditions))
-        n_runs = len(runs)
         for i, run in enumerate(runs):
             fit_results[run] = {}
             res = target_conditions[run]
@@ -482,3 +529,57 @@ class PKPRunner(ReadConfiguration):
             results_dir,
             'evolution_{}.png'.format(filename)))
         plt.close(fig)
+
+    def _postulate_species(self, y0, mw=200.0):
+        '''
+        Calculate the volatile composition for the fitted empirical
+        model assuming a unique *postulate* species. The composition is
+        calculated assuming that char is composed only by carbon and
+        the remaining carbon and other elements goes to the postulate
+        species.
+
+        Parameters
+        ----------
+        y0: float
+            Final volatile yield
+        mw: float
+            Postulate species molecular weight
+
+        Returns
+        -------
+        dict:
+            Dictionary containing the composition of the postulate
+            species with molecular weight, enthalpy of formation and
+            other information.
+        '''
+        assert 0 < y0 < 1, 'Define y0 between 0 and 1'
+        ua_char = {el: (1 if el == 'C' else 0)
+                   for el in self.ultimate_analysis}
+        molecule = {el: ((val - (1 - y0) * ua_char[el]) * mw /
+                         M_elements[el] / y0)
+                    for el, val in self.ultimate_analysis.iteritems()}
+        molecule_name = ''.join('{}_{:4.3f} '.format(el, molecule[el])
+                                for el in ['C', 'H', 'O', 'N', 'S'])
+
+        lhv_vol = (self.lhv_daf - (1 - y0) * self.lhv_char) / y0
+
+        nu = {
+            'CO2': molecule['C'],
+            'H2O': (molecule['H'] * 0.5),
+            # reactant is negative
+            'O2': -(-0.5 * molecule['O'] + molecule['C'] +
+                    0.25 * molecule['H']),
+            'SO2': molecule['S']
+        }
+
+        hf_vol = np.sum(n * hf[el]
+                        for el, n in nu.iteritems()) + lhv_vol * mw
+
+        postulate_dict = {
+            'name': molecule_name,
+            'formula': molecule,
+            'molecular_weight': mw,
+            'hf': hf_vol
+        }
+
+        return postulate_dict

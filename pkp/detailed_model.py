@@ -13,11 +13,36 @@ import pkp
 import pkp.reactor
 from autologging import logged
 from distutils.dir_util import mkpath
+import cantera
 
 pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
 ua_keys = ['C', 'H', 'O', 'N', 'S']
-M_elements = {'C': 12.0, 'H': 1, 'O': 16.0, 'N': 28, 'S': 32}
+
+# calc M elements
+gas = cantera.Solution('gri30.xml')
+# M_elements = {'C': 12.0, 'H': 1, 'O': 16.0, 'N': 28, 'S': 32}
+M_elements = dict(zip(gas.element_names, gas.atomic_weights))
+M_elements.pop('Ar')
+M_elements['S'] = 32.065
+
+# heating value char
+T_ref = 273
+
+hf = {
+    'char': -101.268,  # J/kmol
+    'CO2': gas.species('CO2').thermo.h(T_ref),
+    'H2O': gas.species('H2O').thermo.h(T_ref),
+    'O2': gas.species('O2').thermo.h(T_ref),
+    'SO2': -296.84e3
+}
+lhv_char = (hf['char'] + hf['O2'] - hf['CO2']) / M_elements['C']
+del gas
+
+M_H2O = 2 * M_elements['H'] + M_elements['O']
+
+# Latent Heat of Water in J/kg :
+rH2O = 2263073
 
 
 def normalize_dictionary(d):
@@ -36,7 +61,7 @@ class DetailedModel(pkp.reactor.Reactor):
     '''
 
     def __init__(self, proximate_analysis, ultimate_analysis,
-                 pressure=101325, name='Detailed model'):
+                 pressure=101325, hhv=None, name='Detailed model'):
         '''
         Parameters
         ----------
@@ -57,6 +82,8 @@ class DetailedModel(pkp.reactor.Reactor):
         self.pressure = pressure
         self.name = name
 
+        self.hhv = hhv
+
         self._operating_conditions = None
         self.T = None
         self.rho_dry = 1000.0
@@ -65,6 +92,59 @@ class DetailedModel(pkp.reactor.Reactor):
         self._path = 'dummy'
         self.basename = None
         self.path = None
+
+    @property
+    def hhv(self):
+        return self._hhv
+
+    @hhv.setter
+    def hhv(self, value):
+        '''
+        Set the HHV as received of the coal
+        '''
+        if not value:
+            self._hhv_daf = self.dulong()
+            self._hhv = self.daf * self._hhv_daf
+        else:
+            self._hhv = value
+            self._hhv_daf = self._hhv / self.daf
+
+        self._lhv_daf = (
+            self._hhv_daf - rH2O * self.ultimate_analysis['H'] *
+            0.5 * M_H2O / M_elements['H'])
+        self._lhv = (self._lhv_daf * self.daf -
+                     self.proximate_analysis['Moist'] * rH2O)
+
+    @property
+    def lhv_char(self):
+        return lhv_char
+
+    @property
+    def hhv_daf(self):
+        return self._hhv_daf
+
+    @property
+    def lhv(self):
+        return self._lhv
+
+    @property
+    def lhv_daf(self):
+        return self._lhv_daf
+
+    def dulong(self):
+        '''
+        Calculate HHV_daf using the Dulong formula
+        http://www.bti-europe.eu/downloads/CoalConversionFactsCalculations.pdf
+        '''
+        coeff = {
+            'C': 33.3,
+            'H': 144.2,
+            'O': -18.025,
+            'N': 0,
+            'S': 9.3
+        }
+        return sum(c * self.ultimate_analysis[el]
+                   for el, c in coeff.iteritems()) * 1e6
 
     @property
     def name(self):
