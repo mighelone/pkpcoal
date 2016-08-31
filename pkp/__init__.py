@@ -29,9 +29,12 @@ import pandas as pd
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
 from pkp.biopolimi import BioPolimi
-from pkp.detailed_model import M_elements, normalize_dictionary, hf
+from pkp.detailed_model import M_elements, hf
 import pkp.evolution
 
+import matplotlib
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 try:
     plt.style.use('mystyle')
