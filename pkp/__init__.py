@@ -240,6 +240,7 @@ class PKPRunner(ReadConfiguration):
                     target_conditions, fit_dict,
                     fit, results_dir, n_p)
                 fit_results[fitname]['species'] = fit['species']
+                fit_results[fitname]['model'] = fit['model']
         return fit_results
 
     @staticmethod
