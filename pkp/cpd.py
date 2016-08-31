@@ -1,5 +1,50 @@
 '''
-CPD module
+Module for running CPD simulations.
+
+Example
+-------
+
+Initialize the :class:`pkp.cpd.CPD` class using the proximate and
+ultimate analysis::
+
+    >>> import pkp.cpd
+    >>> ua = {'C': 69,
+              'H': 5,
+              'O': 24.7,
+              'N': 0.8,
+              'S': 0.5}
+
+    >>> pa = {'FC': 45.1,
+              'VM': 50.6,
+              'Ash': 4.3,
+              'Moist': 19.0}
+    >>> m = pkp.cpd.CPD(proximate_analysis=pa,
+                        ultimate_analysis=ua,
+                        pressure=101325,
+                        name='Pittsburg')
+
+Set the operating conditions::
+
+    >>> op_cond = [[0, 500],
+                   [0.001, 1400],
+                   [0.01, 1400]]
+    >>> m.operating_conditions = op_cond
+
+Set the output directory where store the results::
+
+    >>> m.path = './Results'
+
+Set the parameters for the CPD run::
+
+    >>> m.set_parameters(dt=1e-5, increment=2, dt_max=1e-5,
+                         basename='test')
+
+and finally run the model::
+
+    >>> results = m.run()
+
+The results are stored in a ``pandas`` dataframe.
+
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -43,10 +88,16 @@ class CPD(pkp.detailed_model.DetailedModel):
         '''
         Parameters
         ----------
-        ultimate_analysis: dict
-            Ultimate analysis
         proximate_analysis: dict
-            Proximate analysis
+            Proximate analysis dict i.e:
+            `{'FC': 45.1, 'VM': 50.6, 'Ash': 4.3, 'Moist': 19.0}`
+        ultimate_analysis: dict
+            Ultimate analysis dictionary i.e:
+            `{'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}`
+        pressure: float
+            Pressure of pyrolysis process
+        name: str, unicode
+            Reference name of the modelled coal
         '''
         self.ab = 2.602e15
         self.eb = 55400

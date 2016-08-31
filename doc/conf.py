@@ -18,10 +18,11 @@ import sphinx_bootstrap_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+# documentation root, use os.path.abspath to make it absolute, like
+# shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
-# -- General configuration ------------------------------------------------
+# -- General configuration ---------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -111,11 +112,15 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-# If true, `todo` and `todoList` produce output, else they produce nothing.
+# If true, `todo` and `todoList` produce output, else they produce
+# nothing.
 todo_include_todos = True
 
+# include __init__ in the documentation
+autoclass_content = 'both'
 
-# -- Options for HTML output ----------------------------------------------
+
+# -- Options for HTML output -------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -149,7 +154,8 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+# so a file named "default.css" will overwrite the builtin
+# "default.css".
 html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
@@ -217,7 +223,7 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'PKPdoc'
 
-# -- Options for LaTeX output ---------------------------------------------
+# -- Options for LaTeX output ------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -262,7 +268,7 @@ latex_documents = [
 #latex_domain_indices = True
 
 
-# -- Options for manual page output ---------------------------------------
+# -- Options for manual page output ------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
@@ -275,7 +281,7 @@ man_pages = [
 #man_show_urls = False
 
 
-# -- Options for Texinfo output -------------------------------------------
+# -- Options for Texinfo output ----------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,

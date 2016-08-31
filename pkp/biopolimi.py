@@ -1,3 +1,11 @@
+'''
+biopolimi module
+================
+Module containing classes for modeling pyrolysis of biomass, 
+based on `Ranzi et al. <10.1021/ef800551t>`__
+'''
+
+
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
@@ -7,7 +15,7 @@ from autologging import logged
 import pkp.polimi
 import pkp.detailed_model
 from pkp.polimi import TriangleCoal
-from pkp.detailed_model import M_elements
+# from pkp.detailed_model import M_elements
 import cantera
 import os
 

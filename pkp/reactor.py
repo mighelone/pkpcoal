@@ -1,3 +1,8 @@
+'''
+Define the :class:`pkp.reactor.Reactor`, which is used for prescribing
+the operating conditions.
+'''
+
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 

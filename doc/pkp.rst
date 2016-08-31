@@ -11,13 +11,13 @@ Subpackages
 Submodules
 ----------
 
-pkp.Compos_and_Energy module
-----------------------------
-
-.. automodule:: pkp.Compos_and_Energy
-    :members:
-    :undoc-members:
-    :show-inheritance:
+#pkp.Compos_and_Energy module
+#----------------------------
+#
+#.. automodule:: pkp.Compos_and_Energy
+#    :members:
+#    :undoc-members:
+#    :show-inheritance:
 
 pkp.algorithms module
 ---------------------

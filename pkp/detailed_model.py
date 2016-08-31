@@ -1,5 +1,7 @@
 '''
-Detailed model class
+Module contains the Detailed model base class. This class is used as
+parent for detailed model classes, such :class:`pkp.cpd.CPD`,
+:class:`pkp.polimi.Polimi` and :class:`pkp.biopolimi.BioPolimi`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -35,6 +37,20 @@ class DetailedModel(pkp.reactor.Reactor):
 
     def __init__(self, proximate_analysis, ultimate_analysis,
                  pressure=101325, name='Detailed model'):
+        '''
+        Parameters
+        ----------
+        proximate_analysis: dict
+            Proximate analysis dict i.e:
+            `{'FC': 45.1, 'VM': 50.6, 'Ash': 4.3, 'Moist': 19.0}`
+        ultimate_analysis: dict
+            Ultimate analysis dictionary i.e:
+            `{'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}`
+        pressure: float
+            Pressure of pyrolysis process
+        name: str, unicode
+            Reference name of the modelled coal
+        '''
         super(DetailedModel, self).__init__()
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
