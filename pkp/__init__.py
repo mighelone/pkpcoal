@@ -191,7 +191,7 @@ class PKPRunner(ReadConfiguration):
         '''
         fit_results = {}
         for fitname, fit in model_settings.iteritems():
-            self.__log.info('Fit %s model %s', fitname, model)
+            self.__log.info('Fit %s model with %s', model, fit['model'])
             target_conditions = {
                 run: {'t': np.array(res.index),
                       'y': np.array(res[fit['species']])}
