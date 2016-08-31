@@ -14,6 +14,7 @@ from __future__ import print_function, unicode_literals
 
 from autologging import logged
 import ruamel_yaml as yaml
+import json
 import os
 import numpy as np
 import pandas as pd
@@ -35,6 +36,23 @@ col_red = "#C54E6D"
 col_green = "#009380"
 
 models = ['CPD', 'Polimi', 'BioPolimi']
+
+
+def clean_dict(d, tolist=False):
+    '''Clean dictionary fron numpy and pandas object'''
+    d_new = {}
+    for k, v in d.iteritems():
+        if isinstance(v, dict):
+            d_new[k] = clean_dict(v)
+        elif isinstance(v, np.ndarray):
+            if tolist:
+                d_new[k] = v.tolist()
+        elif isinstance(v, pd.DataFrame):
+            if tolist:
+                d_new[k] = v.values.tolist()
+        else:
+            d_new[k] = v
+    return d_new
 
 
 @logged
@@ -141,6 +159,10 @@ class PKPRunner(ReadConfiguration):
                     fit_results[model] = self._fit_model(
                         model, model_settings['fit'], n_p, results,
                         results_dir)
+
+        json_fit = os.path.join(results_dir, 'report_fit.json')
+        with open(json_fit, 'w') as f:
+            json.dump(clean_dict(fit_results), f, indent=4)
         return run_results, fit_results
 
     def _fit_model(self, model, model_settings, n_p, results,
@@ -458,12 +480,16 @@ class PKPRunner(ReadConfiguration):
             self.__log.debug('Plot %s ', run)
             ax.plot(res['t'], res['y'], label=l, color=colors[i],
                     linestyle='solid')
+            # use list for exporting files
+            # fit_results[run]['t'] = res['t'].tolist()
+            # fit_results[run]['y'] = res['y'].tolist()
             fit_results[run]['t'] = res['t']
             fit_results[run]['y'] = res['y']
             m.operating_conditions = self.operating_conditions[run]
             t_fit, y_fit = m.run(res['t'])
             if y_fit.ndim == 2:
                 y_fit = y_fit[:, 0]
+            # fit_results[run]['y_fit'] = y_fit.tolist()
             fit_results[run]['y_fit'] = y_fit
             if i == 0:
                 l = '{} {}'.format(run, m.__class__.__name__)
