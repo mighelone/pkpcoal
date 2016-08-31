@@ -1,6 +1,6 @@
 '''
 Empirical Model module
-=============
+======================
 
 Define the empirical models:
 
@@ -19,8 +19,11 @@ import warnings
 from autologging import logged
 
 from scipy.integrate import ode
+from scipy.misc import factorial
 
 Rgas = 8314.33
+sqrt2 = np.sqrt(2)
+sqrtpi = np.sqrt(np.pi)
 
 
 @logged
@@ -43,12 +46,10 @@ class EmpiricalModel(pkp.reactor.Reactor):
     def len_parameters(self):
         return len(self.parameters_names)
 
-    @property
-    def parameters(self):
+    def _get_parameters(self):
         return self._parameters
 
-    @parameters.setter
-    def parameters(self, values):
+    def _set_parameters(self, values):
         if values is None:
             par_values = self.parameters_default
         elif isinstance(values, (list, np.ndarray)):
@@ -70,6 +71,8 @@ class EmpiricalModel(pkp.reactor.Reactor):
             self._parameters = {k: v for k, v in
                                 zip(self.parameters_names,
                                     par_values)}
+
+    parameters = property(_get_parameters, _set_parameters)
 
     def run(self, t=None):
         '''
@@ -240,3 +243,58 @@ class C2SM(EmpiricalModel):
             self.parameters['E1'] / RT),
             self.parameters['A2'] / np.exp(
             self.parameters['E2'] / RT))
+
+
+@logged
+class DAEM(EmpiricalModel):
+    '''alculates the devolatilization reaction using the Distributed
+    Activation Energy Model (DAEM), using Hermit-Gaussian quadrature
+    http://www.sciencedirect.com/science/article/pii/S0010218000001152'''
+
+    parameters_names = ['A0', 'E0', 'sigma', 'y0']
+    parameters_default = [1e6, 100e6, 12e6, 0.6]
+    mask = np.array([True, False, False, False])
+    y0 = [0, 0, 0, 0, 0]
+
+    n_quad = 4
+    mt = 0.72
+    x = np.array([np.sqrt((3 - np.sqrt(6)) / 2),
+                  -np.sqrt((3 - np.sqrt(6)) / 2),
+                  np.sqrt((3 + np.sqrt(6)) / 2),
+                  -np.sqrt((3 + np.sqrt(6)) / 2)])
+    H = 8 * pow(x, 3) - 12 * x  # hermite polynomial
+    w = pow(2, n_quad - 1) * factorial(n_quad) * \
+        np.sqrt(np.pi) / (pow(n_quad, 2) * pow(H, 2))
+    Wm = w * np.exp(pow(x, 2))
+
+    def rate(self, t, y):
+        '''y, k0.., kn'''
+        # TODO add with parameters
+
+        # self.__log.debug('Em %s', Em)
+        dIdt = (self.parameters['A0'] *
+                np.exp(-self._Em / Rgas / self.T(t)))
+        # self.__log.debug('dkdt %s', dkdt)
+        coeff1 = self.Wm * self.mt / sqrtpi
+        coeff2 = np.exp(-pow((self._Em - self.parameters['E0']) /
+                             self.parameters['sigma'], 2) / 2)
+        coeff3 = np.exp(-y[1:]) * dIdt
+        # self.__log.debug('coeff: %s %s %s', coeff1, coeff2, coeff3)
+        # dydt = (self.parameters['y0'] - y[0]) * \
+        #    np.sum(coeff1 + coeff2 + coeff3)
+        dydt = self.parameters['y0'] * np.sum(coeff1 * coeff2 * coeff3)
+        # self.__log.debug('dydt %s', dydt)
+        return np.append(dydt, dIdt)
+
+    def _calc_Em(self):
+        return (self.parameters['E0'] +
+                self.x * sqrt2 * self.parameters['sigma'] * self.mt)
+
+    def _set_parameters(self, parameters):
+        super(DAEM, self)._set_parameters(parameters)
+        self._Em = self._calc_Em()
+
+    def _get_parameters(self):
+        return super(DAEM, self)._get_parameters()
+
+    parameters = property(_get_parameters, _set_parameters)

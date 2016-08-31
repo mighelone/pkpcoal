@@ -26,8 +26,8 @@ def set_reference_coal(name, atoms):
     atoms: dict
         Atom coefficient of the coal raw molecule
 
-    Return
-    ------
+    Returns
+    -------
     pkp.detailed_model.DetailedModel
     '''
     atoms['N'] = 0
@@ -117,8 +117,8 @@ class Triangle(object):
         x: array, list
             Point for which weights are calculated
 
-        Return
-        ------
+        Returns
+        -------
         np.ndarray
             Weights array
         '''
