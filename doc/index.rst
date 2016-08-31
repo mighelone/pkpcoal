@@ -17,7 +17,9 @@ Contents:
 
 Indices and tables
 ==================
-
+* :ref:`biopolimi-label`
+* :ref:`empmodels-label`
+* :ref:`my-reference-label`
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

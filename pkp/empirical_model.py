@@ -1,13 +1,13 @@
 '''
-Empirical Model module
-======================
+This module defines the class for the empirical pyrolysis models. 
+It contains classes for the following models:
 
-Define the empirical models:
+* Single First Order Reaction (SFOR) model :class:`pkp.empirical_model.SFOR`
+* Competing 2-Step Model (C2SM) :class:`pkp.empirical_model.C2SM`
+* Distributed Activation Energy Model (DAEM) :class:`pkp.empirical_model.DAEM`
 
-* SFOR
-* C2SM
-* DAEM
-* ...
+Classes
+-------
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -173,19 +173,43 @@ class EmpiricalModel(pkp.reactor.Reactor):
 @logged
 class SFOR(EmpiricalModel):
     '''
-    Single First Order Reaction (SFOR) model.
-    The reaction rate is given by: :math:`r = k(T) (y0-y)` with
-    :math `k(T) = A \exp(-E/Rg T)`.
+    The Single First Order Reaction (SFOR) model is characterized by a
+    unique reaction, which converts raw coal into char and volatiles
+    with a constant ratio.
 
-    The class inherits the main methods from
-    :meth:`empirical_model.EmpiricalModel`
+    :math:`Raw -> y_0 volatiles + (1-y_0) char`
+
+    The reaction rate is given by:
+
+        :math:`r = k(T) (y_0-y)`
+
+    with:
+
+        :math:`k(T) = A e^{-E/Rg T}`
+
+    Where :math:`A` is the pre-exponential factor and :math:`E` is the
+    activation energy. The model is characterized by a constant
+    volatile yield :math:`y_0`, which does not depend on the conditions
+    (heating rate and maximum temperature) of the devolatilization process.
     '''
     parameters_names = ['A', 'E', 'y0']
     parameters_default = [1e5, 50e6, 0.6]
 
     def rate(self, t, y):
         '''
-        SFOR reaction rate, 1/s
+        Reaction rate used in the ODE solver.
+
+        Parameters
+        ----------
+        t: float
+            Time
+        y: float
+            Volatile yield :math:`y(t)`
+
+        Returns
+        -------
+        rate: float
+            :math:`dy/dt`
         '''
         k = (self.parameters['A'] /
              np.exp(self.parameters['E'] / Rgas / self.T(t)))
@@ -222,7 +246,49 @@ class SFOR(EmpiricalModel):
 @logged
 class C2SM(EmpiricalModel):
     '''
-    Competing 2 Step Model for pyrolysis
+    The Competing 2 Step Model (C2SM) is characterized by a
+    two competing reaction with different activation energies and
+    stoichiometry. The two reactions produce char and volatiles with
+    stoichiometric fraction :math:`y_1` and :math:`y_2`:
+
+    .. math::
+
+        Raw -> y_1 volatiles + (1-y_1) char
+
+        Raw -> y_2 volatiles + (1-y_2) char
+
+    with rates :math:`R_1` and :math:`R_2`.
+    The reaction rates are given by:
+
+    .. math::
+
+        r_1 = dy_1/dt = y_1 k_1 s
+
+        r_2 = dy_2/dt = y_1 k_2 s
+
+    and the overall release of volatiles is:
+
+    .. math::
+
+        r = (y_1 k_1 + y_2 k_2) s
+
+    where :math:`s` is the remaining fraction of raw coal.
+    The consumption of raw is given by:
+
+    .. math::
+
+        ds/dt = -(k_1 + k_2) s
+
+    The reaction constants are given by:
+
+    .. math::
+        k_1(T) = A_1 e^{-E_1/Rg T}
+
+        k_2(T) = A_2 e^{-E_2/Rg T}
+
+    Generally the first reactin is characterized by low activation
+    energy with low release of volatiles, while the second by high
+    activation energy and volatiles.
     '''
     parameters_names = ['A1', 'E1', 'y1', 'A2', 'E2', 'y2']
     parameters_default = [49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58]

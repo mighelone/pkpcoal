@@ -35,7 +35,8 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
+    # 'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',
     'sphinx.ext.napoleon'
 ]
 

@@ -21,8 +21,9 @@ Coal:
 
 CPD:
   active : true
-  fit: 
+  fit:
     fit0:
+      active: true
       model: SFOR
       species: volatiles
       parameters_min: [1e4, 50e6, 0.4]
