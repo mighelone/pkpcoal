@@ -42,7 +42,27 @@ def checkBounds(min, max):
 
 def error(cls_, individual):
     '''
-    Calculate the error for the given individual
+    Calculate the error for the given individual.
+    The error is given by:
+
+    .. math::
+        E = \sum_j \sum_k (y_{ref, k}^j - y_{fit, k}^j)
+
+    where the :math:`j` is the index of the run and :math:`k`
+    the index of the single points for the given run.
+
+    Parameters
+    ----------
+    cls_: Evolution
+        Evolution instance is passed to the function for allowing
+        multiprocessing.
+    individual: iterable
+        Iterable list containing the chromosome of the given individual.
+
+    Return
+    ------
+    err: tuple
+        Tuple containing the error for a multi-objective optimization.
     '''
     err = 0
     parameters = cls_.unscale_parameters(individual)
@@ -74,7 +94,14 @@ def error_binary(cls_, individual):
 @logged
 class Evolution(object):
     '''
-    Evolution manager based on DEAP
+    Evolution manager based on DEAP. The :math:`(\mu+\lambda)`
+    algorithm is implemented from the **DEAP** library.
+
+    Mate of two individuals is governed by a blend crossover function,
+    while a Gaussian distribution govern the mutation.
+    Finally a selection tournamenet allows to select the :math:`(\mu)`
+    individuals of the next generation from the joined population
+    :math:`(\mu+\lambda)`.
     '''
 
     def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2, mu=None,
@@ -128,9 +155,15 @@ class Evolution(object):
         Parameters
         ----------
         t: array
-            Time vector
+            Time vector [t0, t1, ..., tN]
         y: array
-            Yield vector
+            Yield vector [y0, y1, ..., yN]
+        operating_conditions: array, list
+            Time, temperature list [[t0, T0], ..., [tM, TM]]
+
+        Note
+        ----
+        The length `N` and `M` of the arrays can be different.
         '''
         if not len(t) == len(y):
             raise ValueError('Length of t and y should be the same')
@@ -154,6 +187,13 @@ class Evolution(object):
     def empirical_model(self, model):
         '''
         Set the empirical model for the calibration
+
+        Parameters
+        ----------
+        model: type, default: pkp.empirical_model.SFOR
+            Class used to empirically model the pyrolysis. It has to be
+            a children class of
+            :class:`pkp.empirical_model.EmpiricalModel`. 
         '''
         # check attributes using the EmpiricalModel attributes
         if not issubclass(model, pkp.empirical_model.EmpiricalModel):
@@ -167,8 +207,15 @@ class Evolution(object):
 
     def evolve(self, n_p=1, verbose=True):
         '''
-        Evolve the population using the MuPlusLambda evolutionary
-        algorith.
+        Evolve the population using the :math:`(\mu+\lambda)`
+        evolutionary algorithm.
+
+        Parameters
+        ----------
+        n_p: int, default=1
+            Number of precess to generate the new population.
+        verbose: bool, default=True
+            Print extra message
         '''
         toolbox = self.toolbox
 
@@ -225,7 +272,10 @@ class Evolution(object):
 
     def register(self):
         '''
-        Register settings for the Evolution algorithm using DEAP
+        Register settings for the Evolution algorithm using DEAP.
+
+        Note
+        ----
         Check if this can be done inside a function
         '''
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -277,6 +327,16 @@ class Evolution(object):
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
+        '''
+        Define the range of variation of the model parameters.
+
+        Parameters
+        ----------
+        parameters_min: list
+            List of minimum values of the parameters
+        parameters_max: list
+            List of maximum values of the parameters
+        '''
         self.__log.debug('par min %s len %s', parameters_min,
                          len(parameters_min))
         self.__log.debug('par min %s len %s', parameters_max,
@@ -295,10 +355,17 @@ class Evolution(object):
 
     def unscale_parameters(self, norm_parameters):
         '''
-        Unscale parameters for the given optimization.
+        Unscale parameters defined between 0 and 1
+        to non-scaled parameters required to set the empirical model.
 
-        Note first define min and max parameters using
-        `parameters_range`
+
+        Note
+        ----
+        first define min and max parameters using 
+        :method:`parameters_range`.
+
+        Parameters
+        ----------
         '''
         if (self._parameters_min is None or
                 self._parameters_max is None):

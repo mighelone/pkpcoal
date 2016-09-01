@@ -13,6 +13,21 @@ import pkp
 import pkp.evolution
 
 
+def checkBounds(min, max):
+    def decorator(func):
+        def wrappper(*args, **kargs):
+            offspring = func(*args, **kargs)
+            for child in offspring:
+                for i in range(len(child)):
+                    if child[i] > max:
+                        child[i] = max
+                    elif child[i] < min:
+                        child[i] = min
+            return offspring
+        return wrappper
+    return decorator
+
+
 def error1(cls_, individual):
     '''
     Calculate the error for the given individual
@@ -83,6 +98,8 @@ class Evolve2Stream(pkp.evolution.Evolution):
         # define the mutate algorithm
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)
+        # toolbox.decorate("mate", checkBounds(0, 1))
+        # toolbox.decorate("mutate", checkBounds(0, 1))
         # define the select algorithm
         # toolbox.register('select', tools.selTournament, tournsize=3)
         # pareto front selector
