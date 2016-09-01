@@ -189,8 +189,8 @@ class Evolution(object):
                                              halloffame=hof,
                                              verbose=verbose)
 
-        if n_p > 1:
-            pool.close()
+        # if n_p > 1:
+        #    pool.close()
 
         self.pop = pop
         self.log = log

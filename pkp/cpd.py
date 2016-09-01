@@ -158,6 +158,7 @@ class CPD(pkp.detailed_model.DetailedModel):
         basename: str
             Basename for CPD output files
         '''
+        # TODO set a warning for coal outside the parameters
         if 'nmr_parameters' in kwargs:
             self._set_NMR_parameters(
                 nmr_parameters=kwargs['nmr_parameters'])
