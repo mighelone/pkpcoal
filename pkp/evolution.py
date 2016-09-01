@@ -224,18 +224,34 @@ class Evolution(object):
         self.toolbox = toolbox
 
     def _individual(self, toolbox):
-        '''Set individual enconding'''
+        '''
+        Set individual enconding. This function can be used for
+        defining settings for specific evolution strategies
+        '''
+        # Random number generation
+        # random.random generates float between 0 and 1
         toolbox.register("attr_float", random.random)
+        # individual uses n chromosomes (as many model parameters)
+        # and attr_float
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_float,
                          n=len(self.empirical_model.parameters_names))
+        # define the fit function
         toolbox.register('evaluate', error, self)
+        # define the population as list of individuals
         toolbox.register("population", tools.initRepeat, list,
                          toolbox.individual)
 
-        toolbox.register('mate', tools.cxTwoPoint)
+        # define the mate algorithm
+        # cxTwoPoint is good for integer/binary chromosomes
+        # toolbox.register('mate', tools.cxTwoPoint)
+        # blend crossover extending of 0.1 respect to the parameters
+        # range. This can produce values out of the range 0-1.
+        toolbox.register('mate', tools.cxBlend, alpha=0.1)
+        # define the mutate algorithm
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)
+        # define the select algorithm
         toolbox.register('select', tools.selTournament, tournsize=3)
         return toolbox
 
