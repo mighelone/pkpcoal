@@ -20,6 +20,7 @@ Indices and tables
 * :ref:`pkp-label`
 * :ref:`biopolimi-label`
 * :ref:`empmodels-label`
+* :ref:`calibration-label`
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

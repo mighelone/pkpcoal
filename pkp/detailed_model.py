@@ -72,7 +72,7 @@ class DetailedModel(pkp.reactor.Reactor):
             Ultimate analysis dictionary i.e:
             `{'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}`
         pressure: float
-            Pressure of pyrolysis process
+            Pressure of pyrolysis process in Pa
         name: str, unicode
             Reference name of the modelled coal
         '''
@@ -80,6 +80,7 @@ class DetailedModel(pkp.reactor.Reactor):
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
         self.pressure = pressure
+        self.__log.debug('Set pressure %s', self.pressure)
         self.name = name
 
         self.hhv = hhv

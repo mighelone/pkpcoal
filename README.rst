@@ -154,8 +154,3 @@ Input files are written using **YAML** syntax:
         run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
         run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
 
-
-.. [Vascellari2013] Vascellari et al . "Simulation of entrained flow
-		    gasification with advanced coal conversion
-		    submodels. Part 1", Fuel 113, 2013, 654–669.
-		    <http://www.sciencedirect.com/science/article/pii/S0016236113005413>
