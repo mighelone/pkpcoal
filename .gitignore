@@ -148,3 +148,6 @@ pkp-cpd
 /pyevolve.db-journal
 miriam
 Documentation/_build/
+doc/_build
+/fort.1
+/test.err

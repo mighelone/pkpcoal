@@ -21,13 +21,19 @@ Coal:
 
 CPD:
   active : true
-  fit: 
+  dt: 1e-5
+  increment: 5
+  dt_max: 1e-5
+  nmr_parameters: 
+  solver:
+  fit:
     fit0:
+      active: false
       model: SFOR
       species: volatiles
       parameters_min: [1e4, 50e6, 0.4]
       parameters_max: [1e9, 200e6, 0.8]
-      parameters_init: [1e5, 100e6, 0.5] # not required by evolve
+      parameters_init: [1e5, 100e6, 0.5] 
       method: evolve
       # from here parameters of evolve
       npop: 40
@@ -36,12 +42,23 @@ CPD:
       lambda_: 40
       cxpb: 0.0
       mutpb: 0.5
+    fit1:
+      model: C2SM
+      species: volatiles
+      parameters_min: [1e3, 20e6, 0.3, 1e6, 100e6, 0.6]
+      parameters_max: [1e6, 100e6, 0.5, 1e9, 200e6, 1]
+      parameters_init: [1e5, 50e6, 0.4, 1e8, 150e6, 0.7]
+      method: evolve
+      # from here parameters of evolve
+      npop: 40
+      ngen: 10
+      mu: 40
+      lambda_: 30
+      cxpb: 0.5
+      mutpb: 0.5
+
         
-  dt: 1e-5
-  increment: 5
-  dt_max: 1e-5
-  nmr_parameters: 
-  solver:
+
 
 Polimi:
   active: true
@@ -49,6 +66,7 @@ Polimi:
   mechanism:
   fit:
 #    fit0:
+#     active: true
 #     model: SFOR
 #      species: volatiles
 #      parameters_min: [1e5, 50e6, 0.6]

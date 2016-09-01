@@ -1,8 +1,29 @@
 '''
-biopolimi module
-================
-Module containing classes for modeling pyrolysis of biomass, 
+Module containing the class for modeling pyrolysis of biomass,
 based on `Ranzi et al. <10.1021/ef800551t>`__
+
+The biomass is described as a composition of different reference
+biomasses: cellulose, hemicellulose, lignine C, H and O.
+Usually, biochemical analysis of biomass is unavailable and a method to
+characterize the biomass feedstock on the basis of the bare elemental
+analysis has been proposed elsewhere (Ranzi et al., 2008). If only the
+elemental analysis in terms of C, H, and O content is available, then a
+suitable combination of the reference species is simply derived from
+the three atomic balances. For this reason three mixtures of the
+reference components (cellulose, hemicellulose, and lignin) are
+proposed, and the biomass feed- stock is characterized as a linear
+combination of these reference mixtures. The first is a molar mixture
+of 60% cellulose and 40% hemicellulose, while the remaining ones are
+mixtures of the kinds of lignins (80% LIGO 20% LIGC, and 80% LIGH 20%
+LIGC).
+
+Usage
+-----
+Describe usage
+
+
+Class
+-----
 '''
 
 
