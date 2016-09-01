@@ -25,6 +25,21 @@ from pathos.multiprocessing import ProcessPool
 # from scoop import futures
 
 
+def checkBounds(min, max):
+    def decorator(func):
+        def wrappper(*args, **kargs):
+            offspring = func(*args, **kargs)
+            for child in offspring:
+                for i in range(len(child)):
+                    if child[i] > max:
+                        child[i] = max
+                    elif child[i] < min:
+                        child[i] = min
+            return offspring
+        return wrappper
+    return decorator
+
+
 def error(cls_, individual):
     '''
     Calculate the error for the given individual
@@ -169,11 +184,8 @@ class Evolution(object):
 
         pop = toolbox.population(n=self._npop)
         hof = tools.HallOfFame(1)
-        stats = tools.Statistics(lambda ind: ind.fitness.values)
-        stats.register("avg", np.mean)
-        stats.register("std", np.std)
-        stats.register("min", np.min)
-        stats.register("max", np.max)
+
+        stats = self._set_stats()
 
         # pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB,
         #                               mutpb=MUTPB, ngen=NGEN,
@@ -188,7 +200,6 @@ class Evolution(object):
                                              stats=stats,
                                              halloffame=hof,
                                              verbose=verbose)
-
         # if n_p > 1:
         #    pool.close()
 
@@ -203,6 +214,14 @@ class Evolution(object):
 
         # print('Best population', best, best_parameters)
         return best_parameters
+
+    def _set_stats(self):
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats.register("avg", np.mean)
+        stats.register("std", np.std)
+        stats.register("min", np.min)
+        stats.register("max", np.max)
+        return stats
 
     def register(self):
         '''
@@ -253,6 +272,8 @@ class Evolution(object):
                          indpb=0.2)
         # define the select algorithm
         toolbox.register('select', tools.selTournament, tournsize=3)
+        toolbox.decorate("mate", checkBounds(0, 1))
+        toolbox.decorate("mutate", checkBounds(0, 1))
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):

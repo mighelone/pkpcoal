@@ -9,6 +9,7 @@ import itertools
 import warnings
 import pandas as pd
 import os
+import sys
 from autologging import logged
 
 from pkp.detailed_model import M_elements
@@ -238,7 +239,6 @@ class Polimi(pkp.detailed_model.DetailedModel):
         ultimate_analysis: dict
         pressure: float
         name: str
-        mechanism: str, cantera.Solution
         '''
         super(Polimi, self).__init__(
             proximate_analysis=proximate_analysis,
@@ -377,3 +377,29 @@ class Polimi(pkp.detailed_model.DetailedModel):
         data.to_csv(self._out_csv)
 
         return data
+
+    @classmethod
+    def reference_coal(cls, ref_coal, proximate_analysis=None,
+                       pressure=101325):
+        '''
+        Define polimi model directly defining one of the reference
+        coals.
+
+        Parameters
+        ----------
+        ref_coal: str
+            Name of the reference coals: COAL1, COAL2, COAL3, CHAR
+        '''
+        try:
+            c = getattr(sys.modules[__name__], ref_coal.lower())
+        except AttributeError('Use one of the reference coal for Polimi'
+                              ' model'):
+            raise
+        except:
+            raise
+        if proximate_analysis is None:
+            proximate_analysis = c.proximate_analysis
+        return cls(ultimate_analysis=c.ultimate_analysis,
+                   proximate_analysis=proximate_analysis,
+                   pressure=pressure,
+                   name=c.name)

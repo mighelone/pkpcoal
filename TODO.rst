@@ -24,3 +24,8 @@ This is a list of small fix:
   `__init__.py:452` to `Evolution` class.
 * Add references of papers used for **PKP**
 * Use `array` instead of list for `individuals` in **DEAP**
+* For **SFOR** and **DAEM** which use constant :math:`y_0` force to use
+  a narrow range of this parameter (i.e. from min to max value in the species)
+* Set a warning when CPD is out of the correlation
+* Set a warning when optimization reach the limits of the parameters range
+* Split report files (maybe)
