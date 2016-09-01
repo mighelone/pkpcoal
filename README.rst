@@ -25,8 +25,7 @@ empirical models are available:
 -  C2SM (Competing 2 Step Model)
 -  DAEM (Distributed Activation Energy Model)
 
-More information about PKP can be found in `Vascellari et
-al. <10.1016/j.fuel.2013.06.014>`__
+More information about PKP can be found in  [Vascellari2013]_
 
 Installation
 ------------
@@ -154,3 +153,9 @@ Input files are written using **YAML** syntax:
         run2        : [ [ 0, 500], [ 0.01, 1300], [ 0.02, 1300] ]
         run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
         run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
+
+
+.. [Vascellari2013] Vascellari et al . "Simulation of entrained flow
+		    gasification with advanced coal conversion
+		    submodels. Part 1", Fuel 113, 2013, 654–669.
+		    <http://www.sciencedirect.com/science/article/pii/S0016236113005413>
