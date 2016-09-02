@@ -338,14 +338,18 @@ class PKPRunner(ReadConfiguration):
             self.__log.debug(
                 'Polimi coal composition is set to %s', run.composition)
         else:
-            self.__log.debug('Initialize det. model %s',
+            self.__log.debug('Initialize detailed model %s',
                              model)
             run = globals()[model](
                 ultimate_analysis=self.ultimate_analysis,
                 proximate_analysis=self.proximate_analysis,
                 pressure=self.pressure,
-                name='{}-Run{}'.format(model, n)
+                #name='{}-{}-Run{}'.format(self.name, model, n)
+                name=self.name
             )
+        run.basename = '{name}-{model}-run{run}'.format(
+            name=self.name, model=model, run=n)
+        self.__log.debug('Set basename %s', run.basename)
         run.path = results_dir
         self.__log.debug('Set path to: %s', run.path)
         run.set_parameters(**model_settings)

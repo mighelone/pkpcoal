@@ -105,7 +105,7 @@ triangle_123 = TriangleCoal(bioS1, bioS2, bioS3)
 @logged
 class BioPolimi(pkp.polimi.Polimi):
     '''
-    Biomass Polimi Multiple Step Kinetic Model
+    Biomass Polimi Multiple Step Kinetic Model.
     '''
     light_gas = ['HAA',
                  'HMFU',
@@ -206,7 +206,17 @@ class BioPolimi(pkp.polimi.Polimi):
         return ax
 
     def plot_CH(self, ax=None, show=False):
-        '''Plot CH diagram'''
+        '''
+        Plot Carbon-Hydrogen (CH) diagram showing reference coals and
+        the actual one.
+
+        Parameters
+        ----------
+        ax: matplotlib.axes
+            Axes used for preparing the figure
+        show: bool, default=False
+            Show the plot.
+        '''
         import matplotlib.pyplot as plt
         import itertools
         if ax is None:
