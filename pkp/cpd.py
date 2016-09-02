@@ -117,10 +117,14 @@ class CPD(pkp.detailed_model.DetailedModel):
         self.ensig = 0
         self.nmax = 20
 
+        self.__log.debug('Input pressure %s', pressure)
+
         super(CPD, self).__init__(proximate_analysis=proximate_analysis,
                                   ultimate_analysis=ultimate_analysis,
                                   pressure=pressure,
                                   name=name)
+
+        self.__log.debug('Set pressure %s', self.pressure)
 
         # check if they are in %
         self.fcar = self.ultimate_analysis['C']
@@ -293,8 +297,11 @@ class CPD(pkp.detailed_model.DetailedModel):
             [writeline(key) for key in ['arad', 'erad', 'fstable',
                                         'an', 'en', 'ensig']]
             empty_lines(2)
+            self.__log.debug('pressure in Pa %s', self.pressure)
             self.pressure_atm = self.pressure / 101325.0
             writeline('pressure_atm')
+            self.__log.debug('write pressure in atm %s',
+                             self.pressure_atm)
             empty_lines(1)
             f.write(
                 '{}             '

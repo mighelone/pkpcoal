@@ -1,7 +1,71 @@
 '''
-Evolution module
-================
-Manage genetic evolution using DEAP
+This module contains the class manager for the fitting of the detailed
+model results using empirical models, as described by [Vascellari2013]_.
+
+The class :class:`pkp.evolution.Evolution` allows to set different results
+from detailed models, given in terms of time, yield arrays, which
+corresponds to different operating conditions.
+
+Different empirical models can be used for the calibration.
+The calibration is based on the :math:`(\mu+\lambda)` genetic algorithm.
+
+Example
+-------
+
+Define a new instance called `ga` of :class:`pkp.evolution.Evolution`::
+
+    >>> import pkp.evolution
+    >>> import pkp.empirical_model
+    >>> ga = pkp.evolution.Evolution(npop=50, ngen=100, cxpb=0.2,
+                                  mutpb=0.8, mu=50, lambda_=40)
+
+The, set the reference conditions, assuming that `y` and `t` are arrays
+evaluated from a detailed model::
+
+    >>> ga.set_target(t=t, y=y,
+                      operating_conditions=[[0, 400], [0.1, 1500]])
+
+The `operating_conditions` is a list of time, temperature points.
+Note that the maximum time `t` has to be smaller or equal to the maximum
+time in the `operating_conditions`.
+The same operation can be repeated as many time as wanted, defining
+multiple operating conditions for the fit.
+
+Then, set the empirical model to fit (i.e. the
+:class:`pkp.empirical_model.SFOR` model)::
+
+    >>> ga.empirical_model = pkp.empirical_model.SFOR
+
+and the range of the parameters::
+
+    >>> ga.parameters_range(parameters_min=[1e4, 50e6, 0.4],
+                            parameters_max=[1e9, 200e6, 0.8])
+
+Finally, register the parameters of the genetic algorithm using **DEAP**
+toolbox and generate new `n` generations::
+
+    >>> ga.register()
+    >>> best = ga.run(n_p=4, verbose=True)
+    gen	nevals	avg     	std     	min      	max     
+    0  	40    	0.249499	0.213491	0.0540713	0.980968
+    1  	30    	0.118864	0.0777908	0.0105721	0.444615
+    2  	30    	0.070285	0.0688494	0.00962298	0.432799
+
+The best parameters are returned in `best`::
+
+    >>> print(best)
+    {u'A1': 18643.283889684601, u'A2': 574700893.25216532,
+    u'y1': 0.37877698331076126, u'y2': 0.69828180155346786,
+    u'E1': 48206052.660060763, u'E2': 121681065.13675486}
+
+Information about the population and log of the evolution are 
+available::
+
+    >>> ga.pop 
+    >>> ga.log
+
+Evolution class
+---------------
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -10,6 +74,7 @@ import pkp.detailed_model
 import pkp.empirical_model
 import numpy as np
 import random
+import array
 from autologging import logged
 
 from deap import base
@@ -85,10 +150,6 @@ def error_binary(cls_, individual):
     def f(individual, cls_):
         return error(cls_, individual)
     return f(individual, cls_)
-
-
-#@binary.bin2float(0, 1, n_decoding)
-# def error_binary(cls_, individual):
 
 
 @logged
@@ -193,7 +254,7 @@ class Evolution(object):
         model: type, default: pkp.empirical_model.SFOR
             Class used to empirically model the pyrolysis. It has to be
             a children class of
-            :class:`pkp.empirical_model.EmpiricalModel`. 
+            :class:`pkp.empirical_model.EmpiricalModel`.
         '''
         # check attributes using the EmpiricalModel attributes
         if not issubclass(model, pkp.empirical_model.EmpiricalModel):
@@ -279,7 +340,9 @@ class Evolution(object):
         Check if this can be done inside a function
         '''
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMin)
+        # creator.create("Individual", list, fitness=creator.FitnessMin)
+        creator.create("Individual", array.array, typecode='d',
+                       fitness=creator.FitnessMin)
 
         toolbox = base.Toolbox()
         # Attribute generator
@@ -361,7 +424,7 @@ class Evolution(object):
 
         Note
         ----
-        first define min and max parameters using 
+        first define min and max parameters using
         :method:`parameters_range`.
 
         Parameters

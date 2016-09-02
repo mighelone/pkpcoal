@@ -43,12 +43,6 @@ pkp.empirical_model module
     :members:
     :show-inheritance:
 
-pkp.evolution module
---------------------
-
-.. automodule:: pkp.evolution
-    :members:
-    :show-inheritance:
 
 pkp.polimi module
 -----------------

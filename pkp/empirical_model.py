@@ -1,13 +1,12 @@
 '''
-This module defines the class for the empirical pyrolysis models. 
+This module defines the class for the empirical pyrolysis models.
 It contains classes for the following models:
 
-* Single First Order Reaction (SFOR) model :class:`pkp.empirical_model.SFOR`
+* Single First Order Reaction (SFOR) model
+    :class:`pkp.empirical_model.SFOR`
 * Competing 2-Step Model (C2SM) :class:`pkp.empirical_model.C2SM`
-* Distributed Activation Energy Model (DAEM) :class:`pkp.empirical_model.DAEM`
-
-Classes
--------
+* Distributed Activation Energy Model (DAEM)
+    :class:`pkp.empirical_model.DAEM`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -177,15 +176,21 @@ class SFOR(EmpiricalModel):
     unique reaction, which converts raw coal into char and volatiles
     with a constant ratio.
 
-    :math:`Raw -> y_0 volatiles + (1-y_0) char`
+    .. math::
+
+        Raw -> y_0 volatiles + (1-y_0) char
 
     The reaction rate is given by:
 
-        :math:`r = k(T) (y_0-y)`
+    .. math::
+
+        r = k(T) (y_0-y)
 
     with:
 
-        :math:`k(T) = A e^{-E/Rg T}`
+    .. math::
+
+        k(T) = A e^{-E/Rg T}
 
     Where :math:`A` is the pre-exponential factor and :math:`E` is the
     activation energy. The model is characterized by a constant
@@ -220,8 +225,24 @@ class SFOR(EmpiricalModel):
     def unscale_parameters(norm_parameters, parameters_min,
                            parameters_max):
         '''
-        Unscale normalized parameters.
-        A is stored as logA
+        Unscale normalized parameters, using the formula:
+
+        .. math::
+
+            p_i = p_i^{min} + P_i (p_i^{max}-p_i^{min})
+
+        The pre-exponential factor :math:`A` for *SFOR* model is stored
+        as :math:`log_{10}(A)`.
+
+        Parameters
+        ----------
+        norm_parameters: list
+            Normalized parameters list. They are scaled with respect to
+            the maximum and minimum values defined here.
+        parameters_min: list
+            Minimum values of the parameters
+        parameters_max: list
+            Maximum values of the parameters
 
         Return
         ------
@@ -297,6 +318,23 @@ class C2SM(EmpiricalModel):
     y0 = [0, 1]  # volatile yield, raw solid
 
     def rate(self, t, y):
+        '''
+        Reaction rate used in ODE solver.
+        `y` is an array containing the overall volatile yield :math:`y`,
+        and :math:`s` the raw coal fraction.
+
+        Parameters
+        ----------
+        t: float
+            Time
+        y: float
+            Volatile yield :math:`y(t)`
+
+        Returns
+        -------
+        rate: float
+            :math:`dy/dt`
+        '''
         RT = Rgas * self.T(t)
         k1, k2 = self._k(RT)
         dsdt = - (k1 + k2) * y[1]
@@ -313,9 +351,11 @@ class C2SM(EmpiricalModel):
 
 @logged
 class DAEM(EmpiricalModel):
-    '''alculates the devolatilization reaction using the Distributed
+    '''
+    Calculates the devolatilization reaction using the Distributed
     Activation Energy Model (DAEM), using Hermit-Gaussian quadrature
-    http://www.sciencedirect.com/science/article/pii/S0010218000001152'''
+    [Donskoi2000]_
+    '''
 
     parameters_names = ['A0', 'E0', 'sigma', 'y0']
     parameters_default = [1e6, 100e6, 12e6, 0.6]

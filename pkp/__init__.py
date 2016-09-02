@@ -50,7 +50,7 @@ models = ['CPD', 'Polimi', 'BioPolimi']
 
 def clean_dict(d, tolist=False):
     '''
-    Clean dictionary fron numpy and pandas object. 
+    Clean dictionary fron numpy and pandas object.
 
     Parameters
     ----------
@@ -105,12 +105,16 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
         coal_settings = yml_input['Coal']
         # Solver settings
 
+        self.__log.debug(
+            'Pressure in yml %s',
+            yml_input['operating_conditions']['pressure'])
         super(ReadConfiguration, self).__init__(
             proximate_analysis=coal_settings['proximate_analysis'],
             ultimate_analysis=coal_settings['ultimate_analysis'],
             pressure=yml_input['operating_conditions'][
                 'pressure'] * 101325,
             name=coal_settings['name'])
+        self.__log.debug('Pressure setted %s', self.pressure)
 
         self.operating_conditions = yml_input['operating_conditions']
 
@@ -136,7 +140,7 @@ class PKPRunner(ReadConfiguration):
     '''
     PKP Runner manager class. It uses configuration in the *yaml* file
     to run multiple simulations of coal pyrolysis using different
-    *detailed models* and fitting their results with 
+    *detailed models* and fitting their results with
     :ref:`empmodels-label`.
     '''
     models = models
