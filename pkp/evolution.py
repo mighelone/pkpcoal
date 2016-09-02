@@ -74,6 +74,7 @@ import pkp.detailed_model
 import pkp.empirical_model
 import numpy as np
 import random
+import array
 from autologging import logged
 
 from deap import base
@@ -339,7 +340,9 @@ class Evolution(object):
         Check if this can be done inside a function
         '''
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMin)
+        # creator.create("Individual", list, fitness=creator.FitnessMin)
+        creator.create("Individual", array.array, typecode='d',
+                       fitness=creator.FitnessMin)
 
         toolbox = base.Toolbox()
         # Attribute generator
