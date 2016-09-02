@@ -177,7 +177,8 @@ class PKPRunner(ReadConfiguration):
             'proximate_analysis': self.proximate_analysis,
             'proximate_analysis_daf': self.proximate_analysis_daf,
             'HHV': self.HHV,
-            'rho_dry': self.rho_dry
+            'rho_dry': self.rho_dry,
+            'operating_conditions': self.operating_conditions
         }
         fit_results = {}
         for model in self.models:
@@ -198,7 +199,9 @@ class PKPRunner(ReadConfiguration):
                         model, model_settings['fit'], n_p, results,
                         results_dir)
 
-        json_fit = os.path.join(results_dir, 'report_fit.json')
+        json_fit = os.path.join(
+            results_dir, '{name}-fitreport.json'.format(name=self.name))
+        self.__log.debug('Export fit report to %s', json_fit)
         with open(json_fit, 'w') as f:
             json.dump(clean_dict(fit_results), f, indent=4)
         return run_results, fit_results
@@ -295,11 +298,12 @@ class PKPRunner(ReadConfiguration):
             vol_composition.index = [
                 'run{}'.format(n)
                 for n in range(self.operating_conditions['runs'])]
+            final_yield = '{name}-{model}-finalyields.csv'.format(
+                name=self.name, model=model)
             self.__log.debug('Export vol_composition to csv %s',
-                             'finalyield_{}.csv'.format(model))
+                             final_yield)
             vol_composition.to_csv(
-                os.path.join(results_dir,
-                             'finalyield_{}.csv'.format(model)),
+                os.path.join(results_dir, final_yield),
                 index=True)
         else:
             results = None
@@ -392,11 +396,11 @@ class PKPRunner(ReadConfiguration):
         ax1.set_ylim(
             [res['T'].min() - 100, res['T'].max() + 100])
         ax1.grid(False)
+        fig_name = '{name}-{model}-run{run}.png'.format(
+            name=self.name, model=model, run=n)
+        self.__log.debug('Save plot to %s', fig_name)
         fig.savefig(
-            os.path.join(results_dir,
-                         'yields_run{}_{}.png'.format(n,
-                                                      model)),
-            bbox_inches='tight')
+            os.path.join(results_dir, fig_name), bbox_inches='tight')
 
     def _evolution(self, target_conditions, fit_dict, fit_settings,
                    results_dir, n_p=1):
@@ -426,10 +430,11 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Fit with model %s', model)
         parameters_min = fit_settings['parameters_min']
         parameters_max = fit_settings['parameters_max']
-        parameters_init = fit_settings['parameters_init']
+        # parameters_init = fit_settings['parameters_init']
         method = fit_settings['method']
         fit_results = {}
         if method == 'evolve':
+            # Define properties of evolutionary model
             npop = fit_settings['npop']
             ngen = fit_settings['ngen']
             mu = fit_settings['mu']
@@ -437,58 +442,61 @@ class PKPRunner(ReadConfiguration):
             cxpb = fit_settings['cxpb']
             mutpb = fit_settings['mutpb']
 
-            binary = False
+            # Define Evolution method
+            # add a binary field in input yaml for running binary fitting
+            Evolution = pkp.evolution.EvolutionBinary \
+                if fit_settings.get('binary', False) else \
+                pkp.evolution.Evolution
 
-            if binary:
-                ga = pkp.evolution.EvolutionBinary(npop=npop, ngen=ngen,
-                                                   cxpb=cxpb,
-                                                   mutpb=mutpb,
-                                                   mu=mu,
-                                                   lambda_=lambda_)
-            else:
-                ga = pkp.evolution.Evolution(npop=npop, ngen=ngen,
-                                             cxpb=cxpb, mutpb=mutpb,
-                                             mu=mu, lambda_=lambda_)
+            # Init Evolution
+            ga = Evolution(npop=npop, ngen=ngen, cxpb=cxpb, mutpb=mutpb,
+                           mu=mu, lambda_=lambda_)
             self.__log.debug('Init GA %s', ga)
             ga.empirical_model = getattr(pkp.empirical_model, model)
             self.__log.debug('Set GA model %s', ga.empirical_model)
+
+            # Define the range of parameters
             ga.parameters_range(parameters_min=parameters_min,
                                 parameters_max=parameters_max)
-
             self.__log.debug('Set GA par range %s, %s',
                              ga._parameters_min, ga._parameters_max)
 
+            # set target conditions
             [ga.set_target(
                 t=res['t'], y=res['y'],
                 operating_conditions=self.operating_conditions[run])
              for run, res in target_conditions.iteritems()]
 
-            # self.__log.debug('Op. conditions %s',
-            #                 ga.operating_conditions)
-
+            # Register the DEAP toolbox and do the evolution! (Pearl Jam)
             ga.register()
             best = ga.evolve(n_p=n_p, verbose=True)
 
             # TODO this has to be done inside the Evolution class
-            fit_results['best'] = dict(
-                zip(ga.empirical_model.parameters_names, best))
+            fit_results['best'] = best
             self.__log.info('Best population: %s', fit_results['best'])
 
-            fit_results['log'] = ga.log
+            # report only last iteration
+            fit_results['log'] = ga.log[-1]
+            fit_results['Coal'] = {
+                'name': self.name,
+                'ultimate_analysis': self.ultimate_analysis,
+                'proximate_analysis': self.proximate_analysis,
+                'proximate_analysis_daf': self.proximate_analysis_daf,
+                'pressure': self.pressure
+            }
 
             # run model and add to fit_results
             det_model, fitname = fit_dict['model'], fit_dict['fit']
             m = ga.empirical_model(fit_results['best'])
             emp_model = m.__class__.__name__
             self.__log.debug('Emp model %s', emp_model)
-            filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
+            # filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
+            filename = '{name}-{fit}-{det}-{emp}'.format(
+                name=self.name, fit=fitname, det=det_model,
+                emp=emp_model)
 
             # calculate postulate substance
             # it is calculated only for fix y0 variables
-            if 'y0' in m.parameters_names:
-                fit_results[
-                    'postulate_volatiles'] = self._postulate_species(
-                        fit_results['best']['y0'])
 
             # plot results (evolution history)
             self._plot_evolution(det_model, filename, fitname, ga,
@@ -497,7 +505,15 @@ class PKPRunner(ReadConfiguration):
             self._plot_yieldfit(det_model, emp_model, filename,
                                 fit_dict, fit_results, fitname, m,
                                 results_dir, target_conditions)
-
+            # calc postulate species
+            if 'y0' in m.parameters_names:
+                y0 = fit_results['best']['y0']
+            elif emp_model == 'C2SM':
+                y0 = np.mean([fit_results[run]['y'][-1]
+                              for run in sorted(target_conditions)])
+                self.__log.debug('Average y0 for C2SM %s', y0)
+            fit_results[
+                'postulate_volatiles'] = self._postulate_species(y0)
         else:
             raise NotImplementedError(
                 'Fit method {} not implemented!'.format(method))
@@ -512,15 +528,22 @@ class PKPRunner(ReadConfiguration):
 
         Parameters
         ----------
-        det_model
-        emp_model
-        filename
-        fit_dict
-        fit_results
-        fitname
-        m
-        results_dir
-        target_conditions
+        det_model: str
+            Detailed model name
+        emp_model: str
+            Empirical Model
+        filename: str
+            Basename for file output
+        fit_dict: dict
+            Fit input dictionary
+        fit_results: dict
+            Fit results dictionary
+        fitname: str:
+            Name of fit
+        m:
+        results_dir: str
+            Name of results directory
+        target_conditions:
 
         Returns
         -------
@@ -612,7 +635,7 @@ class PKPRunner(ReadConfiguration):
                 fitname))
         fig.savefig(os.path.join(
             results_dir,
-            'evolution_{}.png'.format(filename)))
+            '{}-evolution.png'.format(filename)))
         plt.close(fig)
 
     def _postulate_species(self, y0, mw=200.0):
@@ -664,7 +687,8 @@ class PKPRunner(ReadConfiguration):
             'name': molecule_name,
             'formula': molecule,
             'molecular_weight': mw,
-            'hf': hf_vol
+            'hf': hf_vol,
+            'y0': y0
         }
 
         return postulate_dict
