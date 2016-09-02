@@ -343,7 +343,7 @@ class PKPRunner(ReadConfiguration):
             run = globals()[model](
                 ultimate_analysis=self.ultimate_analysis,
                 proximate_analysis=self.proximate_analysis,
-                pressure=self.operating_conditions['pressure'],
+                pressure=self.pressure,
                 name='{}-Run{}'.format(model, n)
             )
         run.path = results_dir
