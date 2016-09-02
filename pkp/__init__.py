@@ -323,12 +323,25 @@ class PKPRunner(ReadConfiguration):
         '''
         self.__log.debug(
             'Initialize run %s for %s', n, model)
-        run = globals()[model](
-            ultimate_analysis=self.ultimate_analysis,
-            proximate_analysis=self.proximate_analysis,
-            pressure=self.operating_conditions['pressure'],
-            name='{}-Run{}'.format(model, n)
-        )
+        if model == 'Polimi' and 'reference' in model_settings:
+            self.__log.debug('Use reference coal for Polimi %s',
+                             model_settings['reference'])
+            run = globals()[model].reference_coal(
+                ref_coal=model_settings['reference'],
+                proximate_analysis=self.proximate_analysis,
+                pressure=self.pressure
+            )
+            self.__log.debug(
+                'Polimi coal composition is set to %s', run.composition)
+        else:
+            self.__log.debug('Initialize det. model %s',
+                             model)
+            run = globals()[model](
+                ultimate_analysis=self.ultimate_analysis,
+                proximate_analysis=self.proximate_analysis,
+                pressure=self.operating_conditions['pressure'],
+                name='{}-Run{}'.format(model, n)
+            )
         run.path = results_dir
         self.__log.debug('Set path to: %s', run.path)
         run.set_parameters(**model_settings)

@@ -20,7 +20,7 @@ Coal:
   rho_dry : 1310 # kg/m3
 
 CPD:
-  active : true
+  active : false
   dt: 1e-5
   increment: 5
   dt_max: 1e-5
@@ -64,6 +64,8 @@ Polimi:
   active: true
   backend: dopri5
   mechanism:
+  # force polimi to use one of the referece coals. It override the coal settings
+  reference: COAL1  
   fit:
 #    fit0:
 #     active: true
