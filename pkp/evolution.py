@@ -69,6 +69,7 @@ Evolution class
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
 
 import pkp.detailed_model
 import pkp.empirical_model
@@ -131,7 +132,7 @@ def error(cls_, individual):
     '''
     err = 0
     parameters = cls_.unscale_parameters(individual)
-    for run, results in cls_.ref_results.iteritems():
+    for run, results in cls_.ref_results.items():
         m = cls_.empirical_model(parameters)
         m.operating_conditions = results['operating_conditions']
         _, y = m.run(results['t'])

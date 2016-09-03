@@ -9,6 +9,7 @@ Contains
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
 
 from autologging import logged
 try:
@@ -65,7 +66,7 @@ def clean_dict(d, tolist=False):
         New cleaned dictionary
     '''
     d_new = {}
-    for k, v in d.iteritems():
+    for k, v in d.items():
         if isinstance(v, dict):
             d_new[k] = clean_dict(v)
         elif isinstance(v, np.ndarray):
@@ -93,7 +94,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
             Input dict or yaml file containing the configuration for
             run PKP. See :ref:`input-file-label`.
         '''
-        if isinstance(yml, (str, unicode)):
+        if isinstance(yml, str):
             with open(yml, 'r') as f:
                 yml_input = yaml.load(f)
         elif isinstance(yml, dict):
@@ -232,14 +233,14 @@ class PKPRunner(ReadConfiguration):
         '''
         fit_results = {}
         # loop over the fitting runs, fit0, fit1, etc.
-        for fitname, fit in model_settings.iteritems():
+        for fitname, fit in model_settings.items():
             if fit.get('active', True):
                 self.__log.info(
                     'Fit %s model with %s', model, fit['model'])
                 target_conditions = {
                     run: {'t': np.array(res.index),
                           'y': np.array(res[fit['species']])}
-                    for run, res in results.iteritems()}
+                    for run, res in results.items()}
                 fit_dict = {'model': model,
                             'fit': fitname,
                             'species': fit['species']}
@@ -465,7 +466,7 @@ class PKPRunner(ReadConfiguration):
             [ga.set_target(
                 t=res['t'], y=res['y'],
                 operating_conditions=self.operating_conditions[run])
-             for run, res in target_conditions.iteritems()]
+             for run, res in target_conditions.items()]
 
             # Register the DEAP toolbox and do the evolution! (Pearl Jam)
             ga.register()
@@ -665,7 +666,7 @@ class PKPRunner(ReadConfiguration):
                    for el in self.ultimate_analysis}
         molecule = {el: ((val - (1 - y0) * ua_char[el]) * mw /
                          M_elements[el] / y0)
-                    for el, val in self.ultimate_analysis.iteritems()}
+                    for el, val in self.ultimate_analysis.items()}
         molecule_name = ''.join('{}_{:4.3f} '.format(el, molecule[el])
                                 for el in ['C', 'H', 'O', 'N', 'S'])
 
@@ -681,7 +682,7 @@ class PKPRunner(ReadConfiguration):
         }
 
         hf_vol = np.sum(n * hf[el]
-                        for el, n in nu.iteritems()) + lhv_vol * mw
+                        for el, n in nu.items()) + lhv_vol * mw
 
         postulate_dict = {
             'name': molecule_name,

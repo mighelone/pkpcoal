@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
 
 import pkp.detailed_model
 import cantera
@@ -34,7 +35,7 @@ def set_reference_coal(name, atoms):
     atoms['N'] = 0
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
-          for el, val in atoms.iteritems()}
+          for el, val in atoms.items()}
     return pkp.detailed_model.DetailedModel(
         name=name,
         ultimate_analysis=ua,

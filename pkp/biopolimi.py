@@ -29,6 +29,7 @@ Class
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
 
 import numpy as np
 from autologging import logged
@@ -95,9 +96,9 @@ bioS3_comp = {'LIGH': 0.8, 'LIGC': 0.2}
 # bioS3 = set_reference_biomass(name='S3', comp=bioS3_comp)
 bioS3 = set_reference_coal_mass(name='S3', c=0.619, h=0.064, o=0.3172)
 
-bio_comp_species = list(set(bioS1_comp.keys() +
-                            bioS2_comp.keys() +
-                            bioS3_comp.keys()))
+bio_comp_species = list(set(list(bioS1_comp) +
+                            list(bioS2_comp) +
+                            list(bioS3_comp)))
 
 triangle_123 = TriangleCoal(bioS1, bioS2, bioS3)
 

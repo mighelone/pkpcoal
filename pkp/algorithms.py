@@ -2,7 +2,12 @@
 *eaMuPlusLambda* algorithm rewritten to introduce user stop of the
 evolution using CTRL-C with. See `deap.algorithms.eaMuCommaLambda` for
 more details.
+
+Modified by Michele Vascellari
 '''
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
+from builtins import dict
 
 from deap.algorithms import varAnd, varOr
 from deap import base
@@ -73,7 +78,7 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
     record = stats.compile(population) if stats is not None else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
-        print logbook.stream
+        print(logbook.stream)
 
     # Begin the generational process
     for gen in range(1, ngen + 1):
@@ -98,7 +103,7 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
             record = stats.compile(population) if stats is not None else {}
             logbook.record(gen=gen, nevals=len(invalid_ind), **record)
             if verbose:
-                print logbook.stream
+                print(logbook.stream)
         except KeyboardInterrupt:
             print('Interrupt evolution from the user... continue PKP!')
             break
