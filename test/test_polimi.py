@@ -2,7 +2,6 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import pkp.polimi
-from test_cpd import ua, pa, op_cond
 import matplotlib.pyplot as plt
 import itertools
 import pytest
@@ -17,6 +16,21 @@ ua0 = {'C': 1,
        'O': 0,
        'N': 0,
        'S': 0}
+
+ua = {'C': 69,
+      'H': 5,
+      'O': 24.7,
+      'N': 0.8,
+      'S': 0.5}
+
+pa = {'FC': 45.1,
+      'VM': 50.6,
+      'Ash': 4.3,
+      'Moist': 19.0}
+
+op_cond = [[0, 500],
+           [0.001, 1400],
+           [0.01, 1400]]
 
 
 @pytest.fixture
