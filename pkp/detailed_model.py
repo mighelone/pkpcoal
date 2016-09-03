@@ -5,6 +5,7 @@ parent for detailed model classes, such :class:`pkp.cpd.CPD`,
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from six import string_types
 from builtins import dict
 
 import os
@@ -154,7 +155,7 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @name.setter
     def name(self, value):
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             self._name = value
         else:
             raise TypeError('Coal name should be a string')

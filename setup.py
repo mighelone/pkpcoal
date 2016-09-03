@@ -22,6 +22,7 @@ setup(
         'pandas',
         'deap',
         'cantera (>=2.2.0)',
-        'tabulate'
+        'tabulate',
+        'future'
     ]
 )

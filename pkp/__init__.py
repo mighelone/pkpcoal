@@ -10,6 +10,7 @@ Contains
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
+from six import string_types
 
 from autologging import logged
 try:
@@ -94,7 +95,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
             Input dict or yaml file containing the configuration for
             run PKP. See :ref:`input-file-label`.
         '''
-        if isinstance(yml, str):
+        if isinstance(yml, string_types):
             with open(yml, 'r') as f:
                 yml_input = yaml.load(f)
         elif isinstance(yml, dict):
