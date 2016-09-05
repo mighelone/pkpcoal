@@ -53,7 +53,7 @@ setup(
         'scipy',
         'argparse',
         'autologging',
-        'ruamel_yaml',
+        'ruamel.yaml',
         'pandas',
         'deap',
         'cantera (>=2.2.0)',
