@@ -475,6 +475,7 @@ class PKPRunner(ReadConfiguration):
             # Jam)
             ga.register()
             best = ga.evolve(n_p=n_p, verbose=True)
+            self.__log.debug('Best: %s', best)
 
             # TODO this has to be done inside the Evolution class
             fit_results['best'] = best
@@ -741,7 +742,9 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Update ultimate_analysis %s',
                          ultimate_analysis)
 
-        gas = cantera.Solution('52.xml')
+        gas_file = os.path.join(os.path.dirname(pkp.bins.__file__),
+                                '52.xml')
+        gas = cantera.Solution(gas_file)
         composition = {}
         composition['char'] = 1 - y0
         # assume tar as C6H6

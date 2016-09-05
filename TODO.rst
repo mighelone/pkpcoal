@@ -9,6 +9,7 @@ This is the list of the new features to implement:
 * Gradient based optimization with scipy
 * Check if the multiobjective optimization can work better than single
   OF
+* Implement CPD
 
 Small additions/modifications
 -----------------------------
@@ -35,3 +36,4 @@ This is a list of small fix:
   http://www.geatbx.com/docu/algindex-03.html#P550_28854
 * Select limited number of points from reference solution, or perform
   a linear regression.
+* Keep -x permission for CPD exe files
