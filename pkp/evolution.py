@@ -379,7 +379,7 @@ class Evolution(object):
         # toolbox.register('mate', tools.cxTwoPoint)
         # blend crossover extending of 0.1 respect to the parameters
         # range. This can produce values out of the range 0-1.
-        toolbox.register('mate', tools.cxBlend, alpha=0.1)
+        toolbox.register('mate', tools.cxBlend, alpha=0.25)
         # define the mutate algorithm
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)
