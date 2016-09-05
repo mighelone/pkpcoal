@@ -446,7 +446,8 @@ class PKPRunner(ReadConfiguration):
             mutpb = fit_settings['mutpb']
 
             # Define Evolution method
-            # add a binary field in input yaml for running binary fitting
+            # add a binary field in input yaml for running binary
+            # fitting
             Evolution = pkp.evolution.EvolutionBinary \
                 if fit_settings.get('binary', False) else \
                 pkp.evolution.Evolution
@@ -470,7 +471,8 @@ class PKPRunner(ReadConfiguration):
                 operating_conditions=self.operating_conditions[run])
              for run, res in target_conditions.items()]
 
-            # Register the DEAP toolbox and do the evolution! (Pearl Jam)
+            # Register the DEAP toolbox and do the evolution! (Pearl
+            # Jam)
             ga.register()
             best = ga.evolve(n_p=n_p, verbose=True)
 
@@ -517,6 +519,8 @@ class PKPRunner(ReadConfiguration):
                 self.__log.debug('Average y0 for C2SM %s', y0)
             fit_results[
                 'postulate_volatiles'] = self._postulate_species(y0)
+            fit_results['empirical_comp'] = self._emirical_composition(
+                y0, tar=0.3, CO=0.1)
         else:
             raise NotImplementedError(
                 'Fit method {} not implemented!'.format(method))
