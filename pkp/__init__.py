@@ -9,6 +9,8 @@ Contains
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
+from six import string_types
 
 from autologging import logged
 try:
@@ -25,6 +27,7 @@ import json
 import os
 import numpy as np
 import pandas as pd
+import cantera
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
@@ -50,7 +53,7 @@ models = ['CPD', 'Polimi', 'BioPolimi']
 
 def clean_dict(d, tolist=False):
     '''
-    Clean dictionary fron numpy and pandas object. 
+    Clean dictionary fron numpy and pandas object.
 
     Parameters
     ----------
@@ -65,7 +68,7 @@ def clean_dict(d, tolist=False):
         New cleaned dictionary
     '''
     d_new = {}
-    for k, v in d.iteritems():
+    for k, v in d.items():
         if isinstance(v, dict):
             d_new[k] = clean_dict(v)
         elif isinstance(v, np.ndarray):
@@ -93,7 +96,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
             Input dict or yaml file containing the configuration for
             run PKP. See :ref:`input-file-label`.
         '''
-        if isinstance(yml, (str, unicode)):
+        if isinstance(yml, string_types):
             with open(yml, 'r') as f:
                 yml_input = yaml.load(f)
         elif isinstance(yml, dict):
@@ -140,7 +143,7 @@ class PKPRunner(ReadConfiguration):
     '''
     PKP Runner manager class. It uses configuration in the *yaml* file
     to run multiple simulations of coal pyrolysis using different
-    *detailed models* and fitting their results with 
+    *detailed models* and fitting their results with
     :ref:`empmodels-label`.
     '''
     models = models
@@ -177,7 +180,8 @@ class PKPRunner(ReadConfiguration):
             'proximate_analysis': self.proximate_analysis,
             'proximate_analysis_daf': self.proximate_analysis_daf,
             'HHV': self.HHV,
-            'rho_dry': self.rho_dry
+            'rho_dry': self.rho_dry,
+            'operating_conditions': self.operating_conditions
         }
         fit_results = {}
         for model in self.models:
@@ -198,7 +202,9 @@ class PKPRunner(ReadConfiguration):
                         model, model_settings['fit'], n_p, results,
                         results_dir)
 
-        json_fit = os.path.join(results_dir, 'report_fit.json')
+        json_fit = os.path.join(
+            results_dir, '{name}-fitreport.json'.format(name=self.name))
+        self.__log.debug('Export fit report to %s', json_fit)
         with open(json_fit, 'w') as f:
             json.dump(clean_dict(fit_results), f, indent=4)
         return run_results, fit_results
@@ -229,14 +235,14 @@ class PKPRunner(ReadConfiguration):
         '''
         fit_results = {}
         # loop over the fitting runs, fit0, fit1, etc.
-        for fitname, fit in model_settings.iteritems():
+        for fitname, fit in model_settings.items():
             if fit.get('active', True):
                 self.__log.info(
                     'Fit %s model with %s', model, fit['model'])
                 target_conditions = {
                     run: {'t': np.array(res.index),
                           'y': np.array(res[fit['species']])}
-                    for run, res in results.iteritems()}
+                    for run, res in results.items()}
                 fit_dict = {'model': model,
                             'fit': fitname,
                             'species': fit['species']}
@@ -295,11 +301,12 @@ class PKPRunner(ReadConfiguration):
             vol_composition.index = [
                 'run{}'.format(n)
                 for n in range(self.operating_conditions['runs'])]
+            final_yield = '{name}-{model}-finalyields.csv'.format(
+                name=self.name, model=model)
             self.__log.debug('Export vol_composition to csv %s',
-                             'finalyield_{}.csv'.format(model))
+                             final_yield)
             vol_composition.to_csv(
-                os.path.join(results_dir,
-                             'finalyield_{}.csv'.format(model)),
+                os.path.join(results_dir, final_yield),
                 index=True)
         else:
             results = None
@@ -327,12 +334,29 @@ class PKPRunner(ReadConfiguration):
         '''
         self.__log.debug(
             'Initialize run %s for %s', n, model)
-        run = globals()[model](
-            ultimate_analysis=self.ultimate_analysis,
-            proximate_analysis=self.proximate_analysis,
-            pressure=self.pressure,
-            name='{}-Run{}'.format(model, n)
-        )
+        if model == 'Polimi' and 'reference' in model_settings:
+            self.__log.debug('Use reference coal for Polimi %s',
+                             model_settings['reference'])
+            run = globals()[model].reference_coal(
+                ref_coal=model_settings['reference'],
+                proximate_analysis=self.proximate_analysis,
+                pressure=self.pressure
+            )
+            self.__log.debug(
+                'Polimi coal composition is set to %s', run.composition)
+        else:
+            self.__log.debug('Initialize detailed model %s',
+                             model)
+            run = globals()[model](
+                ultimate_analysis=self.ultimate_analysis,
+                proximate_analysis=self.proximate_analysis,
+                pressure=self.pressure,
+                #name='{}-{}-Run{}'.format(self.name, model, n)
+                name=self.name
+            )
+        run.basename = '{name}-{model}-run{run}'.format(
+            name=self.name, model=model, run=n)
+        self.__log.debug('Set basename %s', run.basename)
         run.path = results_dir
         self.__log.debug('Set path to: %s', run.path)
         run.set_parameters(**model_settings)
@@ -375,11 +399,11 @@ class PKPRunner(ReadConfiguration):
         ax1.set_ylim(
             [res['T'].min() - 100, res['T'].max() + 100])
         ax1.grid(False)
+        fig_name = '{name}-{model}-run{run}.png'.format(
+            name=self.name, model=model, run=n)
+        self.__log.debug('Save plot to %s', fig_name)
         fig.savefig(
-            os.path.join(results_dir,
-                         'yields_run{}_{}.png'.format(n,
-                                                      model)),
-            bbox_inches='tight')
+            os.path.join(results_dir, fig_name), bbox_inches='tight')
 
     def _evolution(self, target_conditions, fit_dict, fit_settings,
                    results_dir, n_p=1):
@@ -409,10 +433,11 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Fit with model %s', model)
         parameters_min = fit_settings['parameters_min']
         parameters_max = fit_settings['parameters_max']
-        parameters_init = fit_settings['parameters_init']
+        # parameters_init = fit_settings['parameters_init']
         method = fit_settings['method']
         fit_results = {}
         if method == 'evolve':
+            # Define properties of evolutionary model
             npop = fit_settings['npop']
             ngen = fit_settings['ngen']
             mu = fit_settings['mu']
@@ -420,58 +445,61 @@ class PKPRunner(ReadConfiguration):
             cxpb = fit_settings['cxpb']
             mutpb = fit_settings['mutpb']
 
-            binary = False
+            # Define Evolution method
+            # add a binary field in input yaml for running binary fitting
+            Evolution = pkp.evolution.EvolutionBinary \
+                if fit_settings.get('binary', False) else \
+                pkp.evolution.Evolution
 
-            if binary:
-                ga = pkp.evolution.EvolutionBinary(npop=npop, ngen=ngen,
-                                                   cxpb=cxpb,
-                                                   mutpb=mutpb,
-                                                   mu=mu,
-                                                   lambda_=lambda_)
-            else:
-                ga = pkp.evolution.Evolution(npop=npop, ngen=ngen,
-                                             cxpb=cxpb, mutpb=mutpb,
-                                             mu=mu, lambda_=lambda_)
+            # Init Evolution
+            ga = Evolution(npop=npop, ngen=ngen, cxpb=cxpb, mutpb=mutpb,
+                           mu=mu, lambda_=lambda_)
             self.__log.debug('Init GA %s', ga)
             ga.empirical_model = getattr(pkp.empirical_model, model)
             self.__log.debug('Set GA model %s', ga.empirical_model)
+
+            # Define the range of parameters
             ga.parameters_range(parameters_min=parameters_min,
                                 parameters_max=parameters_max)
-
             self.__log.debug('Set GA par range %s, %s',
                              ga._parameters_min, ga._parameters_max)
 
+            # set target conditions
             [ga.set_target(
                 t=res['t'], y=res['y'],
                 operating_conditions=self.operating_conditions[run])
-             for run, res in target_conditions.iteritems()]
+             for run, res in target_conditions.items()]
 
-            # self.__log.debug('Op. conditions %s',
-            #                 ga.operating_conditions)
-
+            # Register the DEAP toolbox and do the evolution! (Pearl Jam)
             ga.register()
             best = ga.evolve(n_p=n_p, verbose=True)
 
             # TODO this has to be done inside the Evolution class
-            fit_results['best'] = dict(
-                zip(ga.empirical_model.parameters_names, best))
+            fit_results['best'] = best
             self.__log.info('Best population: %s', fit_results['best'])
 
-            fit_results['log'] = ga.log
+            # report only last iteration
+            fit_results['log'] = ga.log[-1]
+            fit_results['Coal'] = {
+                'name': self.name,
+                'ultimate_analysis': self.ultimate_analysis,
+                'proximate_analysis': self.proximate_analysis,
+                'proximate_analysis_daf': self.proximate_analysis_daf,
+                'pressure': self.pressure
+            }
 
             # run model and add to fit_results
             det_model, fitname = fit_dict['model'], fit_dict['fit']
             m = ga.empirical_model(fit_results['best'])
             emp_model = m.__class__.__name__
             self.__log.debug('Emp model %s', emp_model)
-            filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
+            # filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
+            filename = '{name}-{fit}-{det}-{emp}'.format(
+                name=self.name, fit=fitname, det=det_model,
+                emp=emp_model)
 
             # calculate postulate substance
             # it is calculated only for fix y0 variables
-            if 'y0' in m.parameters_names:
-                fit_results[
-                    'postulate_volatiles'] = self._postulate_species(
-                        fit_results['best']['y0'])
 
             # plot results (evolution history)
             self._plot_evolution(det_model, filename, fitname, ga,
@@ -480,7 +508,15 @@ class PKPRunner(ReadConfiguration):
             self._plot_yieldfit(det_model, emp_model, filename,
                                 fit_dict, fit_results, fitname, m,
                                 results_dir, target_conditions)
-
+            # calc postulate species
+            if 'y0' in m.parameters_names:
+                y0 = fit_results['best']['y0']
+            elif emp_model == 'C2SM':
+                y0 = np.mean([fit_results[run]['y'][-1]
+                              for run in sorted(target_conditions)])
+                self.__log.debug('Average y0 for C2SM %s', y0)
+            fit_results[
+                'postulate_volatiles'] = self._postulate_species(y0)
         else:
             raise NotImplementedError(
                 'Fit method {} not implemented!'.format(method))
@@ -495,15 +531,22 @@ class PKPRunner(ReadConfiguration):
 
         Parameters
         ----------
-        det_model
-        emp_model
-        filename
-        fit_dict
-        fit_results
-        fitname
-        m
-        results_dir
-        target_conditions
+        det_model: str
+            Detailed model name
+        emp_model: str
+            Empirical Model
+        filename: str
+            Basename for file output
+        fit_dict: dict
+            Fit input dictionary
+        fit_results: dict
+            Fit results dictionary
+        fitname: str:
+            Name of fit
+        m:
+        results_dir: str
+            Name of results directory
+        target_conditions:
 
         Returns
         -------
@@ -595,7 +638,7 @@ class PKPRunner(ReadConfiguration):
                 fitname))
         fig.savefig(os.path.join(
             results_dir,
-            'evolution_{}.png'.format(filename)))
+            '{}-evolution.png'.format(filename)))
         plt.close(fig)
 
     def _postulate_species(self, y0, mw=200.0):
@@ -625,7 +668,7 @@ class PKPRunner(ReadConfiguration):
                    for el in self.ultimate_analysis}
         molecule = {el: ((val - (1 - y0) * ua_char[el]) * mw /
                          M_elements[el] / y0)
-                    for el, val in self.ultimate_analysis.iteritems()}
+                    for el, val in self.ultimate_analysis.items()}
         molecule_name = ''.join('{}_{:4.3f} '.format(el, molecule[el])
                                 for el in ['C', 'H', 'O', 'N', 'S'])
 
@@ -641,13 +684,176 @@ class PKPRunner(ReadConfiguration):
         }
 
         hf_vol = np.sum(n * hf[el]
-                        for el, n in nu.iteritems()) + lhv_vol * mw
+                        for el, n in nu.items()) + lhv_vol * mw
 
         postulate_dict = {
             'name': molecule_name,
             'formula': molecule,
             'molecular_weight': mw,
-            'hf': hf_vol
+            'hf': hf_vol,
+            'y0': y0
         }
 
         return postulate_dict
+
+    def _emirical_composition(self, y0, tar, CO):
+        '''
+        Set the empirical composition of volatiles using the method by
+        NAME.
+        http://www.sciencedirect.com/science/article/pii/S0255270104001916
+
+        Parameters
+        ----------
+        y0: float
+            Final volatile yield
+        tar: mass fraction of tar in volatiles
+        CO: fraction of O converted to CO
+        '''
+        def el_fraction(sp, el):
+            '''Mass fraction of element el in species sp'''
+            if sp == 'char':
+                return 1.0 if el == 'C' else 0.0
+            else:
+                return (gas.species(sp).composition.get(el, 0) *
+                        gas.atomic_weight(el) /
+                        gas.molecular_weights[gas.species_index(sp)])
+
+        def calc_remaining(comp):
+            '''Remaining fraction of each elements'''
+            return {el: (ua - tot_el_fraction(comp, el))
+                    for el, ua in ultimate_analysis.items()}
+
+        def tot_el_fraction(comp, element):
+            '''Calc the total element fraction of the given element'''
+            return np.sum([val * el_fraction(sp, element)
+                           for sp, val in comp.items()])
+
+        sum_ua = (sum(self.ultimate_analysis.values()) -
+                  self.ultimate_analysis['S'])
+        ultimate_analysis = {
+            el: v / sum_ua
+            for el, v in self.ultimate_analysis.items()
+            if el != 'S'}
+        self.__log.debug('Update ultimate_analysis %s',
+                         ultimate_analysis)
+
+        gas = cantera.Solution('52.xml')
+        composition = {}
+        composition['char'] = 1 - y0
+        # assume tar as C6H6
+
+        # assume N -> N2
+        composition['N2'] = ultimate_analysis['N']
+        composition['CO'] = (CO * ultimate_analysis['O'] /
+                             el_fraction('CO', 'O'))
+        composition['CO2'] = ((1 - CO) * ultimate_analysis['O'] /
+                              el_fraction('CO2', 'O'))
+        self.__log.debug('Vol composition %s', composition)
+
+        remaining = calc_remaining(composition)
+        self.__log.debug('Remaining element after CO/CO2/N2: %s',
+                         remaining)
+
+        C_in_tar = el_fraction('C6H6', 'C')
+        self.__log.debug('C in TAR %s', C_in_tar)
+        if C_in_tar * tar > remaining['C']:
+            composition['C6H6'] = remaining['C'] / C_in_tar
+            self.__log.debug('C in Tar > remaining C -> set tar: %s',
+                             composition['C6H6'])
+        else:
+            composition['C6H6'] = tar
+            self.__log.debug('Set TAR as %s', tar)
+
+        # recalculate remaining
+        remaining = calc_remaining(composition)
+        self.__log.debug('Remaining element after tar: %s', remaining)
+
+        c_to_h_mass = remaining['C'] / remaining['H']
+        c_to_h_molar = c_to_h_mass * M_elements['H'] / M_elements['C']
+        self.__log.debug('C/H molar: %s', c_to_h_molar)
+
+        if 0 <= c_to_h_molar <= 0.5:
+            # use C2H4 and H2
+            composition['C2H4'] = remaining['C'] / el_fraction(
+                'C2H4', 'C')
+            self.__log.debug('C2H4 %s', composition['C2H4'])
+        elif 0.5 < c_to_h_molar < 1:
+            # use C6H6
+            composition['C6H6'] = (composition['C6H6'] +
+                                   remaining['C'] /
+                                   el_fraction('C6H6', 'C'))
+            self.__log.debug('Update C6H6 %s', composition['C6H6'])
+
+        self.__log.debug('Remaining element after C: %s', remaining)
+        remaining = calc_remaining(composition)
+
+        composition['H2'] = remaining['H']
+        remaining = calc_remaining(composition)
+        self.__log.debug('Remaining %s', remaining)
+        self.__log.debug('Final Vol composition %s', composition)
+
+        emp_dict = {'composition': composition,
+                    'heat_pyro': self.heat_of_pyrolysis(
+                        composition, gas)}
+        return emp_dict
+
+    def calc_element_fraction(self, element, species):
+        '''
+        Calculate element fraction of the given species
+        '''
+        if species in ('Char', 'Solid'):
+            if element == 'C':
+                return 1.0
+            else:
+                return 0.0
+        elif species == 'Other':
+            return 0.0
+        else:
+            i = self.gas.element_index(element)
+            return (self.gas.atomic_weights[i] *
+                    self.gas.species(species).composition.get(element, 0) /
+                    self.gas.molecular_weights[
+                    self.gas.species_index(species)])
+
+    def heat_of_volatiles(self, composition, gas):
+        '''Heat of volatiles including char'''
+        return sum(val * self.heat_of_reaction_species(sp, gas)
+                   for sp, val in composition.items())
+
+    def heat_of_pyrolysis(self, composition, gas):
+        '''
+        Heat of pyrolysis. It is defined as the total heat released
+        during pyrolysis per unit of volatiles.
+        '''
+        heat_vol = self.heat_of_volatiles(composition, gas)
+        dh_pyro = self.lhv_daf - heat_vol
+        return dh_pyro / (1 - composition['char'])
+
+    def heat_of_reaction_species(self, sp, gas):
+        '''
+        Calculate the heat of reaction for the species sp
+        '''
+        T_ref = 273
+        if sp in ('N2'):
+            return 0.0
+        elif sp == 'char':
+            return self.lhv_char
+        spc = gas.species(sp)
+        hf = spc.thermo.h(T_ref)
+        n_o2 = 0.5 * (
+            2 * spc.composition.get('C', 0) +
+            0.5 * spc.composition.get('H', 0) -
+            spc.composition.get('O', 0))
+        n_co2 = spc.composition.get('C', 0)
+        # print 'n_co2', n_co2
+        n_h2o = spc.composition.get('H', 0) * 0.5
+        # print 'n_h2o', n_h2o
+        mw = gas.molecular_weights[gas.species_index(sp)]
+
+        h_o2 = gas.species('O2').thermo.h(T_ref)
+        h_co2 = gas.species('CO2').thermo.h(T_ref)
+        h_h2o = gas.species('H2O').thermo.h(T_ref)
+
+        heat_molar = (hf + n_o2 * h_o2 - n_co2 *
+                      h_co2 - n_h2o * h_h2o)
+        return heat_molar / mw

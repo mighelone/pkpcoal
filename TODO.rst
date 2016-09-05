@@ -25,7 +25,13 @@ This is a list of small fix:
 * Add references of papers used for **PKP**
 * *DONE* Use `array` instead of list for `individuals` in **DEAP** 
 * For **SFOR** and **DAEM** which use constant :math:`y_0` force to use
-  a narrow range of this parameter (i.e. from min to max value in the species)
+  a narrow range of this parameter (i.e. from min to max value in the
+  species)
 * Set a warning when CPD is out of the correlation
-* Set a warning when optimization reach the limits of the parameters range
+* Set a warning when optimization reach the limits of the parameters
+  range
 * Split report files (maybe)
+* Increase value in `cxBlend` to 0.25, as suggested by
+  http://www.geatbx.com/docu/algindex-03.html#P550_28854
+* Select limited number of points from reference solution, or perform
+  a linear regression.

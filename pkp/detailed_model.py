@@ -5,6 +5,8 @@ parent for detailed model classes, such :class:`pkp.cpd.CPD`,
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from six import string_types
+from builtins import dict
 
 import os
 import numpy as np
@@ -49,8 +51,8 @@ def normalize_dictionary(d):
     '''
     Normalize dictionary d and return a new one
     '''
-    sum_d = sum(d.itervalues())
-    return {el: (val / sum_d) for el, val in d.iteritems()}
+    sum_d = sum(d.values())
+    return {el: (val / sum_d) for el, val in d.items()}
 
 
 @logged
@@ -145,7 +147,7 @@ class DetailedModel(pkp.reactor.Reactor):
             'S': 9.3
         }
         return sum(c * self.ultimate_analysis[el]
-                   for el, c in coeff.iteritems()) * 1e6
+                   for el, c in coeff.items()) * 1e6
 
     @property
     def name(self):
@@ -153,7 +155,7 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @name.setter
     def name(self, value):
-        if isinstance(value, (str, unicode)):
+        if isinstance(value, string_types):
             self._name = value
         else:
             raise TypeError('Coal name should be a string')
@@ -266,11 +268,11 @@ class DetailedModel(pkp.reactor.Reactor):
         str += '\n\nUltimate Analysis\n'
         str += tabulate.tabulate(
             [[el, val]
-             for el, val in self.ultimate_analysis.iteritems()])
+             for el, val in self.ultimate_analysis.items()])
         str += '\n\nProximate Analysis\n'
         str += tabulate.tabulate(
             [[el, val]
-             for el, val in self.proximate_analysis.iteritems()])
+             for el, val in self.proximate_analysis.items()])
         str += '\n'
         return str
 

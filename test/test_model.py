@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
 
 import pytest
 import pkp.empirical_model
@@ -25,18 +26,18 @@ def test_set_parameters(sfor):
     # set parameters as list
     par_list = [1e6, 100e6, 0.5]
     sfor.parameters = par_list
-    for key, value in sfor.parameters.iteritems():
+    for key, value in sfor.parameters.items():
         assert value == par_list[sfor.parameters_names.index(key)]
 
     # set as np.ndarray
     sfor.parameters = np.array(par_list)
-    for key, value in sfor.parameters.iteritems():
+    for key, value in sfor.parameters.items():
         assert value == par_list[sfor.parameters_names.index(key)]
 
     # set as dict
     sfor.parameters = {k: v for k, v in zip(
         sfor.parameters_names, par_list)}
-    for key, value in sfor.parameters.iteritems():
+    for key, value in sfor.parameters.items():
         assert value == par_list[sfor.parameters_names.index(key)]
 
 

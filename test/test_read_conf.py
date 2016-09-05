@@ -1,9 +1,19 @@
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
+from builtins import dict
+
 import os
 import sys
 sys.path.insert(0, '../')
 import pytest
 import pkp
-import ruamel_yaml as yaml
+try:
+    import ruamel_yaml as yaml
+except:
+    try:
+        import ruamel.yaml as yaml
+    except:
+        import yaml
 from pkp.detailed_model import M_elements, hf
 
 import numpy as np
@@ -40,7 +50,7 @@ def test_postulate(runner):
     post_dict = runner._postulate_species(y0, mw=mw)
     print(post_dict)
     mw = sum(post_dict['formula'][el] * mwi for el,
-             mwi in M_elements.iteritems())
+             mwi in M_elements.items())
     # print(mw)
     assert np.isclose(post_dict['molecular_weight'], mw)
 

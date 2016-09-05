@@ -33,18 +33,18 @@ def test_init(ga):
 
 def test_target(ga):
 
-    ga.set_target(t=t, y=y)
+    ga.set_target(t=t, y=y, operating_conditions=[[0, 300], [0.1, 1500]])
     assert ga.n_targets == 1
     assert np.allclose(ga.ref_results['run0']['t'], t)
     assert np.allclose(ga.ref_results['run0']['y'], y)
 
-    ga.set_target(t=t * 0.9, y=y * 1.1, every=2)
+    ga.set_target(t=t * 0.9, y=y * 1.1, operating_conditions=[[0, 300], [0.1, 1500]], every=2)
     assert ga.n_targets == 2
     assert len(ga.ref_results['run1']['y']) == len(y[::2])
 
 
 def test_error(ga):
-    ga.set_target(t=t, y=y)
+    ga.set_target(t=t, y=y, operating_conditions=[[0, 300], [0.1, 1500]])
     ga.operating_conditions = operating_conditions
     ga.parameters_range(par_min, par_max)
 

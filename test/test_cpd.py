@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from builtins import dict
 
 import pkp.cpd
 import pkp.detailed_model
@@ -36,12 +37,12 @@ def cpd():
 
 def test_normalize_dictionary():
     ua_norm = pkp.detailed_model.normalize_dictionary(ua)
-    assert sum(ua_norm.itervalues()) == 1
-    assert ua['C'] / sum(ua.itervalues()) == ua_norm['C']
+    assert np.isclose(sum(ua_norm.values()), 1)
+    assert np.isclose(ua['C'] / sum(ua.values()), ua_norm['C'])
 
 
 def test_coal_init(coal):
-    assert ua['C'] / sum(ua.itervalues()) == coal.ultimate_analysis['C']
+    assert ua['C'] / sum(ua.values()) == coal.ultimate_analysis['C']
     assert coal.daf == (coal.proximate_analysis[
                         'VM'] + coal.proximate_analysis['FC'])
     assert coal.proximate_analysis_daf[

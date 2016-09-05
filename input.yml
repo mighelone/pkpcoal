@@ -43,6 +43,7 @@ CPD:
       cxpb: 0.0
       mutpb: 0.5
     fit1:
+      active: true
       model: C2SM
       species: volatiles
       parameters_min: [1e3, 20e6, 0.3, 1e6, 100e6, 0.6]
@@ -50,20 +51,20 @@ CPD:
       parameters_init: [1e5, 50e6, 0.4, 1e8, 150e6, 0.7]
       method: evolve
       # from here parameters of evolve
-      npop: 40
+      npop: 20
       ngen: 10
-      mu: 40
-      lambda_: 30
+      mu: 20
+      lambda_: 50
       cxpb: 0.5
       mutpb: 0.5
-
-        
 
 
 Polimi:
   active: true
   backend: dopri5
   mechanism:
+  # force polimi to use one of the referece coals. It override the coal settings
+  # reference: COAL1  
   fit:
 #    fit0:
 #     active: true
