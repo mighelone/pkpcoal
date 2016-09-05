@@ -258,8 +258,9 @@ class DetailedModel(pkp.reactor.Reactor):
             if el != 'S'}
         self.__log.debug('Update ultimate_analysis %s',
                          ultimate_analysis)
-
-        gas = cantera.Solution('52.xml')
+        mech = os.path.join(os.path.dirname(pkp.bins.__file__),
+                            '52.xml')
+        gas = cantera.Solution(mech)
         composition = {}
         composition['char'] = 1 - y0
         # assume tar as C6H6
