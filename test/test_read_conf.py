@@ -7,7 +7,13 @@ import sys
 sys.path.insert(0, '../')
 import pytest
 import pkp
-import ruamel_yaml as yaml
+try:
+    import ruamel_yaml as yaml
+except:
+    try:
+        import ruamel.yaml as yaml
+    except:
+        import yaml
 from pkp.detailed_model import M_elements, hf
 
 import numpy as np
