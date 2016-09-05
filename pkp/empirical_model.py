@@ -34,6 +34,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
     '''
     parameters_names = ['foo', 'bar']
     parameters_default = [1, 1]
+    parameters_units = ['-', '-']
     mask = np.array([True] * len(parameters_default))
     # initial volatile yield
     y0 = 0
@@ -199,6 +200,7 @@ class SFOR(EmpiricalModel):
     '''
     parameters_names = ['A', 'E', 'y0']
     parameters_default = [1e5, 50e6, 0.6]
+    parameters_units = ['1/s', 'J/kmol', '-']
 
     def rate(self, t, y):
         '''
@@ -313,6 +315,7 @@ class C2SM(EmpiricalModel):
     '''
     parameters_names = ['A1', 'E1', 'y1', 'A2', 'E2', 'y2']
     parameters_default = [49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58]
+    parameters_units = ['1/s', 'J/kmol', '-', '1/s', 'J/kmol', '-']
     mask = np.array([True, False, False, True, False, False])
 
     y0 = [0, 1]  # volatile yield, raw solid
@@ -359,6 +362,7 @@ class DAEM(EmpiricalModel):
 
     parameters_names = ['A0', 'E0', 'sigma', 'y0']
     parameters_default = [1e6, 100e6, 12e6, 0.6]
+    parameters_units = ['1/s', 'J/kmol', 'J/kmol', '-']
     mask = np.array([True, False, False, False])
     y0 = [0, 0, 0, 0, 0]
 
