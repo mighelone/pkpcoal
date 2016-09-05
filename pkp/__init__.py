@@ -824,10 +824,15 @@ class PKPRunner(ReadConfiguration):
         '''
         Heat of pyrolysis. It is defined as the total heat released
         during pyrolysis per unit of volatiles.
+
+        Positive heat of pyrolysis means that extra heat is removed to
+        fullfill the energy balance of coal.
+
+        Same convention used for latent heat of evaporation!!!
         '''
         heat_vol = self.heat_of_volatiles(composition, gas)
         dh_pyro = self.lhv_daf - heat_vol
-        return dh_pyro / (1 - composition['char'])
+        return -dh_pyro / (1 - composition['char'])
 
     def heat_of_reaction_species(self, sp, gas):
         '''
