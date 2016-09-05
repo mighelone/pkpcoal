@@ -27,6 +27,7 @@ import json
 import os
 import numpy as np
 import pandas as pd
+import cantera
 
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
@@ -694,3 +695,165 @@ class PKPRunner(ReadConfiguration):
         }
 
         return postulate_dict
+
+    def _emirical_composition(self, y0, tar, CO):
+        '''
+        Set the empirical composition of volatiles using the method by
+        NAME.
+        http://www.sciencedirect.com/science/article/pii/S0255270104001916
+
+        Parameters
+        ----------
+        y0: float
+            Final volatile yield
+        tar: mass fraction of tar in volatiles
+        CO: fraction of O converted to CO
+        '''
+        def el_fraction(sp, el):
+            '''Mass fraction of element el in species sp'''
+            if sp == 'char':
+                return 1.0 if el == 'C' else 0.0
+            else:
+                return (gas.species(sp).composition.get(el, 0) *
+                        gas.atomic_weight(el) /
+                        gas.molecular_weights[gas.species_index(sp)])
+
+        def calc_remaining(comp):
+            '''Remaining fraction of each elements'''
+            return {el: (ua - tot_el_fraction(comp, el))
+                    for el, ua in ultimate_analysis.items()}
+
+        def tot_el_fraction(comp, element):
+            '''Calc the total element fraction of the given element'''
+            return np.sum([val * el_fraction(sp, element)
+                           for sp, val in comp.items()])
+
+        sum_ua = (sum(self.ultimate_analysis.values()) -
+                  self.ultimate_analysis['S'])
+        ultimate_analysis = {
+            el: v / sum_ua
+            for el, v in self.ultimate_analysis.items()
+            if el != 'S'}
+        self.__log.debug('Update ultimate_analysis %s',
+                         ultimate_analysis)
+
+        gas = cantera.Solution('52.xml')
+        composition = {}
+        composition['char'] = 1 - y0
+        # assume tar as C6H6
+
+        # assume N -> N2
+        composition['N2'] = ultimate_analysis['N']
+        composition['CO'] = (CO * ultimate_analysis['O'] /
+                             el_fraction('CO', 'O'))
+        composition['CO2'] = ((1 - CO) * ultimate_analysis['O'] /
+                              el_fraction('CO2', 'O'))
+        self.__log.debug('Vol composition %s', composition)
+
+        remaining = calc_remaining(composition)
+        self.__log.debug('Remaining element after CO/CO2/N2: %s',
+                         remaining)
+
+        C_in_tar = el_fraction('C6H6', 'C')
+        self.__log.debug('C in TAR %s', C_in_tar)
+        if C_in_tar * tar > remaining['C']:
+            composition['C6H6'] = remaining['C'] / C_in_tar
+            self.__log.debug('C in Tar > remaining C -> set tar: %s',
+                             composition['C6H6'])
+        else:
+            composition['C6H6'] = tar
+            self.__log.debug('Set TAR as %s', tar)
+
+        # recalculate remaining
+        remaining = calc_remaining(composition)
+        self.__log.debug('Remaining element after tar: %s', remaining)
+
+        c_to_h_mass = remaining['C'] / remaining['H']
+        c_to_h_molar = c_to_h_mass * M_elements['H'] / M_elements['C']
+        self.__log.debug('C/H molar: %s', c_to_h_molar)
+
+        if 0 <= c_to_h_molar <= 0.5:
+            # use C2H4 and H2
+            composition['C2H4'] = remaining['C'] / el_fraction(
+                'C2H4', 'C')
+            self.__log.debug('C2H4 %s', composition['C2H4'])
+        elif 0.5 < c_to_h_molar < 1:
+            # use C6H6
+            composition['C6H6'] = (composition['C6H6'] +
+                                   remaining['C'] /
+                                   el_fraction('C6H6', 'C'))
+            self.__log.debug('Update C6H6 %s', composition['C6H6'])
+
+        self.__log.debug('Remaining element after C: %s', remaining)
+        remaining = calc_remaining(composition)
+
+        composition['H2'] = remaining['H']
+        remaining = calc_remaining(composition)
+        self.__log.debug('Remaining %s', remaining)
+        self.__log.debug('Final Vol composition %s', composition)
+
+        emp_dict = {'composition': composition,
+                    'heat_pyro': self.heat_of_pyrolysis(
+                        composition, gas)}
+        return emp_dict
+
+    def calc_element_fraction(self, element, species):
+        '''
+        Calculate element fraction of the given species
+        '''
+        if species in ('Char', 'Solid'):
+            if element == 'C':
+                return 1.0
+            else:
+                return 0.0
+        elif species == 'Other':
+            return 0.0
+        else:
+            i = self.gas.element_index(element)
+            return (self.gas.atomic_weights[i] *
+                    self.gas.species(species).composition.get(element, 0) /
+                    self.gas.molecular_weights[
+                    self.gas.species_index(species)])
+
+    def heat_of_volatiles(self, composition, gas):
+        '''Heat of volatiles including char'''
+        return sum(val * self.heat_of_reaction_species(sp, gas)
+                   for sp, val in composition.items())
+
+    def heat_of_pyrolysis(self, composition, gas):
+        '''
+        Heat of pyrolysis. It is defined as the total heat released
+        during pyrolysis per unit of volatiles.
+        '''
+        heat_vol = self.heat_of_volatiles(composition, gas)
+        dh_pyro = self.lhv_daf - heat_vol
+        return dh_pyro / (1 - composition['char'])
+
+    def heat_of_reaction_species(self, sp, gas):
+        '''
+        Calculate the heat of reaction for the species sp
+        '''
+        T_ref = 273
+        if sp in ('N2'):
+            return 0.0
+        elif sp == 'char':
+            return self.lhv_char
+        spc = gas.species(sp)
+        hf = spc.thermo.h(T_ref)
+        n_o2 = 0.5 * (
+            2 * spc.composition.get('C', 0) +
+            0.5 * spc.composition.get('H', 0) -
+            spc.composition.get('O', 0))
+        n_co2 = spc.composition.get('C', 0)
+        # print 'n_co2', n_co2
+        n_h2o = spc.composition.get('H', 0) * 0.5
+        # print 'n_h2o', n_h2o
+        mw = gas.molecular_weights[gas.species_index(sp)]
+
+        h_o2 = gas.species('O2').thermo.h(T_ref)
+        h_co2 = gas.species('CO2').thermo.h(T_ref)
+        h_h2o = gas.species('H2O').thermo.h(T_ref)
+
+        heat_molar = (hf + n_o2 * h_o2 - n_co2 *
+                      h_co2 - n_h2o * h_h2o)
+        return heat_molar / mw
