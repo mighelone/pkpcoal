@@ -318,11 +318,12 @@ class Evolution(object):
 
         fitnesses = np.array([p.fitness.values for p in pop])
         best = pop[fitnesses.argmin()]
-
-        best_parameters = self.unscale_parameters_final(best)
-
+        self.__log.debug('best scaled %s', best)
+        best = self.unscale_parameters_final(best)
+        self.__log.debug('best non-scaled %s', best)
         # print('Best population', best, best_parameters)
-        return best_parameters
+        return {p: v for p, v in
+                zip(self.empirical_model.parameters_names, best)}
 
     def _set_stats(self):
         stats = tools.Statistics(lambda ind: ind.fitness.values)

@@ -351,7 +351,7 @@ class PKPRunner(ReadConfiguration):
                 ultimate_analysis=self.ultimate_analysis,
                 proximate_analysis=self.proximate_analysis,
                 pressure=self.pressure,
-                #name='{}-{}-Run{}'.format(self.name, model, n)
+                # name='{}-{}-Run{}'.format(self.name, model, n)
                 name=self.name
             )
         run.basename = '{name}-{model}-run{run}'.format(
@@ -475,9 +475,13 @@ class PKPRunner(ReadConfiguration):
             # Jam)
             ga.register()
             best = ga.evolve(n_p=n_p, verbose=True)
-
+            self.__log.debug('Best %s', best)
             # TODO this has to be done inside the Evolution class
-            fit_results['best'] = best
+            fit_results['best'] = {
+                p: (best[p], ga.empirical_model.parameters_units[i])
+                for i, p in enumerate(
+                    ga.empirical_model.parameters_names)
+            }
             self.__log.info('Best population: %s', fit_results['best'])
 
             # report only last iteration
@@ -492,7 +496,7 @@ class PKPRunner(ReadConfiguration):
 
             # run model and add to fit_results
             det_model, fitname = fit_dict['model'], fit_dict['fit']
-            m = ga.empirical_model(fit_results['best'])
+            m = ga.empirical_model(best)
             emp_model = m.__class__.__name__
             self.__log.debug('Emp model %s', emp_model)
             # filename = '{}_{}_{}'.format(fitname, det_model, emp_model)
@@ -512,7 +516,7 @@ class PKPRunner(ReadConfiguration):
                                 results_dir, target_conditions)
             # calc postulate species
             if 'y0' in m.parameters_names:
-                y0 = fit_results['best']['y0']
+                y0 = fit_results['best']['y0'][0]
             elif emp_model == 'C2SM':
                 y0 = np.mean([fit_results[run]['y'][-1]
                               for run in sorted(target_conditions)])
@@ -601,9 +605,9 @@ class PKPRunner(ReadConfiguration):
                 det_model,
                 emp_model,
                 fitname))
-        fig.savefig(os.path.join(results_dir,
-                                 'yield_{}.png'.format(filename)),
-                    bbox_inches='tight')
+        fig.savefig(os.path.join(
+            results_dir, '{}-yields.png'.format(filename)),
+            bbox_inches='tight')
         plt.close(fig)
 
     def _plot_evolution(self, det_model, filename, fitname, ga,
