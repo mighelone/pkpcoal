@@ -58,6 +58,7 @@ setup(
         'deap',
         'cantera (>=2.2.0)',
         'tabulate',
-        'future'
+        'future',
+        'pathos'
     ]
 )
