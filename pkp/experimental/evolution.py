@@ -98,8 +98,8 @@ class Evolve2Stream(pkp.evolution.Evolution):
         # define the mutate algorithm
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)
-        # toolbox.decorate("mate", checkBounds(0, 1))
-        # toolbox.decorate("mutate", checkBounds(0, 1))
+        toolbox.decorate("mate", checkBounds(0, 1))
+        toolbox.decorate("mutate", checkBounds(0, 1))
         # define the select algorithm
         # toolbox.register('select', tools.selTournament, tournsize=3)
         # pareto front selector
