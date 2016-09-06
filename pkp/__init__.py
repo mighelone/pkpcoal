@@ -153,7 +153,7 @@ class PKPRunner(ReadConfiguration):
     '''
     models = models
 
-    def run(self, results_dir=None, n_p=1):
+    def run(self, results_dir=None, n_p=1, run_only=False):
         '''
         Run detailed models and fit them.
 
@@ -200,7 +200,7 @@ class PKPRunner(ReadConfiguration):
                                  model, results.keys())
                 if results:
                     run_results[model] = results
-                    if model_settings['fit']:
+                    if model_settings['fit'] and not run_only:
                         self.__log.info('Start fit of %s model', model)
                         fit_results[model] = self.fit_detmodel(
                             model, model_settings['fit'], n_p, results,

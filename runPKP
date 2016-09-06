@@ -36,12 +36,16 @@ if __name__ == '__main__':
                         default="Results", help="Results directory")
     parser.add_argument('-d', action="store_true", dest="debug",
                         help="Print debug messages")
+    parser.add_argument('--run-only', action="store_true", dest="run_only",
+                        help="Run only detailed models without calibration")
 
     argument = parser.parse_args()
     if argument.debug:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
+
+    run_only = argument.run_only
 
     # logging.basicConfig(
     #    level=log_level, stream=sys.stdout,
@@ -52,6 +56,6 @@ if __name__ == '__main__':
     runner = pkp.PKPRunner(yml_file)
     logging.info('Start run')
     results = runner.run(results_dir=argument.results_dir,
-                         n_p=argument.np)
+                         n_p=argument.np, run_only=run_only)
 
     # plot results
