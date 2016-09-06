@@ -188,8 +188,8 @@ class PKPRunner(ReadConfiguration):
             'rho_dry': self.rho_dry,
             'operating_conditions': self.operating_conditions
         }
-        run_results = {'coal': coal}
-        fit_results = {'coal': coal}
+        run_results = {'coal': coal, 'version': pkp.__version__}
+        fit_results = {'coal': coal, 'version': pkp.__version__}
         for model in self.models:
             model_settings = getattr(self, model)
             if model_settings['active']:
