@@ -12,6 +12,8 @@ from __future__ import print_function, unicode_literals
 from builtins import dict
 from six import string_types
 
+__version__ = "$Revision: 63990 $"
+
 from autologging import logged
 try:
     import ruamel.yaml as yaml
@@ -706,3 +708,7 @@ class PKPRunner(ReadConfiguration):
         self.__log.info('Minimized value: %s', fit_results['fmin'])
 
         return best, fmin
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

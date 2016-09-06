@@ -6,15 +6,21 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
+import subprocess
+import versioneer
 
 here = path.abspath(path.dirname(__file__))
 
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+def githash():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+
 setup(
     name='PKP',
-    version='2.0.0',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='Pyrolysis Kinetic Preporcessor',
     long_description=long_description,
     url='',
@@ -59,6 +65,7 @@ setup(
         'cantera (>=2.2.0)',
         'tabulate',
         'future',
-        'pathos'
+        'pathos',
+        'versioneer'
     ]
 )
