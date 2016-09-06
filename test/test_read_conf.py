@@ -3,10 +3,10 @@ from __future__ import print_function, unicode_literals
 from builtins import dict
 
 import os
-import sys
-sys.path.insert(0, '../')
 import pytest
 import pkp
+import cantera
+
 try:
     import ruamel_yaml as yaml
 except:
@@ -47,7 +47,7 @@ def test_postulate(runner):
     # print(runner.ultimate_analysis)
     y0 = 0.6
     mw = 200
-    post_dict = runner._postulate_species(y0, mw=mw)
+    post_dict = runner.postulate_species(y0, mw=mw)
     print(post_dict)
     mw = sum(post_dict['formula'][el] * mwi for el,
              mwi in M_elements.items())
@@ -80,3 +80,52 @@ def test_dulong(runner):
 
     lhv_char = -(hf['CO2'] - hf['O2'] - hf['char']) / M_elements['C']
     assert np.isclose(lhv_char, runner.lhv_char)
+
+
+def test_empirical(runner):
+    '''Test empirical composition'''
+    comp_dict = runner.empirical_composition(y0=0.55, tar=0.3, CO=0.1)
+    # pytest.set_trace()
+    comp = comp_dict['composition']
+    gas = cantera.Solution(
+        os.path.join(os.path.dirname(pkp.bins.__file__),
+                     '52.xml'))
+    heat_vol = sum(val * runner.heat_of_reaction_species(sp, gas)
+                   for sp, val in comp.items())
+
+    species = ['CH4', 'O2', 'CO2', 'H2O']
+    hf = [gas.species(sp).thermo.h(273) for sp in species]
+    coeff = [1, 2, -1, -2]
+    deltaH = np.dot(hf, coeff) / gas.molecular_weights[
+        gas.species_index('CH4')]
+    assert np.isclose(deltaH, runner.heat_of_reaction_species('CH4',
+                                                              gas))
+    print('LHV CH4', deltaH / 1e6)
+    # check the heat of volatiles
+    assert np.isclose(heat_vol, runner.heat_of_volatiles(comp, gas))
+
+    # check heat of pyrolysis
+    heat_of_pyrolysis = ((heat_vol - runner.lhv_daf) /
+                         (1 - comp['char']))
+    assert np.isclose(heat_of_pyrolysis,
+                      runner.heat_of_pyrolysis(comp, gas))
+
+    # check composition == element balance
+    sum_ua = (sum(runner.ultimate_analysis.values()) -
+              runner.ultimate_analysis['S'])
+    print(sum_ua)
+    print(runner.ultimate_analysis)
+    for el in ('C', 'H', 'O', 'N'):
+        sum_c = 0
+        M_c = gas.atomic_weight(el)
+        for sp, val in comp.items():
+            if sp == 'char':
+                if el == 'C':
+                    sum_c += val
+            else:
+                n_c = gas.species(sp).composition.get(el, 0)
+                mw = gas.molecular_weights[gas.species_index(sp)]
+                sum_c += val * n_c * M_c / mw
+        print('Sum ', el, sum_c)
+
+        assert np.isclose(sum_c, runner.ultimate_analysis[el] / sum_ua)

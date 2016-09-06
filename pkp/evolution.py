@@ -319,10 +319,11 @@ class Evolution(object):
         fitnesses = np.array([p.fitness.values for p in pop])
         best = pop[fitnesses.argmin()]
 
-        best_parameters = self.unscale_parameters_final(best)
-
-        # print('Best population', best, best_parameters)
-        return best_parameters
+        self.__log.debug('best scaled %s', best)
+        best = self.unscale_parameters_final(best)
+        self.__log.debug('best non-scaled %s', best)
+        return {p: v for p, v in
+                zip(self.empirical_model.parameters_names, best)}
 
     def _set_stats(self):
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -380,7 +381,7 @@ class Evolution(object):
         # toolbox.register('mate', tools.cxTwoPoint)
         # blend crossover extending of 0.1 respect to the parameters
         # range. This can produce values out of the range 0-1.
-        toolbox.register('mate', tools.cxBlend, alpha=0.1)
+        toolbox.register('mate', tools.cxBlend, alpha=0.25)
         # define the mutate algorithm
         toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
                          indpb=0.2)

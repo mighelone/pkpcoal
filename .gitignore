@@ -153,3 +153,5 @@ doc/_build
 /test.err
 Results/
 *.aux
+*.fdb_latexmk
+*.fls
