@@ -174,7 +174,7 @@ class PKPRunner(ReadConfiguration):
         # define a information structure for the coal properties
         # TODO improve this part
 
-        run_results['coal'] = {
+        coal = {
             'name': self.name,
             'ultimate_analysis': self.ultimate_analysis,
             'proximate_analysis': self.proximate_analysis,
@@ -183,36 +183,39 @@ class PKPRunner(ReadConfiguration):
             'rho_dry': self.rho_dry,
             'operating_conditions': self.operating_conditions
         }
-        fit_results = {}
+        run_results = {'coal': coal}
+        fit_results = {'coal': coal}
         for model in self.models:
             model_settings = getattr(self, model)
             if model_settings['active']:
                 self.__log.info('Run model %s', model)
-                results = self._run_model(model=model,
-                                          results_dir=results_dir)
+                results = self.run_model(model=model,
+                                         results_dir=results_dir)
+                self.__log.debug('Finish run %s %s',
+                                 model, results.keys())
                 if results:
                     run_results[model] = results
-                    self.__log.debug('Finish run %s %s', model,
-                                     results.keys())
+                    if model_settings['fit']:
+                        self.__log.info('Start fit of %s model', model)
+                        fit_results[model] = self.fit_detmodel(
+                            model, model_settings['fit'], n_p, results,
+                            results_dir)
                 else:
                     self.__log.warning('No results for %s', model)
-                if model_settings['fit']:
-                    self.__log.info('Start fit of %s model', model)
-                    fit_results[model] = self._fit_model(
-                        model, model_settings['fit'], n_p, results,
-                        results_dir)
 
+        # write fitreport.json
         json_fit = os.path.join(
             results_dir, '{name}-fitreport.json'.format(name=self.name))
         self.__log.debug('Export fit report to %s', json_fit)
         with open(json_fit, 'w') as f:
             json.dump(clean_dict(fit_results), f, indent=4)
+
         return run_results, fit_results
 
-    def _fit_model(self, model, model_settings, n_p, results,
-                   results_dir):
+    def fit_detmodel(self, model, model_settings, n_p, results,
+                     results_dir):
         '''
-        Run fitting of the given model
+        Run all fitting of the given detailed model
 
         Parameters
         ----------
@@ -233,8 +236,8 @@ class PKPRunner(ReadConfiguration):
             Contains results of fitting
 
         '''
-        fit_results = {}
         # loop over the fitting runs, fit0, fit1, etc.
+        fit_results = {}
         for fitname, fit in model_settings.items():
             if fit.get('active', True):
                 self.__log.info(
@@ -246,7 +249,7 @@ class PKPRunner(ReadConfiguration):
                 fit_dict = {'model': model,
                             'fit': fitname,
                             'species': fit['species']}
-                fit_results[fitname] = self._evolution(
+                fit_results[fitname] = self.fit_single(
                     target_conditions, fit_dict,
                     fit, results_dir, n_p)
                 fit_results[fitname]['species'] = fit['species']
@@ -259,7 +262,7 @@ class PKPRunner(ReadConfiguration):
             results_dir = os.getcwd()
         return results_dir
 
-    def _run_model(self, model, results_dir):
+    def run_model(self, model, results_dir):
         '''
         Run simulations for the given model
 
@@ -405,7 +408,7 @@ class PKPRunner(ReadConfiguration):
         fig.savefig(
             os.path.join(results_dir, fig_name), bbox_inches='tight')
 
-    def _evolution(self, target_conditions, fit_dict, fit_settings,
+    def fit_single(self, target_conditions, fit_dict, fit_settings,
                    results_dir, n_p=1):
         '''
         Perform calibration fitting of the empirical model using
@@ -429,70 +432,16 @@ class PKPRunner(ReadConfiguration):
         n_p: int
             Number of processors for the evolution
         '''
-        model = fit_settings['model']
-        self.__log.debug('Fit with model %s', model)
-        parameters_min = fit_settings['parameters_min']
-        parameters_max = fit_settings['parameters_max']
+
         # parameters_init = fit_settings['parameters_init']
         method = fit_settings['method']
         fit_results = {}
         if method == 'evolve':
             # Define properties of evolutionary model
-            npop = fit_settings['npop']
-            ngen = fit_settings['ngen']
-            mu = fit_settings['mu']
-            lambda_ = fit_settings['lambda_']
-            cxpb = fit_settings['cxpb']
-            mutpb = fit_settings['mutpb']
-
-            # Define Evolution method
-            # add a binary field in input yaml for running binary
-            # fitting
-            Evolution = pkp.evolution.EvolutionBinary \
-                if fit_settings.get('binary', False) else \
-                pkp.evolution.Evolution
-
-            # Init Evolution
-            ga = Evolution(npop=npop, ngen=ngen, cxpb=cxpb, mutpb=mutpb,
-                           mu=mu, lambda_=lambda_)
-            self.__log.debug('Init GA %s', ga)
-            ga.empirical_model = getattr(pkp.empirical_model, model)
-            self.__log.debug('Set GA model %s', ga.empirical_model)
-
-            # Define the range of parameters
-            ga.parameters_range(parameters_min=parameters_min,
-                                parameters_max=parameters_max)
-            self.__log.debug('Set GA par range %s, %s',
-                             ga._parameters_min, ga._parameters_max)
-
-            # set target conditions
-            [ga.set_target(
-                t=res['t'], y=res['y'],
-                operating_conditions=self.operating_conditions[run])
-             for run, res in target_conditions.items()]
-
-            # Register the DEAP toolbox and do the evolution! (Pearl
-            # Jam)
-            ga.register()
-            best = ga.evolve(n_p=n_p, verbose=True)
-            self.__log.debug('Best: %s', best)
-
-            fit_results['best'] = {
-                p: (best[p], ga.empirical_model.parameters_units[i])
-                for i, p in enumerate(
-                    ga.empirical_model.parameters_names)
-            }
-            self.__log.info('Best population: %s', fit_results['best'])
+            best, ga = self.evolve(n_p, fit_results, fit_settings,
+                                   target_conditions)
 
             # report only last iteration
-            fit_results['log'] = ga.log[-1]
-            fit_results['Coal'] = {
-                'name': self.name,
-                'ultimate_analysis': self.ultimate_analysis,
-                'proximate_analysis': self.proximate_analysis,
-                'proximate_analysis_daf': self.proximate_analysis_daf,
-                'pressure': self.pressure
-            }
 
             # run model and add to fit_results
             det_model, fitname = fit_dict['model'], fit_dict['fit']
@@ -647,3 +596,58 @@ class PKPRunner(ReadConfiguration):
             results_dir,
             '{}-evolution.png'.format(filename)))
         plt.close(fig)
+
+    def evolve(self, n_p, fit_results, fit_settings, target_conditions):
+        model = fit_settings['model']
+        self.__log.debug('Evolution fit with model %s', model)
+        npop = fit_settings['npop']
+        ngen = fit_settings['ngen']
+        mu = fit_settings['mu']
+        lambda_ = fit_settings['lambda_']
+        cxpb = fit_settings['cxpb']
+        mutpb = fit_settings['mutpb']
+
+        parameters_min = fit_settings['parameters_min']
+        parameters_max = fit_settings['parameters_max']
+
+        # Define Evolution method
+        # add a binary field in input yaml for running binary
+        # fitting
+        Evolution = pkp.evolution.EvolutionBinary \
+            if fit_settings.get('binary', False) else \
+            pkp.evolution.Evolution
+
+        # Init Evolution
+        ga = Evolution(npop=npop, ngen=ngen, cxpb=cxpb, mutpb=mutpb,
+                       mu=mu, lambda_=lambda_)
+        self.__log.debug('Init GA %s', ga)
+        ga.empirical_model = getattr(pkp.empirical_model, model)
+        self.__log.debug('Set GA model %s', ga.empirical_model)
+
+        # Define the range of parameters
+        ga.parameters_range(parameters_min=parameters_min,
+                            parameters_max=parameters_max)
+        self.__log.debug('Set GA par range %s, %s',
+                         ga._parameters_min, ga._parameters_max)
+
+        # set target conditions
+        [ga.set_target(
+            t=res['t'], y=res['y'],
+            operating_conditions=self.operating_conditions[run])
+         for run, res in target_conditions.items()]
+
+        # Register the DEAP toolbox and do the evolution! (Pearl
+        # Jam)
+        ga.register()
+        best = ga.evolve(n_p=n_p, verbose=True)
+        self.__log.debug('Best: %s', best)
+
+        fit_results['best'] = {
+            p: (best[p], ga.empirical_model.parameters_units[i])
+            for i, p in enumerate(
+                ga.empirical_model.parameters_names)
+        }
+        fit_results['log'] = ga.log[-1]
+        self.__log.info('Best population: %s', fit_results['best'])
+
+        return best, ga
