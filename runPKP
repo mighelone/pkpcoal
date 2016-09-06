@@ -38,13 +38,13 @@ if __name__ == '__main__':
                         help="Print debug messages")
     parser.add_argument('--run-only', action="store_true", dest="run_only",
                         help="Run only detailed models without calibration")
-
+    
     argument = parser.parse_args()
     if argument.debug:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
-
+    logger.info('Run PKP version %s', pkp.__version__)
     run_only = argument.run_only
 
     # logging.basicConfig(
