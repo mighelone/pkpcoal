@@ -100,3 +100,14 @@ def test_unscale(sfor):
     assert np.isclose(np.log10(unsc_par[0]),
                       (np.log10(par_min) + scal_par * (
                           np.log10(par_max) - np.log10(par_min)))[0])
+
+
+def test_scale(sfor):
+    par_min = np.array([1e3, 10e6, 0.4])
+    par_max = np.array([1e8, 200e6, 0.6])
+    scal_par = np.array([0.2, 0.5, 0.4])
+
+    unsc_par = sfor.unscale_parameters(scal_par, par_min, par_max)
+    scal_par_c = sfor.scale_parameters(unsc_par, par_min, par_max)
+
+    assert np.allclose(scal_par, scal_par_c)

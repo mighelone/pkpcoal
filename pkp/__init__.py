@@ -27,17 +27,20 @@ import json
 import os
 import numpy as np
 import pandas as pd
-import cantera
 
+# detailed models
 from pkp.cpd import CPD
 from pkp.polimi import Polimi
 from pkp.biopolimi import BioPolimi
-from pkp.detailed_model import M_elements, hf
+
+# optimization
 import pkp.evolution
+import pkp.minimize
 
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 try:
     plt.style.use('mystyle')
@@ -436,46 +439,55 @@ class PKPRunner(ReadConfiguration):
         # parameters_init = fit_settings['parameters_init']
         method = fit_settings['method']
         fit_results = {}
-        if method == 'evolve':
+        det_model, fitname = fit_dict['model'], fit_dict['fit']
+        emp_model = fit_settings['model']
+        filename = '{name}-{fit}-{det}-{emp}'.format(
+            name=self.name, fit=fitname, det=det_model,
+            emp=emp_model)
+
+        if 'evolve' in method:
+            self.__log.info('%s Evolution to fit %s with %s',
+                            fitname, det_model, emp_model)
             # Define properties of evolutionary model
             best, ga = self.evolve(n_p, fit_results, fit_settings,
                                    target_conditions)
-
-            # report only last iteration
-
-            # run model and add to fit_results
-            det_model, fitname = fit_dict['model'], fit_dict['fit']
-            m = ga.empirical_model(best)
-            emp_model = m.__class__.__name__
-            self.__log.debug('Emp model %s', emp_model)
-            filename = '{name}-{fit}-{det}-{emp}'.format(
-                name=self.name, fit=fitname, det=det_model,
-                emp=emp_model)
-
-            # calculate postulate substance
-            # it is calculated only for fix y0 variables
-
             # plot results (evolution history)
             self._plot_evolution(det_model, filename, fitname, ga,
                                  results_dir)
-            # plot yield
-            self._plot_yieldfit(det_model, emp_model, filename,
-                                fit_dict, fit_results, fitname, m,
-                                results_dir, target_conditions)
-            # calc postulate species
-            if 'y0' in m.parameters_names:
-                y0 = fit_results['best']['y0'][0]
-            elif emp_model == 'C2SM':
-                y0 = np.mean([fit_results[run]['y'][-1]
-                              for run in sorted(target_conditions)])
-                self.__log.debug('Average y0 for C2SM %s', y0)
-            fit_results[
-                'postulate_volatiles'] = self.postulate_species(y0)
-            fit_results['empirical_comp'] = self.empirical_composition(
-                y0, tar=0.3, CO=0.1)
+
+            # this is the initial parameters for fmin
+            parameters_init = best
+            emp_model_class = ga.empirical_model
         else:
-            raise NotImplementedError(
-                'Fit method {} not implemented!'.format(method))
+            parameters_init = fit_settings['parameters_init']
+
+        if 'min' in method:
+            self.__log.info('%s Minimization to fit %s with %s',
+                            fitname, det_model, emp_model)
+            best, fmin = self.minimization(fit_results, fit_settings,
+                                           target_conditions,
+                                           parameters_init)
+            emp_model_class = fmin.empirical_model
+
+            # run optimized empirical model
+        m = emp_model_class(best)
+        self.__log.debug('Emp model %s', emp_model)
+
+        # plot yield
+        self._plot_yieldfit(det_model, emp_model, filename,
+                            fit_dict, fit_results, fitname, m,
+                            results_dir, target_conditions)
+        # calc postulate species
+        if 'y0' in m.parameters_names:
+            y0 = fit_results['best']['y0'][0]
+        elif emp_model == 'C2SM':
+            y0 = np.mean([fit_results[run]['y'][-1]
+                          for run in sorted(target_conditions)])
+            self.__log.debug('Average y0 for C2SM %s', y0)
+        fit_results[
+            'postulate_volatiles'] = self.postulate_species(y0)
+        fit_results['empirical_comp'] = self.empirical_composition(
+            y0, tar=0.3, CO=0.1)
         return fit_results
 
     def _plot_yieldfit(self, det_model, emp_model, filename, fit_dict,
@@ -647,7 +659,50 @@ class PKPRunner(ReadConfiguration):
             for i, p in enumerate(
                 ga.empirical_model.parameters_names)
         }
+
+        # report only last iteration
         fit_results['log'] = ga.log[-1]
         self.__log.info('Best population: %s', fit_results['best'])
 
         return best, ga
+
+    def minimization(self, fit_results, fit_settings, target_conditions,
+                     init):
+        model = fit_settings['model']
+        self.__log.debug('Minimization fit with model %s', model)
+
+        parameters_min = fit_settings['parameters_min']
+        parameters_max = fit_settings['parameters_max']
+
+        fmin = pkp.minimize.Minimization()
+
+        self.__log.debug('Init fmin %s', fmin)
+        fmin.empirical_model = getattr(pkp.empirical_model, model)
+        self.__log.debug('Set fmin model %s', fmin.empirical_model)
+
+        # Define the range of parameters
+        fmin.parameters_range(parameters_min=parameters_min,
+                              parameters_max=parameters_max)
+        self.__log.debug('Set fmin par range %s, %s',
+                         fmin._parameters_min, fmin._parameters_max)
+
+        # set target conditions
+        [fmin.set_target(
+            t=res['t'], y=res['y'],
+            operating_conditions=self.operating_conditions[run])
+         for run, res in target_conditions.items()]
+
+        # Register the DEAP toolbox and do the evolution! (Pearl
+        # Jam)
+        best = fmin.run(initial=init)
+        self.__log.debug('Best: %s', best)
+
+        fit_results['fmin'] = {
+            p: (best[p], fmin.empirical_model.parameters_units[i])
+            for i, p in enumerate(
+                fmin.empirical_model.parameters_names)
+        }
+
+        self.__log.info('Minimized value: %s', fit_results['fmin'])
+
+        return best, fmin

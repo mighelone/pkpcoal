@@ -114,8 +114,6 @@ class EmpiricalModel(pkp.reactor.Reactor):
         warnings.filterwarnings("ignore", category=UserWarning)
         time_end = self.operating_conditions[-1, 0]
 
-        #t = [self.operating_conditions[0, 0]]
-        #y = [self.y0]
         t = []
         y = []
         while solver.t < time_end:
@@ -169,6 +167,34 @@ class EmpiricalModel(pkp.reactor.Reactor):
 
         return unsc_par
 
+    @classmethod
+    def scale_parameters(cls, parameters, parameters_min,
+                         parameters_max):
+        '''
+        Scale normalized parameters.
+        A1 and A2 are stored as logA1, logA2
+
+        Return
+        ------
+        unsc_par: array
+            Unscaled paramters
+        '''
+        if isinstance(parameters, dict):
+            parameters = [parameters[p] for p in
+                          cls.parameters_names]
+        parameters = np.array(parameters)
+        parameters_min = np.array(parameters_min)
+        parameters_max = np.array(parameters_max)
+
+        mask = np.array(cls.mask)
+        parameters_min[mask] = np.log10(parameters_min[mask])
+        parameters_max[mask] = np.log10(parameters_max[mask])
+        parameters[mask] = np.log10(parameters[mask])
+
+        sc_par = ((parameters - parameters_min) /
+                  (parameters_max - parameters_min))
+        return sc_par
+
 
 @logged
 class SFOR(EmpiricalModel):
@@ -196,11 +222,13 @@ class SFOR(EmpiricalModel):
     Where :math:`A` is the pre-exponential factor and :math:`E` is the
     activation energy. The model is characterized by a constant
     volatile yield :math:`y_0`, which does not depend on the conditions
-    (heating rate and maximum temperature) of the devolatilization process.
+    (heating rate and maximum temperature) of the devolatilization
+    process.
     '''
     parameters_names = ['A', 'E', 'y0']
     parameters_default = [1e5, 50e6, 0.6]
     parameters_units = ['1/s', 'J/kmol', '-']
+    mask = np.array([True, False, False])
 
     def rate(self, t, y):
         '''
@@ -222,48 +250,6 @@ class SFOR(EmpiricalModel):
              np.exp(self.parameters['E'] / Rgas / self.T(t)))
         # return k * (1 - y - self.parameters['y0'])
         return k * (self.parameters['y0'] - y)
-
-    @staticmethod
-    def unscale_parameters(norm_parameters, parameters_min,
-                           parameters_max):
-        '''
-        Unscale normalized parameters, using the formula:
-
-        .. math::
-
-            p_i = p_i^{min} + P_i (p_i^{max}-p_i^{min})
-
-        The pre-exponential factor :math:`A` for *SFOR* model is stored
-        as :math:`log_{10}(A)`.
-
-        Parameters
-        ----------
-        norm_parameters: list
-            Normalized parameters list. They are scaled with respect to
-            the maximum and minimum values defined here.
-        parameters_min: list
-            Minimum values of the parameters
-        parameters_max: list
-            Maximum values of the parameters
-
-        Return
-        ------
-        unsc_par: array
-            Unscaled paramters
-        '''
-        # todo check if the conversion to array is too expensive!!
-        parameters_min = np.array(parameters_min)
-        parameters_min[0] = np.log10(parameters_min[0])
-        parameters_max = np.array(parameters_max)
-        parameters_max[0] = np.log10(parameters_max[0])
-        norm_parameters = np.array(norm_parameters)
-        unsc_par = (parameters_min + norm_parameters *
-                    (parameters_max - parameters_min))
-
-        # calculate A = 10^log10(A)
-        unsc_par[0] = np.power(10, unsc_par[0])
-
-        return unsc_par
 
 
 @logged

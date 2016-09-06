@@ -49,12 +49,12 @@ CPD:
       parameters_min: [1e3, 20e6, 0.3, 1e6, 100e6, 0.6]
       parameters_max: [1e6, 100e6, 0.5, 1e9, 200e6, 1]
       parameters_init: [1e5, 50e6, 0.4, 1e8, 150e6, 0.7]
-      method: evolve
+      method: evolve+min
       # from here parameters of evolve
       npop: 20
       ngen: 10
       mu: 20
-      lambda_: 50
+      lambda_: 10
       cxpb: 0.5
       mutpb: 0.5
 
