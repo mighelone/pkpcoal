@@ -79,7 +79,7 @@ CPD:
       parameters_min: [1e3, 10e6, 5e6, 0.65]
       parameters_max: [1e6, 100e6, 50e6, 0.7]
       parameters_init: [1e5, 50e6, 0.4]
-      method: evolve+min
+      method: evolve
       # from here parameters of evolve
       npop: 20
       ngen: 10

@@ -77,16 +77,26 @@ def clean_dict(d, tolist=False):
     d_new = {}
     for k, v in d.items():
         if isinstance(v, dict):
-            d_new[k] = clean_dict(v)
+            clean_value = clean_dict(v)
+            if clean_value:
+                d_new[k] = clean_value
         elif isinstance(v, np.ndarray):
             if tolist:
                 d_new[k] = v.tolist()
+        elif hasattr(v, 'tolist'):
+            d_new[k] = v.tolist()
         elif isinstance(v, pd.DataFrame):
             if tolist:
                 d_new[k] = v.values.tolist()
+        elif isinstance(v, (list, tuple)):
+            d_new[k] = clean_list(v)
         else:
             d_new[k] = v
     return d_new
+
+
+def clean_list(l):
+    return [x.tolist() if hasattr(x, 'tolist') else x for x in l]
 
 
 @logged
@@ -211,11 +221,11 @@ class PKPRunner(ReadConfiguration):
                     self.__log.warning('No results for %s', model)
 
         # write fitreport.json
-        json_fit = os.path.join(
-            results_dir, '{name}-fitreport.json'.format(name=self.name))
-        self.__log.debug('Export fit report to %s', json_fit)
-        with open(json_fit, 'w') as f:
-            json.dump(clean_dict(fit_results), f, indent=4)
+        yml_fit = os.path.join(
+            results_dir, '{name}-fitreport.yml'.format(name=self.name))
+        self.__log.debug('Export fit report to %s', yml_fit)
+        with open(yml_fit, 'w') as f:
+            yaml.dump(clean_dict(fit_results), f, indent=4)
 
         return run_results, fit_results
 
@@ -483,11 +493,11 @@ class PKPRunner(ReadConfiguration):
                             results_dir, target_conditions)
         # calc postulate species
         if 'y0' in m.parameters_names:
-            y0 = fit_results['best']['y0'][0]
-        elif emp_model in ('C2SM', 'Biagini'):
+            y0 = best['y0']
+        else:
             y0 = np.mean([fit_results[run]['y'][-1]
                           for run in sorted(target_conditions)])
-            self.__log.debug('Average y0 for C2SM %s', y0)
+            self.__log.debug('Average y0 %s', y0)
         fit_results[
             'postulate_volatiles'] = self.postulate_species(y0)
         fit_results['empirical_comp'] = self.empirical_composition(
@@ -667,7 +677,8 @@ class PKPRunner(ReadConfiguration):
             'log': ga.log[-1]}
 
         # report only last iteration
-        self.__log.info('Best population: %s', fit_results['best'])
+        self.__log.info('Best population: %s',
+                        fit_results['evolve']['best'])
 
         return best, ga
 
@@ -707,9 +718,10 @@ class PKPRunner(ReadConfiguration):
                          fmin.empirical_model.parameters_units[i])
                      for i, p in enumerate(
                 fmin.empirical_model.parameters_names)},
-            'report': dict(fmin.results_dir)
+            'report': dict(fmin.results)
         }
 
-        self.__log.info('Minimized value: %s', fit_results['fmin'])
+        self.__log.info('Minimized value: %s',
+                        fit_results['fmin']['best'])
 
         return best, fmin
