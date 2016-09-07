@@ -57,46 +57,29 @@ col_green = "#009380"
 
 models = ['CPD', 'Polimi', 'BioPolimi']
 
-
-def clean_dict(d, tolist=False):
-    '''
-    Clean dictionary fron numpy and pandas object.
-
-    Parameters
-    ----------
-    d: dict
-        Dictionary to convert
-    tolist: bool, default=False
-        Convert numpy arrays and pandas dataframe to list
-
-    Returns
-    -------
-    d_new: dict
-        New cleaned dictionary
-    '''
-    d_new = {}
-    for k, v in d.items():
-        if isinstance(v, dict):
-            clean_value = clean_dict(v)
-            if clean_value:
-                d_new[k] = clean_value
-        elif isinstance(v, np.ndarray):
-            if tolist:
-                d_new[k] = v.tolist()
-        elif hasattr(v, 'tolist'):
-            d_new[k] = v.tolist()
-        elif isinstance(v, pd.DataFrame):
-            if tolist:
-                d_new[k] = v.values.tolist()
-        elif isinstance(v, (list, tuple)):
-            d_new[k] = clean_list(v)
-        else:
-            d_new[k] = v
-    return d_new
+# yaml serialization of numpy objects
 
 
-def clean_list(l):
-    return [x.tolist() if hasattr(x, 'tolist') else x for x in l]
+def ndarray_representer(dumper, data):
+    # return dumper.represent_data(data.tolist())
+    return dumper.represent_data([data.min(), data.max()])
+
+
+def npfloat64_representer(dumper, data):
+    return dumper.represent_data(data.tolist())
+
+
+def npint_representer(dumper, data):
+    return ndarray_representer(dumper, data)
+
+
+def tuple_representer(dumper, data):
+    return dumper.represent_data(list(data))
+
+
+yaml.add_representer(np.ndarray, ndarray_representer)
+yaml.add_representer(np.float64, npfloat64_representer)
+yaml.add_representer(tuple, tuple_representer)
 
 
 @logged
@@ -139,7 +122,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
         self.operating_conditions = yml_input['operating_conditions']
 
         # convert HHV from MJ/kg to J/kg
-        self.HHV = coal_settings['HHV'] * 1e6
+        self.hhv = coal_settings['HHV'] * 1e6
         self.rho_dry = coal_settings['rho_dry']
 
         # Solver settings
@@ -196,7 +179,9 @@ class PKPRunner(ReadConfiguration):
             'ultimate_analysis': self.ultimate_analysis,
             'proximate_analysis': self.proximate_analysis,
             'proximate_analysis_daf': self.proximate_analysis_daf,
-            'HHV': self.HHV,
+            'HHV ar': (self.hhv / 1e6, 'MJ/kg'),
+            'HHV daf': (self.hhv_daf / 1e6, 'MJ/kg'),
+            'LHV daf': (self.lhv_daf / 1e6, 'MJ/kg'),
             'rho_dry': self.rho_dry,
             'operating_conditions': self.operating_conditions
         }
@@ -225,7 +210,8 @@ class PKPRunner(ReadConfiguration):
             results_dir, '{name}-fitreport.yml'.format(name=self.name))
         self.__log.debug('Export fit report to %s', yml_fit)
         with open(yml_fit, 'w') as f:
-            yaml.dump(clean_dict(fit_results), f, indent=4)
+            #yaml.dump(clean_dict(fit_results), f, indent=4)
+            yaml.dump(fit_results, f, indent=4)
 
         return run_results, fit_results
 
