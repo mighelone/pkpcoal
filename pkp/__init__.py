@@ -12,8 +12,6 @@ from __future__ import print_function, unicode_literals
 from builtins import dict
 from six import string_types
 
-__version__ = "$Revision: 63990 $"
-
 from autologging import logged
 try:
     import ruamel.yaml as yaml
@@ -38,6 +36,10 @@ from pkp.biopolimi import BioPolimi
 # optimization
 import pkp.evolution
 import pkp.minimize
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
 
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
@@ -482,7 +484,7 @@ class PKPRunner(ReadConfiguration):
         # calc postulate species
         if 'y0' in m.parameters_names:
             y0 = fit_results['best']['y0'][0]
-        elif emp_model == 'C2SM':
+        elif emp_model in ('C2SM', 'Biagini'):
             y0 = np.mean([fit_results[run]['y'][-1]
                           for run in sorted(target_conditions)])
             self.__log.debug('Average y0 for C2SM %s', y0)
@@ -656,14 +658,15 @@ class PKPRunner(ReadConfiguration):
         best = ga.evolve(n_p=n_p, verbose=True)
         self.__log.debug('Best: %s', best)
 
-        fit_results['best'] = {
-            p: (best[p], ga.empirical_model.parameters_units[i])
-            for i, p in enumerate(
+        fit_results['evolve'] = {
+            'best': {p: (best[p],
+                         ga.empirical_model.parameters_units[i])
+                     for i, p in enumerate(
                 ga.empirical_model.parameters_names)
-        }
+            },
+            'log': ga.log[-1]}
 
         # report only last iteration
-        fit_results['log'] = ga.log[-1]
         self.__log.info('Best population: %s', fit_results['best'])
 
         return best, ga
@@ -700,15 +703,13 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Best: %s', best)
 
         fit_results['fmin'] = {
-            p: (best[p], fmin.empirical_model.parameters_units[i])
-            for i, p in enumerate(
-                fmin.empirical_model.parameters_names)
+            'best': {p: (best[p],
+                         fmin.empirical_model.parameters_units[i])
+                     for i, p in enumerate(
+                fmin.empirical_model.parameters_names)},
+            'report': dict(fmin.results_dir)
         }
 
         self.__log.info('Minimized value: %s', fit_results['fmin'])
 
         return best, fmin
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions

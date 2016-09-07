@@ -394,3 +394,24 @@ class DAEM(EmpiricalModel):
         return super(DAEM, self)._get_parameters()
 
     parameters = property(_get_parameters, _set_parameters)
+
+
+@logged
+class Biagini(EmpiricalModel):
+    '''
+    Calculates the devolatilization reaction using the Biagini model
+    '''
+
+    parameters_names = ['A', 'E', 'k']
+    parameters_default = [1e6, 100e6, 0.5]
+    parameters_units = ['1/s', 'J/kmol', '-']
+    mask = np.array([True, False, False])
+    y0 = 0
+    Tst = 1223
+
+    def rate(self, t, y):
+        T = self.T(t)
+        y0 = 1 - np.exp(-self.parameters['k'] * T / self.Tst)
+        k = (self.parameters['A'] /
+             np.exp(self.parameters['E'] / Rgas / self.T(t)))
+        return k * (y0 - y)
