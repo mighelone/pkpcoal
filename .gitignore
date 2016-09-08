@@ -155,3 +155,6 @@ Results/
 *.aux
 *.fdb_latexmk
 *.fls
+/test/input_test
+/test/test.csv
+/test/test.inp

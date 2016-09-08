@@ -98,13 +98,13 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def hhv(self):
+        '''
+        Higher heating value of coal as received in J/kg
+        '''
         return self._hhv
 
     @hhv.setter
     def hhv(self, value):
-        '''
-        Set the HHV as received of the coal
-        '''
         if not value:
             self._hhv_daf = self.dulong()
             self._hhv = self.daf * self._hhv_daf
@@ -120,18 +120,31 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def lhv_char(self):
+        '''
+        Lower heating value of char in J/kg is calculated assuming char
+        as graphite
+        '''
         return lhv_char
 
     @property
     def hhv_daf(self):
+        '''
+        Higher heating value of coal on daf basis in J/kg
+        '''
         return self._hhv_daf
 
     @property
     def lhv(self):
+        '''
+        Lower heating value of coal as received in J/kg
+        '''
         return self._lhv
 
     @property
     def lhv_daf(self):
+        '''
+        Lower heating value of coal on daf basis in J/kg
+        '''
         return self._lhv_daf
 
     def dulong(self):
@@ -446,6 +459,9 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def name(self):
+        '''
+        Reference name for the coal.
+        '''
         return self._name
 
     @name.setter
@@ -457,6 +473,10 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def ultimate_analysis(self):
+        '''
+        Ultimate analysis of coal in daf basis. It is defined as
+        dictionary: {'C': 0.8, 'H':0.12, 'O': 0.05, 'N':0.2, 'S':0}.
+        '''
         return self._ultimate_analysis
 
     @ultimate_analysis.setter
@@ -469,6 +489,9 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def rho_dry(self):
+        '''
+        Apparent density of dry coal in kg/m3.
+        '''
         return self._rho_dry
 
     @rho_dry.setter
@@ -480,6 +503,10 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def proximate_analysis(self):
+        '''
+        Coal proximate analysis dictionary. It is defined as follows:
+        `{'FC': 0.4, 'VM':0.4, 'Ash':0.05, 'Moist':0.15}`
+        '''
         return self._proximate_analysis
 
     @proximate_analysis.setter
@@ -497,14 +524,25 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def proximate_analysis_daf(self):
+        '''
+        Coal proximate analysis on daf basis. It is defined as follows:
+        `{'FC': 0.5, 'VM':0.5}`
+        '''
         return self._proximate_analysis_daf
 
     @property
     def daf(self):
+        '''
+        Dry ash free fraction on coal as received. It correspond to the
+        mass fractions of volatile and char.
+        '''
         return self._daf
 
     @property
     def pressure(self):
+        '''
+        Operating pressure in Pa.
+        '''
         return self._pressure
 
     @pressure.setter
@@ -513,6 +551,9 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @property
     def path(self):
+        '''
+        Path where results are saved.
+        '''
         return self._path
 
     @path.setter
@@ -532,7 +573,8 @@ class DetailedModel(pkp.reactor.Reactor):
     @property
     def van_kravelen(self):
         '''
-        Return coordinate of van kravelen diagram
+        Coordinate of van kravelen diagram, defined as (O/C, H/C) as
+        received on molar basis.
         '''
         mol = {el: (self.ultimate_analysis[el] / M_elements[el])
                for el in ['C', 'H', 'O']}
@@ -545,7 +587,7 @@ class DetailedModel(pkp.reactor.Reactor):
 
     def _set_basename(self, value):
         '''
-        Define file base name for CPD results
+
         '''
         if value is None:
             value = (self.__class__.__name__ +
@@ -555,7 +597,8 @@ class DetailedModel(pkp.reactor.Reactor):
         self._out_csv = os.path.join(self.path, self.basename + '.csv')
         self.__log.debug('Out CSV %s', self._out_csv)
 
-    basename = property(_get_basename, _set_basename)
+    basename = property(_get_basename, _set_basename,
+                        doc='Basename for exporting results')
 
     def __str__(self):
         str = ('Coal: {}\n'.format(self.name))

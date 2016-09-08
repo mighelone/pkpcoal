@@ -4,9 +4,12 @@ It contains classes for the following models:
 
 * Single First Order Reaction (SFOR) model
     :class:`pkp.empirical_model.SFOR`
-* Competing 2-Step Model (C2SM) :class:`pkp.empirical_model.C2SM`
+* Competing 2-Step Model (C2SM)
+    :class:`pkp.empirical_model.C2SM`
 * Distributed Activation Energy Model (DAEM)
     :class:`pkp.empirical_model.DAEM`
+* Biagini-Tognotti model
+    :class:`pkp.empirical_model.Biagini`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -29,9 +32,9 @@ sqrtpi = np.sqrt(np.pi)
 class EmpiricalModel(pkp.reactor.Reactor):
     '''
     Parent class for model.
-    y is generally considered as the volatile yield released in the gas
-    phase. y
-    '''
+    `y` is generally considered as the volatile yield released in the
+    gas phase.
+x    '''
     parameters_names = ['foo', 'bar']
     parameters_default = [1, 1]
     parameters_units = ['-', '-']
@@ -44,6 +47,9 @@ class EmpiricalModel(pkp.reactor.Reactor):
 
     @property
     def len_parameters(self):
+        '''
+        Lenght of the parameters array/dictionary.
+        '''
         return len(self.parameters_names)
 
     def _get_parameters(self):
@@ -72,7 +78,11 @@ class EmpiricalModel(pkp.reactor.Reactor):
                                 zip(self.parameters_names,
                                     par_values)}
 
-    parameters = property(_get_parameters, _set_parameters)
+    parameters = property(_get_parameters, _set_parameters,
+                          doc=(
+                              'Parameters of the empirical models.'
+                              ' They can be given as list/numpy array '
+                              'or dictionary'))
 
     def run(self, t=None):
         '''
@@ -110,6 +120,19 @@ class EmpiricalModel(pkp.reactor.Reactor):
         return t, np.squeeze(y)
 
     def _run_nostop(self, solver):
+        '''
+        Run the ODE solver stopping at then internal time step of the
+        solver.
+
+        Parameters
+        ----------
+        solver: scipy.integrate.ode
+
+        Returns
+        -------
+        t, y: np.ndarray
+            Time and yields arrays.
+        '''
         solver._integrator.iwork[2] = -1
         warnings.filterwarnings("ignore", category=UserWarning)
         time_end = self.operating_conditions[-1, 0]
@@ -125,6 +148,18 @@ class EmpiricalModel(pkp.reactor.Reactor):
         return np.array(t), np.array(y)
 
     def _run_t(self, solver, t):
+        '''
+        Run the ODE solver stopping at the prescribed time steps.
+
+        Parameters
+        ----------
+        solver: scipy.integrate.ode
+
+        Returns
+        -------
+        t, y: np.ndarray
+            Time and yields arrays.
+        '''
         y = []
         t_calc = []
         for ti in t:
@@ -144,7 +179,21 @@ class EmpiricalModel(pkp.reactor.Reactor):
                            parameters_max):
         '''
         Unscale normalized parameters.
-        A1 and A2 are stored as logA1, logA2
+        Parameters defined in `mask` are unscaled using the log values
+        of the minimum and maximum parameters.
+
+        .. math::
+            p =  P (log_{10}(p_{max}) - log_{10}(p_{min})) +
+            log_{10}(p_{min})
+
+        Parameters
+        ----------
+        norm_parameters: iterable
+            List of normalized between 0 and 1 parameters
+        parameters_min: iterable
+            Minimum parameters
+        parameters_max: iterable
+            Maximum parameters
 
         Return
         ------
@@ -171,13 +220,27 @@ class EmpiricalModel(pkp.reactor.Reactor):
     def scale_parameters(cls, parameters, parameters_min,
                          parameters_max):
         '''
-        Scale normalized parameters.
-        A1 and A2 are stored as logA1, logA2
+        Scale/normalize parameters using minimum and maximum values.
+        Parameters defined in `mask` are scaled using log values for
+        the parameters.
+
+        .. math::
+            P = (log_{10}(p) - log_{10}(p_{min}))/
+            (log_{10}(p_{max}) - log_{10}(p_{min}))
+
+        Parameters
+        ----------
+        parameters: iterable
+            List of normalized between 0 and 1 parameters
+        parameters_min: iterable
+            Minimum parameters
+        parameters_max: iterable
+            Maximum parameters
 
         Return
         ------
-        unsc_par: array
-            Unscaled paramters
+        sc_par: array
+            Scaled paramters
         '''
         if isinstance(parameters, dict):
             parameters = [parameters[p] for p in
@@ -400,6 +463,24 @@ class DAEM(EmpiricalModel):
 class Biagini(EmpiricalModel):
     '''
     Calculates the devolatilization reaction using the Biagini model
+    [Biagini2014]_
+
+    It based on the :class:`SFOR` model:
+
+    .. math::
+
+        r = k(T) [y_0(T)-y]
+
+    where the volatile yields depend on the temperature:
+
+    .. math::
+
+        y_0(T) = 1 - exp(-DI T/T_{st})
+
+    Where :math:`DI` is the devolatilization index and
+    :math:`T_{st}=1223` the standard temperature for estimating
+    volatiles in ASTM.
+
     '''
 
     parameters_names = ['A', 'E', 'k']

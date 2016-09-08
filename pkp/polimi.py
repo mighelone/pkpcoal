@@ -53,14 +53,24 @@ char = set_reference_coal('CHAR', atoms={'C': 1, 'H': 0, 'O': 0})
 
 # Exceptions
 class MechanismError(Exception):
+    '''
+    Raise an exception if the mechanism for Polimi model is wrong.
+    '''
     pass
 
 
 class CompositionError(Exception):
+    '''
+    Raise an exception of composition is wrong.
+    '''
     pass
 
 
 class OutsideTriangleError(Exception):
+    '''
+    Raise an exception if the coal used is outside of the triangles
+    defined.
+    '''
     pass
 
 
@@ -102,6 +112,10 @@ class Triangle(object):
     def is_inside(self, x):
         '''
         verify is point x is inside the triangle
+
+        Returns
+        -------
+        bool
         '''
         coeff = self._coeff(np.array(x))
         return all([
@@ -183,6 +197,9 @@ class TriangleCoal(Triangle):
             return coal
 
     def is_inside(self, coal):
+        '''
+        Check if the coal is inside the Triangles.
+        '''
         return super(
             TriangleCoal, self).is_inside(
                 self._coal_to_x(coal))
@@ -252,6 +269,19 @@ class Polimi(pkp.detailed_model.DetailedModel):
 
     def set_parameters(self, **kwargs):
         '''
+        Set parameters for Polimi model.
+
+        Parameters
+        ----------
+        mechanism: string_types
+            Polimi mechanism in Cantera format
+        backend: string_types
+            Backend for ODE solver.
+
+        See also
+        --------
+        :meth:`backend`
+        :meth:`mechanism`
         '''
         for key in ('mechanism', 'backend'):
             if key in kwargs:
@@ -260,24 +290,17 @@ class Polimi(pkp.detailed_model.DetailedModel):
     @property
     def backend(self):
         '''
-        Return ODE backend
+        Backend for the ODE solver. Defauult is dopri. Possible values
+        are 'dopri5', 'cvode', 'lsoda', 'dop853'.
+
+        See also
+        --------
+        scipy.interp1d.ode
         '''
         return self._backend
 
     @backend.setter
     def backend(self, value=None):
-        '''
-        Set ODE solver backend.
-
-        Parameters
-        ----------
-        value: str, default='dopri5'
-            'dopri5', 'cvode', 'lsoda', 'dop853'
-        Raise
-        -----
-        ValueError
-            If backend does not exist
-        '''
         backend_keys = ['dopri5', 'cvode', 'lsoda', 'dop853']
         if value is None:
             self._backend = backend_keys[0]
@@ -307,7 +330,8 @@ class Polimi(pkp.detailed_model.DetailedModel):
         except:
             raise MechanismError('Cannot read {}'.format(value))
 
-    mechanism = property(_get_mechanism, _set_mechanism)
+    mechanism = property(_get_mechanism, _set_mechanism,
+                         doc='Mechanism in cantera format for Polimi')
 
     def _define_triangle(self):
         '''
@@ -332,6 +356,13 @@ class Polimi(pkp.detailed_model.DetailedModel):
             self.triangle.itercoals())}
 
     def run(self):
+        '''
+        Run Polimi model.
+
+        Returns
+        -------
+        results: pandas.DataFrame
+        '''
         mechanism = self.mechanism
 
         def dmidt(t, m):

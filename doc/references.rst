@@ -18,3 +18,9 @@ References
 		  Chemical Engineering and Processing:
 		  Process Intensification, 44(7), 717–736.
 		  <http://doi.org/10.1016/j.cep.2004.09.001>
+
+.. [Biagini2014] Biagini, E., & Tognotti, L. (2014). *A generalized
+		 correlation for coal devolatilization kinetics at
+		 high temperature.*
+		 Fuel Processing Technology, 126, 513–520.
+		 <http://doi.org/10.1016/j.fuproc.2014.06.008>

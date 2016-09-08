@@ -49,18 +49,19 @@ The results are stored in a ``pandas`` dataframe.
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import numpy as np
 import os
 import subprocess
+
 import pandas as pd
 from autologging import logged
+import numpy as np
 
 import pkp.detailed_model
 import pkp.bins
 import platform
 
 
-cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
+CPD_CORRELATION = np.array([[0.0, 0.0, 0.0, 0.0],
                             [421.957, 1301.41, 0.489809, -52.1054],
                             [-8.64692, 16.3879, -0.00981566, 1.63872],
                             [0.0463894, -0.187493, 0.000133046,
@@ -78,10 +79,34 @@ cpd_correlation = np.array([[0.0, 0.0, 0.0, 0.0],
 @logged
 class CPD(pkp.detailed_model.DetailedModel):
     '''
-    Class to run and store results from CPD model
+    Class to run and store results from CPD model. The class set the
+    input files required for running CPD using the external fortran
+    solver. It is based on the CPD_NLG version of the code.
+    http://www.et.byu.edu/~tom/cpd/cpdcodes.html
+
+    It is possible to use the Genetti correlation for estimating NMR
+    parameters, or they can directly defined if they are known.
     '''
     nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
     num_parameters = ['dt', 'increment', 'dt_max']
+
+    ab = 2.602e15
+    eb = 55400
+    ebsig = 1800
+    ac = 0.9
+    ec = 0
+    ag = 3.0e15
+    eg = 69000
+    egsig = 8100
+    Acr = 3.0e15
+    Ecr = 65000
+    arad = 18.4
+    erad = 6000
+    fstable = 0.03
+    an = 5.5e7
+    en = 90000
+    ensig = 0
+    nmax = 20
 
     def __init__(self, ultimate_analysis, proximate_analysis,
                  pressure=101325, name='CPD coal'):
@@ -99,39 +124,17 @@ class CPD(pkp.detailed_model.DetailedModel):
         name: str, unicode
             Reference name of the modelled coal
         '''
-        self.ab = 2.602e15
-        self.eb = 55400
-        self.ebsig = 1800
-        self.ac = 0.9
-        self.ec = 0
-        self.ag = 3.0e15
-        self.eg = 69000
-        self.egsig = 8100
-        self.Acr = 3.0e15
-        self.Ecr = 65000
-        self.arad = 18.4
-        self.erad = 6000
-        self.fstable = 0.03
-        self.an = 5.5e7
-        self.en = 90000
-        self.ensig = 0
-        self.nmax = 20
-
-        self.__log.debug('Input pressure %s', pressure)
-
         super(CPD, self).__init__(proximate_analysis=proximate_analysis,
                                   ultimate_analysis=ultimate_analysis,
                                   pressure=pressure,
                                   name=name)
-
-        self.__log.debug('Set pressure %s', self.pressure)
 
         # check if they are in %
         self.fcar = self.ultimate_analysis['C']
         self.fhyd = self.ultimate_analysis['H']
         self.fnit = self.ultimate_analysis['N']
         self.foxy = self.ultimate_analysis['O']
-        self.VMdaf = self.proximate_analysis_daf['VM']
+        self.vm_daf = self.proximate_analysis_daf['VM']
 
         # set parameters -> this can be changed using
         # self.set_parameters
@@ -190,27 +193,34 @@ class CPD(pkp.detailed_model.DetailedModel):
         return super(CPD, self)._get_basename()
 
     def _set_basename(self, value):
-        '''
-        Define file base name for CPD results
-        '''
         super(CPD, self)._set_basename(value)
         self._io_file = os.path.join(self.path, 'input_' +
                                      self._basename)
         self._input_file = os.path.join(self.path,
                                         self._basename + '.inp')
 
-    basename = property(_get_basename, _set_basename)
+    basename = property(_get_basename, _set_basename,
+                        doc='Basename for saving CPD results.')
 
     @property
     def io_file(self):
+        '''
+        Input/Output file for running CPD.
+        '''
         return self._io_file
 
     @property
     def input_file(self):
+        '''
+        Input file defined for CPD.
+        '''
         return self._input_file
 
     @property
     def solver(self):
+        '''
+        CPD solver path.
+        '''
         return self._solver
 
     @solver.setter
@@ -256,7 +266,7 @@ class CPD(pkp.detailed_model.DetailedModel):
             [setattr(self, key, nmr_parameters[key])
              for key in self.nmr_parameters]
         else:
-            c = cpd_correlation.copy()
+            c = CPD_CORRELATION.copy()
             self.c0 = (min(0.36,
                            max(0.118 * self.fcar * 100 - 10.1, 0.0)) +
                        min(0.15,
@@ -268,8 +278,8 @@ class CPD(pkp.detailed_model.DetailedModel):
                  c[5] * (self.fhyd * 100)**2 +
                  c[6] * (self.foxy * 100) +
                  c[7] * (self.foxy * 100)**2 +
-                 c[8] * (self.VMdaf * 100) +
-                 c[9] * (self.VMdaf * 100)**2)
+                 c[8] * (self.vm_daf * 100) +
+                 c[9] * (self.vm_daf * 100)**2)
             [setattr(self, key, Y[i])
              for i, key in enumerate(self.nmr_parameters[:4])]
 
@@ -279,7 +289,7 @@ class CPD(pkp.detailed_model.DetailedModel):
         '''
         def writeline(key):
             f.write('{}           !{}\n'.format(
-                    getattr(self, key), key))
+                getattr(self, key), key))
 
         def empty_lines(n=1):
             [f.write('\n') for _ in range(n)]
@@ -333,6 +343,15 @@ class CPD(pkp.detailed_model.DetailedModel):
              for n in range(1, 5)]
 
     def run(self):
+        '''
+        Run CPD code.
+
+        Returns
+        -------
+        results: pandas.Dataframe
+        Dataframe containg the results of CPD as a function of the
+        residence time.
+        '''
         self._write_input_files()
         with open(self.io_file, 'r') as f_in:
             with open('test.out', 'w') as f_out:

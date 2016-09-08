@@ -25,3 +25,17 @@ Distributed Activation Energy Model (DAEM)
 .. autoclass:: pkp.empirical_model.DAEM
     :members:
     :show-inheritance:
+
+Biagini-Tognotti model
+----------------------
+
+.. autoclass:: pkp.empirical_model.Biagini
+    :members:
+    :show-inheritance:
+
+EmpiricalModel base class
+-------------------------
+
+.. autoclass:: pkp.empirical_model.EmpiricalModel
+    :members:
+    :show-inheritance:

@@ -23,18 +23,16 @@ class Reactor(object):
 
     @property
     def operating_conditions(self):
+        '''
+        Operating conditions for devolatilization. They are defined as
+        list of operating points [[t0, T0], [t1, T1], ..., [tn, Tn]]
+        Each operating point is defined by the time in second and
+        temperature in K.
+        '''
         return self._operating_conditions
 
     @operating_conditions.setter
     def operating_conditions(self, conditions):
-        '''
-        Define operating conditions for evaluating pyrolysis
-
-        Parameters
-        ----------
-        conditions: np.ndarray, list
-            [[t0, T0], ..., [tn, Tn]]
-        '''
         if conditions is None:
             self.T = None
             self._operating_conditions = None

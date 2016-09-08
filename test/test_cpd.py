@@ -63,7 +63,7 @@ def test_set_NMR(cpd):
         assert hasattr(cpd, key)
 
     assert np.isclose(cpd.fcar * 100, 69.0)
-    assert np.isclose(cpd.VMdaf * 100, 52.87, atol=0.05)
+    assert np.isclose(cpd.vm_daf * 100, 52.87, atol=0.05)
     assert np.isclose(cpd.mdel, 46.5, atol=0.05)
     assert np.isclose(cpd.mw, 340.3, atol=0.05)
     assert np.isclose(cpd.p0, 0.620, atol=0.05)

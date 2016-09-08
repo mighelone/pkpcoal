@@ -2,9 +2,9 @@
 This module contains the class manager for the fitting of the detailed
 model results using empirical models, as described by [Vascellari2013]_.
 
-The class :class:`pkp.evolution.Evolution` allows to set different results
-from detailed models, given in terms of time, yield arrays, which
-corresponds to different operating conditions.
+The class :class:`pkp.evolution.Evolution` allows to set different
+results from detailed models, given in terms of time, yield arrays,
+which corresponds to different operating conditions.
 
 Different empirical models can be used for the calibration.
 The calibration is based on the :math:`(\mu+\lambda)` genetic algorithm.
@@ -58,10 +58,10 @@ The best parameters are returned in `best`::
     u'y1': 0.37877698331076126, u'y2': 0.69828180155346786,
     u'E1': 48206052.660060763, u'E2': 121681065.13675486}
 
-Information about the population and log of the evolution are 
+Information about the population and log of the evolution are
 available::
 
-    >>> ga.pop 
+    >>> ga.pop
     >>> ga.log
 
 Evolution class
@@ -91,7 +91,16 @@ from pathos.multiprocessing import ProcessPool
 # from scoop import futures
 
 
-def checkBounds(min, max):
+def check_bounds(min, max):
+    '''
+    Decorator which fix the limit of the function arguments to min and
+    max values.
+
+    Parameters
+    ----------
+    min: minimum value of the parameter
+    max: minimum value of the parameter
+    '''
     def decorator(func):
         def wrappper(*args, **kargs):
             offspring = func(*args, **kargs)
@@ -387,8 +396,8 @@ class Evolution(object):
                          indpb=0.2)
         # define the select algorithm
         toolbox.register('select', tools.selTournament, tournsize=3)
-        toolbox.decorate("mate", checkBounds(0, 1))
-        toolbox.decorate("mutate", checkBounds(0, 1))
+        toolbox.decorate("mate", check_bounds(0, 1))
+        toolbox.decorate("mutate", check_bounds(0, 1))
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
