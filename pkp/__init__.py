@@ -253,6 +253,7 @@ class PKPRunner(ReadConfiguration):
                             'fit': fitname,
                             'species': fit['species']}
                 fit_results[fitname] = self.fit_single(
+                    results,
                     target_conditions, fit_dict,
                     fit, results_dir, n_p)
                 fit_results[fitname]['species'] = fit['species']
@@ -411,7 +412,7 @@ class PKPRunner(ReadConfiguration):
         fig.savefig(
             os.path.join(results_dir, fig_name), bbox_inches='tight')
 
-    def fit_single(self, target_conditions, fit_dict, fit_settings,
+    def fit_single(self, results, target_conditions, fit_dict, fit_settings,
                    results_dir, n_p=1):
         '''
         Perform calibration fitting of the empirical model using
@@ -419,6 +420,8 @@ class PKPRunner(ReadConfiguration):
 
         Parameters
         ----------
+        results: dict
+            Results dictionary
         target_conditions: list
             List of target conditions for the calibration. Each entry
             of the list contains:
@@ -435,7 +438,6 @@ class PKPRunner(ReadConfiguration):
         n_p: int
             Number of processors for the evolution
         '''
-
         # parameters_init = fit_settings['parameters_init']
         method = fit_settings['method']
         fit_results = {}
@@ -484,10 +486,19 @@ class PKPRunner(ReadConfiguration):
             y0 = np.mean([fit_results[run]['y'][-1]
                           for run in sorted(target_conditions)])
             self.__log.debug('Average y0 %s', y0)
+
+        tar_mean = np.mean([r.iloc[-1]['tar']
+                            for r in results.values()])
+        self.__log.debug('columns %s', results['run0'].columns)
+        co_mean = np.mean([r.iloc[-1]['CO'] for r in results.values()])
+        self.__log.debug('tar mean %s', tar_mean)
+        self.__log.debug('CO mean %s', co_mean)
+        self.__log.debug('y0 mean %s', y0)
+
         fit_results[
             'postulate_volatiles'] = self.postulate_species(y0)
         fit_results['empirical_comp'] = self.empirical_composition(
-            y0, tar=0.3, CO=0.1)
+            y0, tar=tar_mean, CO=co_mean)
         return fit_results
 
     def _plot_yieldfit(self, det_model, emp_model, filename, fit_dict,

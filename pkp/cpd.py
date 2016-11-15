@@ -368,13 +368,19 @@ class CPD(pkp.detailed_model.DetailedModel):
 
     def _read_results(self):
         def read_file(n):
+            fname = os.path.join(self.path, self.basename +
+                                 '_{}.out'.format(n))
+            with open(fname, 'r') as f:
+                header = f.readline()[2:].split()
+            # self.__log.debug('file=%s header %s', fname, header)
             return pd.read_csv(
-                os.path.join(self.path, self.basename +
-                             '_{}.out'.format(n)),
+                fname,
+                index_col=0,
                 delimiter=r'\s+',
-                escapechar='c',
-                index_col=0)
-        df = pd.concat([read_file(n) for n in range(1, 5)], axis=1)
+                names=header,
+                comment='c')
+        df = pd.concat([read_file(n)
+                        for n in range(1, 5)], axis=1).iloc[:-1]
         df.index.rename('t', inplace=True)
         df.index = df.index * 1e-3
         self.__log.debug('CPD index max %s', df.index.max())
@@ -383,7 +389,15 @@ class CPD(pkp.detailed_model.DetailedModel):
                            'ftar': 'tar',
                            'fgas': 'light_gas',
                            'ftot': 'volatiles',
-                           'temp': 'T'}, inplace=True)
+                           'met': 'metaplast',
+                           'temp': 'T',
+                           'fh20': 'H2O',
+                           'fco2': 'CO2',
+                           'fch4': 'CH4',
+                           'fco': 'CO',
+                           'fother': 'other'}, inplace=True)
+        # self.__log.debug('Columns %s', df.columns)
+        # self.__log.debug('Last row %s', df.iloc[-1])
 
         # out_csv = os.path.join(self.path, self.basename + '.csv')
         df.to_csv(self._out_csv)
