@@ -349,8 +349,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         Returns
         -------
         results: pandas.Dataframe
-        Dataframe containg the results of CPD as a function of the
-        residence time.
+            Dataframe containg the results of CPD as a function of the
+            residence time.
         '''
         self._write_input_files()
         with open(self.io_file, 'r') as f_in:

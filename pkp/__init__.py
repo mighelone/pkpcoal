@@ -60,6 +60,7 @@ models = ['CPD', 'Polimi', 'BioPolimi']
 # yaml serialization of numpy objects
 
 
+# representer data for yaml
 def ndarray_representer(dumper, data):
     # return dumper.represent_data(data.tolist())
     return dumper.represent_data([data.min(), data.max()])
