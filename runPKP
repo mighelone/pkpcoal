@@ -11,8 +11,8 @@ import pkp
 # import coloredlogs
 # coloredlogs.install(level='DEBUG')
 
-
 yml_file_default = 'input.yml'
+
 
 if __name__ == '__main__':
     logger = logging.getLogger('')
@@ -38,19 +38,20 @@ if __name__ == '__main__':
                         help="Print debug messages")
     parser.add_argument('--run-only', action="store_true", dest="run_only",
                         help="Run only detailed models without calibration")
-    
+
     argument = parser.parse_args()
     if argument.debug:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
-    
+
     run_only = argument.run_only
 
-    # logging.basicConfig(
-    #    level=log_level, stream=sys.stdout,
-    #    format="%(levelname)s:%(name)s:%(funcName)s:%(message)s")
-    logger.setLevel(log_level)
+    logging.basicConfig(
+        level=log_level,
+        format="%(levelname)s:%(name)s:%(funcName)s:%(message)s")
+
+    # logging.setLevel(log_level)
     yml_file = argument.yml_file
     logging.info('Run PKP version %s', pkp.__version__)
     logging.info('Create runner and read settings')

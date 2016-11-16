@@ -228,12 +228,14 @@ class DetailedModel(pkp.reactor.Reactor):
         This method is based on the element conservation balance and
         some assumption regarding tar and CO.
 
+        The model assumes that C6H6 (tar), CO, CO2, N2, H2 
+
         Parameters
         ----------
         y0: float
             Final volatile yield
         tar: mass fraction of tar in volatiles
-        CO: fraction of O converted to CO
+        CO: mass fraction of CO in volatiles
 
         Returns
         -------
@@ -280,10 +282,21 @@ class DetailedModel(pkp.reactor.Reactor):
 
         # assume N -> N2
         composition['N2'] = ultimate_analysis['N']
-        composition['CO'] = (CO * ultimate_analysis['O'] /
-                             el_fraction('CO', 'O'))
-        composition['CO2'] = ((1 - CO) * ultimate_analysis['O'] /
-                              el_fraction('CO2', 'O'))
+        # composition['CO'] = (CO * ultimate_analysis['O'] /
+        #                     el_fraction('CO', 'O'))
+        O_in_CO = el_fraction('CO', 'O')
+        if ultimate_analysis['O'] > CO * O_in_CO:
+            composition['CO'] = CO
+            composition['CO2'] = ((ultimate_analysis['O'] - CO * O_in_CO) /
+                                  el_fraction('CO2', 'O'))
+        else:
+            composition['CO'] = ultimate_analysis['O'] / O_in_CO
+            composition['CO2'] = 0
+        self.__log.debug('CO input %s', CO)
+        self.__log.debug('CO set %s', composition['CO'])
+        self.__log.debug('CO2 set %s', composition['CO2'])
+        # composition['CO2'] = ((1 - CO) * ultimate_analysis['O'] /
+        #                      el_fraction('CO2', 'O'))
         self.__log.debug('Vol composition %s', composition)
 
         remaining = calc_remaining(composition)
