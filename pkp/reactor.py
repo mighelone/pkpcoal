@@ -46,5 +46,10 @@ class Reactor(object):
         if not conditions.shape[-1] == 2:
             raise ValueError('Define conditions as array Nx2')
         self._operating_conditions = conditions
-        self.T = interp1d(conditions[:, 0], conditions[:, 1],
-                          kind='linear')
+        # self.T = interp1d(conditions[:, 0], conditions[:, 1],
+        #                  kind='linear')
+
+        def interp(t):
+            '''Interpolate time with temperature'''
+            return np.interp(t, conditions[:, 0], conditions[:, 1])
+        self.T = interp
