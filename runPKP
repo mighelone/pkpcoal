@@ -7,7 +7,7 @@ from builtins import dict
 import logging
 import argparse
 
-import pkp
+import pkp.runner
 # import coloredlogs
 # coloredlogs.install(level='DEBUG')
 
@@ -36,7 +36,8 @@ if __name__ == '__main__':
                         default="Results", help="Results directory")
     parser.add_argument('-d', action="store_true", dest="debug",
                         help="Print debug messages")
-    parser.add_argument('--run-only', action="store_true", dest="run_only",
+    parser.add_argument('--run-only', action="store_true",
+                        dest="run_only",
                         help="Run only detailed models without calibration")
 
     argument = parser.parse_args()
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     yml_file = argument.yml_file
     logging.info('Run PKP version %s', pkp.__version__)
     logging.info('Create runner and read settings')
-    runner = pkp.PKPRunner(yml_file)
+    runner = pkp.runner.PKPRunner(yml_file)
     logging.info('Start run')
     results = runner.run(results_dir=argument.results_dir,
                          n_p=argument.np, run_only=run_only)
