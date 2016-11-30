@@ -7,7 +7,6 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import numpy as np
-from scipy.interpolate import interp1d
 from autologging import logged
 
 
@@ -46,10 +45,8 @@ class Reactor(object):
         if not conditions.shape[-1] == 2:
             raise ValueError('Define conditions as array Nx2')
         self._operating_conditions = conditions
-        # self.T = interp1d(conditions[:, 0], conditions[:, 1],
-        #                  kind='linear')
 
-        def interp(t):
+        def interp_tT(t):
             '''Interpolate time with temperature'''
             return np.interp(t, conditions[:, 0], conditions[:, 1])
-        self.T = interp
+        self.T = interp_tT

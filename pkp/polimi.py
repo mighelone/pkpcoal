@@ -164,6 +164,12 @@ class Triangle(object):
         s += self.__str__()
         return s
 
+    def plot(self, ax, **kwargs):
+        '''Plot triangle'''
+        xi, yi = ([self.x0[i], self.x1[i], self.x2[i], self.x0[i]]
+                  for i in range(2))
+        ax.plot(xi, yi, **kwargs)
+
 
 @logged
 class TriangleCoal(Triangle):
