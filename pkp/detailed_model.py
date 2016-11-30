@@ -15,31 +15,31 @@ import pkp
 import pkp.reactor
 from autologging import logged
 from distutils.dir_util import mkpath
-import cantera
 
 pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
 ua_keys = ['C', 'H', 'O', 'N', 'S']
 
 # calc M elements
-gas = cantera.Solution('gri30.xml')
 # M_elements = {'C': 12.0, 'H': 1, 'O': 16.0, 'N': 28, 'S': 32}
-M_elements = dict(zip(gas.element_names, gas.atomic_weights))
-M_elements.pop('Ar')
-M_elements['S'] = 32.065
+# M_elements = dict(zip(gas.element_names, gas.atomic_weights))
+M_elements = {'C': 12.010999999999999,
+              'H': 1.0079400000000001,
+              'N': 14.006740000000001,
+              'O': 15.9994,
+              'S': 32.065}
 
 # heating value char
 T_ref = 273
 
-hf = {
-    'char': -101.268,  # J/kmol
-    'CO2': gas.species('CO2').thermo.h(T_ref),
-    'H2O': gas.species('H2O').thermo.h(T_ref),
-    'O2': gas.species('O2').thermo.h(T_ref),
-    'SO2': -296.84e3
-}
+# entalpy of formation of main gas species
+hf = {'CO2': -394427320.2748184,
+      'H2O': -242667933.54008716,
+      'O2': -737319.0856519284,
+      'SO2': -296840.0,
+      'char': -101.268}
+
 lhv_char = (hf['char'] + hf['O2'] - hf['CO2']) / M_elements['C']
-del gas
 
 M_H2O = 2 * M_elements['H'] + M_elements['O']
 
