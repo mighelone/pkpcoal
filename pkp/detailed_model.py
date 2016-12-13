@@ -7,6 +7,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from six import string_types
 from builtins import dict
+import cantera
 
 import os
 import numpy as np
@@ -34,9 +35,11 @@ T_ref = 273
 
 # entalpy of formation of main gas species
 hf = {'CO2': -394427320.2748184,
+      'CO': -111261940.94031826,
       'H2O': -242667933.54008716,
       'O2': -737319.0856519284,
       'SO2': -296840.0,
+      'N2': -728930.9826824698,
       'char': -101.268}
 
 lhv_char = (hf['char'] + hf['O2'] - hf['CO2']) / M_elements['C']
@@ -162,7 +165,7 @@ class DetailedModel(pkp.reactor.Reactor):
         return sum(c * self.ultimate_analysis[el]
                    for el, c in coeff.items()) * 1e6
 
-    def postulate_species(self, y0, mw=200.0):
+    def postulate_species(self, y0, mw=200.0, include_nu=False):
         '''
         Calculate the volatile composition for the fitted empirical
         model assuming a unique *postulate* species. The composition is
@@ -176,6 +179,8 @@ class DetailedModel(pkp.reactor.Reactor):
             Final volatile yield
         mw: float
             Postulate species molecular weight
+        include_nu: Bool
+            Include stoichiometric coefficient in the output
 
         Returns
         -------
@@ -203,10 +208,36 @@ class DetailedModel(pkp.reactor.Reactor):
             'CO2': molecule['C'],
             'H2O': (molecule['H'] * 0.5),
             # reactant is negative
-            'O2': -(-0.5 * molecule['O'] + molecule['C'] +
-                    0.25 * molecule['H']),
-            'SO2': molecule['S']
+            'O2': -0.5 * (-molecule['O'] + 2 * molecule['C'] +
+                          0.5 * molecule['H'] + 2 * molecule['S']),
+            'SO2': molecule['S'],
+            'N2': (molecule['N'] * 0.5)
         }
+
+        nu_partial = nu.copy()
+        nu_partial['CO'] = nu_partial.pop('CO2')
+        nu_partial['O2'] = -0.5 * (-molecule['O'] + molecule['C'] +
+                                   0.5 * molecule['H'] +
+                                   2 * molecule['S'])
+
+        full_oxidation = ('{} + {:4.3f} O2 -> '
+                          '{:4.3f} CO2 + {:4.3f} H2O + '
+                          '{:4.3f} N2 + {:4.3f} SO2'.format(
+                              molecule_name,
+                              -nu['O2'],
+                              nu['CO2'],
+                              nu['H2O'],
+                              nu['N2'],
+                              nu['SO2']))
+        part_oxidation = ('{} + {:4.3f} O2 -> '
+                          '{:4.3f} CO + {:4.3f} H2O + {:4.3f} N2'
+                          ' + {:4.3f} SO2'.format(
+                              molecule_name,
+                              -nu_partial['O2'],
+                              nu_partial['CO'],
+                              nu_partial['H2O'],
+                              nu_partial['N2'],
+                              nu_partial['SO2']))
 
         hf_vol = np.sum(n * hf[el]
                         for el, n in nu.items()) + lhv_vol * mw
@@ -216,8 +247,13 @@ class DetailedModel(pkp.reactor.Reactor):
             'formula': molecule,
             'molecular_weight': mw,
             'hf': hf_vol,
-            'y0': y0
+            'y0': y0,
+            'reaction0': full_oxidation,
+            'reaction1': part_oxidation
         }
+        if include_nu:
+            postulate_dict['nu'] = nu
+            postulate_dict['nu_partial'] = nu_partial
 
         return postulate_dict
 

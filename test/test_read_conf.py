@@ -5,6 +5,7 @@ from builtins import dict
 import os
 import pytest
 import pkp
+import pkp.runner
 import cantera
 
 try:
@@ -27,19 +28,19 @@ with open(yml_file, 'r') as f:
 
 @pytest.fixture
 def conf():
-    return pkp.ReadConfiguration(settings)
+    return pkp.runner.ReadConfiguration(settings)
 
 
 @pytest.fixture
 def runner():
-    return pkp.PKPRunner(yml_file)
+    return pkp.runner.PKPRunner(yml_file)
 
 
 def test_postulate(runner):
     # print(runner.ultimate_analysis)
     y0 = 0.6
     mw = 200
-    post_dict = runner.postulate_species(y0, mw=mw)
+    post_dict = runner.postulate_species(y0, mw=mw, include_nu=True)
     print(post_dict)
     mw = sum(post_dict['formula'][el] * mwi for el,
              mwi in M_elements.items())
@@ -49,8 +50,14 @@ def test_postulate(runner):
     formula = post_dict['formula']
     nu_CO2 = formula['C']
     nu_H2O = formula['H'] * 0.5
-    nu_O2 = nu_CO2 + nu_H2O * 0.5 - formula['O'] * 0.5
     nu_SO2 = formula['S']
+    nu_N2 = formula['N'] * 0.5
+    nu_O2 = nu_CO2 + nu_H2O * 0.5 - formula['O'] * 0.5 + nu_SO2
+    assert nu_CO2 == post_dict['nu']['CO2']
+    assert nu_H2O == post_dict['nu']['H2O']
+    assert np.isclose(nu_O2, -post_dict['nu']['O2'])
+    assert nu_SO2 == post_dict['nu']['SO2']
+    assert nu_N2 == post_dict['nu']['N2']
 
     lhv_vol = (runner.lhv_daf - (1 - y0) * runner.lhv_char) / y0
 
@@ -59,8 +66,9 @@ def test_postulate(runner):
     hf_vol = post_dict['hf']
 
     lhv_calc = (hf_vol + nu_O2 * hf['O2'] -
-                nu_CO2 * hf['CO2'] + nu_SO2 * hf['SO2'] -
-                nu_H2O * hf['H2O']) / mw
+                nu_CO2 * hf['CO2'] - nu_SO2 * hf['SO2'] -
+                nu_H2O * hf['H2O'] -
+                nu_N2 * hf['N2']) / mw
     assert np.isclose(lhv_calc, lhv_vol)
 
 

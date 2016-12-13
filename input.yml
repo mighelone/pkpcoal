@@ -28,7 +28,7 @@ CPD:
   solver:
   fit:
     fit0:
-      active: false
+      active: true
       model: SFOR
       species: volatiles
       parameters_min: [1e4, 50e6, 0.4]
@@ -37,7 +37,7 @@ CPD:
       method: evolve
       # from here parameters of evolve
       npop: 40
-      ngen: 100
+      ngen: 1
       mu: 40
       lambda_: 40
       cxpb: 0.0
@@ -73,7 +73,7 @@ CPD:
       cxpb: 0.8
       mutpb: 0.2
     fit3:
-      active: true
+      active: false
       model: DAEM
       species: volatiles
       parameters_min: [1e3, 10e6, 5e6, 0.65]
