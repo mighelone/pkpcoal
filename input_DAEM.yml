@@ -2,6 +2,7 @@
 # use empty for None
 #Proximate Analysis (in percent, as received):
 Coal:
+  name: Pittsburg
   proximate_analysis:
     FC: 45.1
     VM: 50.6
