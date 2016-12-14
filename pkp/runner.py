@@ -23,7 +23,7 @@ except:
               'Note that it might give problems with'
               ' exponetial decoding')
         import yaml
-import json
+
 import os
 import numpy as np
 import pandas as pd
@@ -206,7 +206,6 @@ class PKPRunner(ReadConfiguration):
                 else:
                     self.__log.warning('No results for %s', model)
 
-        # write fitreport.json
         yml_fit = os.path.join(
             results_dir, '{name}-fitreport.yml'.format(name=self.name))
         self.__log.debug('Export fit report to %s', yml_fit)

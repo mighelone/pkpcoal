@@ -115,7 +115,7 @@ x    '''
             t_calc, y = self._run_t(solver, t)
 
             if not np.allclose(t, t_calc):
-                #raise RuntimeError('t and t_calc not the same!')
+                # raise RuntimeError('t and t_calc not the same!')
                 pass
         return t, np.squeeze(y)
 
@@ -316,27 +316,45 @@ class SFOR(EmpiricalModel):
 
 
 @logged
+class SFORT(SFOR):
+    '''
+    SFOR model with temperature threasold
+    '''
+    parameters_names = ['A', 'E', 'y0', 'T']
+    parameters_default = [1e5, 50e6, 0.6, 500]
+    parameters_units = ['1/s', 'J/kmol', '-', 'K']
+    mask = np.array([True, False, False, False])
+
+    def rate(self, t, y):
+        T = self.T(t)
+        if T >= self.parameters['T']:
+            return super(SFORT, self).rate(t, y)
+        else:
+            return 0
+
+
+@logged
 class C2SM(EmpiricalModel):
     '''
-    The Competing 2 Step Model (C2SM) is characterized by a
+    The Competing 2 Step Model(C2SM) is characterized by a
     two competing reaction with different activation energies and
     stoichiometry. The two reactions produce char and volatiles with
-    stoichiometric fraction :math:`y_1` and :math:`y_2`:
+    stoichiometric fraction: math: `y_1` and: math: `y_2`:
 
     .. math::
 
-        Raw -> y_1 volatiles + (1-y_1) char
+        Raw -> y_1 volatiles + (1 - y_1) char
 
-        Raw -> y_2 volatiles + (1-y_2) char
+        Raw -> y_2 volatiles + (1 - y_2) char
 
-    with rates :math:`R_1` and :math:`R_2`.
+    with rates: math: `R_1` and: math: `R_2`.
     The reaction rates are given by:
 
     .. math::
 
-        r_1 = dy_1/dt = y_1 k_1 s
+        r_1 = dy_1 / dt = y_1 k_1 s
 
-        r_2 = dy_2/dt = y_1 k_2 s
+        r_2 = dy_2 / dt = y_1 k_2 s
 
     and the overall release of volatiles is:
 
@@ -344,17 +362,17 @@ class C2SM(EmpiricalModel):
 
         r = (y_1 k_1 + y_2 k_2) s
 
-    where :math:`s` is the remaining fraction of raw coal.
+    where: math: `s` is the remaining fraction of raw coal.
     The consumption of raw is given by:
 
     .. math::
 
-        ds/dt = -(k_1 + k_2) s
+        ds / dt = -(k_1 + k_2) s
 
     The reaction constants are given by:
 
     .. math::
-        k_1(T) = A_1 e^{-E_1/Rg T}
+        k_1(T) = A_1 e ^ {-E_1 / Rg T}
 
         k_2(T) = A_2 e^{-E_2/Rg T}
 
