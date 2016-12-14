@@ -30,6 +30,7 @@ import pandas as pd
 
 # detailed models
 from pkp.cpd import CPD
+# from cpd import CPD
 from pkp.polimi import Polimi
 from pkp.biopolimi import BioPolimi
 
@@ -47,20 +48,20 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 try:
-    plt.style.use('mystyle')
+    plt.style.use(['mystyle', 'mystyle-vega'])
 except:
     plt.style.use('ggplot')
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-col_red = "#C54E6D"
-col_green = "#009380"
+col_right = "#C54E6D"
+col_left = "#009380"
 
 models = ['CPD', 'Polimi', 'BioPolimi']
 
 # yaml serialization of numpy objects
-
-
 # representer data for yaml
+
+
 def ndarray_representer(dumper, data):
     # return dumper.represent_data(data.tolist())
     return dumper.represent_data([data.min(), data.max()])
@@ -77,10 +78,19 @@ def npint_representer(dumper, data):
 def tuple_representer(dumper, data):
     return dumper.represent_data(list(data))
 
-
 yaml.add_representer(np.ndarray, ndarray_representer)
 yaml.add_representer(np.float64, npfloat64_representer)
 yaml.add_representer(tuple, tuple_representer)
+
+
+def runs_iterator(op_cond):
+    '''Iterate over operating_conditions'''
+    def get_run(i):
+        return 'run{}'.format(i)
+    i = 0
+    while get_run(i) in op_cond:
+        i += 1
+        yield i - 1
 
 
 @logged
@@ -232,6 +242,8 @@ class PKPRunner(ReadConfiguration):
             Dictionary results of the detailed model
         results_dir: str, unicode
             Name of the output directory for storing results
+        runs: int
+            Number of results to include in the calibration
 
         Returns
         -------
@@ -249,6 +261,8 @@ class PKPRunner(ReadConfiguration):
                     run: {'t': np.array(res.index),
                           'y': np.array(res[fit['species']])}
                     for run, res in results.items()}
+                self.__log.debug('runs calibration %s',
+                                 list(target_conditions.keys()))
                 fit_dict = {'model': model,
                             'fit': fitname,
                             'species': fit['species']}
@@ -290,8 +304,10 @@ class PKPRunner(ReadConfiguration):
             self.__log.debug('Run %s',
                              self.operating_conditions['runs'])
             vol_composition = pd.DataFrame()
-            for n in range(
-                    self.operating_conditions['runs']):
+            # new implementation run all the cases
+            # for n in range(
+            #        self.operating_conditions['runs']):
+            for n in runs_iterator(self.operating_conditions):
                 res = self._run_single(model, model_settings, n,
                                        results_dir)
                 results['run{}'.format(n)] = res
@@ -307,7 +323,7 @@ class PKPRunner(ReadConfiguration):
             # add index to vol_composition dataframe
             vol_composition.index = [
                 'run{}'.format(n)
-                for n in range(self.operating_conditions['runs'])]
+                for n in runs_iterator(self.operating_conditions)]
             final_yield = '{name}-{model}-finalyields.csv'.format(
                 name=self.name, model=model)
             self.__log.debug('Export vol_composition to csv %s',
@@ -394,14 +410,14 @@ class PKPRunner(ReadConfiguration):
         # ax.spines['left'].set_color(col_right)
         ax1 = ax.twinx()
         ax1.plot(res.index, res['T'],
-                 label='T', color=col_green)
+                 label='T', color=col_right)
         ax1.spines['top'].set_visible(False)
         ax1.spines['left'].set_visible(False)
         ax1.spines['bottom'].set_position(('outward', 20))
         ax1.spines['right'].set_position(('outward', 20))
-        ax1.spines['right'].set_color(col_green)
-        ax1.tick_params(axis='y', colors=col_green)
-        ax1.set_ylabel('Other scale', color=col_green)
+        ax1.spines['right'].set_color(col_right)
+        ax1.tick_params(axis='y', colors=col_right)
+        ax1.set_ylabel('Other scale', color=col_right)
         ax1.set_ylabel('Temperature, K')
         ax1.set_ylim(
             [res['T'].min() - 100, res['T'].max() + 100])
@@ -412,8 +428,8 @@ class PKPRunner(ReadConfiguration):
         fig.savefig(
             os.path.join(results_dir, fig_name), bbox_inches='tight')
 
-    def fit_single(self, results, target_conditions, fit_dict, fit_settings,
-                   results_dir, n_p=1):
+    def fit_single(self, results, target_conditions, fit_dict,
+                   fit_settings, results_dir, n_p=1):
         '''
         Perform calibration fitting of the empirical model using
         results of the detailed model.
@@ -447,12 +463,19 @@ class PKPRunner(ReadConfiguration):
             name=self.name, fit=fitname, det=det_model,
             emp=emp_model)
 
+        runs = self._operating_conditions['runs']
+        target_conditions_used = {key: value for key, value
+                                  in target_conditions.items()
+                                  if int(key[3:]) < runs}
+        self.__log.debug('Runs used for calibration %s',
+                         list(target_conditions_used.keys()))
+
         if 'evolve' in method:
             self.__log.info('%s Evolution to fit %s with %s',
                             fitname, det_model, emp_model)
             # Define properties of evolutionary model
             best, ga = self.evolve(n_p, fit_results, fit_settings,
-                                   target_conditions)
+                                   target_conditions_used)
             # plot results (evolution history)
             self._plot_evolution(det_model, filename, fitname, ga,
                                  results_dir)
@@ -467,7 +490,7 @@ class PKPRunner(ReadConfiguration):
             self.__log.info('%s Minimization to fit %s with %s',
                             fitname, det_model, emp_model)
             best, fmin = self.minimization(fit_results, fit_settings,
-                                           target_conditions,
+                                           target_conditions_used,
                                            parameters_init)
             emp_model_class = fmin.empirical_model
 
@@ -559,13 +582,16 @@ class PKPRunner(ReadConfiguration):
                 l = '{} {}'.format(run, m.__class__.__name__)
             else:
                 l = None
-            ax.plot(t_fit, y_fit, color=colors[
-                i], linestyle='dashed', label=l)
+            ax.plot(t_fit, y_fit, color=colors[i],
+                    linestyle='dashed', label=l)
         ax.set_ylabel('Yield {}'.format(fit_dict['species']))
         ax.set_xlabel('t, s')
         # add an extra legend
         # http://matplotlib.org/users/legend_guide.html#multiple-legend
-        ax.add_artist(plt.legend(ax.lines[::2], runs,
+        nruns = self.operating_conditions['runs']
+        runs_label = [r + '(fitted)' if i < nruns else r
+                      for i, r in enumerate(runs)]
+        ax.add_artist(plt.legend(ax.lines[::2], runs_label,
                                  loc='upper right', frameon=False))
         ax.legend(ax.lines[:2],
                   [det_model, m.__class__.__name__],
