@@ -16,12 +16,6 @@ yml_file_default = 'input.yml'
 
 if __name__ == '__main__':
     logger = logging.getLogger('')
-    # logger.setLevel(logging.INFO)
-    #ch = logging.StreamHandler()
-    # formatter = logging.Formatter(
-    #    '%(name)s:%(levelname)s:%(message)s')
-    # ch.setFormatter(formatter)
-    # logger.addHandler(ch)
 
     parser = argparse.ArgumentParser(
         description="PKP Runner"
@@ -38,7 +32,8 @@ if __name__ == '__main__':
                         help="Print debug messages")
     parser.add_argument('--run-only', action="store_true",
                         dest="run_only",
-                        help="Run only detailed models without calibration")
+                        help=("Run only detailed models"
+                              " without calibration"))
 
     argument = parser.parse_args()
     if argument.debug:
