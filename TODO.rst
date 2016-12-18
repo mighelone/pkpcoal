@@ -6,10 +6,11 @@ New features
 
 This is the list of the new features to implement:
 
-* Gradient based optimization with scipy
+* Gradient based optimization with scipy **DONE**
 * Check if the multiobjective optimization can work better than single
   OF
-* Implement CPD
+* Implement CPD **IN PROGRESS**
+  * Check unit conversions in datafile
 
 Small additions/modifications
 -----------------------------
@@ -17,8 +18,8 @@ Small additions/modifications
 This is a list of small fix:
 
 * Use cxBlend as `mate` operator in Evolution (see `kursawefct.py`
-  example given in **DEAP** `examples/ga`)
-* Use decorator to limit range of parameters (see always `kursawefct`)
+  example given in **DEAP** `examples/ga`) **DONE**
+* Use decorator to limit range of parameters (see always `kursawefct`) **DONE**
 * Select `Evolution` or `EvolutionBinary` class for fitting
 * Move :python:`fit_results['best'] =
   dict(zip(ga.empirical_model.parameters_names, best))` from
