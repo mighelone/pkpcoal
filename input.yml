@@ -22,7 +22,7 @@ Coal:
 CPD:
   active : true
   dt: 1e-5
-  increment: 5
+  increment: 50
   dt_max: 1e-5
   nmr_parameters: 
   solver:

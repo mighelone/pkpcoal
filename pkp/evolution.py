@@ -332,7 +332,7 @@ class Evolution(object):
         best = self.unscale_parameters_final(best)
         self.__log.debug('best non-scaled %s', best)
         return {p: v for p, v in
-                zip(self.empirical_model.parameters_names, best)}
+                zip(self.empirical_model.parameters_names(), best)}
 
     def _set_stats(self):
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -378,7 +378,7 @@ class Evolution(object):
         # and attr_float
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_float,
-                         n=len(self.empirical_model.parameters_names))
+                         n=len(self.empirical_model.parameters_names()))
         # define the fit function
         toolbox.register('evaluate', error, self)
         # define the population as list of individuals
@@ -415,7 +415,7 @@ class Evolution(object):
                          len(parameters_min))
         self.__log.debug('par min %s len %s', parameters_max,
                          len(parameters_max))
-        len_model = len(self.empirical_model.parameters_names)
+        len_model = len(self.empirical_model.parameters_names())
         self.__log.debug('len_model %s is %s',
                          self.empirical_model,
                          len_model)
@@ -466,7 +466,7 @@ class EvolutionBinary(Evolution):
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_int,
                          n=self.n_decoding * len(
-                             self.empirical_model.parameters_names))
+                             self.empirical_model.parameters_names()))
         # toolbox.register('evaluate', error_binary, self)
         toolbox.register('evaluate', error_binary, self)
         toolbox.register("population", tools.initRepeat, list,

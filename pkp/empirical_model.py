@@ -22,10 +22,28 @@ from autologging import logged
 
 from scipy.integrate import ode
 from scipy.misc import factorial
+import collections
 
 Rgas = 8314.33
 sqrt2 = np.sqrt(2)
 sqrtpi = np.sqrt(np.pi)
+
+
+# http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
+def namedtuple_with_defaults(typename, field_names, default_values=(),
+                             units=None):
+    T = collections.namedtuple(typename, field_names)
+    T.__new__.__defaults__ = (None,) * len(T._fields)
+    if isinstance(default_values, collections.Mapping):
+        prototype = T(**default_values)
+    else:
+        prototype = T(*default_values)
+    T.__new__.__defaults__ = tuple(prototype)
+    if units is None:
+        T.units = ('-') * len(T._fields)
+    else:
+        T.units = units
+    return T
 
 
 @logged
@@ -34,11 +52,13 @@ class EmpiricalModel(pkp.reactor.Reactor):
     Parent class for model.
     `y` is generally considered as the volatile yield released in the
     gas phase.
-x    '''
-    parameters_names = ['foo', 'bar']
-    parameters_default = [1, 1]
-    parameters_units = ['-', '-']
-    mask = np.array([True] * len(parameters_default))
+    '''
+    _Parameters = namedtuple_with_defaults(typename='EmpiricalModel',
+                                           field_names=('foo', 'bar'),
+                                           default_values=(1, 1))
+    _len_parameters = len(_Parameters._fields)
+    _mask = np.array([True] * _len_parameters)
+
     # initial volatile yield
     y0 = 0
 
@@ -46,41 +66,42 @@ x    '''
         self.parameters = parameters
 
     @property
+    def mask(self):
+        return self._mask
+
+    @classmethod
+    def parameters_names(cls):
+        return cls._Parameters._fields
+
+    @classmethod
+    def parameters_default(cls):
+        return cls._Parameters.__new__.__defaults__
+
+    @classmethod
+    def parameters_units(cls):
+        return cls._Parameters.units
+
+    @property
     def len_parameters(self):
         '''
         Lenght of the parameters array/dictionary.
         '''
-        return len(self.parameters_names)
+        return len(self._Parameters._fields)
 
     def _get_parameters(self):
         return self._parameters
 
     def _set_parameters(self, values):
         if values is None:
-            par_values = self.parameters_default
-        elif isinstance(values, (list, np.ndarray)):
-            par_values = values
+            self._parameters = self._Parameters()
         elif isinstance(values, dict):
-            if all(key in self.parameters_names for key in values):
-                self._parameters = values
-                return
-            else:
-                raise ValueError(
-                    'Parameters should contains the'
-                    ' following keys {}'.format(self.parameters_names))
-
-        if len(par_values) > self.len_parameters:
-            raise ValueError(
-                'Length of parameters list/array should be {}'.format(
-                    self.len_parameters))
+            self._parameters = self._Parameters(**values)
         else:
-            self._parameters = {k: v for k, v in
-                                zip(self.parameters_names,
-                                    par_values)}
+            self._parameters = self._Parameters(*values)
 
     parameters = property(_get_parameters, _set_parameters,
                           doc=(
-                              'Parameters of the empirical models.'
+                              '_Parameters of the empirical models.'
                               ' They can be given as list/numpy array '
                               'or dictionary'))
 
@@ -88,7 +109,7 @@ x    '''
         '''
         Solve model using a ODE solver
 
-        Parameters
+        _Parameters
         ----------
         t: np.array, list, default=None
             Time array. This is used to take results from the ODE
@@ -124,7 +145,7 @@ x    '''
         Run the ODE solver stopping at then internal time step of the
         solver.
 
-        Parameters
+        _Parameters
         ----------
         solver: scipy.integrate.ode
 
@@ -151,7 +172,7 @@ x    '''
         '''
         Run the ODE solver stopping at the prescribed time steps.
 
-        Parameters
+        _Parameters
         ----------
         solver: scipy.integrate.ode
 
@@ -179,14 +200,14 @@ x    '''
                            parameters_max):
         '''
         Unscale normalized parameters.
-        Parameters defined in `mask` are unscaled using the log values
+        _Parameters defined in `mask` are unscaled using the log values
         of the minimum and maximum parameters.
 
         .. math::
             p =  P (log_{10}(p_{max}) - log_{10}(p_{min})) +
             log_{10}(p_{min})
 
-        Parameters
+        _Parameters
         ----------
         norm_parameters: iterable
             List of normalized between 0 and 1 parameters
@@ -221,14 +242,14 @@ x    '''
                          parameters_max):
         '''
         Scale/normalize parameters using minimum and maximum values.
-        Parameters defined in `mask` are scaled using log values for
+        _Parameters defined in `mask` are scaled using log values for
         the parameters.
 
         .. math::
             P = (log_{10}(p) - log_{10}(p_{min}))/
             (log_{10}(p_{max}) - log_{10}(p_{min}))
 
-        Parameters
+        _Parameters
         ----------
         parameters: iterable
             List of normalized between 0 and 1 parameters
@@ -288,16 +309,18 @@ class SFOR(EmpiricalModel):
     (heating rate and maximum temperature) of the devolatilization
     process.
     '''
-    parameters_names = ['A', 'E', 'y0']
-    parameters_default = [1e5, 50e6, 0.6]
-    parameters_units = ['1/s', 'J/kmol', '-']
-    mask = np.array([True, False, False])
+    _Parameters = namedtuple_with_defaults(
+        typename='SFOR',
+        field_names=('A', 'E', 'y0'),
+        default_values=(1e5, 50e6, 0.6),
+        units=('1/s', 'J/kmol', '-'))
+    _mask = np.array([True, False, False])
 
     def rate(self, t, y):
         '''
         Reaction rate used in the ODE solver.
 
-        Parameters
+        _Parameters
         ----------
         t: float
             Time
@@ -309,10 +332,10 @@ class SFOR(EmpiricalModel):
         rate: float
             :math:`dy/dt`
         '''
-        k = (self.parameters['A'] /
-             np.exp(self.parameters['E'] / Rgas / self.T(t)))
+        k = (self.parameters.A /
+             np.exp(self.parameters.E / Rgas / self.T(t)))
         # return k * (1 - y - self.parameters['y0'])
-        return k * (self.parameters['y0'] - y)
+        return k * (self.parameters.y0 - y)
 
 
 @logged
@@ -320,14 +343,17 @@ class SFORT(SFOR):
     '''
     SFOR model with temperature threasold
     '''
-    parameters_names = ['A', 'E', 'y0', 'T']
-    parameters_default = [1e5, 50e6, 0.6, 500]
-    parameters_units = ['1/s', 'J/kmol', '-', 'K']
-    mask = np.array([True, False, False, False])
+    _Parameters = namedtuple_with_defaults(
+        typename='SFORT',
+        field_names=('A', 'E', 'y0', 'T'),
+        default_values=(1e5, 50e6, 0.6, 500),
+        units=('1/s', 'J/kmol', '-', 'K'))
+
+    _mask = np.array([True, False, False, False])
 
     def rate(self, t, y):
         T = self.T(t)
-        if T >= self.parameters['T']:
+        if T >= self.parameters.T:
             return super(SFORT, self).rate(t, y)
         else:
             return 0
@@ -380,10 +406,12 @@ class C2SM(EmpiricalModel):
     energy with low release of volatiles, while the second by high
     activation energy and volatiles.
     '''
-    parameters_names = ['A1', 'E1', 'y1', 'A2', 'E2', 'y2']
-    parameters_default = [49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58]
-    parameters_units = ['1/s', 'J/kmol', '-', '1/s', 'J/kmol', '-']
-    mask = np.array([True, False, False, True, False, False])
+    _Parameters = namedtuple_with_defaults(
+        typename='C2SM',
+        field_names=('A1', 'E1', 'y1', 'A2', 'E2', 'y2'),
+        default_values=(49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58),
+        units=('1/s', 'J/kmol', '-', '1/s', 'J/kmol', '-'))
+    _mask = np.array([True, False, False, True, False, False])
 
     y0 = [0, 1]  # volatile yield, raw solid
 
@@ -393,7 +421,7 @@ class C2SM(EmpiricalModel):
         `y` is an array containing the overall volatile yield :math:`y`,
         and :math:`s` the raw coal fraction.
 
-        Parameters
+        _Parameters
         ----------
         t: float
             Time
@@ -426,11 +454,12 @@ class DAEM(EmpiricalModel):
     Activation Energy Model (DAEM), using Hermit-Gaussian quadrature
     [Donskoi2000]_
     '''
-
-    parameters_names = ['A0', 'E0', 'sigma', 'y0']
-    parameters_default = [1e6, 100e6, 12e6, 0.6]
-    parameters_units = ['1/s', 'J/kmol', 'J/kmol', '-']
-    mask = np.array([True, False, False, False])
+    _Parameters = namedtuple_with_defaults(
+        typename='DAEM',
+        field_names=('A0', 'E0', 'sigma', 'y0'),
+        default_values=(1e6, 100e6, 12e6, 0.6),
+        units=('1/s', 'J/kmol', 'J/kmol', '-'))
+    _mask = np.array([True, False, False, False])
     y0 = [0, 0, 0, 0, 0]
 
     n_quad = 4
@@ -500,11 +529,12 @@ class Biagini(EmpiricalModel):
     volatiles in ASTM.
 
     '''
-
-    parameters_names = ['A', 'E', 'k']
-    parameters_default = [1e6, 100e6, 0.5]
-    parameters_units = ['1/s', 'J/kmol', '-']
-    mask = np.array([True, False, False])
+    _Parameters = namedtuple_with_defaults(
+        typename='Biagini',
+        field_names=('A', 'E', 'k'),
+        default_values=(1e6, 100e6, 0.5),
+        units=('1/s', 'J/kmol', '-'))
+    _mask = np.array([True, False, False])
     y0 = 0
     Tst = 1223
 
