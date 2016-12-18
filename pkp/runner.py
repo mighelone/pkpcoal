@@ -503,7 +503,7 @@ class PKPRunner(ReadConfiguration):
                             fit_dict, fit_results, fitname, m,
                             results_dir, target_conditions)
         # calc postulate species
-        if 'y0' in m.parameters_names:
+        if 'y0' in m.parameters_names():
             y0 = best['y0']
         else:
             y0 = np.mean([fit_results[run]['y'][-1]
@@ -692,10 +692,10 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Best: %s', best)
 
         fit_results['evolve'] = {
-            'best': {p: (best[p],
-                         ga.empirical_model.parameters_units[i])
-                     for i, p in enumerate(
-                ga.empirical_model.parameters_names)
+            'best': {p: (best[p], unit)
+                     for p, unit in zip(
+                ga.empirical_model.parameters_names(),
+                ga.empirical_model.parameters_units())
             },
             'log': ga.log[-1]}
 
@@ -737,10 +737,10 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Best: %s', best)
 
         fit_results['fmin'] = {
-            'best': {p: (best[p],
-                         fmin.empirical_model.parameters_units[i])
-                     for i, p in enumerate(
-                fmin.empirical_model.parameters_names)},
+            'best': {p: (best[p], unit)
+                     for p, unit in zip(
+                fmin.empirical_model.parameters_names(),
+                fmin.empirical_model.parameters_units())},
             'report': dict(fmin.results)
         }
 
