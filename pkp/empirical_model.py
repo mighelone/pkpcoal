@@ -133,9 +133,10 @@ class EmpiricalModel(pkp.reactor.Reactor):
             ode_run = self._run_nostop
         else:
             ode_run = self._run_t
+            ode_args['nsteps'] = 2000
             args.append(t)
 
-        solver = ode(self.rate).set_integrator(backend, **ode_args)
+        solver.set_integrator(backend, **ode_args)
 
         t, y = ode_run(*args)
 
@@ -182,6 +183,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
         t, y: np.ndarray
             Time and yields arrays.
         '''
+        # self.__log.info('Solver backend %s', solver)
         y = []
         t_calc = []
         for ti in t:
