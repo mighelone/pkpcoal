@@ -117,27 +117,28 @@ class EmpiricalModel(pkp.reactor.Reactor):
             the solver
         '''
         backend = 'dopri5'
-        # backend = 'vode'
-        # vode_settings = {'first_step': 1e-6,
-        #                 'max_step': 1e-4}
+        solver = ode(self.rate)
         t0 = self.operating_conditions[0, 0]
-        solver = ode(self.rate).set_integrator(backend, nsteps=1,
-                                               first_step=1e-6,
-                                               max_step=1e-4,
-                                               verbosity=1)
-        # solver = ode(self.rate)
-        # solver.set_integrator(backend)
-
         solver.set_initial_value(self.y0, t0)
 
+        # define the arguments for running the ODE solver
+        args = [solver]
+        ode_args = {
+            'first_step': 1e-6,
+            'max_step': 1e-4,
+            'verbosity': 1
+        }
         if t is None:
-            t, y = self._run_nostop(solver)
+            ode_args['nsteps'] = 1
+            ode_run = self._run_nostop
         else:
-            t_calc, y = self._run_t(solver, t)
+            ode_run = self._run_t
+            args.append(t)
 
-            if not np.allclose(t, t_calc):
-                # raise RuntimeError('t and t_calc not the same!')
-                pass
+        solver = ode(self.rate).set_integrator(backend, **ode_args)
+
+        t, y = ode_run(*args)
+
         return t, np.squeeze(y)
 
     def _run_nostop(self, solver):
@@ -189,6 +190,10 @@ class EmpiricalModel(pkp.reactor.Reactor):
             y.append(solver.y)
             t_calc.append(solver.t)
             # print(solver.t)
+
+        # if not np.allclose(t, t_calc):
+        if not (t == t_calc).all():
+            raise RuntimeError('t and t_calc not the same!')
 
         return np.array(t_calc), np.array(y)
 
@@ -436,15 +441,15 @@ class C2SM(EmpiricalModel):
         RT = Rgas * self.T(t)
         k1, k2 = self._k(RT)
         dsdt = - (k1 + k2) * y[1]
-        dydt = (self.parameters['y1'] * k1 +
-                self.parameters['y2'] * k2) * y[1]
+        dydt = (self.parameters.y1 * k1 +
+                self.parameters.y2 * k2) * y[1]
         return np.array([dydt, dsdt])
 
     def _k(self, RT):
-        return (self.parameters['A1'] / np.exp(
-            self.parameters['E1'] / RT),
-            self.parameters['A2'] / np.exp(
-            self.parameters['E2'] / RT))
+        return (self.parameters.A1 / np.exp(
+            self.parameters.E1 / RT),
+            self.parameters.A2 / np.exp(
+            self.parameters.E2 / RT))
 
 
 @logged
@@ -478,23 +483,23 @@ class DAEM(EmpiricalModel):
         # TODO add with parameters
 
         # self.__log.debug('Em %s', Em)
-        dIdt = (self.parameters['A0'] *
+        dIdt = (self.parameters.A0 *
                 np.exp(-self._Em / Rgas / self.T(t)))
         # self.__log.debug('dkdt %s', dkdt)
         coeff1 = self.Wm * self.mt / sqrtpi
-        coeff2 = np.exp(-pow((self._Em - self.parameters['E0']) /
-                             self.parameters['sigma'], 2) / 2)
+        coeff2 = np.exp(-pow((self._Em - self.parameters.E0) /
+                             self.parameters.sigma, 2) / 2)
         coeff3 = np.exp(-y[1:]) * dIdt
         # self.__log.debug('coeff: %s %s %s', coeff1, coeff2, coeff3)
         # dydt = (self.parameters['y0'] - y[0]) * \
         #    np.sum(coeff1 + coeff2 + coeff3)
-        dydt = self.parameters['y0'] * np.sum(coeff1 * coeff2 * coeff3)
+        dydt = self.parameters.y0 * np.sum(coeff1 * coeff2 * coeff3)
         # self.__log.debug('dydt %s', dydt)
         return np.append(dydt, dIdt)
 
     def _calc_Em(self):
-        return (self.parameters['E0'] +
-                self.x * sqrt2 * self.parameters['sigma'] * self.mt)
+        return (self.parameters.E0 +
+                self.x * sqrt2 * self.parameters.sigma * self.mt)
 
     def _set_parameters(self, parameters):
         super(DAEM, self)._set_parameters(parameters)
@@ -540,7 +545,7 @@ class Biagini(EmpiricalModel):
 
     def rate(self, t, y):
         T = self.T(t)
-        y0 = 1 - np.exp(-self.parameters['k'] * T / self.Tst)
-        k = (self.parameters['A'] /
-             np.exp(self.parameters['E'] / Rgas / self.T(t)))
+        y0 = 1 - np.exp(-self.parameters.k * T / self.Tst)
+        k = (self.parameters.A /
+             np.exp(self.parameters.E / Rgas / self.T(t)))
         return k * (y0 - y)
