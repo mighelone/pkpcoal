@@ -737,10 +737,10 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Best: %s', best)
 
         fit_results['fmin'] = {
-            'best': {p: (best[p],
-                         fmin.empirical_model.parameters_units[i])
-                     for i, p in enumerate(
-                fmin.empirical_model.parameters_names())},
+            'best': {p: (best[p], unit)
+                     for p, unit in zip(
+                fmin.empirical_model.parameters_names(),
+                fmin.empirical_model.parameters_units())},
             'report': dict(fmin.results)
         }
 

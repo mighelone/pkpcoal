@@ -225,7 +225,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
         parameters_max = np.array(parameters_max)
         norm_parameters = np.array(norm_parameters)
 
-        mask = np.array(cls.mask)
+        mask = np.array(cls._mask)
         parameters_min[mask] = np.log10(parameters_min[mask])
         parameters_max[mask] = np.log10(parameters_max[mask])
 
@@ -265,12 +265,12 @@ class EmpiricalModel(pkp.reactor.Reactor):
         '''
         if isinstance(parameters, dict):
             parameters = [parameters[p] for p in
-                          cls.parameters_names]
+                          cls.parameters_names()]
         parameters = np.array(parameters)
         parameters_min = np.array(parameters_min)
         parameters_max = np.array(parameters_max)
 
-        mask = np.array(cls.mask)
+        mask = np.array(cls._mask)
         parameters_min[mask] = np.log10(parameters_min[mask])
         parameters_max[mask] = np.log10(parameters_max[mask])
         parameters[mask] = np.log10(parameters[mask])
