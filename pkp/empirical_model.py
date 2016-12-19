@@ -133,7 +133,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
             ode_run = self._run_nostop
         else:
             ode_run = self._run_t
-            ode_args['nsteps'] = 2000
+            ode_args['nsteps'] = 5000
             args.append(t)
 
         solver.set_integrator(backend, **ode_args)

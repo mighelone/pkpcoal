@@ -14,7 +14,10 @@ from deap import base
 from deap import creator
 from deap import tools
 
+from autologging import logged
 
+
+@logged
 def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
                    stats=None, halloffame=None, verbose=__debug__):
     """This is the :math:`(\mu + \lambda)` evolutionary algorithm.
@@ -78,7 +81,8 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
     record = stats.compile(population) if stats is not None else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
-        print(logbook.stream)
+        # print(logbook.stream)
+        eaMuPlusLambda._log.info(logbook.stream)
 
     # Begin the generational process
     for gen in range(1, ngen + 1):
@@ -103,9 +107,12 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
             record = stats.compile(population) if stats is not None else {}
             logbook.record(gen=gen, nevals=len(invalid_ind), **record)
             if verbose:
-                print(logbook.stream)
+                # print(logbook.stream)
+                eaMuPlusLambda._log.info(logbook.stream)
         except KeyboardInterrupt:
-            print('Interrupt evolution from the user... continue PKP!')
+            # print('Interrupt evolution from the user... continue PKP!')
+            eaMuPlusLambda._log.warning(
+                'Interrupt evolution from the user... continue PKP!')
             break
 
     return population, logbook
