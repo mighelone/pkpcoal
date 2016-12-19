@@ -17,28 +17,32 @@ def sfor():
 
 
 def test_init_model(sfor):
-    assert sfor.parameters_default == [1e5, 50e6, 0.6]
+    assert sfor.parameters_default() == (1e5, 50e6, 0.6)
     assert sfor.len_parameters == 3
-    assert sfor.parameters_names == ['A', 'E', 'y0']
+    assert sfor.parameters_names() == ('A', 'E', 'y0')
 
 
 def test_set_parameters(sfor):
     # set parameters as list
     par_list = [1e6, 100e6, 0.5]
     sfor.parameters = par_list
-    for key, value in sfor.parameters.items():
-        assert value == par_list[sfor.parameters_names.index(key)]
+    for key, value in zip(sfor.parameters_names(), par_list):
+        assert getattr(sfor.parameters, key) == value
 
     # set as np.ndarray
     sfor.parameters = np.array(par_list)
-    for key, value in sfor.parameters.items():
-        assert value == par_list[sfor.parameters_names.index(key)]
+    # for key, value in sfor.parameters.items():
+    #    assert value == par_list[sfor.parameters_names.index(key)]
+    for key, value in zip(sfor.parameters_names(), par_list):
+        assert getattr(sfor.parameters, key) == value
 
     # set as dict
     sfor.parameters = {k: v for k, v in zip(
-        sfor.parameters_names, par_list)}
-    for key, value in sfor.parameters.items():
-        assert value == par_list[sfor.parameters_names.index(key)]
+        sfor.parameters_names(), par_list)}
+    # for key, value in sfor.parameters.items():
+    #    assert value == par_list[sfor.parameters_names.index(key)]
+    for key, value in zip(sfor.parameters_names(), par_list):
+        assert getattr(sfor.parameters, key) == value
 
 
 def test_operating_conditions(sfor):
@@ -56,7 +60,7 @@ def test_rate(sfor):
 
     t = 0
     T = sfor.T(t)
-    rate = par['A'] * np.exp(-par['E'] / 8314.33 / T) * par['y0']
+    rate = par.A * np.exp(-par.E / 8314.33 / T) * par.y0
 
     assert np.isclose(sfor.rate(t=t, y=0), rate)
 
@@ -75,12 +79,17 @@ def test_run(sfor):
     fig, ax = plt.subplots()
     ax.plot(t, y, label='Run Free t')
 
-    t_max = sfor.operating_conditions[-1, 0]
-    t0 = np.linspace(0, t_max, 100)
+    # t_max = sfor.operating_conditions[-1, 0]
+    sl = slice(0, -1, 10)
+    t0 = t[sl]
 
-    _, y0 = sfor.run(t=t0)
+    t00, y0 = sfor.run(t=t0)
 
-    ax.plot(t0, y0, marker='x', linewidth=0, label='Run fix t')
+    assert all(t00 == t0)
+    assert np.allclose(y0, y[sl])
+
+    ax.plot(t0, y0, marker='o', markersize=10, linewidth=0,
+            label='Run fix t')
     ax.set_xlabel('t, s')
     ax.set_ylabel('Daf solid mass fraction')
     ax.legend(loc='best')
