@@ -142,7 +142,7 @@ def error(cls_, individual):
     '''
     err = 0
     parameters = cls_.unscale_parameters(individual)
-    # error._log.debug('Parameters:%s', parameters)
+    error._log.debug('Parameters:%s', parameters)
     for run, results in cls_.ref_results.items():
         m = cls_.empirical_model(parameters)
         m.operating_conditions = results['operating_conditions']
@@ -152,7 +152,7 @@ def error(cls_, individual):
             y = y[:, 0]
         err += cls_.error_run(y, results['y'])
         # del m
-    # error._log.debug('Parameters:%s - err:%s', parameters, err)
+    error._log.debug('Parameters:%s - err:%s', parameters, err)
     return err,
 
 

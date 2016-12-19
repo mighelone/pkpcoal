@@ -62,6 +62,8 @@ class EmpiricalModel(pkp.reactor.Reactor):
     # initial volatile yield
     y0 = 0
 
+    jacob = None
+
     def __init__(self, parameters=None):
         self.parameters = parameters
 
@@ -116,24 +118,33 @@ class EmpiricalModel(pkp.reactor.Reactor):
             solver. If None times are automatically taken from
             the solver
         '''
-        backend = 'dopri5'
-        solver = ode(self.rate)
+        # backend = 'dopri5'
+        if self.jacob:
+            solver = ode(self.rate, jac=self.jacob)
+        else:
+            solver = ode(self.rate, jac=self.jacob)
+
         t0 = self.operating_conditions[0, 0]
         solver.set_initial_value(self.y0, t0)
 
         # define the arguments for running the ODE solver
         args = [solver]
         ode_args = {
-            'first_step': 1e-6,
-            'max_step': 1e-4,
-            'verbosity': 1
+            'first_step': 1e-5,
+            'max_step': 1e-2,
+            # 'verbosity': 1
         }
         if t is None:
+            backend = 'dopri5'
             ode_args['nsteps'] = 1
+            ode_args['verbosity'] = 2
             ode_run = self._run_nostop
         else:
+            # backend = 'vode'
+            backend = 'dopri5'
             ode_run = self._run_t
-            ode_args['nsteps'] = 5000
+            ode_args['nsteps'] = 100000
+            # ode_args['min_step'] = 1e-13
             args.append(t)
 
         solver.set_integrator(backend, **ode_args)
@@ -157,14 +168,15 @@ class EmpiricalModel(pkp.reactor.Reactor):
             Time and yields arrays.
         '''
         solver._integrator.iwork[2] = -1
-        warnings.filterwarnings("ignore", category=UserWarning)
+        # warnings.filterwarnings("ignore", category=UserWarning)
         time_end = self.operating_conditions[-1, 0]
 
         t = []
         y = []
         while solver.t < time_end:
             solver.integrate(time_end, step=True)
-            # print(solver.t, solver.y)
+            # print(solver.t, solver.y, self.rate(
+            #    solver.t, solver.y), self.parameters.y0 - solver.y)
             t.append(solver.t)
             y.append(solver.y)
 
@@ -194,7 +206,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
             # print(solver.t)
 
         # if not np.allclose(t, t_calc):
-        if not (t == t_calc).all():
+        if not np.allclose(t, t_calc):
             raise RuntimeError('t and t_calc not the same!')
 
         return np.array(t_calc), np.array(y)
@@ -339,10 +351,17 @@ class SFOR(EmpiricalModel):
         rate: float
             :math:`dy/dt`
         '''
-        k = (self.parameters.A /
-             np.exp(self.parameters.E / Rgas / self.T(t)))
+        k = self._calc_k(t)
         # return k * (1 - y - self.parameters['y0'])
-        return k * (self.parameters.y0 - y)
+        dy = self.parameters.y0 - y
+        return k * dy if dy > 1e-6 else 0
+
+    def _calc_k(self, t):
+        return (self.parameters.A /
+                np.exp(self.parameters.E / Rgas / self.T(t)))
+
+    def jacob(self, t, y):
+        return -self._calc_k(t)
 
 
 @logged
@@ -440,14 +459,25 @@ class C2SM(EmpiricalModel):
         rate: float
             :math:`dy/dt`
         '''
-        RT = Rgas * self.T(t)
-        k1, k2 = self._k(RT)
-        dsdt = - (k1 + k2) * y[1]
-        dydt = (self.parameters.y1 * k1 +
-                self.parameters.y2 * k2) * y[1]
+
+        k1, k2 = self._k(t)
+        if y[1] > 1e-6:
+            dsdt = - (k1 + k2) * y[1]
+            dydt = (self.parameters.y1 * k1 +
+                    self.parameters.y2 * k2) * y[1]
+        else:
+            dsdt = 0
+            dydt = 0
         return np.array([dydt, dsdt])
 
-    def _k(self, RT):
+    def jacob(self, t, y):
+        k1, k2 = self._k(t)
+        return np.array([[0, (self.parameters.y1 * k1 +
+                              self.parameters.y2 * k2)],
+                         [0, -(k1 + k2)]])
+
+    def _k(self, t):
+        RT = Rgas * self.T(t)
         return (self.parameters.A1 / np.exp(
             self.parameters.E1 / RT),
             self.parameters.A2 / np.exp(
