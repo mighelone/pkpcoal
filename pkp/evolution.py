@@ -290,6 +290,11 @@ class Evolution(object):
             Number of precess to generate the new population.
         verbose: bool, default=True
             Print extra message
+
+        Returns
+        -------
+        best: dict
+            Best parameters dict
         '''
         toolbox = self.toolbox
 
@@ -389,7 +394,7 @@ class Evolution(object):
                          toolbox.individual)
 
         # define the mate algorithm
-        # cxTwoPoint is good for integer/binary chromosomes
+        # cxTwoPoint is good for intege.parr/binary chromosomes
         # toolbox.register('mate', tools.cxTwoPoint)
         # blend crossover extending of 0.1 respect to the parameters
         # range. This can produce values out of the range 0-1.
