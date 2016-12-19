@@ -34,13 +34,13 @@ For a local installation:
 
 .. code:: bash
 
-    # python setup.py install --user
+    # pip install . --user
 
 or
 
 ::
 
-    # python setup.py install
+    # pip install .
 
 for a global installation.
 
@@ -153,4 +153,3 @@ Input files are written using **YAML** syntax:
         run2        : [ [ 0, 500], [ 0.01, 1300], [ 0.02, 1300] ]
         run3        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
         run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]
-
