@@ -71,6 +71,12 @@ class EmpiricalModel(pkp.reactor.Reactor):
     def mask(self):
         return self._mask
 
+    def __str__(self):
+        return self.parameters.__str__()
+
+    def __repr__(self):
+        return self.__str__()
+
     @classmethod
     def parameters_names(cls):
         return cls._Parameters._fields
@@ -168,7 +174,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
             Time and yields arrays.
         '''
         solver._integrator.iwork[2] = -1
-        # warnings.filterwarnings("ignore", category=UserWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         time_end = self.operating_conditions[-1, 0]
 
         t = []

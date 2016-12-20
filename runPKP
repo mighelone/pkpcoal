@@ -6,6 +6,7 @@ from builtins import dict
 
 import logging
 import argparse
+import shutil
 
 import pkp.runner
 # import coloredlogs
@@ -56,4 +57,4 @@ if __name__ == '__main__':
     results = runner.run(results_dir=argument.results_dir,
                          n_p=argument.np, run_only=run_only)
 
-    # plot results
+    shutil.copy(yml_file, argument.results_dir)
