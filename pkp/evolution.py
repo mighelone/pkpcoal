@@ -115,6 +115,7 @@ def check_bounds(min, max):
     return decorator
 
 
+@logged
 def error(cls_, individual):
     '''
     Calculate the error for the given individual.
@@ -141,6 +142,7 @@ def error(cls_, individual):
     '''
     err = 0
     parameters = cls_.unscale_parameters(individual)
+    error._log.debug('Parameters:%s', parameters)
     for run, results in cls_.ref_results.items():
         m = cls_.empirical_model(parameters)
         m.operating_conditions = results['operating_conditions']
@@ -150,6 +152,7 @@ def error(cls_, individual):
             y = y[:, 0]
         err += cls_.error_run(y, results['y'])
         # del m
+    error._log.debug('Parameters:%s - err:%s', parameters, err)
     return err,
 
 
@@ -287,6 +290,11 @@ class Evolution(object):
             Number of precess to generate the new population.
         verbose: bool, default=True
             Print extra message
+
+        Returns
+        -------
+        best: dict
+            Best parameters dict
         '''
         toolbox = self.toolbox
 
@@ -332,7 +340,7 @@ class Evolution(object):
         best = self.unscale_parameters_final(best)
         self.__log.debug('best non-scaled %s', best)
         return {p: v for p, v in
-                zip(self.empirical_model.parameters_names, best)}
+                zip(self.empirical_model.parameters_names(), best)}
 
     def _set_stats(self):
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -378,7 +386,7 @@ class Evolution(object):
         # and attr_float
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_float,
-                         n=len(self.empirical_model.parameters_names))
+                         n=len(self.empirical_model.parameters_names()))
         # define the fit function
         toolbox.register('evaluate', error, self)
         # define the population as list of individuals
@@ -386,7 +394,7 @@ class Evolution(object):
                          toolbox.individual)
 
         # define the mate algorithm
-        # cxTwoPoint is good for integer/binary chromosomes
+        # cxTwoPoint is good for intege.parr/binary chromosomes
         # toolbox.register('mate', tools.cxTwoPoint)
         # blend crossover extending of 0.1 respect to the parameters
         # range. This can produce values out of the range 0-1.
@@ -415,7 +423,7 @@ class Evolution(object):
                          len(parameters_min))
         self.__log.debug('par min %s len %s', parameters_max,
                          len(parameters_max))
-        len_model = len(self.empirical_model.parameters_names)
+        len_model = len(self.empirical_model.parameters_names())
         self.__log.debug('len_model %s is %s',
                          self.empirical_model,
                          len_model)
@@ -466,7 +474,7 @@ class EvolutionBinary(Evolution):
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_int,
                          n=self.n_decoding * len(
-                             self.empirical_model.parameters_names))
+                             self.empirical_model.parameters_names()))
         # toolbox.register('evaluate', error_binary, self)
         toolbox.register('evaluate', error_binary, self)
         toolbox.register("population", tools.initRepeat, list,

@@ -367,20 +367,11 @@ class CPD(pkp.detailed_model.DetailedModel):
         return self._read_results()
 
     def _read_results(self):
-        def read_file(n):
-            fname = os.path.join(self.path, self.basename +
-                                 '_{}.out'.format(n))
-            with open(fname, 'r') as f:
-                header = f.readline()[2:].split()
-            # self.__log.debug('file=%s header %s', fname, header)
-            return pd.read_csv(
-                fname,
-                index_col=0,
-                delimiter=r'\s+',
-                names=header,
-                comment='c')
-        df = pd.concat([read_file(n)
-                        for n in range(1, 5)], axis=1).iloc[:-1]
+        try:
+            df = pd.concat([self._read_cpd_results(n)
+                            for n in range(1, 5)], axis=1)
+        except:
+            raise IOError('Problems reading CPD results')
         df.index.rename('t', inplace=True)
         df.index = df.index * 1e-3
         self.__log.debug('CPD index max %s', df.index.max())
@@ -408,3 +399,20 @@ class CPD(pkp.detailed_model.DetailedModel):
         # rename column
         # r_res = r_res.rename(columns={' time(ms)': 'time(ms)'})
         # r.index.rename('Time(ms)', inplace=True)
+
+    def _read_cpd_results(self, n):
+        fname = os.path.join(self.path, self.basename +
+                             '_{}.out'.format(n))
+        with open(fname, 'r') as f:
+            header = f.readline()[2:].split()
+        # self.__log.debug('file=%s header %s', fname, header)
+        df = pd.read_csv(
+            fname,
+            index_col=0,
+            delimiter=r'\s+',
+            names=header,
+            comment='c')
+        if n == 1:
+            return df.iloc[:-1]
+        else:
+            return df

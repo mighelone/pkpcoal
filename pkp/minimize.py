@@ -53,4 +53,4 @@ class Minimization(pkp.evolution.Evolution):
         self.results = res
         self.__log.debug('Best optimized parameters: %s', best)
         return {p: v for p, v in
-                zip(self.empirical_model.parameters_names, best)}
+                zip(self.empirical_model.parameters_names(), best)}

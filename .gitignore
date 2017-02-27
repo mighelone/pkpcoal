@@ -158,3 +158,5 @@ Results/
 /test/input_test
 /test/test.csv
 /test/test.inp
+.cache
+.ipynb_checkpoints/
