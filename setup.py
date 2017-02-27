@@ -62,7 +62,7 @@ setup(
         'ruamel.yaml',
         'pandas',
         'deap',
-        'cantera (>=2.2.0)',
+        #'cantera (>=2.2.0)',
         'tabulate',
         'future',
         'pathos',
