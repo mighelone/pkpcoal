@@ -12,7 +12,7 @@ try:
 except:
     plt.style.use('ggplot')
 
-par_default = pkp.empirical_model.C2SM.parameters_default
+par_default = pkp.empirical_model.C2SM.parameters_default()
 op_conditions = [[0, 300], [0.1, 1300]]
 
 
@@ -22,8 +22,8 @@ def c2sm():
 
 
 def test_init(c2sm):
-    for i, p in enumerate(c2sm.parameters_names):
-        assert c2sm.parameters[p] == par_default[i]
+    for i, p in enumerate(c2sm.parameters_names()):
+        assert getattr(c2sm.parameters, p) == par_default[i]
 
 
 def test_operating_conditions(c2sm):
@@ -36,7 +36,7 @@ def test_rate(c2sm):
     RT = Rgas * c2sm.T(0)
     k1 = par_default[0] * np.exp(-par_default[1] / RT)
     k2 = par_default[3] * np.exp(-par_default[4] / RT)
-    k1m, k2m = c2sm._k(RT)
+    k1m, k2m = c2sm._k(0)
     assert np.isclose(k1, k1m)
     assert np.isclose(k2, k2m)
     dsdt = -(k1 + k2)

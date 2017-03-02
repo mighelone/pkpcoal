@@ -34,6 +34,7 @@ import numpy as np
 from autologging import logged
 
 import pkp.polimi
+import pkp.bins
 import pkp.detailed_model
 from pkp.polimi import TriangleCoal
 # from pkp.detailed_model import M_elements
