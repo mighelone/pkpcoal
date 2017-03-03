@@ -36,12 +36,12 @@ CPD:
       parameters_init: [1e5, 100e6, 0.5] 
       method: evolve
       # from here parameters of evolve
-      npop: 40
-      ngen: 1
-      mu: 40
-      lambda_: 40
-      cxpb: 0.0
-      mutpb: 0.5
+      npop: 30
+      ngen: 10
+      mu: 30
+      lambda_: 30
+      cxpb: 0.6
+      mutpb: 0.4
     fit1:
       active: false
       model: C2SM

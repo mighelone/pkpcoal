@@ -21,7 +21,7 @@ except:
     except:
         print('Loading standard yaml module ...\n'
               'Note that it might give problems with'
-              ' exponetial decoding')
+              ' exponential decoding')
         import yaml
 
 import os
@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 
 # detailed models
+# they must be loaded here if you want to use them!
 from pkp.cpd import CPD
 # from cpd import CPD
 from pkp.polimi import Polimi
@@ -38,19 +39,16 @@ from pkp.biopolimi import BioPolimi
 import pkp.evolution
 import pkp.minimize
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-try:
-    plt.style.use(['mystyle', 'mystyle-vega'])
-except:
-    plt.style.use('ggplot')
+plt.style.use('bmh')
+# try:
+#     plt.style.use(['mystyle', 'mystyle-vega'])
+# except:
+#     plt.style.use('ggplot')
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 col_right = "#C54E6D"
@@ -77,6 +75,7 @@ def npint_representer(dumper, data):
 
 def tuple_representer(dumper, data):
     return dumper.represent_data(list(data))
+
 
 yaml.add_representer(np.ndarray, ndarray_representer)
 yaml.add_representer(np.float64, npfloat64_representer)
@@ -109,7 +108,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
         '''
         if isinstance(yml, string_types):
             with open(yml, 'r') as f:
-                yml_input = yaml.load(f)
+                yml_input = yaml.safe_load(f)
         elif isinstance(yml, dict):
             yml_input = yml
         else:
@@ -220,7 +219,7 @@ class PKPRunner(ReadConfiguration):
             results_dir, '{name}-fitreport.yml'.format(name=self.name))
         self.__log.debug('Export fit report to %s', yml_fit)
         with open(yml_fit, 'w') as f:
-            #yaml.dump(clean_dict(fit_results), f, indent=4)
+            # yaml.dump(clean_dict(fit_results), f, indent=4)
             yaml.dump(fit_results, f, indent=4)
 
         return run_results, fit_results
