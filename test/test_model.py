@@ -89,7 +89,7 @@ def test_run(sfor):
     t00, y0 = sfor.run(t=t0)
 
     assert all(t00 == t0)
-    assert np.allclose(y0, y[sl])
+    assert np.allclose(y0, y[sl], rtol=1e-4)
 
     ax.plot(t0, y0, marker='o', markersize=10, linewidth=0,
             label='Run fix t')
