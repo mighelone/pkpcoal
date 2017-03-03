@@ -270,6 +270,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
             pressure=pressure,
             name=name)
         self.mechanism = None
+        self.skip = 1
         self.backend = None
         self._define_triangle()
 
@@ -288,8 +289,9 @@ class Polimi(pkp.detailed_model.DetailedModel):
         --------
         :meth:`backend`
         :meth:`mechanism`
+        :meth:`skip`
         '''
-        for key in ('mechanism', 'backend'):
+        for key in ('mechanism', 'backend', 'skip'):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
@@ -382,7 +384,8 @@ class Polimi(pkp.detailed_model.DetailedModel):
         mechanism.Y = self.composition
         m0 = mechanism.Y
 
-        solver = ode(dmidt).set_integrator(backend, nsteps=1)
+        solver = ode(dmidt).set_integrator(backend,
+                                           nsteps=1)
         solver.set_initial_value(m0, t0)
         solver._integrator.iwork[2] = -1
         t = [t0]
@@ -399,7 +402,9 @@ class Polimi(pkp.detailed_model.DetailedModel):
             y.append(solver.y)
             r.append(dmidt(solver.t, solver.y))
 
-        t = np.array(t)
+        self.__log.info('Set skip=%s', self.skip)
+        t = np.array(t)[::self.skip]
+        y = np.array(y)[::self.skip]
         data = pd.DataFrame(data=y,
                             columns=mechanism.species_names,
                             index=t)

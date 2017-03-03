@@ -1,0 +1,259 @@
+# PKP input file
+# use empty for None
+# Proximate Analysis (in percent, as received):
+Coal:
+    name:
+        Straw
+    proximate_analysis:
+        FC:
+            15.6
+        VM:
+            79.5
+        Moist:
+            7.7
+        Ash:
+            4.91
+    ultimate_analysis:
+        C:
+            47.3
+        H:
+            5.68
+        N:
+            0.54
+        O:
+            41.6
+        S:
+            0
+    # Higher Heating Value, as received, in MJ/kg:
+    HHV:
+        0.0
+    # Tar Molecule weight, MTar:
+    rho_dry:
+        1310  # kg/m3
+
+CPD:
+    active:
+        false
+    dt:
+        1e-5
+    increment:
+        20
+    dt_max:
+        1e-4
+    nmr_parameters:
+    solver:
+    fit:
+        fit0:
+            model:
+                SFOR
+            species:
+                volatiles
+            parameters_min:
+                [1e6, 20e6, 0.4]
+            parameters_max:
+                [1e12, 200e6, 0.8]
+            parameters_init:
+                [1e5, 100e6, 0.5]  # not required by evolve
+            method:
+                evolve + min
+            # from here parameters of evolve
+            npop:
+                60
+            ngen:
+                100
+            mu:
+                60
+            lambda_:
+                40
+            cxpb:
+                0.6
+            mutpb:
+                0.4
+        fit1:
+            model:
+                DAEM
+            species:
+                volatiles
+            parameters_min:
+                [1e6, 20e6, 1e6, 0.7]
+            parameters_max:
+                [1e12, 200e6, 15e6, 0.8]
+            parameters_init:
+                [1e7, 100e6, 5e6, 0.5]  # not required by evolve
+            method:
+                evolve + min
+            # from here parameters of evolve
+            npop:
+                60
+            ngen:
+                100
+            mu:
+                60
+            lambda_:
+                40
+            cxpb:
+                0.6
+            mutpb:
+                0.4
+
+
+Polimi:
+    active:
+        false
+    backend:
+        dopri5
+    mechanism:
+    fit:
+        fit0:
+            model:
+                SFOR
+            species:
+                volatiles
+            parameters_min:
+                [1e4, 20e6, 0.75]
+            parameters_max:
+                [1e9, 200e6, 0.85]
+            parameters_init:
+                [1e5, 100e6, 0.5]  # not required by evolve
+            method:
+                evolve
+            # from here parameters of evolve
+            npop:
+                60
+            ngen:
+                100
+            mu:
+                60
+            lambda_:
+                40
+            cxpb:
+                0.6
+            mutpb:
+                0.4
+        fit1:
+            model:
+                DAEM
+            species:
+                volatiles
+            parameters_min:
+                [1e4, 20e6, 1e6, 0.75]
+            parameters_max:
+                [1e9, 200e6, 15e6, 0.85]
+            parameters_init:
+                [1e5, 100e6, 5e6, 0.5]  # not required by evolve
+            method:
+                evolve
+            # from here parameters of evolve
+            npop:
+                60
+            ngen:
+                100
+            mu:
+                60
+            lambda_:
+                40
+            cxpb:
+                0.6
+            mutpb:
+                0.4
+
+#    fit0:
+#     model: SFOR
+#      species: volatiles
+#      parameters_min: [1e5, 50e6, 0.6]
+#      parameters_max: [1e8, 200e6, 0.7]
+#      parameters_init: [1e5, 100e6, 0.65] # not required by evolve
+#      method: evolve
+#      # from here parameters of evolve
+#      npop: 60
+#      ngen: 40
+#      mu: 60
+#      lambda_: 40
+#      cxpb: 0.6
+#      mutpb: 0.2
+
+BioPolimi:
+    active:
+        true
+    backend:
+        dopri5
+    # report results every skip iterations
+    skip: 10
+    mechanism:
+    fit:
+        fit0:
+            active:
+                false
+            model:
+                SFOR
+            species:
+                volatiles
+            parameters_min:
+                [1e4, 20e6, 0.8]
+            parameters_max:
+                [1e9, 200e6, 0.85]
+            parameters_init:
+                [1e5, 100e6, 0.5]  # not required by evolve
+            method:
+                evolve + min
+            # from here parameters of evolve
+            npop:
+                30
+            ngen:
+                10
+            mu:
+                30
+            lambda_:
+                20
+            cxpb:
+                0.6
+            mutpb:
+                0.4
+            skip: 20
+        fit1:
+            active:
+                true
+            model:
+                DAEM
+            species:
+                volatiles
+            parameters_min:
+                [1e4, 20e6, 5e6, 0.8]
+            parameters_max:
+                [1e15, 200e6, 30e6, 0.85]
+            parameters_init:
+                [1e5, 100e6, 5e6, 0.5]  # not required by evolve
+            method:
+                evolve
+            # from here parameters of evolve
+            npop:
+                30
+            ngen:
+                5
+            mu:
+                30
+            lambda_:
+                20
+            cxpb:
+                0.8
+            mutpb:
+                0.2
+            skip:
+              5
+
+
+operating_conditions:
+    pressure:
+        1.0  # atmosphere
+    runs:
+        2
+    run0:
+        [[0, 300], [0.14, 1400], [0.3, 1400]]
+    run1:
+        [[0, 300], [0.32, 1200], [0.7, 1200]]
+    run2:
+        [[0, 500], [0.01, 1300], [0.02, 1300]]
+    run3:
+        [[0, 500], [0.1, 1400], [0.5, 2000]]
+    run4:
+        [[0, 500], [0.1, 1400], [0.5, 2000]]

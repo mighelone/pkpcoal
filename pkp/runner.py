@@ -654,6 +654,7 @@ class PKPRunner(ReadConfiguration):
         lambda_ = fit_settings['lambda_']
         cxpb = fit_settings['cxpb']
         mutpb = fit_settings['mutpb']
+        skip = fit_settings.get('skip', 1)
 
         parameters_min = fit_settings['parameters_min']
         parameters_max = fit_settings['parameters_max']
@@ -666,8 +667,9 @@ class PKPRunner(ReadConfiguration):
             pkp.evolution.Evolution
 
         # Init Evolution
+        self.__log.debug('Set skip=%s', skip)
         ga = Evolution(npop=npop, ngen=ngen, cxpb=cxpb, mutpb=mutpb,
-                       mu=mu, lambda_=lambda_)
+                       mu=mu, lambda_=lambda_, skip=skip)
         self.__log.debug('Init GA %s', ga)
         ga.empirical_model = getattr(pkp.empirical_model, model)
         self.__log.debug('Set GA model %s', ga.empirical_model)

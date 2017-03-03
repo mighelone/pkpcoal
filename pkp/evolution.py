@@ -179,7 +179,7 @@ class Evolution(object):
     '''
 
     def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2, mu=None,
-                 lambda_=None):
+                 lambda_=None, skip=1):
         '''
         Parameters
         ----------
@@ -195,6 +195,8 @@ class Evolution(object):
             The number of individuals to select for the next generation.
         lambda_: float
             The number of children to produce at each generation.
+        skip: int 
+            Skip rows in the results
         '''
 
         # GA parameters
@@ -221,6 +223,8 @@ class Evolution(object):
         self._parameters_min = None
         self._parameters_max = None
 
+        self._skip = skip
+
     def set_target(self, t, y, operating_conditions, every=1):
         '''
         Set the target conditions.
@@ -242,12 +246,12 @@ class Evolution(object):
         if not len(t) == len(y):
             raise ValueError('Length of t and y should be the same')
         self.ref_results['run{}'.format(self.n_targets)] = {
-            't': np.array(t)[::every],
-            'y': np.array(y)[::every],
+            't': np.array(t)[::self._skip],
+            'y': np.array(y)[::self._skip],
             'operating_conditions': operating_conditions
         }
         self._ntargets += 1
-        self.__log.debug('Set target run(%s)', self._ntargets)
+        # self.__log.debug('Set target run(%s)', self._ntargets)
 
     @property
     def n_targets(self):
