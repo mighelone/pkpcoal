@@ -5,8 +5,11 @@ from builtins import dict
 import pytest
 import pkp.empirical_model
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
-plt.style.use(['mystyle'])
 
 operating_conditions = [[0, 500], [0.1, 1000], [0.2, 1500]]
 

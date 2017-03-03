@@ -1,15 +1,13 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+import matplotlib
+matplotlib.use('Agg')
+
 import pkp.polimi
 import matplotlib.pyplot as plt
 import itertools
 import pytest
-
-try:
-    plt.style.use(['mystyle'])
-except:
-    plt.style.use(['ggplot'])
 
 ua0 = {'C': 1,
        'H': 0,

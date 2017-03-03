@@ -1,16 +1,16 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
+# Force matplotlib to not use any Xwindows backend.
+import matplotlib
+matplotlib.use('Agg')
+
 import pytest
 import pkp.empirical_model
 from pkp.empirical_model import Rgas
 import numpy as np
 
 import matplotlib.pyplot as plt
-try:
-    plt.style.use('mystyle')
-except:
-    plt.style.use('ggplot')
 
 par_default = pkp.empirical_model.C2SM.parameters_default()
 op_conditions = [[0, 300], [0.1, 1300]]
