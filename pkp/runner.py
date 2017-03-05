@@ -13,6 +13,7 @@ from builtins import dict
 from six import string_types
 
 from autologging import logged
+import logging
 try:
     import ruamel.yaml as yaml
 except:
@@ -32,8 +33,14 @@ import pandas as pd
 # they must be loaded here if you want to use them!
 from pkp.cpd import CPD
 # from cpd import CPD
-from pkp.polimi import Polimi
-from pkp.biopolimi import BioPolimi
+try:
+    from pkp.polimi import Polimi
+    from pkp.biopolimi import BioPolimi
+    models = ['CPD', 'Polimi', 'BioPolimi']
+except ModuleNotFoundError:
+    logging.warning(
+        'Cantera not available. Polimi and BioPolimi models cannot be used!')
+    models = ['CPD']
 
 # optimization
 import pkp.evolution
@@ -54,7 +61,6 @@ colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 col_right = "#C54E6D"
 col_left = "#009380"
 
-models = ['CPD', 'Polimi', 'BioPolimi']
 
 # yaml serialization of numpy objects
 # representer data for yaml

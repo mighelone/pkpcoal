@@ -38,7 +38,10 @@ import pkp.bins
 import pkp.detailed_model
 from pkp.polimi import TriangleCoal
 # from pkp.detailed_model import M_elements
-import cantera
+try:
+    import cantera
+except ModuleNotFoundError:
+    raise ModuleNotFoundError('BioPolimi model needs Cantera to be used!')
 import os
 
 

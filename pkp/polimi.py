@@ -3,7 +3,10 @@ from __future__ import print_function, unicode_literals
 from builtins import dict
 
 import pkp.detailed_model
-import cantera
+try:
+    import cantera
+except ModuleNotFoundError:
+    raise ModuleNotFoundError('Polimi model needs Cantera to be used!')
 import numpy as np
 import tabulate
 import itertools
@@ -402,7 +405,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
             y.append(solver.y)
             r.append(dmidt(solver.t, solver.y))
 
-        self.__log.info('Set skip=%s', self.skip)
+        self.__log.debug('Set skip=%s', self.skip)
         t = np.array(t)[::self.skip]
         y = np.array(y)[::self.skip]
         data = pd.DataFrame(data=y,
