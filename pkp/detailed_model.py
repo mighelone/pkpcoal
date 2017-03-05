@@ -7,6 +7,8 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from six import string_types
 from builtins import dict
+
+# remove cantera if not necessary
 import cantera
 
 import os
@@ -257,6 +259,16 @@ class DetailedModel(pkp.reactor.Reactor):
 
         return postulate_dict
 
+    @staticmethod
+    def el_fraction(gas, sp, el):
+        '''Mass fraction of element el in species sp'''
+        if sp == 'char':
+            return 1.0 if el == 'C' else 0.0
+        else:
+            return (gas.species(sp).composition.get(el, 0) *
+                    gas.atomic_weight(el) /
+                    gas.molecular_weights[gas.species_index(sp)])
+
     def empirical_composition(self, y0, tar, CO):
         '''
         Set the empirical composition of volatiles using the method by
@@ -282,14 +294,6 @@ class DetailedModel(pkp.reactor.Reactor):
         --------
         :meth:`postulate_species`
         '''
-        def el_fraction(sp, el):
-            '''Mass fraction of element el in species sp'''
-            if sp == 'char':
-                return 1.0 if el == 'C' else 0.0
-            else:
-                return (gas.species(sp).composition.get(el, 0) *
-                        gas.atomic_weight(el) /
-                        gas.molecular_weights[gas.species_index(sp)])
 
         def calc_remaining(comp):
             '''Remaining fraction of each elements'''
@@ -298,7 +302,7 @@ class DetailedModel(pkp.reactor.Reactor):
 
         def tot_el_fraction(comp, element):
             '''Calc the total element fraction of the given element'''
-            return np.sum([val * el_fraction(sp, element)
+            return np.sum([val * self.el_fraction(gas, sp, element)
                            for sp, val in comp.items()])
 
         sum_ua = (sum(self.ultimate_analysis.values()) -
@@ -320,11 +324,11 @@ class DetailedModel(pkp.reactor.Reactor):
         composition['N2'] = ultimate_analysis['N']
         # composition['CO'] = (CO * ultimate_analysis['O'] /
         #                     el_fraction('CO', 'O'))
-        O_in_CO = el_fraction('CO', 'O')
+        O_in_CO = self.el_fraction(gas, 'CO', 'O')
         if ultimate_analysis['O'] > CO * O_in_CO:
             composition['CO'] = CO
             composition['CO2'] = ((ultimate_analysis['O'] - CO * O_in_CO) /
-                                  el_fraction('CO2', 'O'))
+                                  self.el_fraction(gas, 'CO2', 'O'))
         else:
             composition['CO'] = ultimate_analysis['O'] / O_in_CO
             composition['CO2'] = 0
@@ -339,7 +343,7 @@ class DetailedModel(pkp.reactor.Reactor):
         self.__log.debug('Remaining element after CO/CO2/N2: %s',
                          remaining)
 
-        C_in_tar = el_fraction('C6H6', 'C')
+        C_in_tar = self.el_fraction(gas, 'C6H6', 'C')
         self.__log.debug('C in TAR %s', C_in_tar)
         if C_in_tar * tar > remaining['C']:
             composition['C6H6'] = remaining['C'] / C_in_tar
@@ -359,14 +363,14 @@ class DetailedModel(pkp.reactor.Reactor):
 
         if 0 <= c_to_h_molar <= 0.5:
             # use C2H4 and H2
-            composition['C2H4'] = remaining['C'] / el_fraction(
-                'C2H4', 'C')
+            composition['C2H4'] = (remaining['C'] /
+                                   self.el_fraction(gas, 'C2H4', 'C'))
             self.__log.debug('C2H4 %s', composition['C2H4'])
         elif 0.5 < c_to_h_molar < 1:
             # use C6H6
             composition['C6H6'] = (composition['C6H6'] +
                                    remaining['C'] /
-                                   el_fraction('C6H6', 'C'))
+                                   self.el_fraction(gas, 'C6H6', 'C'))
             self.__log.debug('Update C6H6 %s', composition['C6H6'])
 
         self.__log.debug('Remaining element after C: %s', remaining)
