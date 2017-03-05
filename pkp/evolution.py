@@ -225,7 +225,7 @@ class Evolution(object):
 
         self._skip = skip
 
-    def set_target(self, t, y, operating_conditions, every=1):
+    def set_target(self, t, y, operating_conditions):
         '''
         Set the target conditions.
         This operation has to be done as many times as necessary
