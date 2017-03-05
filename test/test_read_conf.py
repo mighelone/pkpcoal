@@ -90,7 +90,7 @@ def test_empirical(runner):
     gas = cantera.Solution(
         os.path.join(os.path.dirname(pkp.bins.__file__),
                      '52.xml'))
-    heat_vol = sum(val * runner.heat_of_reaction_species(sp, gas)
+    heat_vol = sum(val * runner.heat_of_reaction_species(sp)
                    for sp, val in comp.items())
 
     species = ['CH4', 'O2', 'CO2', 'H2O']
@@ -98,17 +98,16 @@ def test_empirical(runner):
     coeff = [1, 2, -1, -2]
     deltaH = np.dot(hf, coeff) / gas.molecular_weights[
         gas.species_index('CH4')]
-    assert np.isclose(deltaH, runner.heat_of_reaction_species('CH4',
-                                                              gas))
+    assert np.isclose(deltaH, runner.heat_of_reaction_species('CH4'))
     print('LHV CH4', deltaH / 1e6)
     # check the heat of volatiles
-    assert np.isclose(heat_vol, runner.heat_of_volatiles(comp, gas))
+    assert np.isclose(heat_vol, runner.heat_of_volatiles(comp))
 
     # check heat of pyrolysis
     heat_of_pyrolysis = ((heat_vol - runner.lhv_daf) /
                          (1 - comp['char']))
     assert np.isclose(heat_of_pyrolysis,
-                      runner.heat_of_pyrolysis(comp, gas))
+                      runner.heat_of_pyrolysis(comp))
 
     # check composition == element balance
     sum_ua = (sum(runner.ultimate_analysis.values()) -

@@ -8,14 +8,13 @@ from __future__ import print_function, unicode_literals
 from six import string_types
 from builtins import dict
 
-# remove cantera if not necessary
-import cantera
-
 import os
 import numpy as np
 import tabulate
 import pkp
 import pkp.reactor
+import pkp.bins
+import json
 from autologging import logged
 from distutils.dir_util import mkpath
 
@@ -24,8 +23,6 @@ pa_keys_daf = pa_keys[: 2]
 ua_keys = ['C', 'H', 'O', 'N', 'S']
 
 # calc M elements
-# M_elements = {'C': 12.0, 'H': 1, 'O': 16.0, 'N': 28, 'S': 32}
-# M_elements = dict(zip(gas.element_names, gas.atomic_weights))
 M_elements = {'C': 12.010999999999999,
               'H': 1.0079400000000001,
               'N': 14.006740000000001,
@@ -43,6 +40,15 @@ hf = {'CO2': -394427320.2748184,
       'SO2': -296840.0,
       'N2': -728930.9826824698,
       'char': -101.268}
+
+
+with open(os.path.join(os.path.dirname(pkp.bins.__file__),
+                       'el_fractions.json'), 'r') as f:
+    el_fractions = json.load(f)
+
+with open(os.path.join(os.path.dirname(pkp.bins.__file__),
+                       'species.json'), 'r') as f:
+    species = json.load(f)
 
 lhv_char = (hf['char'] + hf['O2'] - hf['CO2']) / M_elements['C']
 
@@ -67,7 +73,7 @@ class DetailedModel(pkp.reactor.Reactor):
     models
     '''
 
-    def __init__(self, proximate_analysis, ultimate_analysis,
+    def __init__(self, proximate_analysis=None, ultimate_analysis=None,
                  pressure=101325, hhv=None, name='Detailed model'):
         '''
         Parameters
@@ -84,6 +90,11 @@ class DetailedModel(pkp.reactor.Reactor):
             Reference name of the modelled coal
         '''
         super(DetailedModel, self).__init__()
+        if ultimate_analysis is None:
+            ultimate_analysis = {'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}
+        if proximate_analysis is None:
+            proximate_analysis = {'FC': 45.1,
+                                  'VM': 50.6, 'Ash': 4.3, 'Moist': 19.0}
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
         self.pressure = pressure
@@ -260,14 +271,9 @@ class DetailedModel(pkp.reactor.Reactor):
         return postulate_dict
 
     @staticmethod
-    def el_fraction(gas, sp, el):
+    def el_fraction(sp, el):
         '''Mass fraction of element el in species sp'''
-        if sp == 'char':
-            return 1.0 if el == 'C' else 0.0
-        else:
-            return (gas.species(sp).composition.get(el, 0) *
-                    gas.atomic_weight(el) /
-                    gas.molecular_weights[gas.species_index(sp)])
+        return el_fractions[sp][el]
 
     def empirical_composition(self, y0, tar, CO):
         '''
@@ -302,7 +308,7 @@ class DetailedModel(pkp.reactor.Reactor):
 
         def tot_el_fraction(comp, element):
             '''Calc the total element fraction of the given element'''
-            return np.sum([val * self.el_fraction(gas, sp, element)
+            return np.sum([val * self.el_fraction(sp, element)
                            for sp, val in comp.items()])
 
         sum_ua = (sum(self.ultimate_analysis.values()) -
@@ -313,9 +319,6 @@ class DetailedModel(pkp.reactor.Reactor):
             if el != 'S'}
         self.__log.debug('Update ultimate_analysis %s',
                          ultimate_analysis)
-        mech = os.path.join(os.path.dirname(pkp.bins.__file__),
-                            '52.xml')
-        gas = cantera.Solution(mech)
         composition = {}
         composition['char'] = 1 - y0
         # assume tar as C6H6
@@ -324,11 +327,11 @@ class DetailedModel(pkp.reactor.Reactor):
         composition['N2'] = ultimate_analysis['N']
         # composition['CO'] = (CO * ultimate_analysis['O'] /
         #                     el_fraction('CO', 'O'))
-        O_in_CO = self.el_fraction(gas, 'CO', 'O')
+        O_in_CO = self.el_fraction('CO', 'O')
         if ultimate_analysis['O'] > CO * O_in_CO:
             composition['CO'] = CO
             composition['CO2'] = ((ultimate_analysis['O'] - CO * O_in_CO) /
-                                  self.el_fraction(gas, 'CO2', 'O'))
+                                  self.el_fraction('CO2', 'O'))
         else:
             composition['CO'] = ultimate_analysis['O'] / O_in_CO
             composition['CO2'] = 0
@@ -343,7 +346,7 @@ class DetailedModel(pkp.reactor.Reactor):
         self.__log.debug('Remaining element after CO/CO2/N2: %s',
                          remaining)
 
-        C_in_tar = self.el_fraction(gas, 'C6H6', 'C')
+        C_in_tar = self.el_fraction('C6H6', 'C')
         self.__log.debug('C in TAR %s', C_in_tar)
         if C_in_tar * tar > remaining['C']:
             composition['C6H6'] = remaining['C'] / C_in_tar
@@ -364,13 +367,13 @@ class DetailedModel(pkp.reactor.Reactor):
         if 0 <= c_to_h_molar <= 0.5:
             # use C2H4 and H2
             composition['C2H4'] = (remaining['C'] /
-                                   self.el_fraction(gas, 'C2H4', 'C'))
+                                   self.el_fraction('C2H4', 'C'))
             self.__log.debug('C2H4 %s', composition['C2H4'])
         elif 0.5 < c_to_h_molar < 1:
             # use C6H6
             composition['C6H6'] = (composition['C6H6'] +
                                    remaining['C'] /
-                                   self.el_fraction(gas, 'C6H6', 'C'))
+                                   self.el_fraction('C6H6', 'C'))
             self.__log.debug('Update C6H6 %s', composition['C6H6'])
 
         self.__log.debug('Remaining element after C: %s', remaining)
@@ -383,40 +386,40 @@ class DetailedModel(pkp.reactor.Reactor):
 
         emp_dict = {'composition': composition,
                     'heat_pyro': self.heat_of_pyrolysis(
-                        composition, gas)}
+                        composition)}
         return emp_dict
 
-    def calc_element_fraction(self, element, species):
-        '''
-        Calculate element fraction of the given species.
+    # def calc_element_fraction(self, element, species):
+    #     '''
+    #     Calculate element fraction of the given species.
 
-        Parameters
-        ----------
-        element: str
-            Name of element
-        species: str
-            Name of species
+    #     Parameters
+    #     ----------
+    #     element: str
+    #         Name of element
+    #     species: str
+    #         Name of species
 
-        Returns
-        -------
-        el_fraction: float
-            fraction of element
-        '''
-        if species in ('Char', 'Solid'):
-            if element == 'C':
-                return 1.0
-            else:
-                return 0.0
-        elif species == 'Other':
-            return 0.0
-        else:
-            i = self.gas.element_index(element)
-            return (self.gas.atomic_weights[i] *
-                    self.gas.species(species).composition.get(element, 0) /
-                    self.gas.molecular_weights[
-                    self.gas.species_index(species)])
+    #     Returns
+    #     -------
+    #     el_fraction: float
+    #         fraction of element
+    #     '''
+    #     if species in ('Char', 'Solid'):
+    #         if element == 'C':
+    #             return 1.0
+    #         else:
+    #             return 0.0
+    #     elif species == 'Other':
+    #         return 0.0
+    #     else:
+    #         i = self.gas.element_index(element)
+    #         return (self.gas.atomic_weights[i] *
+    #                 self.gas.species(species).composition.get(element, 0) /
+    #                 self.gas.molecular_weights[
+    #                 self.gas.species_index(species)])
 
-    def heat_of_volatiles(self, composition, gas):
+    def heat_of_volatiles(self, composition):
         '''
         Calculate the total heat of the volatile yields including char
 
@@ -424,18 +427,16 @@ class DetailedModel(pkp.reactor.Reactor):
         ----------
         composition: dict
             Volatile composition dictionary
-        gas: cantera.Solution
-            Cantera gas object
 
         Returns
         -------
         hhv: float
             Heat of reaction of volatile gases mixture, MJ/kg
         '''
-        return sum(val * self.heat_of_reaction_species(sp, gas)
+        return sum(val * self.heat_of_reaction_species(sp)
                    for sp, val in composition.items())
 
-    def heat_of_pyrolysis(self, composition, gas):
+    def heat_of_pyrolysis(self, composition):
         '''
         Heat of pyrolysis. It is defined as the total heat released
         during pyrolysis per unit of volatiles.
@@ -453,11 +454,11 @@ class DetailedModel(pkp.reactor.Reactor):
         :meth:`heat_of_reaction_species`
 
         '''
-        heat_vol = self.heat_of_volatiles(composition, gas)
+        heat_vol = self.heat_of_volatiles(composition)
         dh_pyro = self.lhv_daf - heat_vol
         return -dh_pyro / (1 - composition['char'])
 
-    def heat_of_reaction_species(self, sp, gas):
+    def heat_of_reaction_species(self, sp):
         '''
         Calculate the heat of reaction :math:`\Delta H` for the species
         sp:
@@ -475,8 +476,6 @@ class DetailedModel(pkp.reactor.Reactor):
         ----------
         sp: str
             Species
-        gas: cantera.Solution
-            Cantera gas object
 
         Returns
         -------
@@ -485,26 +484,31 @@ class DetailedModel(pkp.reactor.Reactor):
         :meth:`heat_of_pyrolysis`
         :meth:`heat_of_reaction_species`
         '''
-        T_ref = 273
+        sp_coeff = species[sp]
         if sp in ('N2'):
             return 0.0
         elif sp == 'char':
             return self.lhv_char
-        spc = gas.species(sp)
-        hf = spc.thermo.h(T_ref)
+        hf = sp_coeff['hf']
         n_o2 = 0.5 * (
-            2 * spc.composition.get('C', 0) +
-            0.5 * spc.composition.get('H', 0) -
-            spc.composition.get('O', 0))
-        n_co2 = spc.composition.get('C', 0)
+            2 * sp_coeff.get('C', 0) +
+            0.5 * sp_coeff.get('H', 0) -
+            sp_coeff.get('O', 0))
+        n_co2 = sp_coeff.get('C', 0)
         # print 'n_co2', n_co2
-        n_h2o = spc.composition.get('H', 0) * 0.5
+        n_h2o = sp_coeff.get('H', 0) * 0.5
         # print 'n_h2o', n_h2o
-        mw = gas.molecular_weights[gas.species_index(sp)]
+        mw = sp_coeff['mw']
 
-        h_o2 = gas.species('O2').thermo.h(T_ref)
-        h_co2 = gas.species('CO2').thermo.h(T_ref)
-        h_h2o = gas.species('H2O').thermo.h(T_ref)
+        # h_o2 = gas.species('O2').thermo.h(T_ref)
+        # h_o2 = hf['O2']
+        h_o2 = species['O2']['hf']
+        # h_co2 = gas.species('CO2').thermo.h(T_ref)
+        # h_co2 = hf['CO2']
+        h_co2 = species['CO2']['hf']
+        # h_h2o = gas.species('H2O').thermo.h(T_ref)
+        # h_h2o = hf['H2O']
+        h_h2o = species['H2O']['hf']
 
         heat_molar = (hf + n_o2 * h_o2 - n_co2 *
                       h_co2 - n_h2o * h_h2o)
