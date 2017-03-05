@@ -342,7 +342,7 @@ class CPD(pkp.detailed_model.DetailedModel):
                              '_{}.out\n'.format(n)))
              for n in range(1, 5)]
 
-    def run(self):
+    def run(self, **kwargs):
         '''
         Run CPD code.
 
