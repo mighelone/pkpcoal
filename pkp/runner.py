@@ -260,7 +260,7 @@ class PKPRunner(ReadConfiguration):
         fit_results = {}
         for fitname, fit in model_settings.items():
             if fit.get('active', True):
-                self.__log.info(
+                self.__log.debug(
                     'Fit %s model with %s', model, fit['model'])
                 target_conditions = {
                     run: {'t': np.array(res.index),

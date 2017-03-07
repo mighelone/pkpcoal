@@ -10,17 +10,17 @@ from builtins import dict
 import logging
 import argparse
 import shutil
+import sys
 
 import pkp.runner
 # import coloredlogs
 # coloredlogs.install(level='DEBUG')
 
-yml_file_default = 'input.yml'
 
-
-if __name__ == '__main__':
-    logger = logging.getLogger('')
-
+def parse_args():
+    """
+    Define arguments of the script
+    """
     parser = argparse.ArgumentParser(
         description="PKP Runner"
     )
@@ -38,50 +38,62 @@ if __name__ == '__main__':
                         dest="run_only",
                         help=("Run only detailed models"
                               " without calibration"))
+    return parser.parse_args()
 
-    argument = parser.parse_args()
-    if argument.debug:
-        log_level = logging.DEBUG
-    else:
-        log_level = logging.INFO
 
-    run_only = argument.run_only
-
-    # define the logger for the main runPKP
+def create_main_logger():
+    """
+    Create the main logger for runPKP
+    """
     logger = logging.getLogger('runPKP')
-    logger.setLevel(log_level)
+    logger.setLevel(logging.WARNING)
+    logger.addHandler(logging.StreamHandler(stream=sys.stdout))
+    return logger
 
-    # fmt="%(levelname)s:%(name)s:%(funcName)s:%(message)s")
 
-    # define an handler for runPKP logger
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter(fmt="%(name)s:%(message)s"))
-    logger.addHandler(handler)
+def create_pkp_logger(argument):
+    """
+    Define the logger for the pkp module
+    """
+    # define a logger for pkp module
+    # define a stream handler for runPKP logger
+    formatter = logging.Formatter(
+        "%(levelname)s:%(name)s:%(funcName)s:%(message)s")
+    handler = logging.StreamHandler(stream=sys.stdout)
+    handler.setFormatter(logging.Formatter(
+        '%(name)s:%(funcName)s:%(message)s'))
+    handler.setLevel(logging.INFO)
 
-    # set loglevel to INFO in evolution
     log_pkp = logging.getLogger('pkp')
-    log_pkp.setLevel(log_level)
-    handler_info = logging.StreamHandler()
-    handler_info.setFormatter(logging.Formatter(
-        fmt="%(name)s:%(funcName)s:%(message)s"))
-    handler_info.setLevel(logging.DEBUG)
-    handler_debug = logging.StreamHandler()
-    handler_debug.setFormatter(logging.Formatter(
-        fmt="%(levelname)s:%(name)s:%(funcName)s:%(message)s"))
-    handler_debug.setLevel(logging.DEBUG)
-    log_pkp.addHandler(handler_info)
-    # log_pkp.addHandler(handler_debug)
+    log_pkp.setLevel(logging.DEBUG)
+    log_pkp.addHandler(handler)
+
+    if argument.debug:
+        file_handler = logging.FileHandler('runpkp.log', 'w')
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        log_pkp.addHandler(file_handler)
 
     # force evolution to INFO
     logging.getLogger('pkp.evolution').setLevel(logging.INFO)
 
-    # logging.setLevel(log_level)
-    yml_file = argument.yml_file
-    logger.info('Run PKP version %s', pkp.__version__)
+    return log_pkp
+
+
+if __name__ == '__main__':
+    argument = parse_args()
+    run_only = argument.run_only
+
+    # set loggers
+    logger = create_main_logger()
+    log_pkp = create_pkp_logger(argument)
+
+    # Execute Runner
+    logger.warning('Run PKP version %s', pkp.__version__)
     logger.info('Create runner and read settings')
-    runner = pkp.runner.PKPRunner(yml_file)
+    runner = pkp.runner.PKPRunner(argument.yml_file)
     logger.info('Start run')
     results = runner.run(results_dir=argument.results_dir,
                          n_p=argument.np, run_only=run_only)
-
-    shutil.copy(yml_file, argument.results_dir)
+    logger.warning('End running')
+    shutil.copy(argument.yml_file, argument.results_dir)
