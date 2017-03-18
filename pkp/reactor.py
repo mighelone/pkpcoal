@@ -9,6 +9,14 @@ from __future__ import print_function, unicode_literals
 import numpy as np
 from autologging import logged
 
+# try:
+#    from .interpolate import interp
+# except:
+#    print('Can not load numba interpolate, use numpy')
+#    from numpy import interp
+
+from .interpolate import interp
+
 
 @logged
 class Reactor(object):
@@ -48,5 +56,5 @@ class Reactor(object):
 
         def interp_tT(t):
             '''Interpolate time with temperature'''
-            return np.interp(t, conditions[:, 0], conditions[:, 1])
+            return interp(t, conditions[:, 0], conditions[:, 1])
         self.T = interp_tT
