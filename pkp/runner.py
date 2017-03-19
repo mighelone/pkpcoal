@@ -263,7 +263,7 @@ class PKPRunner(ReadConfiguration):
                 self.__log.debug(
                     'Fit %s model with %s', model, fit['model'])
                 target_conditions = {
-                    run: {'t': np.array(res.index),
+                    run: {'t': np.array(res['t']),
                           'y': np.array(res[fit['species']])}
                     for run, res in results.items()}
                 self.__log.debug('runs calibration %s',
@@ -401,7 +401,7 @@ class PKPRunner(ReadConfiguration):
         for sp in ['tar', 'light_gas', 'char', 'solid',
                    'volatiles']:
             if sp in res:
-                ax.plot(res.index, res[sp], label=sp)
+                ax.plot(res['t'], res[sp], label=sp)
         ax.set_xlabel('Time, s')
         ax.set_ylabel('Yield, daf')
         ax.legend(loc='best', frameon=False)
@@ -414,7 +414,7 @@ class PKPRunner(ReadConfiguration):
         # ax.spines['left'].set_color(col_right)
         # ax.spines['left'].set_color(col_right)
         ax1 = ax.twinx()
-        ax1.plot(res.index, res['T'],
+        ax1.plot(res['t'], res['T'],
                  label='T', color=col_right)
         ax1.spines['top'].set_visible(False)
         ax1.spines['left'].set_visible(False)

@@ -372,11 +372,11 @@ class CPD(pkp.detailed_model.DetailedModel):
                             for n in range(1, 5)], axis=1)
         except:
             raise IOError('Problems reading CPD results')
-        df.index.rename('t', inplace=True)
-        df.index = df.index * 1e-3
-        self.__log.debug('CPD index max %s', df.index.max())
-
-        df.rename(columns={'fsolid': 'char',
+        df.reset_index(inplace=True)
+        # df.index.rename('t', inplace=True)
+        # df.index = df.index * 1e-3
+        # self.__log.debug('CPD index max %s', df.index.max())
+        df.rename(columns={'time(ms)': 't',
                            'ftar': 'tar',
                            'fgas': 'light_gas',
                            'ftot': 'volatiles',
@@ -387,6 +387,7 @@ class CPD(pkp.detailed_model.DetailedModel):
                            'fch4': 'CH4',
                            'fco': 'CO',
                            'fother': 'other'}, inplace=True)
+        df['t'] = df['t'] * 1e-3
         # self.__log.debug('Columns %s', df.columns)
         # self.__log.debug('Last row %s', df.iloc[-1])
 

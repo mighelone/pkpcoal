@@ -307,9 +307,10 @@ class Polimi(pkp.detailed_model.DetailedModel):
         t = np.array(t)[::self.skip]
         y = np.array(y)[::self.skip]
         data = pd.DataFrame(data=y,
-                            columns=mechanism.species_names,
-                            index=t)
-        data.index.name = 'Time, s'
+                            columns=mechanism.species_names)
+        # index=t)
+        # data.index.name = 'Time, s'
+        data['t'] = t
         data['T'] = self.T(t)
         for v in ('metaplast', 'char', 'raw', 'tar', 'light_gas'):
             data[v] = data[getattr(self, v)].sum(axis=1)
