@@ -11,10 +11,21 @@ import logging
 import argparse
 import shutil
 import sys
+import numpy as np
 
 import pkp.runner
-# import coloredlogs
-# coloredlogs.install(level='DEBUG')
+
+# logging.basicConfig(format='')
+
+ascii_pkp = """
+.______    __  ___ .______   
+|   _  \  |  |/  / |   _  \  
+|  |_)  | |  '  /  |  |_)  | 
+|   ___/  |    <   |   ___/  
+|  |      |  .  \  |  |      
+| _|      |__|\__\ | _|      
+                             
+"""
 
 
 def parse_args():
@@ -57,27 +68,38 @@ def create_pkp_logger(argument):
     """
     # define a logger for pkp module
     # define a stream handler for runPKP logger
-    formatter = logging.Formatter(
-        "%(levelname)s:%(name)s:%(funcName)s:%(message)s")
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(logging.Formatter(
         '%(name)s:%(funcName)s:%(message)s'))
     handler.setLevel(logging.INFO)
-
+    #
     log_pkp = logging.getLogger('pkp')
     log_pkp.setLevel(logging.DEBUG)
     log_pkp.addHandler(handler)
 
     if argument.debug:
+        formatter = logging.Formatter(
+            "%(levelname)s:%(name)s:%(funcName)s:%(message)s")
         file_handler = logging.FileHandler('runpkp.log', 'w')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         log_pkp.addHandler(file_handler)
+        log_pkp.setLevel(logging.DEBUG)
+
+        log_cpd = logging.getLogger('cpd')
+        file_handler_cpd = logging.FileHandler('cpd.log', 'w')
+        file_handler_cpd.setLevel(logging.DEBUG)
+        file_handler_cpd.setFormatter(formatter)
+        log_cpd.addHandler(file_handler_cpd)
+        log_cpd.setLevel(logging.DEBUG)
+
+        # np.seterr(all='warning')
+    else:
+        np.seterr(all='ignore')
+        log_pkp.setLevel(logging.INFO)
 
     # force evolution to INFO
     logging.getLogger('pkp.evolution').setLevel(logging.INFO)
-
-    return log_pkp
 
 
 if __name__ == '__main__':
@@ -86,14 +108,18 @@ if __name__ == '__main__':
 
     # set loggers
     logger = create_main_logger()
-    log_pkp = create_pkp_logger(argument)
+    create_pkp_logger(argument)
 
     # Execute Runner
+    logger.warning('---------------------------------------')
+    logger.warning(ascii_pkp)
+    logger.warning('---------------------------------------')
     logger.warning('Run PKP version %s', pkp.__version__)
+    logger.warning('---------------------------------------')
     logger.info('Create runner and read settings')
     runner = pkp.runner.PKPRunner(argument.yml_file)
     logger.info('Start run')
     results = runner.run(results_dir=argument.results_dir,
                          n_p=argument.np, run_only=run_only)
-    logger.warning('End running')
+    logger.info('End running')
     shutil.copy(argument.yml_file, argument.results_dir)

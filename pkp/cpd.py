@@ -60,6 +60,8 @@ import pkp.detailed_model
 import pkp.bins
 import platform
 
+np.seterr(all='ignore')
+
 
 CPD_CORRELATION = np.array([[0.0, 0.0, 0.0, 0.0],
                             [421.957, 1301.41, 0.489809, -52.1054],

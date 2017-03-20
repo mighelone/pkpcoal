@@ -138,7 +138,6 @@ class EmpiricalModel(pkp.reactor.Reactor):
         ode_args = {
             'first_step': 1e-5,
             'max_step': 1e-2,
-            # 'verbosity': 1
         }
         if t is None:
             backend = 'dopri5'
@@ -154,8 +153,9 @@ class EmpiricalModel(pkp.reactor.Reactor):
             args.append(t)
 
         solver.set_integrator(backend, **ode_args)
-
+        warnings.filterwarnings("ignore", category=UserWarning)
         t, y = ode_run(*args)
+        warnings.resetwarnings()
 
         return t, np.squeeze(y)
 

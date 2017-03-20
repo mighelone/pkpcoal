@@ -33,14 +33,17 @@ import pandas as pd
 # they must be loaded here if you want to use them!
 from pkp.cpd import CPD
 # from cpd import CPD
+from cpd import CPD as CPDpy
+
 try:
     from pkp.polimi import Polimi
     from pkp.biopolimi import BioPolimi
-    models = ['CPD', 'Polimi', 'BioPolimi']
+    models = ['CPD', 'CPDpy', 'Polimi', 'BioPolimi']
 except ModuleNotFoundError:
-    logging.warning(
+    logger = logging.getLogger('pkp.runner')
+    logger.warning(
         'Cantera not available. Polimi and BioPolimi models cannot be used!')
-    models = ['CPD']
+    models = ['CPD', 'CPDpy']
 
 # optimization
 import pkp.evolution
@@ -49,9 +52,9 @@ import pkp.minimize
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
 plt.style.use('bmh')
+
 # try:
 #     plt.style.use(['mystyle', 'mystyle-vega'])
 # except:
@@ -60,6 +63,10 @@ plt.style.use('bmh')
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 col_right = "#C54E6D"
 col_left = "#009380"
+
+
+# raise error from numpy
+# np.seterr(all='raise')
 
 
 # yaml serialization of numpy objects
@@ -143,7 +150,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
 
         # Solver settings
         [setattr(self, model, yml_input[model])
-         for model in models]
+         for model in models if model in yml_input]
 
     @property
     def operating_conditions(self):
@@ -204,22 +211,23 @@ class PKPRunner(ReadConfiguration):
         run_results = {'coal': coal, 'version': pkp.__version__}
         fit_results = {'coal': coal, 'version': pkp.__version__}
         for model in self.models:
-            model_settings = getattr(self, model)
-            if model_settings['active']:
-                self.__log.info('Run model %s', model)
-                results = self.run_model(model=model,
-                                         results_dir=results_dir)
-                self.__log.debug('Finish run %s %s',
-                                 model, results.keys())
-                if results:
-                    run_results[model] = results
-                    if model_settings['fit'] and not run_only:
-                        self.__log.info('Start fit of %s model', model)
-                        fit_results[model] = self.fit_detmodel(
-                            model, model_settings['fit'], n_p, results,
-                            results_dir)
-                else:
-                    self.__log.warning('No results for %s', model)
+            if hasattr(self, model):
+                model_settings = getattr(self, model)
+                if model_settings['active']:
+                    self.__log.info('Run model %s', model)
+                    results = self.run_model(model=model,
+                                             results_dir=results_dir)
+                    self.__log.debug('Finish run %s %s',
+                                     model, results.keys())
+                    if results:
+                        run_results[model] = results
+                        if model_settings['fit'] and not run_only:
+                            self.__log.info('Start fit of %s model', model)
+                            fit_results[model] = self.fit_detmodel(
+                                model, model_settings['fit'], n_p, results,
+                                results_dir)
+                    else:
+                        self.__log.warning('No results for %s', model)
 
         yml_fit = os.path.join(
             results_dir, '{name}-fitreport.yml'.format(name=self.name))
@@ -313,6 +321,7 @@ class PKPRunner(ReadConfiguration):
             # for n in range(
             #        self.operating_conditions['runs']):
             for n in runs_iterator(self.operating_conditions):
+                self.__log.info('Run %s with %s model', n, model)
                 res = self._run_single(model, model_settings, n,
                                        results_dir)
                 results['run{}'.format(n)] = res
@@ -518,7 +527,10 @@ class PKPRunner(ReadConfiguration):
         tar_mean = np.mean([r.iloc[-1]['tar']
                             for r in results.values()])
         self.__log.debug('columns %s', results['run0'].columns)
-        co_mean = np.mean([r.iloc[-1]['CO'] for r in results.values()])
+        try:
+            co_mean = np.mean([r.iloc[-1]['CO'] for r in results.values()])
+        except KeyError:
+            co_mean = 0.1
         self.__log.debug('tar mean %s', tar_mean)
         self.__log.debug('CO mean %s', co_mean)
         self.__log.debug('y0 mean %s', y0)
