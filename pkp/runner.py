@@ -33,17 +33,17 @@ import pandas as pd
 # they must be loaded here if you want to use them!
 from pkp.cpd import CPD
 # from cpd import CPD
-from cpd import CPD as CPDpy
+from pkp.cpd_fortran import CPD as CPDfortran
 
 try:
     from pkp.polimi import Polimi
     from pkp.biopolimi import BioPolimi
-    models = ['CPD', 'CPDpy', 'Polimi', 'BioPolimi']
+    models = ['CPD', 'CPDfortran', 'Polimi', 'BioPolimi']
 except ModuleNotFoundError:
     logger = logging.getLogger('pkp.runner')
     logger.warning(
         'Cantera not available. Polimi and BioPolimi models cannot be used!')
-    models = ['CPD', 'CPDpy']
+    models = ['CPD', 'CPDfortran']
 
 # optimization
 import pkp.evolution

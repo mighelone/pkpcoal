@@ -19,7 +19,7 @@ Coal:
   #Tar Molecule weight, MTar:
   rho_dry : 1310 # kg/m3
 
-CPDpy:
+CPD:
   active : true
   dt: 1e-4
   increment: 1

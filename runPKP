@@ -114,6 +114,8 @@ if __name__ == '__main__':
     logger.warning('---------------------------------------')
     logger.warning(ascii_pkp)
     logger.warning('---------------------------------------')
+    logger.warning('    Pyrolysis Kinetic Preprocessor     ')
+    logger.warning('---------------------------------------')
     logger.warning('Run PKP version %s', pkp.__version__)
     logger.warning('---------------------------------------')
     logger.info('Create runner and read settings')
