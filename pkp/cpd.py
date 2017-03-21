@@ -29,15 +29,14 @@ import warnings
 
 from pkp.interpolate import interp
 # from numpy import interp
+from ._exceptions import ImportError
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
 
+# Import Numba
 try:
     from ._nb_functions import sum_x_n_calc, x_n_calc, fp, pstar_f
     _use_numba = True
-except ModuleNotFoundError:
+except ImportError:
     from ._np_functions import sum_x_n_calc, x_n_calc, fp, pstar_f
     _use_numba = False
 

@@ -1,24 +1,27 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
+import sys
 
 import pkp.detailed_model
-try:
-    import cantera
-except ModuleNotFoundError:
-    raise ModuleNotFoundError('Polimi model needs Cantera to be used!')
-
 import numpy as np
 import warnings
 import pandas as pd
 import os
-import sys
 from autologging import logged
 
 from pkp.detailed_model import M_elements
 from scipy.integrate import ode
 
 from .triangle import Triangle
+from ._exceptions import ImportError
+
+
+try:
+    import cantera
+except ImportError:
+    raise ImportError('Cantera not installed! Module cannot be used',
+                      __name__)
 
 
 def set_reference_coal(name, atoms):

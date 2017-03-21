@@ -7,6 +7,7 @@ see: Robert Kerns discussion in http://groups.google.ca/group/comp.lang.python/b
 import numpy as np
 from scipy.misc import comb
 from scipy import special
+from ._exceptions import ImportError
 
 
 def bpmf(k, n, p):
@@ -39,7 +40,8 @@ try:
             bnm[i] = math.exp(combinln(n[i], k[i]) + k[i] *
                               logp + (n[i] - k[i]) * one_logp)
         return bnm
-except ModuleNotFoundError:
+
+except ImportError:
     # proposed version using gammaln
     def combinln(n, k):
         return (special.gammaln(n + 1) - (special.gammaln(k + 1) +
