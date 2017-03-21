@@ -20,6 +20,7 @@ class Minimization(pkp.evolution.Evolution):
         self._empirical_model = pkp.empirical_model.SFOR
         self._parameters_min = None
         self._parameters_max = None
+        self._skip = 1
 
     def error(self, x):
         err = pkp.evolution.error(self, x)[0]

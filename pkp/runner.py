@@ -746,10 +746,17 @@ class PKPRunner(ReadConfiguration):
                          ga._parameters_min, ga._parameters_max)
 
         # set target conditions
-        [ga.set_target(
-            t=res['t'], y=res['y'],
-            operating_conditions=self.operating_conditions[run])
-         for run, res in target_conditions.items()]
+        for run, res in target_conditions.items():
+            self.__log.debug('Set operating_conditions for run:{}'.format(run))
+            # self.__log.debug('Res keys:'.format(list(res.keys())))
+            ga.set_target(
+                t=res['t'], y=res['y'],
+                operating_conditions=self.operating_conditions[run])
+
+        # [ga.set_target(
+        #    t=res['t'], y=res['y'],
+        #    operating_conditions=self.operating_conditions[run])
+        # for run, res in target_conditions.items()]
 
         # Register the DEAP toolbox and do the evolution! (Pearl
         # Jam)
@@ -792,10 +799,21 @@ class PKPRunner(ReadConfiguration):
                          fmin._parameters_min, fmin._parameters_max)
 
         # set target conditions
-        [fmin.set_target(
-            t=res['t'], y=res['y'],
-            operating_conditions=self.operating_conditions[run])
-         for run, res in target_conditions.items()]
+        for run, res in target_conditions.items():
+            self.__log.debug('Set operating_conditions for run: %s', run)
+            self.__log.debug('Res keys: %s', res.keys())
+            self.__log.debug('Operating conditions: %s',
+                             self.operating_conditions[run])
+            try:
+                fmin.set_target(
+                    t=res['t'], y=res['y'],
+                    operating_conditions=self.operating_conditions[run])
+            except:
+                raise Exception
+        #[fmin.set_target(
+        #    t=res['t'], y=res['y'],
+        #    operating_conditions=self.operating_conditions[run])
+        # for run, res in target_conditions.items()]
 
         # Register the DEAP toolbox and do the evolution! (Pearl
         # Jam)
