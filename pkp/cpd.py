@@ -356,7 +356,7 @@ class CPD(pkp.detailed_model.DetailedModel):
         T = self.T(t)
         kb, rho, kg = self._rates(T, y)
         f = 1 / (1 + rho)
-        tol = 1e-8
+        tol = 1e-6
         if l > tol:
             dldt = -kb * l
             dcdt = kb * f * l
@@ -431,7 +431,7 @@ class CPD(pkp.detailed_model.DetailedModel):
             self.__log.debug(
                 '\n\nStart new time step\ntime=%s y=%s\n', solver.t,
                 solver.y)
-            self.__log.debug('t=%s - y=%s', solver.t, solver.y)
+            self.__log.info('t=%s - y=%s', solver.t, solver.y)
             dt = solver.t - t[-1]
             T = self.T(solver.t)
             t.append(solver.t)

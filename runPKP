@@ -14,6 +14,8 @@ import sys
 import numpy as np
 
 import pkp.runner
+from termcolor import colored
+from pkp._exceptions import *
 
 # logging.basicConfig(format='')
 
@@ -62,6 +64,12 @@ def create_main_logger():
     return logger
 
 
+def catch_error(logger, msg):
+    logger.critical(
+        colored(msg, 'red'))
+    sys.exit(1)
+
+
 def create_pkp_logger(argument):
     """
     Define the logger for the pkp module
@@ -73,7 +81,7 @@ def create_pkp_logger(argument):
         '%(name)s:%(funcName)s:%(message)s'))
     handler.setLevel(logging.INFO)
     #
-    log_pkp = logging.getLogger('pkp')
+    log_pkp = logging.getLogger('pkp.runner')
     log_pkp.setLevel(logging.DEBUG)
     log_pkp.addHandler(handler)
 
@@ -86,12 +94,12 @@ def create_pkp_logger(argument):
         log_pkp.addHandler(file_handler)
         log_pkp.setLevel(logging.DEBUG)
 
-        log_cpd = logging.getLogger('cpd')
+        log_cpd = logging.getLogger('pkp.cpd')
         file_handler_cpd = logging.FileHandler('cpd.log', 'w')
-        file_handler_cpd.setLevel(logging.DEBUG)
+        file_handler_cpd.setLevel(logging.INFO)
         file_handler_cpd.setFormatter(formatter)
         log_cpd.addHandler(file_handler_cpd)
-        log_cpd.setLevel(logging.DEBUG)
+        log_cpd.setLevel(logging.INFO)
 
         # np.seterr(all='warning')
     else:
@@ -119,9 +127,22 @@ if __name__ == '__main__':
     logger.warning('Run PKP version %s', pkp.__version__)
     logger.warning('---------------------------------------')
     logger.info('Create runner and read settings')
-    runner = pkp.runner.PKPRunner(argument.yml_file)
+    try:
+        runner = pkp.runner.PKPRunner(argument.yml_file)
+    except PKPCompositionError as e:
+        catch_error(logger, '{}'.format(e))
+    except PKPConvertNumber as e:
+        catch_error(logger, '{}'.format(e))
+    except KeyError as e:
+        catch_error(logger, 'Key {} missing in the input file'.format(e))
     logger.info('Start run')
-    results = runner.run(results_dir=argument.results_dir,
-                         n_p=argument.np, run_only=run_only)
+    try:
+        results = runner.run(results_dir=argument.results_dir,
+                             n_p=argument.np, run_only=run_only)
+    except (PKPModelError, PKPKeyError) as e:
+        catch_error(logger, e.args[0])
+    except PKPParametersError as e:
+        catch_error(logger, e.args[0])
+
     logger.info('End running')
     shutil.copy(argument.yml_file, argument.results_dir)

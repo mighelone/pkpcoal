@@ -90,6 +90,8 @@ from pkp import algorithms
 from pathos.multiprocessing import ProcessPool
 # from scoop import futures
 
+from ._exceptions import PKPModelError, PKPParametersError
+
 
 def check_bounds(min, max):
     '''
@@ -275,7 +277,7 @@ class Evolution(object):
         '''
         # check attributes using the EmpiricalModel attributes
         if not issubclass(model, pkp.empirical_model.EmpiricalModel):
-            raise TypeError('model has to be child of EmpiricalModel!')
+            raise PKPModelError('model has to be child of EmpiricalModel!')
         self.__log.debug('Set empirical_model to %s', model)
         self._empirical_model = model
 
@@ -433,9 +435,9 @@ class Evolution(object):
                          len_model)
         if (len(parameters_min) != len_model or
                 len(parameters_max) != len_model):
-            raise ValueError(
+            raise PKPParametersError(
                 'Define parameters min and'
-                ' max with length {}'.format(len_model))
+                ' max with length', len_model, self.empirical_model.parameters_names())
         self._parameters_min = parameters_min
         self._parameters_max = parameters_max
 

@@ -20,8 +20,9 @@ def test_CPD(input_yml):
     model = os.path.splitext(input_yml)[0].split('_')[1]
 
     # define a logger
-    logger = logging.getLogger('pkp')
-    logger.setLevel(logging.DEBUG)
+    logger = logging.getLogger('pkp.runner')
+    logger.setLevel(logging.INFO)
+    logger.handlers = []
 
     # define an handler
     handler_info = logging.StreamHandler()
@@ -29,13 +30,13 @@ def test_CPD(input_yml):
         'test/{}.log'.format(model), mode='w')
     handler_info.setFormatter(logging.Formatter(
         fmt="%(name)s:%(funcName)s:%(message)s"))
-    handler_info.setLevel(logging.DEBUG)
+    handler_info.setLevel(logging.INFO)
 
     # define a debug handler
     handler_debug = logging.StreamHandler()
     handler_debug.setFormatter(logging.Formatter(
         fmt="%(levelname)s:%(name)s:%(funcName)s:%(message)s"))
-    handler_debug.setLevel(logging.DEBUG)
+    handler_debug.setLevel(logging.INFO)
 
     logger.addHandler(handler_info)
 
@@ -53,5 +54,5 @@ def test_CPD(input_yml):
     # logger.info('Best results: %s', best_results)
 
     # no assert because of the random nature of the problem
-    shutil.rmtree(res_dir)
+    # shutil.rmtree(res_dir)
     logger.warning('End run %s', input_yml)

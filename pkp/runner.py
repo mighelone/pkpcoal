@@ -50,6 +50,8 @@ import pkp.evolution
 import pkp.minimize
 
 import matplotlib
+
+from ._exceptions import *
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -130,22 +132,18 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
         # coal settings
         coal_settings = yml_input['Coal']
         # Solver settings
+        pressure = yml_input['operating_conditions']['pressure'] * 101325
 
-        self.__log.debug(
-            'Pressure in yml %s',
-            yml_input['operating_conditions']['pressure'])
         super(ReadConfiguration, self).__init__(
             proximate_analysis=coal_settings['proximate_analysis'],
             ultimate_analysis=coal_settings['ultimate_analysis'],
-            pressure=yml_input['operating_conditions'][
-                'pressure'] * 101325,
+            pressure=pressure,
             name=coal_settings['name'])
-        self.__log.debug('Pressure setted %s', self.pressure)
 
         self.operating_conditions = yml_input['operating_conditions']
 
         # convert HHV from MJ/kg to J/kg
-        self.hhv = coal_settings['HHV'] * 1e6
+        self.hhv = coal_settings['HHV']
         self.rho_dry = coal_settings['rho_dry']
 
         # Solver settings
@@ -213,7 +211,11 @@ class PKPRunner(ReadConfiguration):
         for model in self.models:
             if hasattr(self, model):
                 model_settings = getattr(self, model)
-                if model_settings['active']:
+                try:
+                    active = model_settings['active']
+                except KeyError:
+                    raise KeyError('{}.active'.format(model))
+                if active:
                     self.__log.info('Run model %s', model)
                     results = self.run_model(model=model,
                                              results_dir=results_dir)
@@ -268,21 +270,49 @@ class PKPRunner(ReadConfiguration):
         fit_results = {}
         for fitname, fit in model_settings.items():
             if fit.get('active', True):
-                self.__log.debug(
-                    'Fit %s model with %s', model, fit['model'])
-                target_conditions = {
-                    run: {'t': np.array(res['t']),
-                          'y': np.array(res[fit['species']])}
-                    for run, res in results.items()}
+                if 'species' not in fit:
+                    raise PKPKeyError(
+                        'Key species not defined in {}:{}'.format(
+                            model, fitname))
+                try:
+                    target_conditions = {
+                        run: {'t': np.array(res['t']),
+                              'y': np.array(res[fit['species']])}
+                        for run, res in results.items()}
+                except KeyError as e:
+                    raise PKPKeyError(
+                        'Calibration species {} in {} '
+                        'not defined in output {} model'.format(fit['species'],
+                                                                fitname,
+                                                                model))
                 self.__log.debug('runs calibration %s',
                                  list(target_conditions.keys()))
                 fit_dict = {'model': model,
                             'fit': fitname,
                             'species': fit['species']}
-                fit_results[fitname] = self.fit_single(
-                    results,
-                    target_conditions, fit_dict,
-                    fit, results_dir, n_p)
+                try:
+                    fit_results[fitname] = self.fit_single(
+                        results,
+                        target_conditions, fit_dict,
+                        fit, results_dir, n_p)
+                except (PKPModelError, AttributeError) as e:
+                    raise PKPModelError(
+                        'Empirical model {} in {}:{} not defined.\n'
+                        'Check pkp.empirical_model'.format(
+                            fit['model'], model, fitname))
+                except PKPParametersError as e:
+                    print(e.args[0])
+                    raise PKPParametersError(
+                        '{}:{} define parameters_min and max with lenth {}\n'
+                        'Parameters are: {}'.format(model, fitname, e.args[1],
+                                                    e.args[2]))
+
+                # except PKPParametersError as e:
+                #    raise PKPParametersError(
+                #        '{}:{}'.format(model, fitname))
+                except KeyError as e:
+                    raise PKPKeyError(
+                        'Key {} not defined in {}:{}'.format(e.args[0], model, fitname))
                 fit_results[fitname]['species'] = fit['species']
                 fit_results[fitname]['model'] = fit['model']
         return fit_results
@@ -291,6 +321,8 @@ class PKPRunner(ReadConfiguration):
     def set_results_dir(results_dir):
         if results_dir is None:
             results_dir = os.getcwd()
+        elif not os.path.exists(results_dir):
+            os.mkdir(results_dir)
         return results_dir
 
     def run_model(self, model, results_dir):
@@ -469,7 +501,20 @@ class PKPRunner(ReadConfiguration):
             Number of processors for the evolution
         '''
         # parameters_init = fit_settings['parameters_init']
-        method = fit_settings['method']
+        try:
+            method = fit_settings['method']
+        except KeyError as e:
+            raise PKPKeyError('method')
+        methods = ('evolve', 'evolve+min', 'min')
+        if method not in methods:
+            raise PKPMethodError(
+                'Calibration method {} in {}:{} does not exist\n'
+                'Use one of these methods:\n{}'.format(
+                    method,
+                    fit_dict['model'],
+                    fit_dict['fit'],
+                    methods))
+
         fit_results = {}
         det_model, fitname = fit_dict['model'], fit_dict['fit']
         emp_model = fit_settings['model']
@@ -488,6 +533,7 @@ class PKPRunner(ReadConfiguration):
             self.__log.info('%s Evolution to fit %s with %s',
                             fitname, det_model, emp_model)
             # Define properties of evolutionary model
+
             best, ga = self.evolve(n_p, fit_results, fit_settings,
                                    target_conditions_used)
             # plot results (evolution history)
@@ -690,6 +736,7 @@ class PKPRunner(ReadConfiguration):
                        mu=mu, lambda_=lambda_, skip=skip)
         self.__log.debug('Init GA %s', ga)
         ga.empirical_model = getattr(pkp.empirical_model, model)
+
         self.__log.debug('Set GA model %s', ga.empirical_model)
 
         # Define the range of parameters
