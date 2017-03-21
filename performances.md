@@ -8,6 +8,13 @@ real	0m26.614s
 user	0m47.076s
 sys	0m1.158s
 
+------------
+
+real	0m26.008s
+user	0m45.836s
+sys	0m0.964s
+
+
 ## Python + Numpy
 
 >>> time ./runPKP input.yml -n 2

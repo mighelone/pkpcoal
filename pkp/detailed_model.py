@@ -18,6 +18,8 @@ import json
 from autologging import logged
 from distutils.dir_util import mkpath
 
+from ._exceptions import PKPCompositionError, PKPConvertNumber
+
 pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
 ua_keys = ['C', 'H', 'O', 'N', 'S']
@@ -121,12 +123,17 @@ class DetailedModel(pkp.reactor.Reactor):
 
     @hhv.setter
     def hhv(self, value):
-        if not value:
+        """Read HHV in MJ/kg"""
+        if value:
+            try:
+                self._hhv = value * 1e6
+            except TypeError:
+                raise PKPConvertNumber(
+                    'Define HHV as number or None: {}'.format(value))
+            self._hhv_daf = self._hhv / self.daf
+        else:
             self._hhv_daf = self.dulong()
             self._hhv = self.daf * self._hhv_daf
-        else:
-            self._hhv = value
-            self._hhv_daf = self._hhv / self.daf
 
         self._lhv_daf = (
             self._hhv_daf - rH2O * self.ultimate_analysis['H'] *
@@ -539,10 +546,15 @@ class DetailedModel(pkp.reactor.Reactor):
     @ultimate_analysis.setter
     def ultimate_analysis(self, ultimate_analysis):
         if not all((key in ultimate_analysis for key in ua_keys)):
-            raise ValueError(
+            raise PKPCompositionError(
                 'Ultimate analysis keys should be {}'.format(ua_keys))
-        self._ultimate_analysis = normalize_dictionary(
-            ultimate_analysis)
+        try:
+            self._ultimate_analysis = normalize_dictionary(
+                ultimate_analysis)
+        except TypeError as e:
+            raise PKPConvertNumber(
+                'Error reading ultimate_analysis\n{}'.format(
+                    ultimate_analysis))
 
     @property
     def rho_dry(self):
@@ -569,10 +581,16 @@ class DetailedModel(pkp.reactor.Reactor):
     @proximate_analysis.setter
     def proximate_analysis(self, proximate_analysis):
         if not all((key in proximate_analysis for key in pa_keys)):
-            raise ValueError(
+            raise PKPCompositionError(
                 'Proximate analysis keys should be {}'.format(pa_keys))
-        self._proximate_analysis = normalize_dictionary(
-            proximate_analysis)
+        try:
+            self._proximate_analysis = normalize_dictionary(
+                proximate_analysis)
+        except TypeError as e:
+            raise PKPConvertNumber(
+                'Error reading proximate_analysis\n{}'.format(
+                    proximate_analysis))
+
         self._daf = sum((self._proximate_analysis[key]
                          for key in pa_keys_daf))
         self._proximate_analysis_daf = {

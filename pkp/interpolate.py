@@ -7,7 +7,8 @@ else:
 try:
     from numba import jit
 
-    @jit("f8(f8, f8[:], f8[:])", nopython=True)
+    # @jit("f8(f8, f8[:], f8[:])", nopython=True)
+    @jit(nopython=True)
     def interp(xi, x, y):
         """
         Linear interpolation

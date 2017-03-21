@@ -1,5 +1,5 @@
 '''
-pyCPD
+CPD
 =====
 
 New implementation in python of the Chemical Percolation
@@ -9,159 +9,92 @@ The CPD class is derived by the CPD class in the `PKP` module, which
 calls the Fortran CPD code externally.
 
 (c) Michele Vascellari 2016 Michele.Vascellari@vtc.tu-freiberg.de
+
+Example
+-------
+
+Initialize the :class:`pkp.cpd.CPD` class using the proximate and
+ultimate analysis::
+
+    >>> import pkp.cpd
+    >>> ua = {'C': 69,
+              'H': 5,
+              'O': 24.7,
+              'N': 0.8,
+              'S': 0.5}
+
+    >>> pa = {'FC': 45.1,
+              'VM': 50.6,
+              'Ash': 4.3,
+              'Moist': 19.0}
+    >>> m = pkp.cpd.CPD(proximate_analysis=pa,
+                        ultimate_analysis=ua,
+                        pressure=101325,
+                        name='Pittsburg')
+
+Set the operating conditions::
+
+    >>> op_cond = [[0, 500],
+                   [0.001, 1400],
+                   [0.01, 1400]]
+    >>> m.operating_conditions = op_cond
+
+Set the output directory where store the results::
+
+    >>> m.path = './Results'
+
+Set the parameters for the CPD run::
+
+    >>> m.set_parameters(dt=1e-5, increment=2, dt_max=1e-5,
+                         basename='test')
+
+and finally run the model::
+
+    >>> results = m.run()
+
+The results are stored in a ``pandas`` dataframe.
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 
 import pkp
-import pkp.cpd_fortran
+import pkp.detailed_model
 import pkp.triangle
 import numpy as np
 from autologging import logged
 from scipy.integrate import ode
-# from scipy.stats import binom
-from .binomial import bpmfln
+# from .binomial import bpmfln
 from scipy.optimize import brentq, newton
 import pandas as pd
 import os
 import warnings
 
 from pkp.interpolate import interp
-# from numpy import interp
 from ._exceptions import ImportError
-
 
 # Import Numba
 try:
     from ._nb_functions import sum_x_n_calc, x_n_calc, fp, pstar_f
+    from ._nb_functions import binomial, invernorm
     _use_numba = True
 except ImportError:
     from ._np_functions import sum_x_n_calc, x_n_calc, fp, pstar_f
+    from ._np_functions import binomial, invernorm
     _use_numba = False
 
+# CPD constants
+from ._cpd_correlations import CPD_CORRELATION, x_gas, y_gas
+
 # define the binomial function
-binomial = bpmfln
+# binomial = bpmfln
 # binomial = binom.pmf
 
 Rgas = 1.987  # cal/mol-K
 
-xx = np.array([3.4, 3.2, 3., 2.8, 2.6, 2.4, 2.2, 2., 1.8,
-               1.6, 1.4, 1.2, 1., .8, .6, .4, .2, 0.])
-yy = np.array([.9997, .9993, .9987, .9974, .9953, .9918, .9861, .9772,
-               .9641, .9452, .9192, .8849, .8413, .7881, .7257, .6554,
-               .5793, .5])
-xx = xx[::-1]
-yy = yy[::-1]
-
-# xx_yy = interp1d(yy, xx)
-
-n_ref_coals = 12
-n_gas_species = 4
-x_gas = np.array([[0., .04, .11, .14, .21, .27, .34, .675, .9, 1.],
-                  [.0, .161, .442, .663, .777, .874, .921, .967, 1.],
-                  [.0, .022, .20, .430, .526, .64, .787, .875, .927, .955, 1.],
-                  [.0, .04, .12, .15, .23, .29, .36, .68, .9, 1.],
-                  [.0, .018, .058, .21, .417, .572, .696, .778, .821, .883,
-                   .932, 1.],
-                  [.0, .052, .144, .291, .498, .639, .746, .859, .925, .949,
-                   .966, 1.],
-                  [.0, .063, .178, .33, .506, .612, .706, .813, .895, .94, 1.],
-                  [.0, .04, .12, .15, .23, .29, .36, .68, .9, 1.],
-                  [.0, .061, .146, .374, .535, .622, .714, .8, .883, .931,
-                   .964, 1.],
-                  [.0, .034, .087, .179, .316, .472, .585, .694, .777, .872,
-                   .935, 1.],
-                  [.0, .04, .12, .16, .25, .31, .37, .68, .9, 1.],
-                  [.0, .02, .055, .17, .313, .434, .546, .716, .874, .935,
-                   .973, 1.]])
-
-
-y_gas = np.array([[[.772, .772, .738, .455, .371, .304, .290, .273, .218,
-                    .218],
-                   [.699, .632, .299, .269, .247, .249, .236, .225, .226],
-                   [.0, .0, .35, .297, .301, .299, .284, .291, .306, .297,
-                    .283],
-                   [.636, .636, .646, .550, .436, .320, .186, .199, .195,
-                    .195],
-                   [1., .983, .754, .488, .413, .385, .373, .382, .377,
-                       0.362, .367, .348],
-                   [.665, .636, .604, .508, .435, .409, .383, .362, .351, .343, .342, .339],
-                   [.763, .737, .698, .572, .527, .470, .438, .411, .411, .396, .378],
-                   [.748, .748, .637, .704, .490, .446, .348, .268, .266, .266],
-                   [.0, .0, .385, .461, .396, .369, .344, .323, .292, .277, .266, .257],
-                   [.0, .0, .197, .267, .26, .333, .361, .369, .346, .306, .285, .267],
-                   [.521, .521, .55, .523, .511, .46, .414, .388, .313, 0.313],
-                   [.0, .0, .291, .335, .264, .271, .261, .211, .171, .160, .153, .149]],
-                  [[.0, .0, .0, .174, .174, .167, .129, .102, .071, .071],
-                   [.259, .234, .113, .086, .097, .109, .116, .118, .122],
-                   [.333, .327, .070, .052, .057, .06, .059, .062, .066, .08, 0.115],
-                   [.194, .194, .152, .117, .116, .122, .081, .092, .065, .065],
-                   [.0, .0, .0, .122, .103, .086, .083, .082, .085, .086, .093, .128],
-                   [.332, .318, .165, .141, .120, .108, .105, .119, .120, .122, .125, .130],
-                   [.229, .221, .125, .09, .07, .073, .083, .133, .132, .13, .147],
-                   [.111, .111, .142, .175, .149, .155, .136, .122, .133, .133],
-                   [.98, .984, .55, .345, .317, .285, .286, .277, .273, .264, .254, .255],
-                   [.993, .989, .786, .572, .519, .416, .375, .345, .335, .32, .303, .299],
-                   [.363, .363, .353, .325, .321, .35, .318, .251, .249, .249],
-                   [1., .983, .448, .179, .104, .09, .104, .151, .166, .160, .158, .154]],
-                  [[.203, .203, .078, .160, .180, .219, .258, .294, .320, .320],
-                   [.041, .037, .388, .389, .359, .332, .323, .307, .299],
-                   [.667, .655, .42, .454, .444, .419, .382, .353, .331, .321, .306],
-                   [.055, .055, .073, .088, .116, .124, .170, .15, .189, .189],
-                   [.0, .0, .188, .195, .234, .243, .224, .21, .2, .186, .177, .167],
-                   [.0, .0, .11, .155, .176, .172, .185, .173, .163, .159, .156, .151],
-                   [.0, .0, .075, .136, .159, .178, .174, .157, .143, .141, .132],
-                   [.02, .02, .026, .042, .045, .049, .064, .1, .128, .128],
-                   [.0, .0, .0, .029, .048, .067, .069, .072, .069, .066, .063, .061],
-                   [.0, .0, .0, .0, .035, .05, .061,
-                       0.058, .057, .053, .049, .046],
-                   [.01, .01, .011, .016, .011, .021, .023, .035, .06, .06],
-                   [.0, .0, .216, .262, .362, .327, .307, .25, .203, .189, .182, .177]],
-                  [[.0, .0, .157, .121, .141, .112, .139, .085, .145, .145],
-                   [.0, .0, .0, .057, .097, .109, .124, .15, .153],
-                   [.0, .0, .0, .0, .0, .024, .078, .097, .099, .104, .099],
-                   [.083, .083, .038, .066, .032, .168, .286, .324, .313, .313],
-                   [.0, .0, .0, .0, .055, .091, .124, .131, .142, .171, .168, .162],
-                   [.0, .0, .0, .028, .093, .129, .142, .162, .181, .191, .193, .195],
-                   [.0, .0, .0, .075, .099, .122, .139, .133, .148, .167, .177],
-                   [.101, .101, .173, .054, .219, .247, .335, .349, .28, .280],
-                   [.0, .0, .055, .115, .151, .168, .172, .2, .236, .264, .287, .298],
-                   [.0, .0, .0, .133, .142, .150, .15, .173, .206, .265, .307, .331],
-                   [.096, .096, .066, .113, .123, .13, .2, .281, .334, .334],
-                   [.0, .0, .0, .084, .078, .115, .130, .191, .262, .294, .311, .322]]])
-
-gas_species = ['H2O', 'CO2', 'CH4', 'CO']
-
-
-def invernorm(y):
-    '''
-    Calculate the inverse of the CDF of the normal distribution.
-    It is a wrapper to scipy.stats.norm.ppf, which prevents to use
-    values of the cumulative probability too small or too large.
-
-    Parameters
-    ----------
-    y: float, array
-        Cumulative probability
-
-    Return
-    ------
-    float: inverse of the norm CDF
-    '''
-    # if y > 0.5:
-    #    yp = y
-    #    fac = 1
-    # else:
-    #    yp = 1 - y
-    #    fac = -1
-    yp, fac = (y, 1) if y > 0.5 else (1 - y, -1)
-    # return fac * np.interp(yp, yy, xx, right=3.4)
-    return fac * interp(yp, yy, xx)
-
 
 @logged
-class CPD(pkp.cpd_fortran.CPD):
+class CPD(pkp.detailed_model.DetailedModel):
     '''
     Run the Chemical Percolation Model (CPD) for evaluating the
     devolatilization behaviour of coal.
@@ -172,6 +105,153 @@ class CPD(pkp.cpd_fortran.CPD):
     It is possible to use the Genetti correlation for estimating NMR
     parameters, or they can directly defined if they are known.
     '''
+    nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
+    num_parameters = ['dt', 'increment', 'dt_max']
+
+    ab = 2.602e15
+    eb = 55400
+    ebsig = 1800
+    ac = 0.9
+    ec = 0
+    ag = 3.0e15
+    eg = 69000
+    egsig = 8100
+    Acr = 3.0e15
+    Ecr = 65000
+    arad = 18.4
+    erad = 6000
+    fstable = 0.03
+    an = 5.5e7
+    en = 90000
+    ensig = 0
+    nmax = 20
+
+    def __init__(self, ultimate_analysis, proximate_analysis,
+                 pressure=101325, name='CPD coal'):
+        '''
+        Parameters
+        ----------
+        proximate_analysis: dict
+            Proximate analysis dict i.e:
+            `{'FC': 45.1, 'VM': 50.6, 'Ash': 4.3, 'Moist': 19.0}`
+        ultimate_analysis: dict
+            Ultimate analysis dictionary i.e:
+            `{'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}`
+        pressure: float
+            Pressure of pyrolysis process
+        name: str, unicode
+            Reference name of the modelled coal
+        '''
+        super(CPD, self).__init__(proximate_analysis=proximate_analysis,
+                                  ultimate_analysis=ultimate_analysis,
+                                  pressure=pressure,
+                                  name=name)
+
+        # check if they are in %
+        self.fcar = self.ultimate_analysis['C']
+        self.fhyd = self.ultimate_analysis['H']
+        self.fnit = self.ultimate_analysis['N']
+        self.foxy = self.ultimate_analysis['O']
+        self.vm_daf = self.proximate_analysis_daf['VM']
+
+        # set parameters -> this can be changed using
+        # self.set_parameters
+        self.solver = None
+        self._set_NMR_parameters()
+        self._set_numerical_parameters()
+
+    def set_parameters(self, **kwargs):
+        '''
+        Set parameters for CPD calculation.
+        If a parameter is not defined it is not changed.
+        If None the default value is setted.
+
+        Parameters
+        ----------
+        nmr_parameters: dict
+            NMR parameters dictionary. Keys are:
+            ['mdel', 'mw', 'p0', 'sig', 'c0']
+            If None values are calculated using Genetti correlation
+        dt: float
+            Time step
+        increment: int
+            Number of time step saved
+        dt_max: float
+            Max. time step
+        solver: str
+            CPD solver path
+        basename: str
+            Basename for CPD output files
+        '''
+        # TODO set a warning for coal outside the parameters
+        if 'nmr_parameters' in kwargs:
+            self._set_NMR_parameters(
+                nmr_parameters=kwargs['nmr_parameters'])
+
+        num_parameters = ('dt', 'increment', 'dt_max')
+        if any(p in kwargs for p in num_parameters):
+            self._set_numerical_parameters(**kwargs)
+
+        if 'solver' in kwargs:
+            self.solver = kwargs['solver']
+
+        if 'basename' in kwargs:
+            self.basename = kwargs['basename']
+
+    def get_parameters(self):
+        nmr = {p: getattr(self, p)
+               for p in self.nmr_parameters}
+        par = {p: getattr(self, p)
+               for p in self.num_parameters +
+               ['basename', 'solver']}
+        par['nmr_parameters'] = nmr
+        return par
+
+    def _set_numerical_parameters(self, dt=None, increment=None,
+                                  dt_max=None, **kwargs):
+        '''
+        Set numerical parameters
+        '''
+        if dt is None:
+            dt = 1e-5
+        if increment is None:
+            increment = 1
+        if dt_max is None:
+            dt_max = 1e-5
+        self.dt = dt
+        self.increment = increment
+        self.dt_max = dt_max
+
+    def _set_NMR_parameters_from_correlation(self, nmr_parameters=None):
+        '''
+        Calc parameters using Genetti correlation
+
+        Parameters
+        ----------
+        parameters: dict, default=None
+            Manually set parameters using a dictionary
+            {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
+        '''
+        if nmr_parameters:
+            [setattr(self, key, nmr_parameters[key])
+             for key in self.nmr_parameters]
+        else:
+            c = CPD_CORRELATION.copy()
+            self.c0 = (min(0.36,
+                           max(0.118 * self.fcar * 100 - 10.1, 0.0)) +
+                       min(0.15,
+                           max(0.014 * self.foxy * 100 - 0.175, 0.0)))
+
+            Y = (c[1] + c[2] * (self.fcar * 100.0) +
+                 c[3] * (self.fcar * 100)**2 +
+                 c[4] * (self.fhyd * 100) +
+                 c[5] * (self.fhyd * 100)**2 +
+                 c[6] * (self.foxy * 100) +
+                 c[7] * (self.foxy * 100)**2 +
+                 c[8] * (self.vm_daf * 100) +
+                 c[9] * (self.vm_daf * 100)**2)
+            [setattr(self, key, Y[i])
+             for i, key in enumerate(self.nmr_parameters[:4])]
 
     def run(self, time=None, light_gas=True, n_frag=20):
         '''
@@ -239,7 +319,7 @@ class CPD(pkp.cpd_fortran.CPD):
             Manually set parameters using a dictionary
             {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
         '''
-        super(CPD, self)._set_NMR_parameters(nmr_parameters)
+        self._set_NMR_parameters_from_correlation(nmr_parameters)
         # test
         # self.mdel /= (1 - self.c0)
         # check this correction -> allow to obtain the same results as
@@ -278,7 +358,7 @@ class CPD(pkp.cpd_fortran.CPD):
         T = self.T(t)
         kb, rho, kg = self._rates(T, y)
         f = 1 / (1 + rho)
-        tol = 1e-8
+        tol = 1e-6
         if l > tol:
             dldt = -kb * l
             dcdt = kb * f * l
@@ -353,7 +433,7 @@ class CPD(pkp.cpd_fortran.CPD):
             self.__log.debug(
                 '\n\nStart new time step\ntime=%s y=%s\n', solver.t,
                 solver.y)
-            self.__log.debug('t=%s - y=%s', solver.t, solver.y)
+            self.__log.info('t=%s - y=%s', solver.t, solver.y)
             dt = solver.t - t[-1]
             T = self.T(solver.t)
             t.append(solver.t)
@@ -416,6 +496,8 @@ class CPD(pkp.cpd_fortran.CPD):
         eg = self.eg + invernorm(0.5 * g / (1 - self.c0)) * self.egsig
         kg = self.ag * np.exp(-eg / RT)
         return kb, kc, kg
+        # return rates(T, y, self.p0, self.c0, self.ab, self.eb, self.ebsig,
+        #              self.ac, self.ec, self.ag, self.eg, self.egsig)
 
     def _percolation(self, y, f_tar=0, n_frag=20, in_tar=True):
         '''
@@ -822,7 +904,8 @@ class CPD(pkp.cpd_fortran.CPD):
         Parameters
         ----------
         y_gas: array
-            Fraction of light gases released during time. It is calculated using 
+            Fraction of light gases released during time. It is calculated
+            using
             :math::`Y_g = 1-(\delta/2 + \pound)(\delta/2 + \pound)_0`
         '''
         y_refs = np.array(

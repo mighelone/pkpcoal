@@ -2,7 +2,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
 
-import pkp.cpd
+import pkp.cpd_fortran
 import pkp.detailed_model
 import numpy as np
 import pytest
@@ -32,7 +32,7 @@ def coal():
 
 @pytest.fixture
 def cpd():
-    return pkp.cpd.CPD(proximate_analysis=pa, ultimate_analysis=ua)
+    return pkp.cpd_fortran.CPD(proximate_analysis=pa, ultimate_analysis=ua)
 
 
 def test_normalize_dictionary():

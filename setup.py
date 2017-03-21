@@ -14,8 +14,10 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+
 def githash():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+
 
 setup(
     name='PKP',
@@ -51,7 +53,8 @@ setup(
     # packages=['pkp', 'pkp.bins'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     packages_dir={'pkp.bins': 'pkp/bins'},
-    package_data={'pkp.bins': ['cpdnlg*', 'COAL.xml', 'Biomass.xml', '52.xml']},
+    package_data={'pkp.bins': ['cpdnlg*',
+                               'COAL.xml', 'Biomass.xml', '52.xml']},
     scripts=['runPKP'],
     install_requires=[
         'numpy',
@@ -66,6 +69,7 @@ setup(
         'tabulate',
         'future',
         'pathos',
+        'termcolor',
         'versioneer'
     ]
 )

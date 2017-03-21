@@ -160,3 +160,5 @@ Results/
 /test/test.inp
 .cache
 .ipynb_checkpoints/
+test/Results_CPD/
+test/Results_bio/
