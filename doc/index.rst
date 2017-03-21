@@ -18,6 +18,7 @@ Contents:
 Indices and tables
 ==================
 * :ref:`input-label`
+* :ref:`runPKP-label`
 * :ref:`pkp-label`
 * :ref:`biopolimi-label`
 * :ref:`empmodels-label`
