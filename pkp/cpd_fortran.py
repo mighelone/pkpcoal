@@ -182,7 +182,8 @@ class CPD(pkp.cpd.CPD):
                            'fco2': 'CO2',
                            'fch4': 'CH4',
                            'fco': 'CO',
-                           'fother': 'other'}, inplace=True)
+                           'fsolid': 'char',
+                           'fother': 'others'}, inplace=True)
         df['t'] = df['t'] * 1e-3
         # self.__log.debug('Columns %s', df.columns)
         # self.__log.debug('Last row %s', df.iloc[-1])

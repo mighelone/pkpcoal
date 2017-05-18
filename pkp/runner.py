@@ -307,9 +307,9 @@ class PKPRunner(ReadConfiguration):
                         'Parameters are: {}'.format(model, fitname, e.args[1],
                                                     e.args[2]))
 
-                # except PKPParametersError as e:
-                #    raise PKPParametersError(
-                #        '{}:{}'.format(model, fitname))
+                except PKPParametersError as e:
+                    raise PKPParametersError(
+                        '{}:{}'.format(model, fitname))
                 except KeyError as e:
                     raise PKPKeyError(
                         'Key {} not defined in {}:{}'.format(e.args[0], model, fitname))
@@ -586,8 +586,9 @@ class PKPRunner(ReadConfiguration):
         fit_results['empirical_comp'] = self.empirical_composition(
             y0, tar=tar_mean, CO=co_mean)
 
-        if det_model == 'CPD':
-            self.__log.info('calc CPD composition')
+        if det_model in ('CPD', 'CPDfortran'):
+            self.__log.debug('calc CPD composition')
+            self.__log.debug('res = %s', results['run0'].columns)
             fit_results['cpd_volatiles'] = self.cpd_composition(
                 results['run0'])
             self.__log.info('calc CPD composition... done')

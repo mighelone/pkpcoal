@@ -845,6 +845,7 @@ class DetailedModel(pkp.reactor.Reactor):
             'reactions': [
                 partial_react,
                 crack_react
-            ]
+            ],
+            'mw': (tar_mw, 'kg/kmol')
         }
         return comp_dict
