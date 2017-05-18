@@ -308,15 +308,15 @@ class DetailedModel(pkp.reactor.Reactor):
         :meth:`postulate_species`
         '''
 
-        def calc_remaining(comp):
-            '''Remaining fraction of each elements'''
-            return {el: (ua - tot_el_fraction(comp, el))
-                    for el, ua in ultimate_analysis.items()}
+        # def calc_remaining(comp):
+        #     '''Remaining fraction of each elements'''
+        #     return {el: (ua - tot_el_fraction(comp, el))
+        #             for el, ua in ultimate_analysis.items()}
 
-        def tot_el_fraction(comp, element):
-            '''Calc the total element fraction of the given element'''
-            return np.sum([val * self.el_fraction(sp, element)
-                           for sp, val in comp.items()])
+        # def tot_el_fraction(comp, element):
+        #     '''Calc the total element fraction of the given element'''
+        #     return np.sum([val * self.el_fraction(sp, element)
+        #                    for sp, val in comp.items()])
 
         sum_ua = (sum(self.ultimate_analysis.values()) -
                   self.ultimate_analysis['S'])
@@ -349,7 +349,7 @@ class DetailedModel(pkp.reactor.Reactor):
         #                      el_fraction('CO2', 'O'))
         self.__log.debug('Vol composition %s', composition)
 
-        remaining = calc_remaining(composition)
+        remaining = self.calc_remaining(composition, ultimate_analysis)
         self.__log.debug('Remaining element after CO/CO2/N2: %s',
                          remaining)
 
@@ -364,7 +364,7 @@ class DetailedModel(pkp.reactor.Reactor):
             self.__log.debug('Set TAR as %s', tar)
 
         # recalculate remaining
-        remaining = calc_remaining(composition)
+        remaining = self.calc_remaining(composition, ultimate_analysis)
         self.__log.debug('Remaining element after tar: %s', remaining)
 
         c_to_h_mass = remaining['C'] / remaining['H']
@@ -384,10 +384,10 @@ class DetailedModel(pkp.reactor.Reactor):
             self.__log.debug('Update C6H6 %s', composition['C6H6'])
 
         self.__log.debug('Remaining element after C: %s', remaining)
-        remaining = calc_remaining(composition)
+        remaining = self.calc_remaining(composition, ultimate_analysis)
 
         composition['H2'] = remaining['H']
-        remaining = calc_remaining(composition)
+        remaining = self.calc_remaining(composition, ultimate_analysis)
         self.__log.debug('Remaining %s', remaining)
         self.__log.debug('Final Vol composition %s', composition)
 
@@ -395,6 +395,17 @@ class DetailedModel(pkp.reactor.Reactor):
                     'heat_pyro': self.heat_of_pyrolysis(
                         composition)}
         return emp_dict
+
+    def calc_remaining(self, comp, ultimate_analysis):
+        '''Remaining fraction of each elements'''
+        return {el: (ua - self.tot_el_fraction(comp, el))
+                for el, ua in ultimate_analysis.items()}
+
+    @classmethod
+    def tot_el_fraction(cls, comp, element):
+        '''Calc the total element fraction of the given element'''
+        return np.sum([val * cls.el_fraction(sp, element)
+                       for sp, val in comp.items()])
 
     # def calc_element_fraction(self, element, species):
     #     '''
@@ -707,3 +718,133 @@ class DetailedModel(pkp.reactor.Reactor):
 
     def run(self, **kwargs):
         pass
+
+    def cpd_composition(self, result, tar_mw=100):
+        """
+        Calculate the empirical composition
+        """
+        # scale light gases to have sum = 1
+        light_gases = ('CO', 'CO2', 'H2O', 'CH4', 'others')
+        composition = {sp: result.iloc[-1][sp] for sp in ('tar', 'char')}
+
+        lg = {sp: result.iloc[-1][sp] for sp in light_gases}
+        lg_scale = (1 - sum(composition.values())) / sum(lg.values())
+        for sp, value in lg.items():
+            composition[sp] = value * lg_scale
+
+        # remove S from UA
+        sum_ua = (sum(self.ultimate_analysis.values()) -
+                  self.ultimate_analysis['S'])
+        ultimate_analysis = {
+            el: v / sum_ua
+            for el, v in self.ultimate_analysis.items()
+            if el != 'S'}
+        self.__log.debug('UA = %s', ultimate_analysis)
+
+        # add N2 to composition
+        composition['N2'] = ultimate_analysis['N']
+        composition['others'] -= composition['N2']
+        composition['CH4'] += composition.pop('others')
+        tar = composition.pop('tar')
+
+        self.__log.debug('Start composition: %s', composition)
+
+        # Check oxygen
+        O = self.tot_el_fraction(composition, 'O')
+        self.__log.debug('O in vol: %s', O)
+        self.__log.debug('O in UA: %s', ultimate_analysis['O'])
+        species_o = ('CO', 'CO2', 'H2O')
+
+        if O > ultimate_analysis['O']:
+            self.__log.debug('Reduce oxygen')
+            # decrease species containing oxygen
+            sum_species_o = sum(composition[sp] for sp in species_o)
+            gamma = ultimate_analysis['O'] / O
+            self.__log.debug('gamma: %s', gamma)
+            for sp in species_o:
+                composition[sp] *= gamma
+            # move to CH4
+            composition['CH4'] += (1 - gamma) * sum_species_o
+            self.__log.debug('composition after O fix %s', composition)
+            self.__log.debug('O in composition %s', self.tot_el_fraction(
+                composition, 'O'))
+
+        # check hydrogen
+        H = self.tot_el_fraction(composition, 'H')
+        if H > ultimate_analysis['H']:
+            self.__log.debug('H from composition: %s', H)
+            self.__log.debug('H from UA: %s', ultimate_analysis['H'])
+
+            comp_remaining = dict(composition)
+            CH4_old = comp_remaining.pop('CH4')
+            ratio = 1.0
+            C, H = [(ultimate_analysis[el] -
+                     self.tot_el_fraction(comp_remaining, el)) / M_elements[el]
+                    for el in ('C', 'H')]
+            self.__log.debug('C=%s H=%s', C, H)
+
+            CH4 = (H - ratio * C) / (4 - ratio) * \
+                species['CH4']['mw']
+            self.__log.debug('New CH4 = %s (old=%s)', CH4, CH4_old)
+            composition['CH4'] = CH4
+            tar_old = tar
+            tar += CH4_old - CH4
+            self.__log.debug('Increase tar from %s to %s', tar_old, tar)
+
+        # define TAR composition
+        tar_mf = {el: (ultimate_analysis[el] -
+                       self.tot_el_fraction(composition, el)) / tar
+                  for el in ('C', 'O', 'H')}
+        self.__log.debug('TAR mass fraction: %s', tar_mf)
+
+        # convert to molecular format
+        tar_molecule = {el: (value * tar_mw / M_elements[el])
+                        for el, value in tar_mf.items()}
+
+        composition['tar'] = tar
+        # append tar molecule to el_fractions DB
+        # el_fractions['tar'] = tar_molecule
+
+        # TAR HF
+        sum_lhv = sum(value * self.heat_of_reaction_species(sp)
+                      for sp, value in composition.items() if sp != 'tar')
+        self.__log.debug('LHV other species: %s', sum_lhv / 1e6)
+        LHV_tar = (self.lhv_daf - sum_lhv) / tar
+        self.__log.debug('LHV tar: %s', LHV_tar / 1e6)
+
+        heat_molar = LHV_tar * tar_mw
+
+        x, y, z = tar_molecule['C'], tar_molecule['H'], tar_molecule['O']
+        nu = {'CO2': -x, 'H2O': -y / 2, 'O2': (x + y / 4 - z / 2)}
+        self.__log.debug('nu: %s', nu)
+        hf_tar = heat_molar - \
+            sum(value * hf[sp] for sp, value in nu.items())
+        self.__log.debug('hf_tar: %s MJ/kmol', hf_tar / 1e6)
+
+        # partial reaction
+        nu_partial = {
+            'O2': (x - z) * 0.5,
+            'CO': x,
+            'H2': y / 2
+        }
+        partial_react = ('TAR + {O2:5.4f} O2 -> '
+                         '{CO:5.4f} CO + {H2:5.4f} H2'.format(**nu_partial))
+
+        # tar crack with H2O
+        nu_crack = dict(
+            H2O=(x - z),
+            H2=(x - z + 0.5 * y),
+            CO=x)
+        crack_react = ('TAR + {H2O:5.4f} H2O -> '
+                       '{CO:5.4f} CO + {H2:5.4f} H2'.format(**nu_crack))
+
+        comp_dict = {
+            'composition': composition,
+            'tar': {'molecule': tar_molecule,
+                    'hf': (hf_tar, 'J/kmol')},
+            'reactions': [
+                partial_react,
+                crack_react
+            ]
+        }
+        return comp_dict

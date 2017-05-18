@@ -291,7 +291,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         if light_gas:
             X_gas = df['delta'] * 0.5 + df['l']
             X_gas = 1 - X_gas / X_gas.iloc[0]
-            self.find_triangle(plot='show')
+            # self.find_triangle(plot='show')
+            self.find_triangle()
             if self.triangle:
                 # light gases are evaluated only if the coal
                 # is inside one of the defined points
@@ -867,9 +868,12 @@ class CPD(pkp.detailed_model.DetailedModel):
             for triangle, vertices in zip(triangles, triangle_vertices):
                 if ref_coal in vertices:
                     self.__log.error('Closest coal is %s', ref_coal)
-                    # self.triangle = triangle
-                    # self.triangle_coals = vertices
-                    # self.triangle_weights = t.weights(self.van_kravelen)
+                    self.triangle = triangle
+                    self.triangle_coals = vertices
+                    #self.triangle_weights = t.weights(self.van_kravelen)
+                    self.triangle_weights = np.array([1 if ref_coal == v
+                                                      else 0 for v in vertices])
+                    # print(self.triangle_weights)
                     break
 
         if plot:

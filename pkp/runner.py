@@ -585,6 +585,13 @@ class PKPRunner(ReadConfiguration):
             'postulate_volatiles'] = self.postulate_species(y0)
         fit_results['empirical_comp'] = self.empirical_composition(
             y0, tar=tar_mean, CO=co_mean)
+
+        if det_model == 'CPD':
+            self.__log.info('calc CPD composition')
+            fit_results['cpd_volatiles'] = self.cpd_composition(
+                results['run0'])
+            self.__log.info('calc CPD composition... done')
+
         return fit_results
 
     def _plot_yieldfit(self, det_model, emp_model, filename, fit_dict,
