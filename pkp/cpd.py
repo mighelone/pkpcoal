@@ -354,6 +354,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         dydt: array
         '''
         l, delta, c = y
+        # l, delta, c = np.maximum(y, 0)
+
         # Calculate the temperature.
         # It is valid only for prescribed particle temperatures
         T = self.T(t)
@@ -395,7 +397,7 @@ class CPD(pkp.detailed_model.DetailedModel):
         '''
         # variables are [l, d, c]
         backend = 'dopri5'
-        backend = 'vode'
+        # backend = 'vode'
         t0 = self.operating_conditions[0, 0]
         solver = ode(self._dydt).set_integrator(backend, nsteps=1,
                                                 first_step=self.dt,

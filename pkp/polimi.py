@@ -195,7 +195,8 @@ class Polimi(pkp.detailed_model.DetailedModel):
         :meth:`mechanism`
         :meth:`skip`
         '''
-        for key in ('mechanism', 'backend', 'skip'):
+        for key in ('mechanism', 'backend', 'skip', 'dt',
+                    'increment', 'dt_max'):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
@@ -289,7 +290,9 @@ class Polimi(pkp.detailed_model.DetailedModel):
         m0 = mechanism.Y
 
         solver = ode(dmidt).set_integrator(backend,
-                                           nsteps=1)
+                                           nsteps=1,
+                                           first_step=self.dt,
+                                           max_step=self.dt_max)
         solver.set_initial_value(m0, t0)
         solver._integrator.iwork[2] = -1
         t = [t0]

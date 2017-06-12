@@ -55,7 +55,11 @@ from ._exceptions import *
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.style.use('bmh')
+
+try:
+    plt.style.use('newstyle')
+except:
+    plt.style.use('bmh')
 
 # try:
 #     plt.style.use(['mystyle', 'mystyle-vega'])
@@ -657,6 +661,7 @@ class PKPRunner(ReadConfiguration):
                     linestyle='dashed', label=l)
         ax.set_ylabel('Yield {}'.format(fit_dict['species']))
         ax.set_xlabel('t, s')
+        ax.locator_params(nbins=4)
         # add an extra legend
         # http://matplotlib.org/users/legend_guide.html#multiple-legend
         nruns = self.operating_conditions['runs']
