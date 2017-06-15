@@ -28,8 +28,7 @@ class Reactor(object):
         super(Reactor, self).__init__()
         self.operating_conditions = None
 
-    @property
-    def operating_conditions(self):
+    def _get_operating_conditions(self):
         '''
         Operating conditions for devolatilization. They are defined as
         list of operating points [[t0, T0], [t1, T1], ..., [tn, Tn]]
@@ -38,8 +37,7 @@ class Reactor(object):
         '''
         return self._operating_conditions
 
-    @operating_conditions.setter
-    def operating_conditions(self, conditions):
+    def _set_operating_conditions(self, conditions):
         if conditions is None:
             self.T = None
             self._operating_conditions = None
@@ -58,3 +56,10 @@ class Reactor(object):
             '''Interpolate time with temperature'''
             return interp(t, conditions[:, 0], conditions[:, 1])
         self.T = interp_tT
+
+    operating_conditions = property(_get_operating_conditions,
+                                    _set_operating_conditions,
+                                    doc=("Operating conditions for devolatilization. They are defined as """
+                                         "list of operating points [[t0, T0], [t1, T1], ..., [tn, Tn]] "
+                                         "Each operating point is defined by the time in second and "
+                                         "temperature in K."))

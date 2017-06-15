@@ -60,7 +60,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
     _mask = np.array([True] * _len_parameters)
 
     # initial volatile yield
-    y0 = 0
+    # y0 = 0
 
     jacob = None
 
@@ -89,6 +89,9 @@ class EmpiricalModel(pkp.reactor.Reactor):
     def parameters_units(cls):
         return cls._Parameters.units
 
+    def _set_y0(self):
+        self.y0 = [0, self.operating_conditions[0, 1]]
+
     @property
     def len_parameters(self):
         '''
@@ -112,6 +115,28 @@ class EmpiricalModel(pkp.reactor.Reactor):
                               '_Parameters of the empirical models.'
                               ' They can be given as list/numpy array '
                               'or dictionary'))
+
+    def _set_operating_conditions(self, operating_conditions):
+        super(EmpiricalModel, self)._set_operating_conditions(
+            operating_conditions)
+        self._dTdt_array = (np.diff(self.operating_conditions[:, 1]) /
+                            np.diff(self.operating_conditions[:, 0]))
+        self._set_y0()
+
+    def _get_operating_conditions(self):
+        return self._operating_conditions
+
+    operating_conditions = property(_get_operating_conditions,
+                                    _set_operating_conditions)
+
+    def _dTdt(self, t):
+        t_array = self.operating_conditions[:, 0]
+        if t < t_array[0] or t >= t_array[-1]:
+            return 0.0
+        index = next(
+            (idx for idx, val in np.ndenumerate(t_array) if val > t))[0]
+
+        return self._dTdt_array[index - 1]
 
     def run(self, t=None):
         '''
@@ -137,7 +162,7 @@ class EmpiricalModel(pkp.reactor.Reactor):
         args = [solver]
         ode_args = {
             'first_step': 1e-5,
-            'max_step': 1e-2,
+            'max_step': 1e-3,
         }
         if t is None:
             backend = 'dopri5'
@@ -181,8 +206,8 @@ class EmpiricalModel(pkp.reactor.Reactor):
         y = []
         while solver.t < time_end:
             solver.integrate(time_end, step=True)
-            # print(solver.t, solver.y, self.rate(
-            #    solver.t, solver.y), self.parameters.y0 - solver.y)
+            print(solver.t, solver.y, self.rate(
+                solver.t, solver.y), self.parameters.y0 - solver.y[0])
             t.append(solver.t)
             y.append(solver.y)
 
@@ -289,18 +314,18 @@ class EmpiricalModel(pkp.reactor.Reactor):
             Scaled paramters
         '''
         if isinstance(parameters, dict):
-            parameters = [parameters[p] for p in
+            parameters=[parameters[p] for p in
                           cls.parameters_names()]
-        parameters = np.array(parameters)
-        parameters_min = np.array(parameters_min)
-        parameters_max = np.array(parameters_max)
+        parameters=np.array(parameters)
+        parameters_min=np.array(parameters_min)
+        parameters_max=np.array(parameters_max)
 
-        mask = np.array(cls._mask)
-        parameters_min[mask] = np.log10(parameters_min[mask])
-        parameters_max[mask] = np.log10(parameters_max[mask])
-        parameters[mask] = np.log10(parameters[mask])
+        mask=np.array(cls._mask)
+        parameters_min[mask]=np.log10(parameters_min[mask])
+        parameters_max[mask]=np.log10(parameters_max[mask])
+        parameters[mask]=np.log10(parameters[mask])
 
-        sc_par = ((parameters - parameters_min) /
+        sc_par=((parameters - parameters_min) /
                   (parameters_max - parameters_min))
         return sc_par
 
@@ -334,12 +359,12 @@ class SFOR(EmpiricalModel):
     (heating rate and maximum temperature) of the devolatilization
     process.
     '''
-    _Parameters = namedtuple_with_defaults(
+    _Parameters=namedtuple_with_defaults(
         typename='SFOR',
         field_names=('A', 'E', 'y0'),
         default_values=(1e5, 50e6, 0.6),
         units=('1/s', 'J/kmol', '-'))
-    _mask = np.array([True, False, False])
+    _mask=np.array([True, False, False])
 
     def rate(self, t, y):
         '''
@@ -357,17 +382,18 @@ class SFOR(EmpiricalModel):
         rate: float
             :math:`dy/dt`
         '''
-        k = self._calc_k(t)
+        k=self._calc_k(y[1])
         # return k * (1 - y - self.parameters['y0'])
-        dy = self.parameters.y0 - y
-        return k * dy if dy > 1e-6 else 0
+        dy=self.parameters.y0 - y[0]
+        return [k * dy if dy > 1e-6 else 0, self._dTdt(t)]
 
-    def _calc_k(self, t):
+    def _calc_k(self, T):
         return (self.parameters.A /
-                np.exp(self.parameters.E / Rgas / self.T(t)))
+                np.exp(self.parameters.E / Rgas / T))
 
-    def jacob(self, t, y):
-        return -self._calc_k(t)
+    # def jacob(self, t, y):
+    #    return -self._calc_k(t)
+    jacob=None
 
 
 @logged
@@ -375,16 +401,16 @@ class SFORT(SFOR):
     '''
     SFOR model with temperature threasold
     '''
-    _Parameters = namedtuple_with_defaults(
+    _Parameters=namedtuple_with_defaults(
         typename='SFORT',
         field_names=('A', 'E', 'y0', 'T'),
         default_values=(1e5, 50e6, 0.6, 500),
         units=('1/s', 'J/kmol', '-', 'K'))
 
-    _mask = np.array([True, False, False, False])
+    _mask=np.array([True, False, False, False])
 
     def rate(self, t, y):
-        T = self.T(t)
+        T=self.T(t)
         if T >= self.parameters.T:
             return super(SFORT, self).rate(t, y)
         else:
@@ -438,14 +464,14 @@ class C2SM(EmpiricalModel):
     energy with low release of volatiles, while the second by high
     activation energy and volatiles.
     '''
-    _Parameters = namedtuple_with_defaults(
+    _Parameters=namedtuple_with_defaults(
         typename='C2SM',
         field_names=('A1', 'E1', 'y1', 'A2', 'E2', 'y2'),
         default_values=(49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58),
         units=('1/s', 'J/kmol', '-', '1/s', 'J/kmol', '-'))
-    _mask = np.array([True, False, False, True, False, False])
+    _mask=np.array([True, False, False, True, False, False])
 
-    y0 = [0, 1]  # volatile yield, raw solid
+    y0=[0, 1]  # volatile yield, raw solid
 
     def rate(self, t, y):
         '''
@@ -466,24 +492,24 @@ class C2SM(EmpiricalModel):
             :math:`dy/dt`
         '''
 
-        k1, k2 = self._k(t)
+        k1, k2=self._k(t)
         if y[1] > 1e-6:
-            dsdt = - (k1 + k2) * y[1]
-            dydt = (self.parameters.y1 * k1 +
+            dsdt=- (k1 + k2) * y[1]
+            dydt=(self.parameters.y1 * k1 +
                     self.parameters.y2 * k2) * y[1]
         else:
-            dsdt = 0
-            dydt = 0
+            dsdt=0
+            dydt=0
         return np.array([dydt, dsdt])
 
     def jacob(self, t, y):
-        k1, k2 = self._k(t)
+        k1, k2=self._k(t)
         return np.array([[0, (self.parameters.y1 * k1 +
                               self.parameters.y2 * k2)],
                          [0, -(k1 + k2)]])
 
     def _k(self, t):
-        RT = Rgas * self.T(t)
+        RT=Rgas * self.T(t)
         return (self.parameters.A1 / np.exp(
             self.parameters.E1 / RT),
             self.parameters.A2 / np.exp(
@@ -497,13 +523,13 @@ class DAEM(EmpiricalModel):
     Activation Energy Model (DAEM), using Hermit-Gaussian quadrature
     [Donskoi2000]_
     '''
-    _Parameters = namedtuple_with_defaults(
+    _Parameters=namedtuple_with_defaults(
         typename='DAEM',
         field_names=('A0', 'E0', 'sigma', 'y0'),
         default_values=(1e6, 100e6, 12e6, 0.6),
         units=('1/s', 'J/kmol', 'J/kmol', '-'))
-    _mask = np.array([True, False, False, False])
-    y0 = [0, 0, 0, 0, 0]
+    _mask=np.array([True, False, False, False])
+    y0=[0, 0, 0, 0, 0]
 
     n_quad = 4
     mt = 0.72

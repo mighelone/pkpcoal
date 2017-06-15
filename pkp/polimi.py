@@ -158,6 +158,9 @@ class Polimi(pkp.detailed_model.DetailedModel):
                  'GCOAL3', 'GCO2', 'TAR3', 'GCOLS']
     char = ['CHAR', 'CHARH', 'CHARG']
 
+    dt = 1e-5
+    dt_max = 1e-4
+
     def __init__(self, proximate_analysis, ultimate_analysis,
                  pressure=101325, name='Coal'):
         '''
