@@ -223,3 +223,69 @@ class Reactor(object):
                 self._ode_parameters[key] = value
 
         self._model.set_parameters(**model_parameters)
+
+
+class DTR(Reactor):
+    def __init__(self, model, parameters=None):
+        super(DTR, self).__init__(model=model, parameters=parameters)
+        self.density = 800
+        self.dp = 100e-6
+        self.daf = 0.9
+        self.Vp = np.pi * self.dp ** 3 / 8
+        self.Ap = np.pi * self.dp ** 2
+        self.mp0 = self.density * self.Vp
+        self.mash = self.mp0 * (1 - self.daf)
+        self.mdaf = self.mp0 * self.daf
+        self.cp = 1600
+        self.h = 2000
+        self.h_pyro = 1e6
+
+    def calc_mass(self, y):
+        return self.mash + (1 - y) * self.mdaf
+
+    @property
+    def operating_conditions(self):
+        '''
+        Operating conditions for devolatilization. They are defined as
+        list of operating points [[t0, T0], [t1, T1], ..., [tn, Tn]]
+        Each operating point is defined by the time in second and
+        temperature in K.
+        '''
+        return self._operating_conditions
+
+    @operating_conditions.setter
+    def operating_conditions(self, conditions):
+        if conditions is None:
+            self.T = None
+            self._operating_conditions = None
+            return
+        if not isinstance(conditions, (np.ndarray, list)):
+            raise TypeError('Define conditions as list or numpy array')
+        elif isinstance(conditions, list):
+            conditions = np.array(conditions)
+        if not conditions.ndim == 2:
+            raise ValueError('Define conditions as array Nx2')
+        if not conditions.shape[-1] == 2:
+            raise ValueError('Define conditions as array Nx2')
+        self._operating_conditions = conditions
+
+        self._dTdt_array = (np.diff(self._operating_conditions[:, 1]) /
+                            np.diff(self._operating_conditions[:, 0]))
+
+        def interp_tT(t):
+            '''Interpolate time with temperature'''
+            return interp(t, conditions[:, 0], conditions[:, 1])
+        self.Tg = interp_tT
+
+    def _dTdt(self, t, yt):
+        T = yt[-1]
+        y = yt[0]
+        mp = self.calc_mass(y)
+        Tg = self.Tg(t)
+        h = 2 * 0.026 / self.dp
+        qconv = h * self.Ap * (Tg - T)
+        rate = self._model.rate(t, yt)[0]
+        qpyro = -rate * self.mdaf * self.h_pyro
+        qrad = 0
+        qtot = qconv + qpyro + qrad
+        return qtot / mp / self.cp

@@ -469,8 +469,8 @@ class DAEM(EmpiricalModel):
         return (self.parameters.E0 +
                 self.x * sqrt2 * self.parameters.sigma * self.mt)
 
-    def set_parameters(self, parameters):
-        super(DAEM, self).set_parameters(parameters)
+    def set_parameters(self, *args, **kwargs):
+        super(DAEM, self).set_parameters(*args, **kwargs)
         self._Em = self._calc_Em()
 
     # parameters = property(_get_parameters, _set_parameters)
