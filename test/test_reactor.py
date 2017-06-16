@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from pkp.reactor import Reactor
-from pkp.empirical_model_t import SFOR, C2SM
+from pkp.empirical_model import SFOR, C2SM
 
 operating_conditions = [[0, 400], [0.1, 400], [0.2, 1000]]
 

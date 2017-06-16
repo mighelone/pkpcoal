@@ -6,7 +6,7 @@ the operating conditions.
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-from .empirical_model_t import *
+from .empirical_model import *
 from scipy.integrate import ode
 import warnings
 

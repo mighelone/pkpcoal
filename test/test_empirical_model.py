@@ -1,8 +1,8 @@
 import pytest
 
 # from pkp.empirical_model_t import EmpiricalModel
-from pkp.empirical_model_t import namedtuple_with_defaults, Rgas
-from pkp.empirical_model_t import SFOR, C2SM
+from pkp.empirical_model import namedtuple_with_defaults, Rgas
+from pkp.empirical_model import SFOR, C2SM
 import numpy as np
 
 

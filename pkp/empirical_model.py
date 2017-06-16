@@ -9,15 +9,13 @@ It contains classes for the following models:
 * Distributed Activation Energy Model (DAEM)
     :class:`pkp.empirical_model.DAEM`
 * Biagini-Tognotti model
-    :class:`pkp.empirical_model.Biagini`
+    :class:`pkp.empirical_model.BT`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import numpy as np
-
-import pkp.detailed_model
-import warnings
+import abc
 from autologging import logged
 
 from scipy.integrate import ode
@@ -47,12 +45,12 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
 
 
 @logged
-class EmpiricalModel(pkp.reactor.Reactor):
+class EmpiricalModel(metaclass=abc.ABCMeta):
     '''
-    Parent class for model.
-    `y` is generally considered as the volatile yield released in the
-    gas phase.
+    Abstract class for empirical models.
+    The derived class has to provide the `rate` method.
     '''
+    __metaclass__ = abc.ABCMeta
     _Parameters = namedtuple_with_defaults(typename='EmpiricalModel',
                                            field_names=('foo', 'bar'),
                                            default_values=(1, 1))
@@ -60,12 +58,13 @@ class EmpiricalModel(pkp.reactor.Reactor):
     _mask = np.array([True] * _len_parameters)
 
     # initial volatile yield
-    y0 = 0
+    y0 = [0]
 
     jacob = None
 
-    def __init__(self, parameters=None):
-        self.parameters = parameters
+    def __init__(self, *args, **kwargs):
+        # self.parameters = parameters
+        self.set_parameters(*args, **kwargs)
 
     @property
     def mask(self):
@@ -96,129 +95,61 @@ class EmpiricalModel(pkp.reactor.Reactor):
         '''
         return len(self._Parameters._fields)
 
-    def _get_parameters(self):
+    @property
+    def parameters(self):
         return self._parameters
 
-    def _set_parameters(self, values):
-        if values is None:
-            self._parameters = self._Parameters()
-        elif isinstance(values, dict):
-            self._parameters = self._Parameters(**values)
-        else:
-            self._parameters = self._Parameters(*values)
+    def set_parameters(self, *args, **kwargs):
+        """
+        Set the parameters of the model
 
-    parameters = property(_get_parameters, _set_parameters,
-                          doc=(
-                              '_Parameters of the empirical models.'
-                              ' They can be given as list/numpy array '
-                              'or dictionary'))
-
-    def run(self, t=None):
-        '''
-        Solve model using a ODE solver
-
-        _Parameters
-        ----------
-        t: np.array, list, default=None
-            Time array. This is used to take results from the ODE
-            solver. If None times are automatically taken from
-            the solver
-        '''
-        # backend = 'dopri5'
-        if self.jacob:
-            solver = ode(self.rate, jac=self.jacob)
-        else:
-            solver = ode(self.rate)
-
-        t0 = self.operating_conditions[0, 0]
-        solver.set_initial_value(self.y0, t0)
-
-        # define the arguments for running the ODE solver
-        args = [solver]
-        ode_args = {
-            'first_step': 1e-5,
-            'max_step': 1e-2,
-        }
-        if t is None:
-            backend = 'dopri5'
-            ode_args['nsteps'] = 1
-            ode_args['verbosity'] = 2
-            ode_run = self._run_nostop
-        else:
-            # backend = 'vode'
-            backend = 'dopri5'
-            ode_run = self._run_t
-            ode_args['nsteps'] = 100000
-            # ode_args['min_step'] = 1e-13
-            args.append(t)
-
-        solver.set_integrator(backend, **ode_args)
-        warnings.filterwarnings("ignore", category=UserWarning)
-        t, y = ode_run(*args)
-        warnings.resetwarnings()
-
-        return t, np.squeeze(y)
-
-    def _run_nostop(self, solver):
-        '''
-        Run the ODE solver stopping at then internal time step of the
-        solver.
-
-        _Parameters
-        ----------
-        solver: scipy.integrate.ode
-
-        Returns
+        Example
         -------
-        t, y: np.ndarray
-            Time and yields arrays.
-        '''
-        solver._integrator.iwork[2] = -1
-        warnings.filterwarnings("ignore", category=UserWarning)
-        time_end = self.operating_conditions[-1, 0]
 
-        t = []
-        y = []
-        while solver.t < time_end:
-            solver.integrate(time_end, step=True)
-            # print(solver.t, solver.y, self.rate(
-            #    solver.t, solver.y), self.parameters.y0 - solver.y)
-            t.append(solver.t)
-            y.append(solver.y)
+        Assuming that the model has parameters `x` and `y`::
 
-        return np.array(t), np.array(y)
+            >>> model.set_parameters()
 
-    def _run_t(self, solver, t):
-        '''
-        Run the ODE solver stopping at the prescribed time steps.
+        Set the parameters to their default values.::
 
-        _Parameters
-        ----------
-        solver: scipy.integrate.ode
+            >> model.set_parameters(1)
 
-        Returns
-        -------
-        t, y: np.ndarray
-            Time and yields arrays.
-        '''
-        # self.__log.info('Solver backend %s', solver)
-        y = []
-        t_calc = []
-        for ti in t:
-            solver.integrate(ti)
-            # print(solver.t, solver.y)
-            y.append(solver.y)
-            t_calc.append(solver.t)
-            # print(solver.t)
+        Set the parameter `x` to 1. x is the first in the list of parameters.::
 
-        # if not np.allclose(t, t_calc):
-        if not np.allclose(t, t_calc):
-            raise RuntimeError('t and t_calc not the same!')
+            >> model.set_parameters(1, 2)
 
-        return np.array(t_calc), np.array(y)
+        Set the parameter `x` to 1 and `y` to 2. It follows the order of the
+        parameter list::
 
+            >> model.set_parameters(x=1, y=2)
+
+        Again set x to 1 and y to 2::
+
+            >> model.set_parameters(y=2)
+
+        Set y to 2 and x to its default values.
+        """
+        if len(args) > 0:
+            if isinstance(args[0], list):
+                self._parameters = self._Parameters(*args[0])
+            elif args[0] is None:
+                self._parameters = self._Parameters()
+            else:
+                self._parameters = self._Parameters(*args)
+        else:
+            self._parameters = self._Parameters(**kwargs)
+
+    @property
+    def parameters_dict(self):
+        return dict(zip(self.parameters_names(), self.parameters_list))
+
+    @property
+    def parameters_list(self):
+        return [getattr(self.parameters, p) for p in self.parameters_names()]
+
+    @abc.abstractmethod
     def rate(self, t, y):
-        return 0
+        return
 
     @classmethod
     def unscale_parameters(cls, norm_parameters, parameters_min,
@@ -340,6 +271,7 @@ class SFOR(EmpiricalModel):
         default_values=(1e5, 50e6, 0.6),
         units=('1/s', 'J/kmol', '-'))
     _mask = np.array([True, False, False])
+    y0 = [0]
 
     def rate(self, t, y):
         '''
@@ -357,17 +289,18 @@ class SFOR(EmpiricalModel):
         rate: float
             :math:`dy/dt`
         '''
-        k = self._calc_k(t)
+        k = self._calc_k(y[1])
         # return k * (1 - y - self.parameters['y0'])
-        dy = self.parameters.y0 - y
-        return k * dy if dy > 1e-6 else 0
+        dy = self.parameters.y0 - y[0]
+        return [k * dy if dy > 1e-6 else 0]
 
-    def _calc_k(self, t):
+    def _calc_k(self, T):
         return (self.parameters.A /
-                np.exp(self.parameters.E / Rgas / self.T(t)))
+                np.exp(self.parameters.E / Rgas / T))
 
-    def jacob(self, t, y):
-        return -self._calc_k(t)
+    # def jacob(self, t, y):
+    #    return -self._calc_k(t)
+    jacob = None
 
 
 @logged
@@ -384,8 +317,7 @@ class SFORT(SFOR):
     _mask = np.array([True, False, False, False])
 
     def rate(self, t, y):
-        T = self.T(t)
-        if T >= self.parameters.T:
+        if y[1] >= self.parameters.T:
             return super(SFORT, self).rate(t, y)
         else:
             return 0
@@ -465,25 +397,22 @@ class C2SM(EmpiricalModel):
         rate: float
             :math:`dy/dt`
         '''
-
-        k1, k2 = self._k(t)
+        k1, k2 = self._k(y[-1])
         if y[1] > 1e-6:
-            dsdt = - (k1 + k2) * y[1]
-            dydt = (self.parameters.y1 * k1 +
-                    self.parameters.y2 * k2) * y[1]
+            dydt = [(self.parameters.y1 * k1 + self.parameters.y2 * k2) * y[1],
+                    - (k1 + k2) * y[1]]
         else:
-            dsdt = 0
-            dydt = 0
-        return np.array([dydt, dsdt])
+            dydt = [0, 0]
+        return dydt
 
-    def jacob(self, t, y):
-        k1, k2 = self._k(t)
-        return np.array([[0, (self.parameters.y1 * k1 +
-                              self.parameters.y2 * k2)],
-                         [0, -(k1 + k2)]])
+    # def jacob(self, t, y):
+    #     k1, k2 = self._k(t)
+    #     return np.array([[0, (self.parameters.y1 * k1 +
+    #                           self.parameters.y2 * k2)],
+    #                      [0, -(k1 + k2)]])
 
-    def _k(self, t):
-        RT = Rgas * self.T(t)
+    def _k(self, T):
+        RT = Rgas * T
         return (self.parameters.A1 / np.exp(
             self.parameters.E1 / RT),
             self.parameters.A2 / np.exp(
@@ -500,7 +429,7 @@ class DAEM(EmpiricalModel):
     _Parameters = namedtuple_with_defaults(
         typename='DAEM',
         field_names=('A0', 'E0', 'sigma', 'y0'),
-        default_values=(1e6, 100e6, 12e6, 0.6),
+        default_values=(1e5, 50e6, 12e6, 0.6),
         units=('1/s', 'J/kmol', 'J/kmol', '-'))
     _mask = np.array([True, False, False, False])
     y0 = [0, 0, 0, 0, 0]
@@ -516,13 +445,14 @@ class DAEM(EmpiricalModel):
         np.sqrt(np.pi) / (pow(n_quad, 2) * pow(H, 2))
     Wm = w * np.exp(pow(x, 2))
 
-    def rate(self, t, y):
+    def rate(self, t, yt):
         '''y, k0.., kn'''
         # TODO add with parameters
-
+        T = yt[-1]
+        y = yt[:-1]
         # self.__log.debug('Em %s', Em)
         dIdt = (self.parameters.A0 *
-                np.exp(-self._Em / Rgas / self.T(t)))
+                np.exp(-self._Em / Rgas / T))
         # self.__log.debug('dkdt %s', dkdt)
         coeff1 = self.Wm * self.mt / sqrtpi
         coeff2 = np.exp(-pow((self._Em - self.parameters.E0) /
@@ -539,20 +469,17 @@ class DAEM(EmpiricalModel):
         return (self.parameters.E0 +
                 self.x * sqrt2 * self.parameters.sigma * self.mt)
 
-    def _set_parameters(self, parameters):
-        super(DAEM, self)._set_parameters(parameters)
+    def set_parameters(self, parameters):
+        super(DAEM, self).set_parameters(parameters)
         self._Em = self._calc_Em()
 
-    def _get_parameters(self):
-        return super(DAEM, self)._get_parameters()
-
-    parameters = property(_get_parameters, _set_parameters)
+    # parameters = property(_get_parameters, _set_parameters)
 
 
 @logged
-class Biagini(EmpiricalModel):
+class BT(SFOR):
     '''
-    Calculates the devolatilization reaction using the Biagini model
+    Calculates the devolatilization reaction using the Biagini Tognotti (BT) model
     [Biagini2014]_
 
     It based on the :class:`SFOR` model:
@@ -575,15 +502,18 @@ class Biagini(EmpiricalModel):
     _Parameters = namedtuple_with_defaults(
         typename='Biagini',
         field_names=('A', 'E', 'k'),
-        default_values=(1e6, 100e6, 0.5),
+        default_values=(1e5, 50e6, 0.5),
         units=('1/s', 'J/kmol', '-'))
     _mask = np.array([True, False, False])
-    y0 = 0
+    y0 = [0]
     Tst = 1223
 
     def rate(self, t, y):
-        T = self.T(t)
-        y0 = 1 - np.exp(-self.parameters.k * T / self.Tst)
-        k = (self.parameters.A /
-             np.exp(self.parameters.E / Rgas / self.T(t)))
-        return k * (y0 - y)
+        T = y[-1]
+        y0 = self._calc_y0(T)
+        dy = (y0 - y[0])
+        k = self._calc_k(T)
+        return [k * dy]
+
+    def _calc_y0(self, T):
+        return 1 - np.exp(-self.parameters.k * T / self.Tst)
