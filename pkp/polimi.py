@@ -4,6 +4,7 @@ from builtins import dict
 import sys
 
 import pkp.detailed_model
+import pkp.empirical_model
 import numpy as np
 import warnings
 import pandas as pd
@@ -37,13 +38,13 @@ def set_reference_coal(name, atoms):
 
     Returns
     -------
-    pkp.detailed_model.DetailedModel
+    pkp.detailed_model.Coal
     '''
     atoms['N'] = 0
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
           for el, val in atoms.items()}
-    return pkp.detailed_model.DetailedModel(
+    return pkp.detailed_model.Coal(
         name=name,
         ultimate_analysis=ua,
         proximate_analysis={'FC': 50,
@@ -100,7 +101,7 @@ class TriangleCoal(Triangle):
     @staticmethod
     def _coal_to_x(coal):
         if isinstance(coal, (Polimi,
-                             pkp.detailed_model.DetailedModel)):
+                             pkp.detailed_model.Coal)):
             return coal.van_kravelen
         else:
             return coal
@@ -144,7 +145,7 @@ triangle_123 = TriangleCoal(coal1,
 
 
 @logged
-class Polimi(pkp.detailed_model.DetailedModel):
+class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
     '''
     Polimi Multiple Step Kinetic Model for coal devolatilization
     Based on Sommariva (2010).
@@ -161,7 +162,7 @@ class Polimi(pkp.detailed_model.DetailedModel):
     dt = 1e-5
     dt_max = 1e-4
 
-    def __init__(self, proximate_analysis, ultimate_analysis,
+    def __init__(self, proximate_analysis=None, ultimate_analysis=None,
                  pressure=101325, name='Coal'):
         '''
         Parameters
@@ -176,10 +177,12 @@ class Polimi(pkp.detailed_model.DetailedModel):
             ultimate_analysis=ultimate_analysis,
             pressure=pressure,
             name=name)
+        # this information should be setted in set_parameters
         self.mechanism = None
         self.skip = 1
         self.backend = None
         self._define_triangle()
+        self.parameters_dict = {}
 
     def set_parameters(self, **kwargs):
         '''
@@ -270,6 +273,13 @@ class Polimi(pkp.detailed_model.DetailedModel):
         self.composition = {c.name: self.triangle_weights[i]
                             for i, c in enumerate(
             self.triangle.itercoals())}
+        self.mechanism.TPY = None, None, self.composition
+        self.y0 = self.mechanism.Y
+
+    def rate(self, t, y):
+        self.mechanism.TPY = y[-1], self.pressure, y[:-1]
+        return (self.mechanism.net_production_rates *
+                self.mechanism.molecular_weights / self.mechanism.density)
 
     def run(self):
         '''
@@ -358,3 +368,14 @@ class Polimi(pkp.detailed_model.DetailedModel):
                    proximate_analysis=proximate_analysis,
                    pressure=pressure,
                    name=c.name)
+
+    def postprocess(self, t, y):
+        data = np.insert(y, 0, t, axis=1)[::self.skip]
+
+        data = pd.DataFrame(data=data,
+                            columns=['t'] + self.mechanism.species_names + ['T'])
+        for v in ('metaplast', 'char', 'raw', 'tar', 'light_gas'):
+            data[v] = data[getattr(self, v)].sum(axis=1)
+        data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
+        data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
+        return data

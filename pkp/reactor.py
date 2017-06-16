@@ -7,6 +7,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 from .empirical_model import *
+from .polimi import Polimi
 from scipy.integrate import ode
 import warnings
 
@@ -31,7 +32,7 @@ class Reactor(object):
     _ode_parameters = {'first_step': 1e-5,
                        'max_step': 1e-3}
 
-    def __init__(self, model=None, parameters=None):
+    def __init__(self, model=None, **kwargs):
         """
         Parameters
         ----------
@@ -40,7 +41,7 @@ class Reactor(object):
 
         """
         # super(Reactor, self).__init__()
-        self._model = eval(model)(parameters)
+        self._model = eval(model)(**kwargs)
         self.operating_conditions = None
 
     @property
@@ -79,7 +80,7 @@ class Reactor(object):
 
     @property
     def y0(self):
-        return self._model.y0 + [self.operating_conditions[0, 1]]
+        return np.append(self._model.y0, self.operating_conditions[0, 1])
 
     def run(self, t=None):
         '''
@@ -124,7 +125,8 @@ class Reactor(object):
         t, y = ode_run(*args)
         warnings.resetwarnings()
 
-        return t, np.squeeze(y)
+        # return t, np.squeeze(y)
+        return self.model.postprocess(t, y)
 
     def rate(self, t, y):
         return np.concatenate([self._model.rate(t, y), [self._dTdt(t, y)]])
@@ -226,8 +228,8 @@ class Reactor(object):
 
 
 class DTR(Reactor):
-    def __init__(self, model, parameters=None):
-        super(DTR, self).__init__(model=model, parameters=parameters)
+    def __init__(self, model, **kwargs):
+        super(DTR, self).__init__(model=model, **kwargs)
         self.density = 800
         self.dp = 100e-6
         self.daf = 0.9

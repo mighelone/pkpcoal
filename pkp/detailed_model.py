@@ -24,6 +24,15 @@ pa_keys = ['FC', 'VM', 'Ash', 'Moist']
 pa_keys_daf = pa_keys[: 2]
 ua_keys = ['C', 'H', 'O', 'N', 'S']
 
+ua = {'C': 75.23e-2,
+      'H': 5.16e-2,
+      'N': 1.43e-2,
+      'O': 9.83e-2,
+      'S': 0}
+
+pa = {'FC': 45.1, 'VM': 50.6, 'Ash': 4.3, 'Moist': 19.0}
+
+
 # calc M elements
 M_elements = {'C': 12.010999999999999,
               'H': 1.0079400000000001,
@@ -69,7 +78,7 @@ def normalize_dictionary(d):
 
 
 @logged
-class DetailedModel(pkp.reactor.Reactor):
+class Coal(object):
     '''
     Detailed model class used as parent class for Devolatilization
     models
@@ -91,12 +100,11 @@ class DetailedModel(pkp.reactor.Reactor):
         name: str, unicode
             Reference name of the modelled coal
         '''
-        super(DetailedModel, self).__init__()
+        super(Coal, self).__init__()
         if ultimate_analysis is None:
-            ultimate_analysis = {'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}
+            ultimate_analysis = ua
         if proximate_analysis is None:
-            proximate_analysis = {'FC': 45.1,
-                                  'VM': 50.6, 'Ash': 4.3, 'Moist': 19.0}
+            proximate_analysis = pa
         self.ultimate_analysis = ultimate_analysis
         self.proximate_analysis = proximate_analysis
         self.pressure = pressure
@@ -109,10 +117,8 @@ class DetailedModel(pkp.reactor.Reactor):
         self.T = None
         self.rho_dry = 1000.0
 
-        self._basename = 'dummy'
-        self._path = 'dummy'
-        self.basename = None
-        self.path = None
+        self._basename = 'Coal'
+        self._path = os.getcwd()
 
     @property
     def hhv(self):

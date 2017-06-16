@@ -18,7 +18,6 @@ import numpy as np
 import abc
 from autologging import logged
 
-from scipy.integrate import ode
 from scipy.misc import factorial
 import collections
 
@@ -27,9 +26,28 @@ sqrt2 = np.sqrt(2)
 sqrtpi = np.sqrt(np.pi)
 
 
-# http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
 def namedtuple_with_defaults(typename, field_names, default_values=(),
                              units=None):
+    """
+    Create a namedtuple with default values
+
+    see http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
+
+    Parameters
+    ----------
+    typename: str
+        Name of the namedtuple
+    field_names: list
+        List of names of the fields
+    default_values: list
+        Default values
+    units: list
+        Units of the parameters
+
+    Returns
+    -------
+    namedtuple
+    """
     T = collections.namedtuple(typename, field_names)
     T.__new__.__defaults__ = (None,) * len(T._fields)
     if isinstance(default_values, collections.Mapping):
@@ -45,22 +63,38 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
 
 
 @logged
-class EmpiricalModel(metaclass=abc.ABCMeta):
+class Model(metaclass=abc.ABCMeta):
+    """Abstract class for Model"""
+    __metaclass__ = abc.ABCMeta
+    # initial volatile yield
+    y0 = [0]
+    jacob = None
+
+    @abc.abstractmethod
+    def rate(self, t, y):
+        return
+
+    @abc.abstractmethod
+    def set_parameters(self, *args, **kwargs):
+        return
+
+    @abc.abstractmethod
+    def postprocess(self, t, y):
+        return
+
+
+@logged
+class EmpiricalModel(Model):
     '''
     Abstract class for empirical models.
     The derived class has to provide the `rate` method.
     '''
-    __metaclass__ = abc.ABCMeta
+
     _Parameters = namedtuple_with_defaults(typename='EmpiricalModel',
                                            field_names=('foo', 'bar'),
                                            default_values=(1, 1))
     _len_parameters = len(_Parameters._fields)
     _mask = np.array([True] * _len_parameters)
-
-    # initial volatile yield
-    y0 = [0]
-
-    jacob = None
 
     def __init__(self, *args, **kwargs):
         # self.parameters = parameters
@@ -147,10 +181,6 @@ class EmpiricalModel(metaclass=abc.ABCMeta):
     def parameters_list(self):
         return [getattr(self.parameters, p) for p in self.parameters_names()]
 
-    @abc.abstractmethod
-    def rate(self, t, y):
-        return
-
     @classmethod
     def unscale_parameters(cls, norm_parameters, parameters_min,
                            parameters_max):
@@ -234,6 +264,9 @@ class EmpiricalModel(metaclass=abc.ABCMeta):
         sc_par = ((parameters - parameters_min) /
                   (parameters_max - parameters_min))
         return sc_par
+
+    def postprocess(self, t, y):
+        return t, y[:, [0, -1]]
 
 
 @logged
