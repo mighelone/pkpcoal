@@ -21,12 +21,56 @@ def test_check_namedtuple():
 @pytest.fixture
 def sfor():
     A, E, y0 = 1e7, 100e6, 0.5
-    return SFOR(parameters={'A': A, 'E': E, 'y0': y0})
+    return SFOR(A, E, y0)
 
 
 @pytest.fixture
 def c2sm():
     return C2SM()
+
+
+def test_parameters(sfor):
+    A, E, y0 = 1e5, 200e6, 0.6
+
+    sfor.set_parameters(A)
+    assert A == sfor.parameters.A
+    assert sfor.parameters.E == sfor.parameters_default()[1]
+    assert sfor.parameters.y0 == sfor.parameters_default()[2]
+
+    sfor.set_parameters(A, E)
+    assert A == sfor.parameters.A
+    assert sfor.parameters.E == E
+    assert sfor.parameters.y0 == sfor.parameters_default()[2]
+
+    sfor.set_parameters(A, E, y0)
+    assert A == sfor.parameters.A
+    assert sfor.parameters.E == E
+    assert sfor.parameters.y0 == y0
+
+    sfor.set_parameters([A, E, y0])
+    assert A == sfor.parameters.A
+    assert sfor.parameters.E == E
+    assert sfor.parameters.y0 == y0
+
+    sfor.set_parameters(A=A, E=E, y0=y0)
+    assert A == sfor.parameters.A
+    assert sfor.parameters.E == E
+    assert sfor.parameters.y0 == y0
+
+    sfor.set_parameters(E=E)
+    assert sfor.parameters.E == E
+    assert sfor.parameters.y0 == sfor.parameters_default()[2]
+    assert sfor.parameters.A == sfor.parameters_default()[0]
+
+
+def test_parameters_list(sfor):
+    par = sfor.parameters_list
+    assert par[0] == sfor.parameters.A
+    assert par[1] == sfor.parameters.E
+    assert par[2] == sfor.parameters.y0
+    par_dict = sfor.parameters_dict
+    assert all(getattr(sfor.parameters, key) ==
+               value for key, value in par_dict.items())
 
 
 def test_sfor(sfor):

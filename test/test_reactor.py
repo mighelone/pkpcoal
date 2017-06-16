@@ -30,7 +30,8 @@ def test_y0(reactor):
 def test_rate(reactor):
     y, T = 0, 500
     rate = reactor.rate(0, [y, T])
-    assert rate == reactor._model.rate(0, [y, T]) + [reactor._dTdt(0, [y, T])]
+    np.testing.assert_allclose(rate, reactor._model.rate(
+        0, [y, T]) + [reactor._dTdt(0, [y, T])])
 
 
 def test_dTdt(reactor):

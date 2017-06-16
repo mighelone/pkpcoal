@@ -9,14 +9,13 @@ It contains classes for the following models:
 * Distributed Activation Energy Model (DAEM)
     :class:`pkp.empirical_model.DAEM`
 * Biagini-Tognotti model
-    :class:`pkp.empirical_model.Biagini`
+    :class:`pkp.empirical_model.BT`
 '''
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import numpy as np
-
-import warnings
+import abc
 from autologging import logged
 
 from scipy.integrate import ode
@@ -46,12 +45,12 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
 
 
 @logged
-class EmpiricalModel(object):
+class EmpiricalModel(metaclass=abc.ABCMeta):
     '''
-    Parent class for model.
-    `y` is generally considered as the volatile yield released in the
-    gas phase.
+    Abstract class for empirical models.
+    The derived class has to provide the `rate` method.
     '''
+    __metaclass__ = abc.ABCMeta
     _Parameters = namedtuple_with_defaults(typename='EmpiricalModel',
                                            field_names=('foo', 'bar'),
                                            default_values=(1, 1))
@@ -63,8 +62,9 @@ class EmpiricalModel(object):
 
     jacob = None
 
-    def __init__(self, parameters=None):
-        self.parameters = parameters
+    def __init__(self, *args, **kwargs):
+        # self.parameters = parameters
+        self.set_parameters(*args, **kwargs)
 
     @property
     def mask(self):
@@ -95,25 +95,61 @@ class EmpiricalModel(object):
         '''
         return len(self._Parameters._fields)
 
-    def _get_parameters(self):
+    @property
+    def parameters(self):
         return self._parameters
 
-    def _set_parameters(self, values):
-        if values is None:
-            self._parameters = self._Parameters()
-        elif isinstance(values, dict):
-            self._parameters = self._Parameters(**values)
+    def set_parameters(self, *args, **kwargs):
+        """
+        Set the parameters of the model
+
+        Example
+        -------
+
+        Assuming that the model has parameters `x` and `y`::
+
+            >>> model.set_parameters()
+
+        Set the parameters to their default values.::
+
+            >> model.set_parameters(1)
+
+        Set the parameter `x` to 1. x is the first in the list of parameters.::
+
+            >> model.set_parameters(1, 2)
+
+        Set the parameter `x` to 1 and `y` to 2. It follows the order of the
+        parameter list::
+
+            >> model.set_parameters(x=1, y=2)
+
+        Again set x to 1 and y to 2::
+
+            >> model.set_parameters(y=2)
+
+        Set y to 2 and x to its default values.
+        """
+        if len(args) > 0:
+            if isinstance(args[0], list):
+                self._parameters = self._Parameters(*args[0])
+            elif args[0] is None:
+                self._parameters = self._Parameters()
+            else:
+                self._parameters = self._Parameters(*args)
         else:
-            self._parameters = self._Parameters(*values)
+            self._parameters = self._Parameters(**kwargs)
 
-    parameters = property(_get_parameters, _set_parameters,
-                          doc=(
-                              '_Parameters of the empirical models.'
-                              ' They can be given as list/numpy array '
-                              'or dictionary'))
+    @property
+    def parameters_dict(self):
+        return dict(zip(self.parameters_names(), self.parameters_list))
 
+    @property
+    def parameters_list(self):
+        return [getattr(self.parameters, p) for p in self.parameters_names()]
+
+    @abc.abstractmethod
     def rate(self, t, y):
-        return 0
+        return
 
     @classmethod
     def unscale_parameters(cls, norm_parameters, parameters_min,
@@ -393,7 +429,7 @@ class DAEM(EmpiricalModel):
     _Parameters = namedtuple_with_defaults(
         typename='DAEM',
         field_names=('A0', 'E0', 'sigma', 'y0'),
-        default_values=(1e6, 100e6, 12e6, 0.6),
+        default_values=(1e5, 50e6, 12e6, 0.6),
         units=('1/s', 'J/kmol', 'J/kmol', '-'))
     _mask = np.array([True, False, False, False])
     y0 = [0, 0, 0, 0, 0]
@@ -409,13 +445,14 @@ class DAEM(EmpiricalModel):
         np.sqrt(np.pi) / (pow(n_quad, 2) * pow(H, 2))
     Wm = w * np.exp(pow(x, 2))
 
-    def rate(self, t, y):
+    def rate(self, t, yt):
         '''y, k0.., kn'''
         # TODO add with parameters
-
+        T = yt[-1]
+        y = yt[:-1]
         # self.__log.debug('Em %s', Em)
         dIdt = (self.parameters.A0 *
-                np.exp(-self._Em / Rgas / self.T(t)))
+                np.exp(-self._Em / Rgas / T))
         # self.__log.debug('dkdt %s', dkdt)
         coeff1 = self.Wm * self.mt / sqrtpi
         coeff2 = np.exp(-pow((self._Em - self.parameters.E0) /
@@ -432,20 +469,17 @@ class DAEM(EmpiricalModel):
         return (self.parameters.E0 +
                 self.x * sqrt2 * self.parameters.sigma * self.mt)
 
-    def _set_parameters(self, parameters):
-        super(DAEM, self)._set_parameters(parameters)
+    def set_parameters(self, parameters):
+        super(DAEM, self).set_parameters(parameters)
         self._Em = self._calc_Em()
 
-    def _get_parameters(self):
-        return super(DAEM, self)._get_parameters()
-
-    parameters = property(_get_parameters, _set_parameters)
+    # parameters = property(_get_parameters, _set_parameters)
 
 
 @logged
-class Biagini(EmpiricalModel):
+class BT(SFOR):
     '''
-    Calculates the devolatilization reaction using the Biagini model
+    Calculates the devolatilization reaction using the Biagini Tognotti (BT) model
     [Biagini2014]_
 
     It based on the :class:`SFOR` model:
@@ -468,15 +502,18 @@ class Biagini(EmpiricalModel):
     _Parameters = namedtuple_with_defaults(
         typename='Biagini',
         field_names=('A', 'E', 'k'),
-        default_values=(1e6, 100e6, 0.5),
+        default_values=(1e5, 50e6, 0.5),
         units=('1/s', 'J/kmol', '-'))
     _mask = np.array([True, False, False])
-    y0 = 0
+    y0 = [0]
     Tst = 1223
 
     def rate(self, t, y):
-        T = self.T(t)
-        y0 = 1 - np.exp(-self.parameters.k * T / self.Tst)
-        k = (self.parameters.A /
-             np.exp(self.parameters.E / Rgas / self.T(t)))
-        return k * (y0 - y)
+        T = y[-1]
+        y0 = self._calc_y0(T)
+        dy = (y0 - y[0])
+        k = self._calc_k(T)
+        return [k * dy]
+
+    def _calc_y0(self, T):
+        return 1 - np.exp(-self.parameters.k * T / self.Tst)

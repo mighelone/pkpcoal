@@ -124,7 +124,7 @@ class Reactor(object):
         return t, np.squeeze(y)
 
     def rate(self, t, y):
-        return self._model.rate(t, y) + [self._dTdt(t, y)]
+        return np.concatenate([self._model.rate(t, y), [self._dTdt(t, y)]])
 
     def _run_nostop(self, solver):
         '''
@@ -192,3 +192,19 @@ class Reactor(object):
             (idx for idx, val in np.ndenumerate(t_array) if val > t))[0]
 
         return self._dTdt_array[index - 1]
+
+    @property
+    def model(self):
+        """Devolatilization Model used inside the reactor"""
+        return self._model
+
+    @property
+    def reactor_parameters(self):
+        return None
+
+    @property
+    def model_parameters(self):
+        return self.model.parameters_dict
+
+    def set_parameters(self, **keys):
+        pass
