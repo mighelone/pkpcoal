@@ -71,3 +71,25 @@ def test_c2sm_run():
 
     assert np.alltrue(np.diff(y) >= 0)
     assert np.alltrue(np.diff(s) <= 1)
+
+
+def test_set_parameters(reactor):
+    parameters_old = reactor.model_parameters
+
+    A = 1e4
+
+    reactor.set_parameters(A=A)
+    assert reactor.model_parameters['A'] == A
+    assert reactor.model_parameters['E'] == parameters_old['E']
+
+    A, E, y0 = 1e5, 39e6, 0.9
+    reactor.set_parameters(A=A, E=E, y0=y0)
+    assert reactor.model_parameters['A'] == A
+    assert reactor.model_parameters['E'] == E
+    assert reactor.model_parameters['y0'] == y0
+
+    dt = 1e-6
+    reactor.set_parameters(A=A * 2, first_step=dt)
+    assert reactor.model_parameters['A'] == A * 2
+    assert reactor.model_parameters['E'] == E
+    assert reactor.reactor_parameters['first_step'] == dt

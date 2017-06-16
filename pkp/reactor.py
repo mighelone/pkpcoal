@@ -28,6 +28,8 @@ class Reactor(object):
     '''
     Base class for running devolatilization simulations
     '''
+    _ode_parameters = {'first_step': 1e-5,
+                       'max_step': 1e-3}
 
     def __init__(self, model=None, parameters=None):
         """
@@ -99,10 +101,11 @@ class Reactor(object):
 
         # define the arguments for running the ODE solver
         args = [solver]
-        ode_args = {
-            'first_step': 1e-5,
-            'max_step': 1e-3,
-        }
+        ode_args = dict(self._ode_parameters)
+        # ode_args = {
+        #    'first_step': 1e-5,
+        #    'max_step': 1e-3,
+        #}
         if t is None:
             backend = 'dopri5'
             ode_args['nsteps'] = 1
@@ -200,11 +203,23 @@ class Reactor(object):
 
     @property
     def reactor_parameters(self):
-        return None
+        return self._ode_parameters
 
     @property
     def model_parameters(self):
         return self.model.parameters_dict
 
-    def set_parameters(self, **keys):
-        pass
+    def set_parameters(self, **kwargs):
+        """
+        Set the parameters. Keep the old values constant
+        """
+        model_parameters = self._model.parameters_dict
+        # kwargs_model = {key: value for key, value in kwargs.items()
+        #                if key in model_parameters}
+        for key, value in kwargs.items():
+            if key in model_parameters:
+                model_parameters[key] = value
+            elif key in self._ode_parameters:
+                self._ode_parameters[key] = value
+
+        self._model.set_parameters(**model_parameters)
