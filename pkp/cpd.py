@@ -905,10 +905,10 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
                     self.__log.error('Closest coal is %s', ref_coal)
                     self.triangle = triangle
                     self.triangle_coals = vertices
-                    #self.triangle_weights = t.weights(self.van_kravelen)
+                    # self.triangle_weights = t.weights(self.van_kravelen)
                     self.triangle_weights = np.array([1 if ref_coal == v
-                                                      else 0 for v in vertices])
-                    # print(self.triangle_weights)
+                                                      else 0
+                                                      for v in vertices])
                     break
 
         if plot:
@@ -957,11 +957,7 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         """Post process the results after the time step."""
         solid, gas, tar, meta, cross = self.f[-1]
         T = y[-1]  # temperature
-        # TODO define dt
         dt = t - self.t_old
-        # TODO define self.n_frag
-        # TODO define f_frag_n
-        # TODO
 
         if meta > 1e-4:
             # cross linking
@@ -1010,3 +1006,7 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
                                      'solid', 'gas', 'tar', 'meta', 'cross'])
 
         return data
+
+    def get_yield(self, t, y):
+        """Get the volatile yield."""
+        return self.f[-1][1] + self.f[-1][2]

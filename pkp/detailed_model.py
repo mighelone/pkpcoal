@@ -1,8 +1,10 @@
-'''
+"""
+Detailed model.
+
 Module contains the Detailed model base class. This class is used as
 parent for detailed model classes, such :class:`pkp.cpd.CPD`,
 :class:`pkp.polimi.Polimi` and :class:`pkp.biopolimi.BioPolimi`
-'''
+"""
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from six import string_types

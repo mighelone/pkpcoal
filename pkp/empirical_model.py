@@ -1,4 +1,6 @@
-'''
+"""
+Empirical model.
+
 This module defines the class for the empirical pyrolysis models.
 It contains classes for the following models:
 
@@ -10,7 +12,7 @@ It contains classes for the following models:
     :class:`pkp.empirical_model.DAEM`
 * Biagini-Tognotti model
     :class:`pkp.empirical_model.BT`
-'''
+"""
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
@@ -29,7 +31,7 @@ sqrtpi = np.sqrt(np.pi)
 def namedtuple_with_defaults(typename, field_names, default_values=(),
                              units=None):
     """
-    Create a namedtuple with default values
+    Create a namedtuple with default values.
 
     see http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
 
@@ -47,6 +49,7 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
     Returns
     -------
     namedtuple
+
     """
     T = collections.namedtuple(typename, field_names)
     T.__new__.__defaults__ = (None,) * len(T._fields)
@@ -86,6 +89,10 @@ class Model(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def postprocess_step(self, t, y):
+        return
+
+    @abc.abstractmethod
+    def get_yield(self, t, y):
         return
 
 
@@ -276,6 +283,10 @@ class EmpiricalModel(Model):
 
     def postprocess_step(self, t, y):
         pass
+
+    def get_yield(self, t, y):
+        """Return volatile yield."""
+        return y[0]
 
 
 @logged

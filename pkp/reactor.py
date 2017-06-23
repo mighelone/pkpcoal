@@ -80,7 +80,7 @@ class Reactor(object):
 
     @property
     def y0(self):
-        """Initial solution vector for the reactor."""
+        """Get initial solution vector for the reactor."""
         return np.append(self._model.y0, self.operating_conditions[0, 1])
 
     def run(self, t=None):
@@ -182,7 +182,6 @@ class Reactor(object):
         t_calc = []
         for ti in t:
             solver.integrate(ti)
-            # print(solver.t, solver.y)
             y.append(solver.y)
             t_calc.append(solver.t)
             self.model.postprocess_step(solver.t, solver.y)
@@ -243,6 +242,7 @@ class Reactor(object):
         self._model.set_parameters(**model_parameters)
 
 
+@logged
 class DTR(Reactor):
     """
     Class for Drop Tube Reactor.
@@ -264,7 +264,7 @@ class DTR(Reactor):
         self.mdaf = self.mp0 * self.daf
         self.cp = 1600
         self.h = 2000
-        self.h_pyro = 1e6
+        self.h_pyro = 0
 
     def calc_mass(self, y):
         """Calc mass of the particle for the given volatile yield y."""
@@ -309,7 +309,8 @@ class DTR(Reactor):
     def _dTdt(self, t, yt):
         """Temperature time derivative."""
         T = yt[-1]
-        y = yt[0]
+        # TODO y is not the correct volatile yield
+        y = self.model.get_yield(t, yt)
         mp = self.calc_mass(y)
         Tg = self.Tg(t)
         h = 2 * 0.026 / self.dp
