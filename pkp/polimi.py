@@ -1,3 +1,8 @@
+"""
+Polimi model module.
+Define the class to work with Polimi model.
+"""
+
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
@@ -26,8 +31,8 @@ except ImportError:
 
 
 def set_reference_coal(name, atoms):
-    '''
-    Set the reference coals based on the atomic composition
+    """
+    Set the reference coals based on the atomic composition.
 
     Parameters
     ----------
@@ -39,7 +44,7 @@ def set_reference_coal(name, atoms):
     Returns
     -------
     pkp.detailed_model.Coal
-    '''
+    """
     atoms['N'] = 0
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
@@ -62,34 +67,28 @@ char = set_reference_coal('CHAR', atoms={'C': 1, 'H': 0, 'O': 0})
 
 # Exceptions
 class MechanismError(Exception):
-    '''
-    Raise an exception if the mechanism for Polimi model is wrong.
-    '''
+    """Raise an exception if the mechanism for Polimi model is wrong."""
     pass
 
 
 class CompositionError(Exception):
-    '''
-    Raise an exception of composition is wrong.
-    '''
+    """Raise an exception of composition is wrong."""
     pass
 
 
 @logged
 class TriangleCoal(Triangle):
-    '''
-    Triangle class based on coal Van Kravelen diagram
-    '''
+    """Triangle class based on coal Van Kravelen diagram"""
 
     headers = ['O:C', 'H:C']
 
     def __init__(self, coal0, coal1, coal2):
-        '''
+        """
         Parameters
         ----------
         coal0, coal1, coal2: Coal, Polimi
             Coal vertices of the triangles, based on VK diagram
-        '''
+        """
         self.coal0 = coal0
         self.coal1 = coal1
         self.coal2 = coal2
@@ -185,7 +184,7 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         self.parameters_dict = {}
 
     def set_parameters(self, **kwargs):
-        '''
+        """
         Set parameters for Polimi model.
 
         Parameters
@@ -200,34 +199,12 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         :meth:`backend`
         :meth:`mechanism`
         :meth:`skip`
-        '''
+
+        """
         for key in ('mechanism', 'backend', 'skip', 'dt',
                     'increment', 'dt_max'):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
-
-    @property
-    def backend(self):
-        '''
-        Backend for the ODE solver. Defauult is dopri. Possible values
-        are 'dopri5', 'cvode', 'lsoda', 'dop853'.
-
-        See also
-        --------
-        scipy.interp1d.ode
-        '''
-        return self._backend
-
-    @backend.setter
-    def backend(self, value=None):
-        backend_keys = ['dopri5', 'cvode', 'lsoda', 'dop853']
-        if value is None:
-            self._backend = backend_keys[0]
-        elif value in backend_keys:
-            self._backend = value
-        else:
-            raise ValueError('Backend {} not allowed\n'
-                             'Use {}'.format(value, backend_keys))
 
     # @property
     # def mechanism(self):
@@ -237,9 +214,7 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
     # @mechanism.setter
     # def mechanism(self, value=None):
     def _set_mechanism(self, value=None):
-        '''
-        Set mechanism. Default is COAL.xml
-        '''
+        """Set mechanism. Default is COAL.xml."""
         if value is None:
             value = os.path.join(os.path.dirname(pkp.bins.__file__),
                                  'COAL.xml')
@@ -253,10 +228,7 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
                          doc='Mechanism in cantera format for Polimi')
 
     def _define_triangle(self):
-        '''
-        Define in which triangle is the coal and calculate the
-        composition based on the reference coals
-        '''
+        """Define coal triangle."""
         if triangle_012.is_inside(self):
             self.triangle = triangle_012
             self.inside = '012'
@@ -277,76 +249,17 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         self.y0 = self.mechanism.Y
 
     def rate(self, t, y):
+        """Volatilization rate."""
         self.mechanism.TPY = y[-1], self.pressure, y[:-1]
         return (self.mechanism.net_production_rates *
                 self.mechanism.molecular_weights / self.mechanism.density)
 
-    def run(self):
-        '''
-        Run Polimi model.
-
-        Returns
-        -------
-        results: pandas.DataFrame
-        '''
-        mechanism = self.mechanism
-
-        def dmidt(t, m):
-            '''Calculate reaction rates'''
-            mechanism.TPY = self.T(t), self.pressure, m
-            return (mechanism.net_production_rates *
-                    mechanism.molecular_weights / mechanism.density)
-
-        backend = self.backend
-        t0 = self.operating_conditions[0, 0]
-        mechanism.Y = self.composition
-        m0 = mechanism.Y
-
-        solver = ode(dmidt).set_integrator(backend,
-                                           nsteps=1,
-                                           first_step=self.dt,
-                                           max_step=self.dt_max)
-        solver.set_initial_value(m0, t0)
-        solver._integrator.iwork[2] = -1
-        t = [t0]
-        y = [m0]
-        r = [dmidt(t0, m0)]
-        warnings.filterwarnings("ignore", category=UserWarning)
-        time_end = self.operating_conditions[-1, 0]
-
-        while solver.t < time_end:
-            # print(solver.t)
-            # self.__log.debug('t=%s', solver.t)
-            solver.integrate(time_end, step=True)
-            t.append(solver.t)
-            y.append(solver.y)
-            r.append(dmidt(solver.t, solver.y))
-
-        self.__log.debug('Set skip=%s', self.skip)
-        t = np.array(t)[::self.skip]
-        y = np.array(y)[::self.skip]
-        data = pd.DataFrame(data=y,
-                            columns=mechanism.species_names)
-        # index=t)
-        # data.index.name = 'Time, s'
-        data['t'] = t
-        # data['T'] = self.T(t)
-        data['T'] = data['t'].apply(self.T)
-        for v in ('metaplast', 'char', 'raw', 'tar', 'light_gas'):
-            data[v] = data[getattr(self, v)].sum(axis=1)
-
-        data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
-        data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
-
-        self.__log.debug('Write %s', self._out_csv)
-        data.to_csv(self._out_csv)
-
-        return data
-
     @classmethod
     def reference_coal(cls, ref_coal, proximate_analysis=None,
                        pressure=101325):
-        '''
+        """
+        Init Polimi using reference coals.
+
         Define polimi model directly defining one of the reference
         coals.
 
@@ -354,7 +267,8 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         ----------
         ref_coal: str
             Name of the reference coals: COAL1, COAL2, COAL3, CHAR
-        '''
+
+        """
         try:
             c = getattr(sys.modules[__name__], ref_coal.lower())
         except AttributeError('Use one of the reference coal for Polimi'
@@ -370,10 +284,12 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
                    name=c.name)
 
     def postprocess(self, t, y):
+        """Postprocess results."""
         data = np.insert(y, 0, t, axis=1)[::self.skip]
 
         data = pd.DataFrame(data=data,
-                            columns=['t'] + self.mechanism.species_names + ['T'])
+                            columns=['t'] + self.mechanism.species_names +
+                            ['T'])
         for v in ('metaplast', 'char', 'raw', 'tar', 'light_gas'):
             data[v] = data[getattr(self, v)].sum(axis=1)
         data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)

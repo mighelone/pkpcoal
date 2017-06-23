@@ -12,7 +12,7 @@ import os
 import numpy as np
 import tabulate
 import pkp
-import pkp.reactor
+# import pkp.reactor
 import pkp.bins
 import json
 from autologging import logged
@@ -295,7 +295,7 @@ class Coal(object):
         This method is based on the element conservation balance and
         some assumption regarding tar and CO.
 
-        The model assumes that C6H6 (tar), CO, CO2, N2, H2 
+        The model assumes that C6H6 (tar), CO, CO2, N2, H2
 
         Parameters
         ----------

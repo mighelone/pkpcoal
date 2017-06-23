@@ -64,7 +64,8 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
 
 @logged
 class Model(metaclass=abc.ABCMeta):
-    """Abstract class for Model"""
+    """Abstract class for Model."""
+
     __metaclass__ = abc.ABCMeta
     # initial volatile yield
     y0 = [0]
@@ -72,6 +73,7 @@ class Model(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def rate(self, t, y):
+        """Rate for ODE."""
         return
 
     @abc.abstractmethod
@@ -80,6 +82,10 @@ class Model(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def postprocess(self, t, y):
+        return
+
+    @abc.abstractmethod
+    def postprocess_step(self, t, y):
         return
 
 
@@ -267,6 +273,9 @@ class EmpiricalModel(Model):
 
     def postprocess(self, t, y):
         return t, y[:, [0, -1]]
+
+    def postprocess_step(self, t, y):
+        pass
 
 
 @logged

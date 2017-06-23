@@ -1,6 +1,5 @@
-'''
-CPD
-=====
+"""
+Chemical Percolation Devolatilization model.
 
 New implementation in python of the Chemical Percolation
 Devolatilization(CPD) model for coal devolatilization.
@@ -53,13 +52,15 @@ and finally run the model::
     >>> results = m.run()
 
 The results are stored in a ``pandas`` dataframe.
-'''
+"""
+
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 
 import pkp
 import pkp.detailed_model
+import pkp.empirical_model
 import pkp.triangle
 import numpy as np
 from autologging import logged
@@ -94,8 +95,10 @@ Rgas = 1.987  # cal/mol-K
 
 
 @logged
-class CPD(pkp.detailed_model.DetailedModel):
-    '''
+class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
+    """
+    Chemical Percolation Devolatilization model (CPD).
+
     Run the Chemical Percolation Model (CPD) for evaluating the
     devolatilization behaviour of coal.
 
@@ -104,7 +107,8 @@ class CPD(pkp.detailed_model.DetailedModel):
 
     It is possible to use the Genetti correlation for estimating NMR
     parameters, or they can directly defined if they are known.
-    '''
+    """
+
     nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
     num_parameters = ['dt', 'increment', 'dt_max']
 
@@ -126,9 +130,13 @@ class CPD(pkp.detailed_model.DetailedModel):
     ensig = 0
     nmax = 20
 
-    def __init__(self, ultimate_analysis, proximate_analysis,
+    skip = 1
+
+    def __init__(self, ultimate_analysis=None, proximate_analysis=None,
                  pressure=101325, name='CPD coal'):
-        '''
+        """
+        Initialize CPD model.
+
         Parameters
         ----------
         proximate_analysis: dict
@@ -141,7 +149,8 @@ class CPD(pkp.detailed_model.DetailedModel):
             Pressure of pyrolysis process
         name: str, unicode
             Reference name of the modelled coal
-        '''
+
+        """
         super(CPD, self).__init__(proximate_analysis=proximate_analysis,
                                   ultimate_analysis=ultimate_analysis,
                                   pressure=pressure,
@@ -160,9 +169,16 @@ class CPD(pkp.detailed_model.DetailedModel):
         self._set_NMR_parameters()
         self._set_numerical_parameters()
 
+        # initialize fractions
+        self.f = [[1, 0, 0, 0, 0]]
+        self.n_frag = 20
+        self.meta_n = np.zeros(self.n_frag)
+        self.f_frag_n = np.zeros(self.n_frag)
+        self.t_old = 0
+
     def set_parameters(self, **kwargs):
-        '''
-        Set parameters for CPD calculation.
+        """Set parameters for CPD.
+
         If a parameter is not defined it is not changed.
         If None the default value is setted.
 
@@ -182,7 +198,8 @@ class CPD(pkp.detailed_model.DetailedModel):
             CPD solver path
         basename: str
             Basename for CPD output files
-        '''
+
+        """
         # TODO set a warning for coal outside the parameters
         if 'nmr_parameters' in kwargs:
             self._set_NMR_parameters(
@@ -199,6 +216,7 @@ class CPD(pkp.detailed_model.DetailedModel):
             self.basename = kwargs['basename']
 
     def get_parameters(self):
+        """Get the parameters of CPD model."""
         nmr = {p: getattr(self, p)
                for p in self.nmr_parameters}
         par = {p: getattr(self, p)
@@ -209,9 +227,7 @@ class CPD(pkp.detailed_model.DetailedModel):
 
     def _set_numerical_parameters(self, dt=None, increment=None,
                                   dt_max=None, **kwargs):
-        '''
-        Set numerical parameters
-        '''
+        """Set numerical parameters."""
         if dt is None:
             dt = 1e-5
         if increment is None:
@@ -223,15 +239,19 @@ class CPD(pkp.detailed_model.DetailedModel):
         self.dt_max = dt_max
 
     def _set_NMR_parameters_from_correlation(self, nmr_parameters=None):
-        '''
-        Calc parameters using Genetti correlation
+        """
+        Set NMR parameters from correlation.
+
+        Use the Genetti correlation for evaluating NMR input parameters for
+        CPD.
 
         Parameters
         ----------
         parameters: dict, default=None
             Manually set parameters using a dictionary
             {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
-        '''
+
+        """
         if nmr_parameters:
             [setattr(self, key, nmr_parameters[key])
              for key in self.nmr_parameters]
@@ -254,8 +274,8 @@ class CPD(pkp.detailed_model.DetailedModel):
              for i, key in enumerate(self.nmr_parameters[:4])]
 
     def run(self, time=None, light_gas=True, n_frag=20):
-        '''
-        Run CPD
+        """
+        Run CPD.
 
         Parameters
         ----------
@@ -272,7 +292,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         results: pandas.Dataframe
             Dataframe containg the results of CPD as a function of the
             residence time.
-        '''
+
+        """
         t, y, f = self._bridge_evolution(n_frag=n_frag, time_end=time)
         if self.increment > 1:
             t = t[::self.increment]
@@ -311,15 +332,16 @@ class CPD(pkp.detailed_model.DetailedModel):
         return df
 
     def _set_NMR_parameters(self, nmr_parameters=None):
-        '''
-        Calc parameters using Genetti correlation
+        """
+        Calc parameters using Genetti correlation.
 
         Parameters
         ----------
         parameters: dict, default=None
             Manually set parameters using a dictionary
             {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
-        '''
+
+        """
         self._set_NMR_parameters_from_correlation(nmr_parameters)
         # test
         # self.mdel /= (1 - self.c0)
@@ -337,8 +359,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         self.gasmw = self.rba * self.ma * 0.5
         self.solver = None
 
-    def _dydt(self, t, y):
-        '''
+    def rate(self, t, y):
+        """
         Integrand function for the ODE solver.
 
         Parameters
@@ -352,14 +374,14 @@ class CPD(pkp.detailed_model.DetailedModel):
 
         Return:
         dydt: array
-        '''
-        l, delta, c = y
+
+        """
+        l, delta, c, T = y
         # l, delta, c = np.maximum(y, 0)
 
         # Calculate the temperature.
         # It is valid only for prescribed particle temperatures
-        T = self.T(t)
-        kb, rho, kg = self._rates(T, y)
+        kb, rho, kg = self._rates(y)
         f = 1 / (1 + rho)
         tol = 1e-6
         if l > tol:
@@ -375,8 +397,17 @@ class CPD(pkp.detailed_model.DetailedModel):
         #                   t, y, [dldt, ddeldt, dcdt], 2 * rho * kb * f, kg)
         return [dldt, ddeldt, dcdt]
 
+    @property
+    def y0(self):
+        """Init solution."""
+        return [self.p0 - self.c0,
+                2 * (1 - self.p0),
+                self.c0]
+
     def _bridge_evolution(self, n_frag=20, time_end=None):
-        '''
+        """
+        Calculate the evolution of the bridges.
+
         Calculate the evolution of the bridges, solving the ODE.
         For each time step, the cross-linking, percolation and flash
         distillation functions are called in order to calculate the
@@ -394,7 +425,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         ------
         t, y, f
             Time, bridges and mass fraction arrays
-        '''
+
+        """
         # variables are [l, d, c]
         backend = 'dopri5'
         # backend = 'vode'
@@ -482,11 +514,9 @@ class CPD(pkp.detailed_model.DetailedModel):
 
         return t, y, f
 
-    def _rates(self, T, y):
-        '''
-        Calculate _rates for the given temperature
-        '''
-        l, delta, c = y  # (max(yi, 0) for yi in y)
+    def _rates(self, y):
+        """Calculate _rates for the given temperature."""
+        l, delta, c, T = y
         g1, g2 = self.gas(y)
         g = g1 + g2
         RT = T * Rgas
@@ -503,8 +533,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         #              self.ac, self.ec, self.ag, self.eg, self.egsig)
 
     def _percolation(self, y, f_tar=0, n_frag=20, in_tar=True):
-        '''
-        Percolation statistic calculation
+        """
+        Percolation statistic calculation.
 
         Parameters
         ----------
@@ -521,10 +551,11 @@ class CPD(pkp.detailed_model.DetailedModel):
         percolation, dict:
             Percolation dictionary {'f_gas', 'f_solid', 'f_frag',
             'f_frag_n', 'm_frag_n', 'pstar'}
-        '''
+
+        """
         self.__log.debug('\n\nStart Percolation\n')
 
-        l, delta, c = y
+        l, delta, c = y[:-1]
         p = l + c
         g1, g2 = self.gas(y)
         g = g1 + g2
@@ -625,8 +656,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         pass
 
     def intact_bridges(self, y):
-        '''
-        Return the fraction of intact bridges
+        """
+        Return the fraction of intact bridges.
 
         .. math::
             p = l + c
@@ -640,13 +671,15 @@ class CPD(pkp.detailed_model.DetailedModel):
         ------
         p: float
             Fraction of intact bridges
-        '''
-        l, _, c = y
+
+        """
+        l = y[0]
+        c = y[2]
         return l + c
 
     def broken_bridges(self, y):
-        '''
-        Return the fraction of broken bridges
+        """
+        Return the fraction of broken bridges.
 
         .. math::
             f = 1 - (l + c)
@@ -660,13 +693,13 @@ class CPD(pkp.detailed_model.DetailedModel):
         ------
         f: float
             Fraction of broken bridges
-        '''
 
+        """
         return 1 - self.intact_bridges(y)
 
     def gas(self, y):
-        '''
-        Return the fraction of gas produced
+        """
+        Return the fraction of gas produced.
 
         .. math::
             g_1 = 2 \cdot f - \delta\\
@@ -682,18 +715,16 @@ class CPD(pkp.detailed_model.DetailedModel):
         g1, g2: (float, float)
             Gas fraction produced from side chain and charred bridge,
             respectively
-        '''
 
+        """
         f = self.broken_bridges(y)
-        _, delta, c = y
+        delta, c = y[1], y[2]
         g1 = 2 * f - delta
         g2 = 2 * (c - self.c0)
         return g1, g2
 
     def _crosslinking(self, f_meta, T, dt):
-        '''
-        Calculate the rate of cross-linking, integrated over the time
-        step.
+        """.Calculate the rate of cross-linking.
 
         Parameters
         ----------
@@ -707,11 +738,14 @@ class CPD(pkp.detailed_model.DetailedModel):
         Return
         ------
         ratecr: float
-        '''
+
+        """
         return self.Acr * np.exp(-self.Ecr / Rgas / T) * f_meta * dt
 
     def _flash_distillation(self, df_gas, df_n, meta_n, mw_n, fracr, T):
-        '''
+        """
+        Flash distillation.
+
         Calculate the flash distillation of tar species from the
         metaplast.
 
@@ -739,7 +773,8 @@ class CPD(pkp.detailed_model.DetailedModel):
             fraction is releases in the gas phase.
         meta_n_new: array
             Fraction of metaplast remaining in the particle.
-        '''
+
+        """
         self.__log.debug('\n\nStart flash_distillation\n')
 
         a = 87058.0
@@ -808,11 +843,9 @@ class CPD(pkp.detailed_model.DetailedModel):
         return tar_n_new, meta_n_new
 
     def find_triangle(self, plot=False):
-        '''
-        Find triangle for Genetti light gas correlation
-        '''
+        """Find triangle for Genetti light gas correlation."""
         def distance(p1, p2):
-            """Calc distance between two points"""
+            """Calc distance between two points."""
             d = p1 - p2
             return np.inner(d, d)
 
@@ -904,8 +937,8 @@ class CPD(pkp.detailed_model.DetailedModel):
         #                     'Check plot')
 
     def calc_lightgases(self, y):
-        '''
-        Calculate lightgas distribution using Genetti method
+        """
+        Calculate lightgas distribution using Genetti method.
 
         Parameters
         ----------
@@ -913,8 +946,67 @@ class CPD(pkp.detailed_model.DetailedModel):
             Fraction of light gases released during time. It is calculated
             using
             :math::`Y_g = 1-(\delta/2 + \pound)(\delta/2 + \pound)_0`
-        '''
+
+        """
         y_refs = np.array(
             [[np.interp(y, x_gas[i], y_gas[j, i]) for j in range(4)]
              for i in self.triangle_coals])
         return np.dot(y_refs.T, self.triangle_weights)
+
+    def postprocess_step(self, t, y):
+        """Post process the results after the time step."""
+        solid, gas, tar, meta, cross = self.f[-1]
+        T = y[-1]  # temperature
+        # TODO define dt
+        dt = t - self.t_old
+        # TODO define self.n_frag
+        # TODO define f_frag_n
+        # TODO
+
+        if meta > 1e-4:
+            # cross linking
+            rate_cross = self._crosslinking(meta, T, dt)
+            fract = 1 - rate_cross / meta
+            meta -= rate_cross
+            cross += rate_cross
+        else:
+            rate_cross = 0
+            fract = 1
+        self.__log.debug(
+            'Crosslinking rate: %s / %s', rate_cross, fract)
+        # TODO percolation use self.n_frag
+        percolation = self._percolation(y, tar, n_frag=self.n_frag,
+                                        in_tar=True)
+
+        # gas formed in the last step
+        df_gas = max(percolation['f_gas'] - gas, 0)
+        self.__log.debug('gas=%s, df_gas=%s', gas, df_gas)
+        mw_n = percolation['mw_frag_n']
+        # fragments formed in the last step
+        df_n = percolation['f_frag_n'] - self.f_frag_n
+        self.__log.debug('df_n=%s', df_n)
+
+        tar_n, self.meta_n = self._flash_distillation(
+            df_gas=df_gas, df_n=df_n, meta_n=self.meta_n,
+            mw_n=mw_n, fracr=fract, T=T)
+
+        # store results
+        self.f_frag_n = percolation['f_frag_n']
+        gas = percolation['f_gas']
+        tar += tar_n.sum()
+        meta = self.meta_n.sum()
+        solid = 1 - tar - gas
+        self.f.append([solid, gas, tar, meta, cross])
+        self.__log.debug('F=%s', self.f[-1])
+        self.t_old = t
+
+    def postprocess(self, t, y):
+        """Postprocess results."""
+        # data = np.hstack([np.insert(y, 0, t, axis=1), self.f])
+        # data = np.insert(y, 0, t, axis=1)[::self.skip]
+        data = pd.DataFrame(data=np.hstack([np.insert(y, 0, t, axis=1),
+                            self.f]),
+                            columns=['t', 'l', 'delta', 'c', 'T',
+                                     'solid', 'gas', 'tar', 'meta', 'cross'])
+
+        return data

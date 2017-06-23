@@ -1,39 +1,37 @@
-'''
+
+"""
+Reactor module.
+
 Define the :class:`pkp.reactor.Reactor`, which is used for prescribing
 the operating conditions.
-'''
+"""
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-from .empirical_model import *
-from .polimi import Polimi
-from scipy.integrate import ode
-import warnings
-
-
 import numpy as np
 from autologging import logged
 
-# try:
-#    from .interpolate import interp
-# except:
-#    print('Can not load numba interpolate, use numpy')
-#    from numpy import interp
+from .empirical_model import SFOR, SFORT, C2SM, DAEM
+from .polimi import Polimi
+from .cpd import CPD
+from scipy.integrate import ode
+import warnings
 
 from .interpolate import interp
 
 
 @logged
 class Reactor(object):
-    '''
-    Base class for running devolatilization simulations
-    '''
+    """Base class for running devolatilization simulations."""
+
     _ode_parameters = {'first_step': 1e-5,
                        'max_step': 1e-3}
 
     def __init__(self, model=None, **kwargs):
         """
+        Init reactor object.
+
         Parameters
         ----------
         kinetic_model: pkp.empirical_model
@@ -46,12 +44,14 @@ class Reactor(object):
 
     @property
     def operating_conditions(self):
-        '''
+        """
+        Define operating conditions of the reactor.
+
         Operating conditions for devolatilization. They are defined as
         list of operating points [[t0, T0], [t1, T1], ..., [tn, Tn]]
         Each operating point is defined by the time in second and
         temperature in K.
-        '''
+        """
         return self._operating_conditions
 
     @operating_conditions.setter
@@ -80,11 +80,12 @@ class Reactor(object):
 
     @property
     def y0(self):
+        """Initial solution vector for the reactor."""
         return np.append(self._model.y0, self.operating_conditions[0, 1])
 
     def run(self, t=None):
-        '''
-        Solve model using a ODE solver
+        """
+        Run reactor for a given time.
 
         _Parameters
         ----------
@@ -92,7 +93,7 @@ class Reactor(object):
             Time array. This is used to take results from the ODE
             solver. If None times are automatically taken from
             the solver
-        '''
+        """
         # backend = 'dopri5'
 
         solver = ode(self.rate, jac=None)
@@ -106,7 +107,7 @@ class Reactor(object):
         # ode_args = {
         #    'first_step': 1e-5,
         #    'max_step': 1e-3,
-        #}
+        # }
         if t is None:
             backend = 'dopri5'
             ode_args['nsteps'] = 1
@@ -129,12 +130,12 @@ class Reactor(object):
         return self.model.postprocess(t, y)
 
     def rate(self, t, y):
+        """Rate for the ode integral."""
         return np.concatenate([self._model.rate(t, y), [self._dTdt(t, y)]])
 
     def _run_nostop(self, solver):
-        '''
-        Run the ODE solver stopping at then internal time step of the
-        solver.
+        """
+        Run ODE solver with dense output.
 
         _Parameters
         ----------
@@ -144,7 +145,8 @@ class Reactor(object):
         -------
         t, y: np.ndarray
             Time and yields arrays.
-        '''
+
+        """
         solver._integrator.iwork[2] = -1
         warnings.filterwarnings("ignore", category=UserWarning)
         time_end = self.operating_conditions[-1, 0]
@@ -155,13 +157,14 @@ class Reactor(object):
             solver.integrate(time_end, step=True)
             # print(solver.t, solver.y, self.rate(
             #    solver.t, solver.y), self.parameters.y0 - solver.y[0])
+            self.model.postprocess_step(solver.t, solver.y)
             t.append(solver.t)
             y.append(solver.y)
 
         return np.array(t), np.array(y)
 
     def _run_t(self, solver, t):
-        '''
+        """
         Run the ODE solver stopping at the prescribed time steps.
 
         _Parameters
@@ -172,7 +175,8 @@ class Reactor(object):
         -------
         t, y: np.ndarray
             Time and yields arrays.
-        '''
+
+        """
         # self.__log.info('Solver backend %s', solver)
         y = []
         t_calc = []
@@ -181,6 +185,7 @@ class Reactor(object):
             # print(solver.t, solver.y)
             y.append(solver.y)
             t_calc.append(solver.t)
+            self.model.postprocess_step(solver.t, solver.y)
             # print(solver.t)
 
         # if not np.allclose(t, t_calc):
@@ -200,20 +205,31 @@ class Reactor(object):
 
     @property
     def model(self):
-        """Devolatilization Model used inside the reactor"""
+        """Devolatilization Model used inside the reactor."""
         return self._model
 
     @property
     def reactor_parameters(self):
+        """Reactor parameters dictionary."""
         return self._ode_parameters
 
     @property
     def model_parameters(self):
+        """Model paramerers dictionary"""
         return self.model.parameters_dict
 
     def set_parameters(self, **kwargs):
         """
-        Set the parameters. Keep the old values constant
+        Set the parameters.
+
+        Keep the old values constant.
+
+        Example
+        -------
+        ::
+            # reactor.set_parameters(A=1e5)
+
+        The command set the parameters A in the Model
         """
         model_parameters = self._model.parameters_dict
         # kwargs_model = {key: value for key, value in kwargs.items()
@@ -228,7 +244,15 @@ class Reactor(object):
 
 
 class DTR(Reactor):
+    """
+    Class for Drop Tube Reactor.
+
+    The gas temperature is assigned by a list/array of operating points (t, T),
+    while particle temperature is evaluated from the heat transfer equation.
+    """
+
     def __init__(self, model, **kwargs):
+        """Init DTR."""
         super(DTR, self).__init__(model=model, **kwargs)
         self.density = 800
         self.dp = 100e-6
@@ -243,16 +267,19 @@ class DTR(Reactor):
         self.h_pyro = 1e6
 
     def calc_mass(self, y):
+        """Calc mass of the particle for the given volatile yield y."""
         return self.mash + (1 - y) * self.mdaf
 
     @property
     def operating_conditions(self):
-        '''
-        Operating conditions for devolatilization. They are defined as
+        """
+        Operating conditions for devolatilization.
+
+        They are defined as
         list of operating points [[t0, T0], [t1, T1], ..., [tn, Tn]]
         Each operating point is defined by the time in second and
         temperature in K.
-        '''
+        """
         return self._operating_conditions
 
     @operating_conditions.setter
@@ -275,11 +302,12 @@ class DTR(Reactor):
                             np.diff(self._operating_conditions[:, 0]))
 
         def interp_tT(t):
-            '''Interpolate time with temperature'''
+            """Interpolate time with temperature."""
             return interp(t, conditions[:, 0], conditions[:, 1])
         self.Tg = interp_tT
 
     def _dTdt(self, t, yt):
+        """Temperature time derivative."""
         T = yt[-1]
         y = yt[0]
         mp = self.calc_mass(y)
