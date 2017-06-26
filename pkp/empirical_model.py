@@ -296,6 +296,7 @@ class EmpiricalModel(Model):
 
     def postprocess(self, t, y):
         """Post process results after ODE."""
+        # TODO not sure if it is the right way to return data
         return t, y[:, [0, -1]]
 
     def postprocess_step(self, t, y):

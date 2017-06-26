@@ -11,19 +11,47 @@ from __future__ import print_function, unicode_literals
 
 import numpy as np
 from autologging import logged
-
-from .empirical_model import SFOR, SFORT, C2SM, DAEM
-from .polimi import Polimi
-from .cpd import CPD
 from scipy.integrate import ode
 import warnings
+
+# import the models that can be used in the reactor
+from .empirical_model import EmpiricalModel, SFOR, SFORT, C2SM, DAEM
+from .polimi import Polimi
+from .cpd import CPD
 
 from .interpolate import interp
 
 
 @logged
 class Reactor(object):
-    """Base class for running devolatilization simulations."""
+    """
+    Reactor.
+
+    Define a reactor with prescribed temperature.
+
+    Example
+    -------
+    Reactor can be initialized with every model derived from the abstract class
+    EmpiricalModel::
+
+        reactor = Reactor(SFOR, A=1e6, E=50e6, 0.4, max_step=1e-3)
+
+    The reactor is initialized with the Single First Order Model (SFOR) with
+    the given parameters A, E, n. The additional parameter max_step is used for
+    the ODE solver.
+    The operating conditions are passed definining the operating_conditions in
+    the reactors as list of coupled time temperature conditions::
+
+        reactor.operating_conditions = [[0, 300], [0.1, 1000], [0.2, 1000]]
+
+    The operating conditions define a ramp from 300K to 1000K in 0.1 second,
+    starting from time zero. Then the temperature of 1000K is hold for other
+    0.1 seconds.
+    The solution of the reactor is obtained from::
+
+        res = reactor.run()
+
+    """
 
     _ode_parameters = {'first_step': 1e-5,
                        'max_step': 1e-3}
@@ -34,12 +62,22 @@ class Reactor(object):
 
         Parameters
         ----------
-        kinetic_model: pkp.empirical_model
-            Model object
+        model: empirical_model
+            Devolatilization model in the reactor.
+        first_step: double
+            Initial ODE time step
+        max_step: double
+            Maximum time step in the ODE.
+        kwargs: additional parameters passed to the model.
 
         """
-        # super(Reactor, self).__init__()
-        self._model = eval(model)(**kwargs)
+        model_parameters = {}
+        for par, value in kwargs.items():
+            if par in self._ode_parameters:
+                self._ode_parameters[par] = value
+            else:
+                model_parameters[par] = value
+        self._model = eval(model)(**model_parameters)
         self.operating_conditions = None
 
     @property
@@ -131,7 +169,8 @@ class Reactor(object):
 
     def rate(self, t, y):
         """Rate for the ode integral."""
-        return np.concatenate([self._model.rate(t, y), [self._dTdt(t, y)]])
+        dydt = self._model.rate(t, y)
+        return np.concatenate([dydt, [self._dTdt(t, y, dydt)]])
 
     def _run_nostop(self, solver):
         """
@@ -193,7 +232,7 @@ class Reactor(object):
 
         return np.array(t_calc), np.array(y)
 
-    def _dTdt(self, t, y):
+    def _dTdt(self, t, y, dydt):
         t_array = self.operating_conditions[:, 0]
         if t < t_array[0] or t >= t_array[-1]:
             return 0.0
@@ -214,7 +253,7 @@ class Reactor(object):
 
     @property
     def model_parameters(self):
-        """Model paramerers dictionary"""
+        """Model paramerers dictionary."""
         return self.model.parameters_dict
 
     def set_parameters(self, **kwargs):
@@ -252,8 +291,18 @@ class DTR(Reactor):
     """
 
     def __init__(self, model, **kwargs):
-        """Init DTR."""
+        """
+        Init DTR.
+
+        model: EmpiricalModel
+            Define the devolatilization model used by the reactor. The model
+            has to be derived by the abstract class `EmpiricalModel`
+        **kwargs:
+            Specific parameters for the model.
+        """
         super(DTR, self).__init__(model=model, **kwargs)
+        # TODO: these variables should call as input
+        # TODO: define correctly dy/dt when h_pyro is not zero
         self.density = 800
         self.dp = 100e-6
         self.daf = 0.9
@@ -269,6 +318,19 @@ class DTR(Reactor):
     def calc_mass(self, y):
         """Calc mass of the particle for the given volatile yield y."""
         return self.mash + (1 - y) * self.mdaf
+
+    def run(self, t=None):
+        res = super(DTR, self).run(t=t)
+        # evaluate the gas temperature
+        is_tuple = isinstance(res, tuple)
+        t = res[0] if is_tuple else res['t']
+        Tg = np.array([self.Tg(ti) for ti in t])
+        if is_tuple:
+            y = np.insert(res[1], res[1].shape[1]+1, Tg, axis=1)
+            res = (t, y)
+        else:
+            res['Tg'] = Tg
+        return res
 
     @property
     def operating_conditions(self):
@@ -306,17 +368,29 @@ class DTR(Reactor):
             return interp(t, conditions[:, 0], conditions[:, 1])
         self.Tg = interp_tT
 
-    def _dTdt(self, t, yt):
+    def _dTdt(self, t, yt, dydt):
         """Temperature time derivative."""
-        T = yt[-1]
         # TODO y is not the correct volatile yield
         y = self.model.get_yield(t, yt)
-        mp = self.calc_mass(y)
         Tg = self.Tg(t)
+
+        # TODO: this rate is valid only for empirical models, but in others.
+        rate = dydt[0]
+
+        qtot = (self._qconv(t, yt, Tg) + self._qchem(rate) +
+                self._qrad(t, yt, Tg))
+        return qtot / self.calc_mass(y) / self.cp
+
+    def _qconv(self, t, yt, Tg):
+        """Calculate the heat of convection."""
         h = 2 * 0.026 / self.dp
-        qconv = h * self.Ap * (Tg - T)
-        rate = self._model.rate(t, yt)[0]
-        qpyro = -rate * self.mdaf * self.h_pyro
-        qrad = 0
-        qtot = qconv + qpyro + qrad
-        return qtot / mp / self.cp
+        return h * self.Ap * (Tg - yt[-1])
+
+    def _qrad(self, t, yt, Tg):
+        """Calculate heat of radiation."""
+        # TODO implement!
+        return 0
+
+    def _qchem(self, rate):
+        """Calculate the heat of reacton."""
+        return -rate * self.mdaf * self.h_pyro

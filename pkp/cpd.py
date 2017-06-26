@@ -227,6 +227,7 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
     def _set_numerical_parameters(self, dt=None, increment=None,
                                   dt_max=None, **kwargs):
         """Set numerical parameters."""
+        # TODO get rid of it. Should be useless now
         if dt is None:
             dt = 1e-5
         if increment is None:
