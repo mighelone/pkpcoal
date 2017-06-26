@@ -33,7 +33,8 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
     """
     Create a namedtuple with default values.
 
-    see http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
+    see
+    http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
 
     Parameters
     ----------
@@ -81,27 +82,32 @@ class Model(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def set_parameters(self, *args, **kwargs):
+        """Set parameters."""
         return
 
     @abc.abstractmethod
     def postprocess(self, t, y):
+        """Post process data at the end of the run."""
         return
 
     @abc.abstractmethod
     def postprocess_step(self, t, y):
+        """Post process data at the end of the time step."""
         return
 
     @abc.abstractmethod
     def get_yield(self, t, y):
+        """Return the actual volatilization yield."""
         return
 
 
 @logged
 class EmpiricalModel(Model):
-    '''
+    """
     Abstract class for empirical models.
+
     The derived class has to provide the `rate` method.
-    '''
+    """
 
     _Parameters = namedtuple_with_defaults(typename='EmpiricalModel',
                                            field_names=('foo', 'bar'),
@@ -110,45 +116,50 @@ class EmpiricalModel(Model):
     _mask = np.array([True] * _len_parameters)
 
     def __init__(self, *args, **kwargs):
-        # self.parameters = parameters
+        """Init empirical model."""
         self.set_parameters(*args, **kwargs)
 
     @property
     def mask(self):
+        """Return the mask for the logaritmic property."""
         return self._mask
 
     def __str__(self):
+        """Return description of the model."""
         return self.parameters.__str__()
 
     def __repr__(self):
+        """Return description of the model."""
         return self.__str__()
 
     @classmethod
     def parameters_names(cls):
+        """Return a list with the parameters names."""
         return cls._Parameters._fields
 
     @classmethod
     def parameters_default(cls):
+        """Return a list with the default values of the parameters."""
         return cls._Parameters.__new__.__defaults__
 
     @classmethod
     def parameters_units(cls):
+        """Return a list with the units of the parameters."""
         return cls._Parameters.units
 
     @property
     def len_parameters(self):
-        '''
-        Lenght of the parameters array/dictionary.
-        '''
+        """Lenght of the parameters array/dictionary."""
         return len(self._Parameters._fields)
 
     @property
     def parameters(self):
+        """List of the actual parameters."""
         return self._parameters
 
     def set_parameters(self, *args, **kwargs):
         """
-        Set the parameters of the model
+        Set the parameters of the model.
 
         Example
         -------
@@ -188,17 +199,20 @@ class EmpiricalModel(Model):
 
     @property
     def parameters_dict(self):
+        """Return dictionary of the actual parameters."""
         return dict(zip(self.parameters_names(), self.parameters_list))
 
     @property
     def parameters_list(self):
+        """Return a list of the actual parameters."""
         return [getattr(self.parameters, p) for p in self.parameters_names()]
 
     @classmethod
     def unscale_parameters(cls, norm_parameters, parameters_min,
                            parameters_max):
-        '''
+        """
         Unscale normalized parameters.
+
         _Parameters defined in `mask` are unscaled using the log values
         of the minimum and maximum parameters.
 
@@ -219,7 +233,7 @@ class EmpiricalModel(Model):
         ------
         unsc_par: array
             Unscaled paramters
-        '''
+        """
         parameters_min = np.array(parameters_min)
         parameters_max = np.array(parameters_max)
         norm_parameters = np.array(norm_parameters)
@@ -239,8 +253,9 @@ class EmpiricalModel(Model):
     @classmethod
     def scale_parameters(cls, parameters, parameters_min,
                          parameters_max):
-        '''
+        """
         Scale/normalize parameters using minimum and maximum values.
+
         _Parameters defined in `mask` are scaled using log values for
         the parameters.
 
@@ -261,7 +276,8 @@ class EmpiricalModel(Model):
         ------
         sc_par: array
             Scaled paramters
-        '''
+
+        """
         if isinstance(parameters, dict):
             parameters = [parameters[p] for p in
                           cls.parameters_names()]
@@ -279,9 +295,11 @@ class EmpiricalModel(Model):
         return sc_par
 
     def postprocess(self, t, y):
+        """Post process results after ODE."""
         return t, y[:, [0, -1]]
 
     def postprocess_step(self, t, y):
+        """Post process data at the end of the time step."""
         pass
 
     def get_yield(self, t, y):
@@ -291,10 +309,11 @@ class EmpiricalModel(Model):
 
 @logged
 class SFOR(EmpiricalModel):
-    '''
-    The Single First Order Reaction (SFOR) model is characterized by a
-    unique reaction, which converts raw coal into char and volatiles
-    with a constant ratio.
+    """
+    Single First Order Reaction (SFOR) model.
+
+    The SFOR model is characterized by a unique reaction, which converts raw
+    coal into char and volatiles with a constant ratio.
 
     .. math::
 
@@ -317,7 +336,9 @@ class SFOR(EmpiricalModel):
     volatile yield :math:`y_0`, which does not depend on the conditions
     (heating rate and maximum temperature) of the devolatilization
     process.
-    '''
+
+    """
+
     _Parameters = namedtuple_with_defaults(
         typename='SFOR',
         field_names=('A', 'E', 'y0'),
@@ -327,7 +348,7 @@ class SFOR(EmpiricalModel):
     y0 = [0]
 
     def rate(self, t, y):
-        '''
+        """
         Reaction rate used in the ODE solver.
 
         _Parameters
@@ -341,7 +362,8 @@ class SFOR(EmpiricalModel):
         -------
         rate: float
             :math:`dy/dt`
-        '''
+
+        """
         k = self._calc_k(y[1])
         # return k * (1 - y - self.parameters['y0'])
         dy = self.parameters.y0 - y[0]
@@ -358,9 +380,8 @@ class SFOR(EmpiricalModel):
 
 @logged
 class SFORT(SFOR):
-    '''
-    SFOR model with temperature threasold
-    '''
+    """SFOR model with temperature threasold."""
+
     _Parameters = namedtuple_with_defaults(
         typename='SFORT',
         field_names=('A', 'E', 'y0', 'T'),
@@ -370,6 +391,7 @@ class SFORT(SFOR):
     _mask = np.array([True, False, False, False])
 
     def rate(self, t, y):
+        """Return reaction rate dy/dt."""
         if y[1] >= self.parameters.T:
             return super(SFORT, self).rate(t, y)
         else:
@@ -378,11 +400,12 @@ class SFORT(SFOR):
 
 @logged
 class C2SM(EmpiricalModel):
-    '''
-    The Competing 2 Step Model(C2SM) is characterized by a
-    two competing reaction with different activation energies and
-    stoichiometry. The two reactions produce char and volatiles with
-    stoichiometric fraction: math: `y_1` and: math: `y_2`:
+    """
+    Competing 2 Step Model (C2SM).
+
+    The C2SM is characterized by a two competing reaction with different
+    activation energies and stoichiometry. The two reactions produce char and
+    volatiles with stoichiometric fraction: math: `y_1` and: math: `y_2`:
 
     .. math::
 
@@ -422,7 +445,9 @@ class C2SM(EmpiricalModel):
     Generally the first reactin is characterized by low activation
     energy with low release of volatiles, while the second by high
     activation energy and volatiles.
-    '''
+
+    """
+
     _Parameters = namedtuple_with_defaults(
         typename='C2SM',
         field_names=('A1', 'E1', 'y1', 'A2', 'E2', 'y2'),
@@ -433,8 +458,9 @@ class C2SM(EmpiricalModel):
     y0 = [0, 1]  # volatile yield, raw solid
 
     def rate(self, t, y):
-        '''
+        """
         Reaction rate used in ODE solver.
+
         `y` is an array containing the overall volatile yield :math:`y`,
         and :math:`s` the raw coal fraction.
 
@@ -449,7 +475,8 @@ class C2SM(EmpiricalModel):
         -------
         rate: float
             :math:`dy/dt`
-        '''
+
+        """
         k1, k2 = self._k(y[-1])
         if y[1] > 1e-6:
             dydt = [(self.parameters.y1 * k1 + self.parameters.y2 * k2) * y[1],
@@ -465,6 +492,7 @@ class C2SM(EmpiricalModel):
     #                      [0, -(k1 + k2)]])
 
     def _k(self, T):
+        """Calculate the reaction constants."""
         RT = Rgas * T
         return (self.parameters.A1 / np.exp(
             self.parameters.E1 / RT),
@@ -474,11 +502,15 @@ class C2SM(EmpiricalModel):
 
 @logged
 class DAEM(EmpiricalModel):
-    '''
+    """
+    Distributed Activation Energy Model.
+
     Calculates the devolatilization reaction using the Distributed
     Activation Energy Model (DAEM), using Hermit-Gaussian quadrature
     [Donskoi2000]_
-    '''
+
+    """
+
     _Parameters = namedtuple_with_defaults(
         typename='DAEM',
         field_names=('A0', 'E0', 'sigma', 'y0'),
@@ -499,7 +531,13 @@ class DAEM(EmpiricalModel):
     Wm = w * np.exp(pow(x, 2))
 
     def rate(self, t, yt):
-        '''y, k0.., kn'''
+        """
+        Calculate rates.
+
+        The array `yt` contains the overall volatile yields y, and the
+        integral quadrature terms k0.., kn
+
+        """
         # TODO add with parameters
         T = yt[-1]
         y = yt[:-1]
@@ -519,10 +557,12 @@ class DAEM(EmpiricalModel):
         return np.append(dydt, dIdt)
 
     def _calc_Em(self):
+        """Calculate activation energies for the quadrature points."""
         return (self.parameters.E0 +
                 self.x * sqrt2 * self.parameters.sigma * self.mt)
 
     def set_parameters(self, *args, **kwargs):
+        """Set parameters and recalculate energies."""
         super(DAEM, self).set_parameters(*args, **kwargs)
         self._Em = self._calc_Em()
 
@@ -531,9 +571,11 @@ class DAEM(EmpiricalModel):
 
 @logged
 class BT(SFOR):
-    '''
-    Calculates the devolatilization reaction using the Biagini Tognotti (BT) model
-    [Biagini2014]_
+    """
+    Biagini Tognotti (BT) model.
+
+    Calculates the devolatilization reaction using the Biagini Tognotti (BT)
+    model [Biagini2014]_.
 
     It based on the :class:`SFOR` model:
 
@@ -551,7 +593,8 @@ class BT(SFOR):
     :math:`T_{st}=1223` the standard temperature for estimating
     volatiles in ASTM.
 
-    '''
+    """
+
     _Parameters = namedtuple_with_defaults(
         typename='Biagini',
         field_names=('A', 'E', 'k'),
@@ -562,6 +605,7 @@ class BT(SFOR):
     Tst = 1223
 
     def rate(self, t, y):
+        """Reaction rate."""
         T = y[-1]
         y0 = self._calc_y0(T)
         dy = (y0 - y[0])
@@ -569,4 +613,5 @@ class BT(SFOR):
         return [k * dy]
 
     def _calc_y0(self, T):
+        """Calculate y0."""
         return 1 - np.exp(-self.parameters.k * T / self.Tst)

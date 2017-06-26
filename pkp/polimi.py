@@ -1,23 +1,21 @@
 """
 Polimi model module.
-Define the class to work with Polimi model.
+
+Define the class to work with Polimi model and for triangulation.
 """
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
-from builtins import dict
 import sys
 
 import pkp.detailed_model
 import pkp.empirical_model
 import numpy as np
-import warnings
 import pandas as pd
 import os
 from autologging import logged
 
 from pkp.detailed_model import M_elements
-from scipy.integrate import ode
 
 from .triangle import Triangle
 from ._exceptions import ImportError
@@ -44,6 +42,7 @@ def set_reference_coal(name, atoms):
     Returns
     -------
     pkp.detailed_model.Coal
+
     """
     atoms['N'] = 0
     atoms['S'] = 0
@@ -68,26 +67,31 @@ char = set_reference_coal('CHAR', atoms={'C': 1, 'H': 0, 'O': 0})
 # Exceptions
 class MechanismError(Exception):
     """Raise an exception if the mechanism for Polimi model is wrong."""
+
     pass
 
 
 class CompositionError(Exception):
     """Raise an exception of composition is wrong."""
+
     pass
 
 
 @logged
 class TriangleCoal(Triangle):
-    """Triangle class based on coal Van Kravelen diagram"""
+    """Triangle class based on coal Van Kravelen diagram."""
 
     headers = ['O:C', 'H:C']
 
     def __init__(self, coal0, coal1, coal2):
         """
+        Init Coal Triangle.
+
         Parameters
         ----------
         coal0, coal1, coal2: Coal, Polimi
             Coal vertices of the triangles, based on VK diagram
+
         """
         self.coal0 = coal0
         self.coal1 = coal1
@@ -106,25 +110,23 @@ class TriangleCoal(Triangle):
             return coal
 
     def is_inside(self, coal):
-        '''
-        Check if the coal is inside the Triangles.
-        '''
+        """Check if the coal is inside the Triangles."""
         return super(
             TriangleCoal, self).is_inside(
                 self._coal_to_x(coal))
 
     def weights(self, coal):
+        """Return the weights of the given coal in the triangle."""
         return super(TriangleCoal, self).weights(
             self._coal_to_x(coal))
 
     def _coeff(self, coal):
+        """Return the weights of the coal in the triangle."""
         return super(TriangleCoal, self)._coeff(
             self._coal_to_x(coal))
 
     def itercoals(self):
-        '''
-        Iterate over coals returning coal vertices
-        '''
+        """Iterate over coals returning coal vertices."""
         for c in [self.coal0, self.coal1, self.coal2]:
             yield c
 
@@ -145,10 +147,12 @@ triangle_123 = TriangleCoal(coal1,
 
 @logged
 class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
-    '''
-    Polimi Multiple Step Kinetic Model for coal devolatilization
+    """
+    Multi-Step Kinetic Devolatilizion Model (Polimi).
+
     Based on Sommariva (2010).
-    '''
+    """
+
     tar = ['VTAR1', 'VTAR2', 'VTAR3']
     light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH2', 'CH3O',
                  'BTX2']
@@ -163,14 +167,21 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
 
     def __init__(self, proximate_analysis=None, ultimate_analysis=None,
                  pressure=101325, name='Coal'):
-        '''
+        """
+        Init Polimi model from ultimate analysis.
+
         Parameters
         ----------
         proximate_analysis: dict
         ultimate_analysis: dict
         pressure: float
         name: str
-        '''
+
+        See also
+        --------
+        :meth:`reference_coal`
+
+        """
         super(Polimi, self).__init__(
             proximate_analysis=proximate_analysis,
             ultimate_analysis=ultimate_analysis,
@@ -220,9 +231,10 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
                                  'COAL.xml')
         try:
             self._mechanism = cantera.Solution(value)
-            self.mechanism.TP = 300, self.pressure
         except:
             raise MechanismError('Cannot read {}'.format(value))
+        self._mechanism.TP = 300, self.pressure
+        self._calc_light_gas_index()
 
     mechanism = property(_get_mechanism, _set_mechanism,
                          doc='Mechanism in cantera format for Polimi')
@@ -295,3 +307,16 @@ class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
         data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
         return data
+
+    def get_yield(self, t, y):
+        """Get the volatile yield."""
+        return y[self._light_gas_index].sum()
+
+    def postprocess_step(self, t, y):
+        """Post process at time step of the ODE."""
+        pass
+
+    def _calc_light_gas_index(self):
+        """Get the list of the index of the light gas."""
+        self._light_gas_index = [self._mechanism.species_index(sp)
+                                 for sp in self.light_gas]

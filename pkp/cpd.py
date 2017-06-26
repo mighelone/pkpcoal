@@ -71,7 +71,6 @@ import pandas as pd
 import os
 import warnings
 
-from pkp.interpolate import interp
 from ._exceptions import ImportError
 
 # Import Numba
@@ -698,7 +697,7 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         return 1 - self.intact_bridges(y)
 
     def gas(self, y):
-        """
+        r"""
         Return the fraction of gas produced.
 
         .. math::
@@ -937,7 +936,7 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         #                     'Check plot')
 
     def calc_lightgases(self, y):
-        """
+        r"""
         Calculate lightgas distribution using Genetti method.
 
         Parameters
@@ -1001,7 +1000,7 @@ class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
         # data = np.hstack([np.insert(y, 0, t, axis=1), self.f])
         # data = np.insert(y, 0, t, axis=1)[::self.skip]
         data = pd.DataFrame(data=np.hstack([np.insert(y, 0, t, axis=1),
-                            self.f]),
+                                            self.f]),
                             columns=['t', 'l', 'delta', 'c', 'T',
                                      'solid', 'gas', 'tar', 'meta', 'cross'])
 
