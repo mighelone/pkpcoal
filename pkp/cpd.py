@@ -206,6 +206,10 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         return {p: getattr(self, p)
                 for p in self.nmr_parameters + self.kin_parameters}
 
+    @property
+    def parameters_dict(self):
+        return self.get_parameters()
+
     def _set_NMR_parameters_from_correlation(self):
         """
         Set NMR parameters from correlation.
@@ -759,7 +763,6 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
                                                       for v in vertices])
                     break
 
-        print('triangle='.format(self.triangle))
         if plot:
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots()
@@ -864,6 +867,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         if self.triangle:
             data['others'] = 1 - data[
                 ['CO', 'CO2', 'H2O', 'CH4']].sum(axis=1)
+        data['volatile'] = data['tar'] + data['gas']
         return data
 
     def get_yield(self, t, y):

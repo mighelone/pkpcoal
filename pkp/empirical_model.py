@@ -100,6 +100,11 @@ class Model(metaclass=abc.ABCMeta):
         """Return the actual volatilization yield."""
         return
 
+    @abc.abstractproperty
+    def parameters_dict(self):
+        """Return dictionary of the actual parameters."""
+        return
+
 
 @logged
 class EmpiricalModel(Model):
