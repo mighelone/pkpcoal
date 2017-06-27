@@ -3,19 +3,18 @@ Polimi model module.
 
 Define the class to work with Polimi model and for triangulation.
 """
-
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 import sys
 
-import pkp.detailed_model
+import pkp.coal
 import pkp.empirical_model
 import numpy as np
 import pandas as pd
 import os
 from autologging import logged
 
-from pkp.detailed_model import M_elements
+from pkp.coal import M_elements
 
 from .triangle import Triangle
 from ._exceptions import ImportError
@@ -41,14 +40,14 @@ def set_reference_coal(name, atoms):
 
     Returns
     -------
-    pkp.detailed_model.Coal
+    pkp.coal.Coal
 
     """
     atoms['N'] = 0
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
           for el, val in atoms.items()}
-    return pkp.detailed_model.Coal(
+    return pkp.coal.Coal(
         name=name,
         ultimate_analysis=ua,
         proximate_analysis={'FC': 50,
@@ -103,8 +102,7 @@ class TriangleCoal(Triangle):
 
     @staticmethod
     def _coal_to_x(coal):
-        if isinstance(coal, (Polimi,
-                             pkp.detailed_model.Coal)):
+        if isinstance(coal, (Polimi, pkp.coal.Coal)):
             return coal.van_kravelen
         else:
             return coal
@@ -146,7 +144,7 @@ triangle_123 = TriangleCoal(coal1,
 
 
 @logged
-class Polimi(pkp.detailed_model.Coal, pkp.empirical_model.Model):
+class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
     """
     Multi-Step Kinetic Devolatilizion Model (Polimi).
 

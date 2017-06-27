@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 from builtins import dict
 
 import pkp.cpd_fortran
-import pkp.detailed_model
+import pkp.coal
 import numpy as np
 import pytest
 import os
@@ -26,8 +26,9 @@ op_cond = [[0, 500],
 
 @pytest.fixture
 def coal():
-    return pkp.detailed_model.DetailedModel(proximate_analysis=pa,
-                                            ultimate_analysis=ua)
+    """Init coal."""
+    return pkp.coal.Coal(proximate_analysis=pa,
+                         ultimate_analysis=ua)
 
 
 @pytest.fixture
@@ -36,7 +37,7 @@ def cpd():
 
 
 def test_normalize_dictionary():
-    ua_norm = pkp.detailed_model.normalize_dictionary(ua)
+    ua_norm = pkp.coal.normalize_dictionary(ua)
     assert np.isclose(sum(ua_norm.values()), 1)
     assert np.isclose(ua['C'] / sum(ua.values()), ua_norm['C'])
 
@@ -52,7 +53,7 @@ def test_coal_init(coal):
     ua_new = ua.copy()
     ua_new['C'] = 60
     coal.ultimate_analysis = ua_new
-    assert pkp.detailed_model.normalize_dictionary(
+    assert pkp.coal.normalize_dictionary(
         ua_new) == coal.ultimate_analysis
 
 

@@ -20,7 +20,7 @@ def test_check_namedtuple():
 
 @pytest.fixture
 def sfor():
-    A, E, y0 = 1e7, 100e6, 0.5ebe
+    A, E, y0 = 1e7, 100e6, 0.5
     return SFOR(A, E, y0)
 
 

@@ -59,7 +59,7 @@ from __future__ import print_function, unicode_literals
 
 
 import pkp
-import pkp.detailed_model
+import pkp.coal
 import pkp.empirical_model
 import pkp.triangle
 import numpy as np
@@ -94,7 +94,7 @@ Rgas = 1.987  # cal/mol-K
 
 
 @logged
-class CPD(pkp.detailed_model.Coal, pkp.empirical_model.Model):
+class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
     """
     Chemical Percolation Devolatilization model (CPD).
 

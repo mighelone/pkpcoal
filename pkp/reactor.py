@@ -326,7 +326,7 @@ class DTR(Reactor):
         t = res[0] if is_tuple else res['t']
         Tg = np.array([self.Tg(ti) for ti in t])
         if is_tuple:
-            y = np.insert(res[1], res[1].shape[1]+1, Tg, axis=1)
+            y = np.insert(res[1], res[1].shape[1], Tg, axis=1)
             res = (t, y)
         else:
             res['Tg'] = Tg

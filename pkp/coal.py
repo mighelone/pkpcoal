@@ -1,5 +1,5 @@
 """
-Detailed model.
+Coal module.
 
 Module contains the Detailed model base class. This class is used as
 parent for detailed model classes, such :class:`pkp.cpd.CPD`,
@@ -72,23 +72,24 @@ rH2O = 2263073
 
 
 def normalize_dictionary(d):
-    '''
-    Normalize dictionary d and return a new one
-    '''
+    """Normalize dictionary d and return a new one."""
     sum_d = sum(d.values())
     return {el: (val / sum_d) for el, val in d.items()}
 
 
 @logged
 class Coal(object):
-    '''
-    Detailed model class used as parent class for Devolatilization
-    models
-    '''
+    """
+    Coal class.
+
+    Define main methods for coal calculation.
+    """
 
     def __init__(self, proximate_analysis=None, ultimate_analysis=None,
                  pressure=101325, hhv=None, name='Detailed model'):
-        '''
+        """
+        Init coal.
+
         Parameters
         ----------
         proximate_analysis: dict
@@ -101,7 +102,8 @@ class Coal(object):
             Pressure of pyrolysis process in Pa
         name: str, unicode
             Reference name of the modelled coal
-        '''
+
+        """
         super(Coal, self).__init__()
         if ultimate_analysis is None:
             ultimate_analysis = ua
@@ -124,14 +126,11 @@ class Coal(object):
 
     @property
     def hhv(self):
-        '''
-        Higher heating value of coal as received in J/kg
-        '''
+        """Higher heating value of coal as received in J/kg."""
         return self._hhv
 
     @hhv.setter
     def hhv(self, value):
-        """Read HHV in MJ/kg"""
         if value:
             try:
                 self._hhv = value * 1e6
@@ -151,38 +150,34 @@ class Coal(object):
 
     @property
     def lhv_char(self):
-        '''
-        Lower heating value of char in J/kg is calculated assuming char
-        as graphite
-        '''
+        """
+        Lower heating value of char in J/kg.
+
+        It is calculated assuming char as graphite
+        """
         return lhv_char
 
     @property
     def hhv_daf(self):
-        '''
-        Higher heating value of coal on daf basis in J/kg
-        '''
+        """Higher heating value of coal on daf basis in J/kg."""
         return self._hhv_daf
 
     @property
     def lhv(self):
-        '''
-        Lower heating value of coal as received in J/kg
-        '''
+        """Lower heating value of coal as received in J/kg."""
         return self._lhv
 
     @property
     def lhv_daf(self):
-        '''
-        Lower heating value of coal on daf basis in J/kg
-        '''
+        """Lower heating value of coal on daf basis in J/kg."""
         return self._lhv_daf
 
     def dulong(self):
-        '''
-        Calculate HHV_daf using the Dulong formula
+        """
+        Calculate HHV_daf using the Dulong formula.
+
         http://www.bti-europe.eu/downloads/CoalConversionFactsCalculations.pdf
-        '''
+        """
         coeff = {
             'C': 33.3,
             'H': 144.2,
@@ -194,7 +189,9 @@ class Coal(object):
                    for el, c in coeff.items()) * 1e6
 
     def postulate_species(self, y0, mw=200.0, include_nu=False):
-        '''
+        """
+        Calculate volatiles as postulate species.
+
         Calculate the volatile composition for the fitted empirical
         model assuming a unique *postulate* species. The composition is
         calculated assuming that char is composed only by carbon and
@@ -220,7 +217,8 @@ class Coal(object):
         See also
         --------
         :meth:`empirical_composition`
-        '''
+
+        """
         assert 0 < y0 < 1, 'Define y0 between 0 and 1'
         ua_char = {el: (1 if el == 'C' else 0)
                    for el in self.ultimate_analysis}
@@ -287,13 +285,15 @@ class Coal(object):
 
     @staticmethod
     def el_fraction(sp, el):
-        '''Mass fraction of element el in species sp'''
+        """Mass fraction of element el in species sp."""
         return el_fractions[sp][el]
 
     def empirical_composition(self, y0, tar, CO):
-        '''
-        Set the empirical composition of volatiles using the method by
-        [Petersen2005]_
+        """
+        Calculate empirical composition of volatiles.
+
+        The empirical composition of volatiles is calculated  using the method
+        by [Petersen2005]_.
         This method is based on the element conservation balance and
         some assumption regarding tar and CO.
 
@@ -314,15 +314,15 @@ class Coal(object):
         See also
         --------
         :meth:`postulate_species`
-        '''
 
+        """
         # def calc_remaining(comp):
-        #     '''Remaining fraction of each elements'''
+        #     """Remaining fraction of each elements"""
         #     return {el: (ua - tot_el_fraction(comp, el))
         #             for el, ua in ultimate_analysis.items()}
 
         # def tot_el_fraction(comp, element):
-        #     '''Calc the total element fraction of the given element'''
+        #     """Calc the total element fraction of the given element"""
         #     return np.sum([val * self.el_fraction(sp, element)
         #                    for sp, val in comp.items()])
 
@@ -405,18 +405,35 @@ class Coal(object):
         return emp_dict
 
     def calc_remaining(self, comp, ultimate_analysis):
-        '''Remaining fraction of each elements'''
+        """
+        Calculate remaining fraction of each elements.
+
+        Given a volatile composition dictionary, it reports the remaining
+        mass fraction of each element respect to the ultimate analysis.
+
+        Parameters
+        ----------
+        comp: dict
+            composition dictionary in mass fraction
+        ultimate_analysis: dict
+            ultimate analysis dictionary
+
+        Return
+        ------
+        dict: remaining fraction dictionary
+
+        """
         return {el: (ua - self.tot_el_fraction(comp, el))
                 for el, ua in ultimate_analysis.items()}
 
     @classmethod
     def tot_el_fraction(cls, comp, element):
-        '''Calc the total element fraction of the given element'''
+        """Calc the total element mass fraction in a composition."""
         return np.sum([val * cls.el_fraction(sp, element)
                        for sp, val in comp.items()])
 
     # def calc_element_fraction(self, element, species):
-    #     '''
+    #     """
     #     Calculate element fraction of the given species.
 
     #     Parameters
@@ -430,7 +447,7 @@ class Coal(object):
     #     -------
     #     el_fraction: float
     #         fraction of element
-    #     '''
+    #     """
     #     if species in ('Char', 'Solid'):
     #         if element == 'C':
     #             return 1.0
@@ -446,8 +463,8 @@ class Coal(object):
     #                 self.gas.species_index(species)])
 
     def heat_of_volatiles(self, composition):
-        '''
-        Calculate the total heat of the volatile yields including char
+        """
+        Calculate the total heat of the volatile yields including char.
 
         Parameters
         ----------
@@ -458,14 +475,17 @@ class Coal(object):
         -------
         hhv: float
             Heat of reaction of volatile gases mixture, MJ/kg
-        '''
+
+        """
         return sum(val * self.heat_of_reaction_species(sp)
                    for sp, val in composition.items())
 
     def heat_of_pyrolysis(self, composition):
-        '''
-        Heat of pyrolysis. It is defined as the total heat released
-        during pyrolysis per unit of volatiles.
+        r"""
+        Calc the heat of pyrolysis.
+
+        It is defined as the total heat released during pyrolysis per unit of
+        volatiles.
         Positive heat of pyrolysis means that extra heat is removed to
         fullfill the energy balance of coal.
 
@@ -479,15 +499,17 @@ class Coal(object):
         :meth:`heat_of_volatiles`
         :meth:`heat_of_reaction_species`
 
-        '''
+        """
         heat_vol = self.heat_of_volatiles(composition)
         dh_pyro = self.lhv_daf - heat_vol
         return -dh_pyro / (1 - composition['char'])
 
     def heat_of_reaction_species(self, sp):
-        '''
-        Calculate the heat of reaction :math:`\Delta H` for the species
-        sp:
+        r"""
+        Calculate the heat of reaction of a specie.
+
+        The heat of reaction is calculated from the energy balance at the
+        reference temperature.
 
         .. math::
 
@@ -509,7 +531,8 @@ class Coal(object):
 
         :meth:`heat_of_pyrolysis`
         :meth:`heat_of_reaction_species`
-        '''
+
+        """
         sp_coeff = species[sp]
         if sp in ('N2'):
             return 0.0
@@ -542,9 +565,7 @@ class Coal(object):
 
     @property
     def name(self):
-        '''
-        Reference name for the coal.
-        '''
+        """Reference name for the coal."""
         return self._name
 
     @name.setter
@@ -556,10 +577,12 @@ class Coal(object):
 
     @property
     def ultimate_analysis(self):
-        '''
-        Ultimate analysis of coal in daf basis. It is defined as
-        dictionary: {'C': 0.8, 'H':0.12, 'O': 0.05, 'N':0.2, 'S':0}.
-        '''
+        """
+        Ultimate analysis of coal in daf basis.
+
+        It is defined as dictionary:
+        {'C': 0.8, 'H':0.12, 'O': 0.05, 'N':0.2, 'S':0}.
+        """
         return self._ultimate_analysis
 
     @ultimate_analysis.setter
@@ -577,9 +600,7 @@ class Coal(object):
 
     @property
     def rho_dry(self):
-        '''
-        Apparent density of dry coal in kg/m3.
-        '''
+        """Apparent density of dry coal in kg/m3."""
         return self._rho_dry
 
     @rho_dry.setter
@@ -591,10 +612,12 @@ class Coal(object):
 
     @property
     def proximate_analysis(self):
-        '''
-        Coal proximate analysis dictionary. It is defined as follows:
+        """
+        Coal proximate analysis dictionary.
+
+        It is defined as follows:
         `{'FC': 0.4, 'VM':0.4, 'Ash':0.05, 'Moist':0.15}`
-        '''
+        """
         return self._proximate_analysis
 
     @proximate_analysis.setter
@@ -618,25 +641,25 @@ class Coal(object):
 
     @property
     def proximate_analysis_daf(self):
-        '''
-        Coal proximate analysis on daf basis. It is defined as follows:
-        `{'FC': 0.5, 'VM':0.5}`
-        '''
+        """
+        Coal proximate analysis on daf basis.
+
+        It is defined as follows: `{'FC': 0.5, 'VM':0.5}`
+        """
         return self._proximate_analysis_daf
 
     @property
     def daf(self):
-        '''
-        Dry ash free fraction on coal as received. It correspond to the
-        mass fractions of volatile and char.
-        '''
+        """
+        Dry ash free fraction on coal as received.
+
+        It correspond to the mass fractions of volatile and char.
+        """
         return self._daf
 
     @property
     def pressure(self):
-        '''
-        Operating pressure in Pa.
-        '''
+        """Operating pressure in Pa."""
         return self._pressure
 
     @pressure.setter
@@ -645,9 +668,8 @@ class Coal(object):
 
     @property
     def path(self):
-        '''
-        Path where results are saved.
-        '''
+        """Path where results are saved."""
+        # TODO this method should be moved to the Reactor section
         return self._path
 
     @path.setter
@@ -666,10 +688,11 @@ class Coal(object):
 
     @property
     def van_kravelen(self):
-        '''
-        Coordinate of van kravelen diagram, defined as (O/C, H/C) as
-        received on molar basis.
-        '''
+        """
+        Coordinate array of van kravelen diagram.
+
+        They are defined as (O/C, H/C) as received on molar basis.
+        """
         mol = {el: (self.ultimate_analysis[el] / M_elements[el])
                for el in ['C', 'H', 'O']}
         return np.array([mol['O'] / mol['C'], mol['H'] / mol['C']])
@@ -680,9 +703,8 @@ class Coal(object):
         return self._basename
 
     def _set_basename(self, value):
-        '''
-
-        '''
+        """Define a basename for saving the results."""
+        # TODO move to reactor as well (see path)
         if value is None:
             value = (self.__class__.__name__ +
                      '_' + self.name.replace(' ', '_'))
@@ -695,6 +717,7 @@ class Coal(object):
                         doc='Basename for exporting results')
 
     def __str__(self):
+        """Return the string representation."""
         str = ('Coal: {}\n'.format(self.name))
         str += ''.join(['='] * (len(self.name) + 6))
         str += '\n\nUltimate Analysis\n'
@@ -709,28 +732,12 @@ class Coal(object):
         return str
 
     def __repr__(self):
+        """Return the string representation."""
         return self.__str__()
 
-    # common interface for children classes
-    def set_parameters(self, **kwargs):
-        '''
-        Set the calculation parameters
-        '''
-        pass
-
-    def get_parameters(self):
-        '''
-        Return a dictionary parameters
-        '''
-        return {}
-
-    def run(self, **kwargs):
-        pass
-
     def cpd_composition(self, result, tar_mw=100):
-        """
-        Calculate the empirical composition
-        """
+        """Calculate the empirical composition."""
+        # TODO move to CPD model
         # scale light gases to have sum = 1
         light_gases = ('CO', 'CO2', 'H2O', 'CH4', 'others')
         composition = {sp: result.iloc[-1][sp] for sp in ('tar', 'char')}
