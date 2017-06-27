@@ -1,4 +1,3 @@
-
 """
 Reactor module.
 

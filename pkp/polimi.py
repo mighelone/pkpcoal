@@ -203,9 +203,9 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
             Polimi mechanism in Cantera format
 
         """
-        for key in self._parameters:
-            if key in kwargs:
-                setattr(self, key, kwargs[key])
+        for key, value in kwargs.items():
+            if key in self._parameters:
+                setattr(self, key, value)
 
     def get_parameters(self):
         """Get the parameters dictionary."""
@@ -224,13 +224,16 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
     # def mechanism(self, value=None):
     def _set_mechanism(self, value=None):
         """Set mechanism. Default is COAL.xml."""
-        if value is None:
-            value = os.path.join(os.path.dirname(pkp.bins.__file__),
-                                 'COAL.xml')
-        try:
-            self._mechanism = cantera.Solution(value)
-        except:
-            raise MechanismError('Cannot read {}'.format(value))
+        if isinstance(value, cantera.Solution):
+            self._mechanism = value
+        else:
+            if value is None:
+                value = os.path.join(os.path.dirname(pkp.bins.__file__),
+                                     'COAL.xml')
+            try:
+                self._mechanism = cantera.Solution(value)
+            except:
+                raise MechanismError('Cannot read {}'.format(value))
         self._mechanism.TP = 300, self.pressure
         self._calc_light_gas_index()
 
