@@ -160,11 +160,11 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
                  'GCOAL3', 'GCO2', 'TAR3', 'GCOLS']
     char = ['CHAR', 'CHARH', 'CHARG']
 
-    dt = 1e-5
-    dt_max = 1e-4
+    # define here the modificable parameters
+    _parameters = ['mechanism']
 
     def __init__(self, proximate_analysis=None, ultimate_analysis=None,
-                 pressure=101325, name='Coal'):
+                 pressure=101325, name='Coal', **kwargs):
         """
         Init Polimi model from ultimate analysis.
 
@@ -190,7 +190,8 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
         self.skip = 1
         self.backend = None
         self._define_triangle()
-        self.parameters_dict = {}
+        self.set_parameters(**kwargs)
+        # self.parameters_dict = {}
 
     def set_parameters(self, **kwargs):
         """
@@ -202,9 +203,17 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
             Polimi mechanism in Cantera format
 
         """
-        for key in ('mechanism'):
+        for key in self._parameters:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
+
+    def get_parameters(self):
+        """Get the parameters dictionary."""
+        return {key: getattr(self, key) for key in self._parameters}
+
+    @property
+    def parameters_dict(self):
+        return self.get_parameters()
 
     # @property
     # def mechanism(self):

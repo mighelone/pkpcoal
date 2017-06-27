@@ -235,60 +235,6 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
 
         self._after_set_NMR()
 
-    def run(self, time=None, light_gas=True, n_frag=20):
-        """
-        Run CPD.
-
-        Parameters
-        ----------
-        time: float
-            End of calculation, if it is not specified use the last
-            time in operating_conditions.
-        light_gas: bool
-            Calculate light gas using Genetti method
-        n_frag: int (default=20)
-            Number of fragments considered for tar formation
-
-        Returns
-        -------
-        results: pandas.Dataframe
-            Dataframe containg the results of CPD as a function of the
-            residence time.
-
-        """
-        t, y, f = self._bridge_evolution(n_frag=n_frag, time_end=time)
-        data = np.concatenate([t[:, np.newaxis], y, f], axis=1)
-        df = pd.DataFrame(data, index=t,
-                          columns=['t', 'l', 'delta', 'c', 'char',
-                                   'light_gas', 'tar', 'meta', 'cross'])
-        df['T'] = [self.T(ti) for ti in t]
-        df['p'] = self.intact_bridges(y.T)
-        df['f'] = 1 - df['p']
-        df['g1'], df['g2'] = self.gas(y.T)
-        df['volatiles'] = df['tar'] + df['light_gas']
-
-        if light_gas:
-            X_gas = df['delta'] * 0.5 + df['l']
-            X_gas = 1 - X_gas / X_gas.iloc[0]
-            # self.find_triangle(plot='show')
-            self.find_triangle()
-            if self.triangle:
-                # light gases are evaluated only if the coal
-                # is inside one of the defined points
-                X_gases = self.calc_lightgases(X_gas)
-                for x, sp in zip(X_gases.T, ('CO', 'CO2', 'H2O', 'CH4')):
-                    df[sp] = x * df['light_gas']
-                df['others'] = 1 - X_gases.sum(axis=1)
-                # f_gases = pd.DataFrame(
-                #    (df['light_gas'].values * X_gases.T).T,
-                #    columns=gas_species, index=df.index)
-                # df = pd.concat([df, f_gases], axis=1)
-                # df['others'] = 1 - (df['CO'] + df['CO2'] +
-                #                    df['H2O'] + df['CH4'])
-
-        df.to_csv(self._out_csv)
-        return df
-
     def _set_NMR_parameters(self, **nmr_parameters):
         """
         Calculate parameters using Genetti correlation.
@@ -853,7 +799,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         # stack y with f
         data = np.hstack([t[:, np.newaxis], y, self.f])
         columns = ['t', 'l', 'delta', 'c', 'T',
-                   'solid', 'gas', 'tar', 'meta', 'cross']
+                   'solid', 'light_gas', 'tar', 'metaplast', 'cross']
 
         # calc light gas
         X_gas = y[:, 1] * 0.5 + y[:, 0]  # 1/2 delta + l
@@ -867,7 +813,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         if self.triangle:
             data['others'] = 1 - data[
                 ['CO', 'CO2', 'H2O', 'CH4']].sum(axis=1)
-        data['volatile'] = data['tar'] + data['gas']
+        data['volatiles'] = data['tar'] + data['light_gas']
         return data
 
     def get_yield(self, t, y):
