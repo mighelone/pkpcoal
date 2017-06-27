@@ -1,4 +1,6 @@
-'''
+"""
+Biomass Polimi devolatilization model.
+
 Module containing the class for modeling pyrolysis of biomass,
 based on `Ranzi et al. <10.1021/ef800551t>`__
 
@@ -24,7 +26,7 @@ Describe usage
 
 Class
 -----
-'''
+"""
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
@@ -35,7 +37,7 @@ from autologging import logged
 
 import pkp.polimi
 import pkp.bins
-import pkp.detailed_model
+import pkp.coal
 from pkp.polimi import TriangleCoal
 # from pkp.detailed_model import M_elements
 try:
@@ -46,6 +48,7 @@ import os
 
 
 def set_reference_coal(name, c, h, o):
+    """Set the reference biomass."""
     return pkp.polimi.set_reference_coal(name,
                                          {'C': c,
                                           'H': h,
@@ -53,13 +56,14 @@ def set_reference_coal(name, c, h, o):
 
 
 def set_reference_coal_mass(name, c, h, o):
+    """Set the mass fraction of the reference biomass."""
     ua = {}
     ua['C'] = c
     ua['H'] = h
     ua['O'] = o
     ua['N'] = 0
     ua['S'] = 0
-    return pkp.detailed_model.DetailedModel(
+    return pkp.coal.Coal(
         name=name,
         ultimate_analysis=ua,
         proximate_analysis={'FC': 50,
@@ -69,6 +73,7 @@ def set_reference_coal_mass(name, c, h, o):
 
 
 def set_reference_biomass(name, comp):
+    """Set the reference biomass."""
     biomass.TPY = 300, 101325, comp
     return pkp.polimi.set_reference_coal(
         name,
@@ -108,9 +113,12 @@ triangle_123 = TriangleCoal(bioS1, bioS2, bioS3)
 
 @logged
 class BioPolimi(pkp.polimi.Polimi):
-    '''
+    """
     Biomass Polimi Multiple Step Kinetic Model.
-    '''
+
+    The class implement the Biomass multi-step devolatilization model,
+    derived from the coal Polimi model.
+    """
     light_gas = ['HAA',
                  'HMFU',
                  'LVG',
@@ -185,8 +193,16 @@ class BioPolimi(pkp.polimi.Polimi):
                 '{}'.format(triangle_123))
 
     def plot_vankravelen(self, ax=None, show=False):
-        '''Plot Van Kravelen diagram for the given biomass and
-        reference'''
+        """
+        Plot Van Kravelen diagram for the given biomass and reference.
+
+        Parameters
+        ----------
+        ax: matplotlib.pyplot.axes
+        show: bool
+            Show the plot
+
+        """
         import matplotlib.pyplot as plt
         import itertools
         if ax is None:
@@ -210,7 +226,7 @@ class BioPolimi(pkp.polimi.Polimi):
         return ax
 
     def plot_CH(self, ax=None, show=False):
-        '''
+        """
         Plot Carbon-Hydrogen (CH) diagram showing reference coals and
         the actual one.
 
@@ -220,7 +236,8 @@ class BioPolimi(pkp.polimi.Polimi):
             Axes used for preparing the figure
         show: bool, default=False
             Show the plot.
-        '''
+
+        """
         import matplotlib.pyplot as plt
         import itertools
         if ax is None:
