@@ -1,122 +1,89 @@
-from __future__ import division, absolute_import
-from __future__ import print_function, unicode_literals
-from builtins import dict
+"""Test module for CPD."""
 
-import pkp.cpd_fortran
-import pkp.coal
-import numpy as np
 import pytest
-import os
+import numpy as np
 
-ua = {'C': 69,
-      'H': 5,
-      'O': 24.7,
-      'N': 0.8,
-      'S': 0.5}
+import pkp.cpd
 
-pa = {'FC': 45.1,
-      'VM': 50.6,
-      'Ash': 4.3,
-      'Moist': 19.0}
+ua = {'C': 74.12,
+      'H': 4.96,
+      'O': 13.18,
+      'N': 1.45,
+      'S': 0.0}
 
-op_cond = [[0, 500],
-           [0.001, 1400],
-           [0.01, 1400]]
+ua['S'] = 100 - sum(ua.values())
 
+daf = 90.
+vm_daf = 43.37
+pa = {'FC': (100-vm_daf)/100*daf,
+      'VM': vm_daf/100*daf,
+      'Ash': 100 - daf,
+      'Moist': 0}
 
-@pytest.fixture
-def coal():
-    """Init coal."""
-    return pkp.coal.Coal(proximate_analysis=pa,
-                         ultimate_analysis=ua)
+pressure = 101325
 
 
 @pytest.fixture
 def cpd():
-    return pkp.cpd_fortran.CPD(proximate_analysis=pa, ultimate_analysis=ua)
+    """Init the CPD model."""
+    return pkp.cpd.CPD(ultimate_analysis=ua, proximate_analysis=pa,
+                       pressure=101325, name='CPD coal')
 
 
-def test_normalize_dictionary():
-    ua_norm = pkp.coal.normalize_dictionary(ua)
-    assert np.isclose(sum(ua_norm.values()), 1)
-    assert np.isclose(ua['C'] / sum(ua.values()), ua_norm['C'])
+def test_cpd_init(cpd):
+    """
+    Test if the property are correctly initialized.
 
+    Reference values are taken from
+    https://www.et.byu.edu/~tom/cpd/correlation.html
+    """
+    mdel = 42.4
+    mw = 383.0
+    p0 = 0.501
+    sigma = 5.20
+    c0 = 0.00952
 
-def test_coal_init(coal):
-    assert ua['C'] / sum(ua.values()) == coal.ultimate_analysis['C']
-    assert coal.daf == (coal.proximate_analysis[
-                        'VM'] + coal.proximate_analysis['FC'])
-    assert coal.proximate_analysis_daf[
-        'VM'] == coal.proximate_analysis['VM'] / coal.daf
-    assert 'Ash' not in coal.proximate_analysis_daf
+    # adjust mdel as in the fortran code
+    # this is done in cpd._after_set_NMR
+    # mdel /= (1-c0)
+    # mdel -= 7
 
-    ua_new = ua.copy()
-    ua_new['C'] = 60
-    coal.ultimate_analysis = ua_new
-    assert pkp.coal.normalize_dictionary(
-        ua_new) == coal.ultimate_analysis
+    assert cpd.ultimate_analysis['C'] == 74.12/100
+    assert cpd.ultimate_analysis['H'] == 4.96/100
 
+    assert cpd.pressure == pressure
+    np.testing.assert_almost_equal(mdel, cpd.mdel, decimal=1)
+    np.testing.assert_almost_equal(mw, cpd.mw, decimal=2)
+    np.testing.assert_almost_equal(p0, cpd.p0, decimal=2)
+    np.testing.assert_almost_equal(sigma, sigma, decimal=2)
+    np.testing.assert_almost_equal(c0, cpd.c0, decimal=2)
 
-def test_set_NMR(cpd):
-    cpd._set_NMR_parameters()
-    parameters_keys = ['mdel', 'mw', 'p0', 'sig']
-    for key in parameters_keys:
-        assert hasattr(cpd, key)
+    # check if the delta mw is correctly corrected
+    mdel_corr = cpd.mdel / (1-cpd.c0)
+    mdel_corr -= 7
+    ma = cpd.mw - cpd.sig * mdel_corr
+    np.testing.assert_almost_equal(ma, cpd.ma)
 
-    assert np.isclose(cpd.fcar * 100, 69.0)
-    assert np.isclose(cpd.vm_daf * 100, 52.87, atol=0.05)
-    assert np.isclose(cpd.mdel, 46.5, atol=0.05)
-    assert np.isclose(cpd.mw, 340.3, atol=0.05)
-    assert np.isclose(cpd.p0, 0.620, atol=0.05)
-    assert np.isclose(cpd.sig, 4.57, atol=0.05)
-    assert np.isclose(cpd.c0, 0.15, atol=0.05)
-
-    nmr = {'mdel': 45.5,
-           'mw': 340,
-           'p0': 0.6,
-           'sig': 4.6,
-           'c0': 0.1}
-    cpd._set_NMR_parameters(nmr_parameters=nmr)
-    for p in nmr:
-        assert nmr[p] == getattr(cpd, p)
+    assert cpd.name == 'CPD coal'
 
 
 def test_set_parameters(cpd):
-    par = cpd.get_parameters()
-    print(par)
+    """Test set parameters."""
+    parameters = cpd.get_parameters()
 
-    par['basename'] = 'test'
-    par['increment'] = 5
+    assert all(p in parameters for p in cpd.nmr_parameters +
+               cpd.kin_parameters)
 
-    cpd.set_parameters(**par)
-    for key in par:
-        if not key == 'nmr_parameters':
-            assert getattr(cpd, key) == par[key]
-        else:
-            for p in par[key]:
-                assert getattr(cpd, p) == par[key][p]
+    mw = 360
+    ab = parameters['ab']*2
+    cpd.set_parameters(mw=mw, ab=ab)
 
+    assert cpd.mw == mw
+    assert cpd.ab == ab
 
-def test_set_numerical(cpd):
-    par = cpd.get_parameters()
-    par['increment'] = 5
-    cpd._set_numerical_parameters(**par)
-    assert cpd.increment == par['increment']
+    # check that afer set NMR was correctly executed
+    mdel_corr = cpd.mdel / (1-cpd.c0)
+    mdel_corr -= 7
+    ma = cpd.mw - cpd.sig * mdel_corr
 
-
-def test_operating_conditions(cpd):
-    cpd.operating_conditions = op_cond
-    assert cpd.operating_conditions.shape == (3, 2)
-
-
-def test_run(cpd):
-    test_dir = './test'
-    test_dir = os.path.join(os.getcwd(), test_dir)
-    if not os.path.isdir(test_dir):
-        os.mkdir(test_dir)
-    cpd.path = test_dir  # add path to set property
-    cpd.operating_conditions = op_cond
-    cpd.set_parameters(dt=1e-5, increment=2, dt_max=1e-5,
-                       basename='test', nmr_parameters=None)
-    res = cpd.run()
-    res.index.name == 'Time(ms)'
+    assert cpd.ma == ma

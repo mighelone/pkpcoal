@@ -42,11 +42,6 @@ Set the output directory where store the results::
 
     >>> m.path = './Results'
 
-Set the parameters for the CPD run::
-
-    >>> m.set_parameters(dt=1e-5, increment=2, dt_max=1e-5,
-                         basename='test')
-
 and finally run the model::
 
     >>> results = m.run()
@@ -64,12 +59,9 @@ import pkp.empirical_model
 import pkp.triangle
 import numpy as np
 from autologging import logged
-from scipy.integrate import ode
-# from .binomial import bpmfln
 from scipy.optimize import brentq, newton
 import pandas as pd
 import os
-import warnings
 
 from ._exceptions import ImportError
 
@@ -109,8 +101,11 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
     """
 
     nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
-    num_parameters = ['dt', 'increment', 'dt_max']
+    kin_parameters = ['ab', 'eb', 'ebsig', 'ac', 'ec', 'ag', 'eg', 'egsig',
+                      'Acr', 'Ecr', 'arad', 'erad', 'fstable', 'an', 'en',
+                      'ensig']
 
+    # kinetic parameters
     ab = 2.602e15
     eb = 55400
     ebsig = 1800
@@ -127,12 +122,9 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
     an = 5.5e7
     en = 90000
     ensig = 0
-    nmax = 20
-
-    skip = 1
 
     def __init__(self, ultimate_analysis=None, proximate_analysis=None,
-                 pressure=101325, name='CPD coal'):
+                 pressure=101325, name='CPD coal', **kwargs):
         """
         Initialize CPD model.
 
@@ -148,6 +140,8 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             Pressure of pyrolysis process
         name: str, unicode
             Reference name of the modelled coal
+        kwargs: dict
+            Additional parameters that can be change from set_parameters
 
         """
         super(CPD, self).__init__(proximate_analysis=proximate_analysis,
@@ -161,12 +155,13 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         self.fnit = self.ultimate_analysis['N']
         self.foxy = self.ultimate_analysis['O']
         self.vm_daf = self.proximate_analysis_daf['VM']
+        self._set_NMR_parameters_from_correlation()
 
         # set parameters -> this can be changed using
         # self.set_parameters
-        self.solver = None
-        self._set_NMR_parameters()
-        self._set_numerical_parameters()
+        # self._set_NMR_parameters()
+        # self._set_numerical_parameters()
+        self.set_parameters(**kwargs)
 
         # initialize fractions
         self.f = [[1, 0, 0, 0, 0]]
@@ -187,91 +182,54 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             NMR parameters dictionary. Keys are:
             ['mdel', 'mw', 'p0', 'sig', 'c0']
             If None values are calculated using Genetti correlation
-        dt: float
-            Time step
-        increment: int
-            Number of time step saved
-        dt_max: float
-            Max. time step
-        solver: str
-            CPD solver path
         basename: str
             Basename for CPD output files
 
         """
-        # TODO set a warning for coal outside the parameters
-        if 'nmr_parameters' in kwargs:
-            self._set_NMR_parameters(
-                nmr_parameters=kwargs['nmr_parameters'])
+        # if 'nmr_parameters' in kwargs:
+        #    self._set_NMR_parameters(
+        #        nmr_parameters=kwargs['nmr_parameters'])
 
-        num_parameters = ('dt', 'increment', 'dt_max')
-        if any(p in kwargs for p in num_parameters):
-            self._set_numerical_parameters(**kwargs)
+        # if 'basename' in kwargs:
+        #    self.basename = kwargs['basename']
 
-        if 'solver' in kwargs:
-            self.solver = kwargs['solver']
+        nmr_parameters = {key: value for key, value in kwargs.items()}
+        if nmr_parameters:
+            self._set_NMR_parameters(**nmr_parameters)
 
-        if 'basename' in kwargs:
-            self.basename = kwargs['basename']
+        for key, value in kwargs.items():
+            if key in self.kin_parameters:
+                setattr(self, key, value)
 
     def get_parameters(self):
         """Get the parameters of CPD model."""
-        nmr = {p: getattr(self, p)
-               for p in self.nmr_parameters}
-        par = {p: getattr(self, p)
-               for p in self.num_parameters +
-               ['basename', 'solver']}
-        par['nmr_parameters'] = nmr
-        return par
+        return {p: getattr(self, p)
+                for p in self.nmr_parameters + self.kin_parameters}
 
-    def _set_numerical_parameters(self, dt=None, increment=None,
-                                  dt_max=None, **kwargs):
-        """Set numerical parameters."""
-        # TODO get rid of it. Should be useless now
-        if dt is None:
-            dt = 1e-5
-        if increment is None:
-            increment = 1
-        if dt_max is None:
-            dt_max = 1e-5
-        self.dt = dt
-        self.increment = increment
-        self.dt_max = dt_max
-
-    def _set_NMR_parameters_from_correlation(self, nmr_parameters=None):
+    def _set_NMR_parameters_from_correlation(self):
         """
         Set NMR parameters from correlation.
 
         Use the Genetti correlation for evaluating NMR input parameters for
         CPD.
 
-        Parameters
-        ----------
-        parameters: dict, default=None
-            Manually set parameters using a dictionary
-            {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
-
         """
-        if nmr_parameters:
-            [setattr(self, key, nmr_parameters[key])
-             for key in self.nmr_parameters]
-        else:
-            c = CPD_CORRELATION.copy()
-            self.c0 = (min(0.36,
-                           max(0.118 * self.fcar * 100 - 10.1, 0.0)) +
-                       min(0.15,
-                           max(0.014 * self.foxy * 100 - 0.175, 0.0)))
+        c = CPD_CORRELATION.copy()
+        self.c0 = (min(0.36, max(0.118 * self.fcar * 100 - 10.1, 0.0)) +
+                   min(0.15, max(0.014 * self.foxy * 100 - 0.175, 0.0)))
 
-            Y = (c[1] + c[2] * (self.fcar * 100.0) +
-                 c[3] * (self.fcar * 100)**2 +
-                 c[4] * (self.fhyd * 100) +
-                 c[5] * (self.fhyd * 100)**2 +
-                 c[6] * (self.foxy * 100) +
-                 c[7] * (self.foxy * 100)**2 +
-                 c[8] * (self.vm_daf * 100) +
-                 c[9] * (self.vm_daf * 100)**2)
-            [setattr(self, key, Y[i])
-             for i, key in enumerate(self.nmr_parameters[:4])]
+        Y = (c[1] + c[2] * (self.fcar * 100.0) +
+             c[3] * (self.fcar * 100)**2 +
+             c[4] * (self.fhyd * 100) +
+             c[5] * (self.fhyd * 100)**2 +
+             c[6] * (self.foxy * 100) +
+             c[7] * (self.foxy * 100)**2 +
+             c[8] * (self.vm_daf * 100) +
+             c[9] * (self.vm_daf * 100)**2)
+        [setattr(self, key, Y[i])
+         for i, key in enumerate(self.nmr_parameters[:4])]
+
+        self._after_set_NMR()
 
     def run(self, time=None, light_gas=True, n_frag=20):
         """
@@ -295,10 +253,6 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
 
         """
         t, y, f = self._bridge_evolution(n_frag=n_frag, time_end=time)
-        if self.increment > 1:
-            t = t[::self.increment]
-            y = y[::self.increment]
-            f = f[::self.increment]
         data = np.concatenate([t[:, np.newaxis], y, f], axis=1)
         df = pd.DataFrame(data, index=t,
                           columns=['t', 'l', 'delta', 'c', 'char',
@@ -331,7 +285,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         df.to_csv(self._out_csv)
         return df
 
-    def _set_NMR_parameters(self, nmr_parameters=None):
+    def _set_NMR_parameters(self, **nmr_parameters):
         """
         Calculate parameters using Genetti correlation.
 
@@ -345,22 +299,23 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             {'mdel': 0, 'mw': 0, 'p0': 0, 'sig': 0}
 
         """
-        self._set_NMR_parameters_from_correlation(nmr_parameters)
-        # test
-        # self.mdel /= (1 - self.c0)
+        for key, value in nmr_parameters.items():
+            if key in self.nmr_parameters:
+                setattr(self, key, value)
+        self._after_set_NMR()
+
+    def _after_set_NMR(self):
+        """Perform some operation after set the NMR parameters."""
         # check this correction -> allow to obtain the same results as
         # the original code
-        self.mdel /= (1 - self.c0)
-        self.mdel -= 7
-
+        mdel_corr = self.mdel / (1 - self.c0) - 7
         self.sigma = self.sig - 1
         # average mass of the fused ring site
-        self.ma = self.mw - self.sig * self.mdel
+        self.ma = self.mw - self.sig * mdel_corr
         # mass of bridges
-        self.mb = 2 * self.mdel
+        self.mb = 2 * mdel_corr
         self.rba = self.mb / self.ma
         self.gasmw = self.rba * self.ma * 0.5
-        self.solver = None
 
     def rate(self, t, y):
         """
@@ -406,117 +361,6 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         return [self.p0 - self.c0,
                 2 * (1 - self.p0),
                 self.c0]
-
-    def _bridge_evolution(self, n_frag=20, time_end=None):
-        """
-        Calculate the evolution of the bridges.
-
-        Calculate the evolution of the bridges, solving the ODE.
-        For each time step, the cross-linking, percolation and flash
-        distillation functions are called in order to calculate the
-        mass fractions of gas, tar and solid.
-
-        Parameters
-        ----------
-        n_frag: int (20)
-            Number of fragments considered
-        time_end: float, None
-            End of the calculation. If not specified use the maximum
-            time in the operating_conditions.
-
-        Return
-        ------
-        t, y, f
-            Time, bridges and mass fraction arrays
-
-        """
-        # TODO needs more test!
-        # variables are [l, d, c]
-        backend = 'dopri5'
-        # backend = 'vode'
-        t0 = self.operating_conditions[0, 0]
-        solver = ode(self._dydt).set_integrator(backend, nsteps=1,
-                                                first_step=self.dt,
-                                                # min_step=1e-6,
-                                                atol=1e-6,
-                                                rtol=1e-4,
-                                                max_step=self.dt_max)
-
-        # verbosity=1)
-        solver._integrator.iwork[2] = -1
-        y0 = [self.p0 - self.c0,
-              2 * (1 - self.p0),
-              self.c0]
-        solver.set_initial_value(y0, t0)
-        solver._integrator.iwork[2] = -1
-        if not time_end:
-            time_end = self.operating_conditions[-1, 0]
-        else:
-            assert time_end < self.operating_conditions[-1, 0], (
-                'Set a time_end < operating_conditions[-1, 0]')
-
-        t = [t0]
-        y = [y0]
-        f_solid, f_gas, f_tar, f_meta, f_cross = 1, 0, 0, 0, 0
-        f = [[f_solid,
-              f_gas,
-              f_tar,
-              f_meta,
-              f_cross]]
-        meta_n = np.zeros(n_frag)    # init metaplast to zeros
-        f_frag_n = np.zeros(n_frag)  # init fragments to zeros
-        warnings.filterwarnings("ignore", category=UserWarning)
-
-        while solver.t < time_end:
-            solver.integrate(time_end, step=True)
-            self.__log.debug(
-                '\n\nStart new time step\ntime=%s y=%s\n', solver.t,
-                solver.y)
-            self.__log.info('t=%s - y=%s', solver.t, solver.y)
-            dt = solver.t - t[-1]
-            T = self.T(solver.t)
-            t.append(solver.t)
-            y.append(solver.y)
-
-            if f_meta > 1e-4:
-                # cross-linking
-                rate_cross = self._crosslinking(f_meta, T, dt)
-                fract = 1 - rate_cross / f_meta
-                f_meta -= rate_cross
-                f_cross += rate_cross
-            else:
-                rate_cross = 0
-                fract = 1
-            self.__log.debug(
-                'Crosslinking rate: %s / %s', rate_cross, fract)
-            percolation = self._percolation(solver.y, f_tar,
-                                            n_frag=n_frag, in_tar=True)
-            # gas formed in the last step
-            df_gas = max(percolation['f_gas'] - f_gas, 0)
-            self.__log.debug('gas=%s, df_gas=%s', f_gas, df_gas)
-            mw_n = percolation['mw_frag_n']
-            # fragments formed in the last step
-            df_n = percolation['f_frag_n'] - f_frag_n
-            self.__log.debug('df_n=%s', df_n)
-
-            tar_n, meta_n = self._flash_distillation(
-                df_gas=df_gas, df_n=df_n, meta_n=meta_n,
-                mw_n=mw_n, fracr=fract, T=T)
-
-            f_frag_n = percolation['f_frag_n']
-            f_gas = percolation['f_gas']
-            f_tar += tar_n.sum()
-            f_meta = meta_n.sum()
-            f_solid = 1 - f_tar - f_gas
-            f.append([f_solid, f_gas, f_tar, f_meta, f_cross])
-            self.__log.debug('F=%s', f[-1])
-
-        warnings.resetwarnings()
-        t = np.array(t)
-        y = np.array(y)
-        f = np.array(f)
-
-        return t, y, f
 
     def _rates(self, y):
         """Calculate _rates for the given temperature."""

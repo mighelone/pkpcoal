@@ -200,18 +200,9 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
         ----------
         mechanism: string_types
             Polimi mechanism in Cantera format
-        backend: string_types
-            Backend for ODE solver.
-
-        See also
-        --------
-        :meth:`backend`
-        :meth:`mechanism`
-        :meth:`skip`
 
         """
-        for key in ('mechanism', 'backend', 'skip', 'dt',
-                    'increment', 'dt_max'):
+        for key in ('mechanism'):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
