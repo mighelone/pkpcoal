@@ -333,7 +333,10 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
 
     def _set_NMR_parameters(self, nmr_parameters=None):
         """
-        Calc parameters using Genetti correlation.
+        Calculate parameters using Genetti correlation.
+
+        The NMR parameters are defined using the empirical correlation
+        derived by Genetti. Input are the daf ultimate and proximate analyses.
 
         Parameters
         ----------
@@ -427,6 +430,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             Time, bridges and mass fraction arrays
 
         """
+        # TODO needs more test!
         # variables are [l, d, c]
         backend = 'dopri5'
         # backend = 'vode'
@@ -899,10 +903,10 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             distances = np.array(
                 [distance(p, self.van_kravelen) for p in points])
             ref_coal = distances.argmin()
+            self.__log.error('Closest coal is %s', ref_coal)
 
             for triangle, vertices in zip(triangles, triangle_vertices):
                 if ref_coal in vertices:
-                    self.__log.error('Closest coal is %s', ref_coal)
                     self.triangle = triangle
                     self.triangle_coals = vertices
                     # self.triangle_weights = t.weights(self.van_kravelen)
@@ -911,6 +915,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
                                                       for v in vertices])
                     break
 
+        print('triangle='.format(self.triangle))
         if plot:
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots()
@@ -930,7 +935,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             ax.set_title('Van Kravelen diagram')
             ax.legend(loc='lower right')
             fig.savefig(name)
-            # plt.closefig(fig)
+            plt.close(fig)
 
         # if stop_calculation:
         #    raise ValueError('Triangle not found for evaluating light gases\n'
@@ -998,13 +1003,23 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
 
     def postprocess(self, t, y):
         """Postprocess results."""
-        # data = np.hstack([np.insert(y, 0, t, axis=1), self.f])
-        # data = np.insert(y, 0, t, axis=1)[::self.skip]
-        data = pd.DataFrame(data=np.hstack([np.insert(y, 0, t, axis=1),
-                                            self.f]),
-                            columns=['t', 'l', 'delta', 'c', 'T',
-                                     'solid', 'gas', 'tar', 'meta', 'cross'])
+        # stack y with f
+        data = np.hstack([t[:, np.newaxis], y, self.f])
+        columns = ['t', 'l', 'delta', 'c', 'T',
+                   'solid', 'gas', 'tar', 'meta', 'cross']
 
+        # calc light gas
+        X_gas = y[:, 1] * 0.5 + y[:, 0]  # 1/2 delta + l
+        X_gas = 1 - X_gas / X_gas[0]  # check if X_gas is different from f gas
+        self.find_triangle()
+        if self.triangle:
+            X_gases = self.calc_lightgases(X_gas)
+            data = np.hstack([data, X_gases])
+            columns += ['CO', 'CO2', 'H2O', 'CH4']
+        data = pd.DataFrame(data=data, columns=columns)
+        if self.triangle:
+            data['others'] = 1 - data[
+                ['CO', 'CO2', 'H2O', 'CH4']].sum(axis=1)
         return data
 
     def get_yield(self, t, y):

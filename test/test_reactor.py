@@ -134,6 +134,9 @@ def test_reactor_cpd():
     np.testing.assert_allclose(sol[['solid', 'gas', 'tar']].sum(axis=1),
                                1)
 
+    # test if the solution contains the light gas composition
+    assert all(sp in sol for sp in ['CO', 'CO2', 'H2O', 'CH4', 'others'])
+
 
 @pytest.fixture()
 def dtr():

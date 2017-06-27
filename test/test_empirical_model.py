@@ -1,3 +1,4 @@
+"""Test empirical_model module."""
 import pytest
 
 # from pkp.empirical_model_t import EmpiricalModel
@@ -7,6 +8,7 @@ import numpy as np
 
 
 def test_check_namedtuple():
+    """Test the named tuple."""
     parameters = namedtuple_with_defaults('Test', field_names=('X', 'Y'),
                                           default_values=(0, 0))
 
@@ -20,16 +22,19 @@ def test_check_namedtuple():
 
 @pytest.fixture
 def sfor():
+    """Init the SFOR model."""
     A, E, y0 = 1e7, 100e6, 0.5
     return SFOR(A, E, y0)
 
 
 @pytest.fixture
 def c2sm():
+    """Init the C2SM model."""
     return C2SM()
 
 
 def test_parameters(sfor):
+    """Test parameter init and set."""
     A, E, y0 = 1e5, 200e6, 0.6
 
     sfor.set_parameters(A)
@@ -64,6 +69,7 @@ def test_parameters(sfor):
 
 
 def test_parameters_list(sfor):
+    """Test list of parameters."""
     par = sfor.parameters_list
     assert par[0] == sfor.parameters.A
     assert par[1] == sfor.parameters.E
@@ -74,12 +80,14 @@ def test_parameters_list(sfor):
 
 
 def test_sfor(sfor):
+    """Test SFOR."""
     A, E, y0 = sfor.parameters.A, sfor.parameters.E, sfor.parameters.y0
     model_1 = SFOR([A, E, y0])
     assert model_1.parameters.A == sfor.parameters.A
 
 
 def test_sfor_rate(sfor):
+    """Test SFOR rate."""
     y, T = 0, 800
     rate = sfor.rate(0, [y, T])
 
@@ -100,6 +108,7 @@ def test_sfor_rate(sfor):
 
 
 def test_c2sm_rate(c2sm):
+    """Test C2SM rate."""
     y, s, T = 0.1, 0.6, 700
     parameters = c2sm.parameters
     k1, k2 = c2sm._k(T)
