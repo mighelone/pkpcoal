@@ -15,7 +15,7 @@ except:
         import ruamel.yaml as yaml
     except:
         import yaml
-from pkp.detailed_model import M_elements, hf
+from pkp.coal import M_elements, hf
 
 import numpy as np
 

@@ -799,7 +799,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
         # stack y with f
         data = np.hstack([t[:, np.newaxis], y, self.f])
         columns = ['t', 'l', 'delta', 'c', 'T',
-                   'solid', 'light_gas', 'tar', 'metaplast', 'cross']
+                   'char', 'light_gas', 'tar', 'metaplast', 'cross']
 
         # calc light gas
         X_gas = y[:, 1] * 0.5 + y[:, 0]  # 1/2 delta + l

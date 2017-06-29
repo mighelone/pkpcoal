@@ -191,6 +191,7 @@ class BioPolimi(pkp.polimi.Polimi):
             raise pkp.polimi.CompositionError(
                 'Biomass composition outside definition triangle'
                 '{}'.format(triangle_123))
+        self.y0 = self.mechanism.Y
 
     def plot_vankravelen(self, ax=None, show=False):
         """

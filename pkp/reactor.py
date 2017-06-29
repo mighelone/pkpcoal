@@ -17,6 +17,7 @@ import warnings
 from .empirical_model import EmpiricalModel, SFOR, SFORT, C2SM, DAEM
 from .polimi import Polimi
 from .cpd import CPD
+from .biopolimi import BioPolimi
 
 from .interpolate import interp
 

@@ -139,7 +139,7 @@ def test_reactor_cpd():
 
     sol = r.run()
     # check that the sum of solid, light_gas and tar is always ==1
-    np.testing.assert_allclose(sol[['solid', 'light_gas', 'tar']].sum(axis=1),
+    np.testing.assert_allclose(sol[['char', 'light_gas', 'tar']].sum(axis=1),
                                1)
 
     # test if the solution contains the light gas composition

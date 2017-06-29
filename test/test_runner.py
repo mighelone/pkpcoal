@@ -1,10 +1,8 @@
+"""Test runner."""
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
-from builtins import dict
 
 import logging
-import argparse
-import shutil
 
 import pytest
 import pkp.runner
@@ -13,10 +11,12 @@ import os.path
 
 @pytest.fixture(params=['input_CPD.yml', 'input_bio.yml'])
 def input_yml(request):
+    """Input yml."""
     return os.path.join('test', request.param)
 
 
 def test_CPD(input_yml):
+    """Test CPD model."""
     model = os.path.splitext(input_yml)[0].split('_')[1]
 
     # define a logger

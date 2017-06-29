@@ -263,7 +263,10 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
 
     def rate(self, t, y):
         """Volatilization rate."""
-        self.mechanism.TPY = y[-1], self.pressure, y[:-1]
+        try:
+            self.mechanism.TPY = y[-1], self.pressure, y[:-1]
+        except:
+            raise Exception('Rate Polimi error with cantera')
         return (self.mechanism.net_production_rates *
                 self.mechanism.molecular_weights / self.mechanism.density)
 

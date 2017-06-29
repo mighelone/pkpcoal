@@ -1,4 +1,6 @@
-'''
+"""
+Runner module.
+
 The module contains the class for reading and run pyrolysis
 calculations with PKP.
 
@@ -6,7 +8,7 @@ Contains
 --------
 * :class:`pkp.PKPRunner`
 * :class:`pkp.ReadConfiguration`
-'''
+"""
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
@@ -51,7 +53,8 @@ import pkp.minimize
 
 import matplotlib
 
-from ._exceptions import *
+from ._exceptions import (PKPKeyError, PKPModelError, PKPMethodError,
+                          PKPParametersError)
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -59,40 +62,31 @@ import matplotlib.pyplot as plt
 try:
     plt.style.use('newstyle')
 except:
-    plt.style.use('bmh')
-
-# try:
-#     plt.style.use(['mystyle', 'mystyle-vega'])
-# except:
-#     plt.style.use('ggplot')
+    pass
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 col_right = "#C54E6D"
 col_left = "#009380"
 
 
-# raise error from numpy
-# np.seterr(all='raise')
-
-
-# yaml serialization of numpy objects
-# representer data for yaml
-
-
 def ndarray_representer(dumper, data):
+    """Format numpy array in yaml."""
     # return dumper.represent_data(data.tolist())
     return dumper.represent_data([data.min(), data.max()])
 
 
 def npfloat64_representer(dumper, data):
+    """Format numpy array 64 bit in yaml."""
     return dumper.represent_data(data.tolist())
 
 
 def npint_representer(dumper, data):
+    """Format numpy int array."""
     return ndarray_representer(dumper, data)
 
 
 def tuple_representer(dumper, data):
+    """Format tuple in yaml."""
     return dumper.represent_data(list(data))
 
 
@@ -102,7 +96,7 @@ yaml.add_representer(tuple, tuple_representer)
 
 
 def runs_iterator(op_cond):
-    '''Iterate over operating_conditions'''
+    """Iterate over operating_conditions."""
     def get_run(i):
         return 'run{}'.format(i)
     i = 0
@@ -112,19 +106,20 @@ def runs_iterator(op_cond):
 
 
 @logged
-class ReadConfiguration(pkp.detailed_model.DetailedModel):
-    '''
-    Read configuration file for PKP
-    '''
+class ReadConfiguration(pkp.coal.Coal):
+    """Read configuration file for PKP."""
 
     def __init__(self, yml):
-        '''
+        """
+        Init Runner.
+
         Parameters
         ----------
         yml: str, unicode, dict
             Input dict or yaml file containing the configuration for
             run PKP. See :ref:`input-file-label`.
-        '''
+
+        """
         if isinstance(yml, string_types):
             with open(yml, 'r') as f:
                 yml_input = yaml.safe_load(f)
@@ -156,6 +151,7 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
 
     @property
     def operating_conditions(self):
+        """Operating conditions."""
         return self._operating_conditions
 
     @operating_conditions.setter
@@ -165,16 +161,18 @@ class ReadConfiguration(pkp.detailed_model.DetailedModel):
 
 @logged
 class PKPRunner(ReadConfiguration):
-    '''
-    PKP Runner manager class. It uses configuration in the *yaml* file
-    to run multiple simulations of coal pyrolysis using different
-    *detailed models* and fitting their results with
-    :ref:`empmodels-label`.
-    '''
+    """
+    PKP Runner manager class.
+
+    It uses configuration in the *yaml* file to run multiple simulations of
+    coal pyrolysis using different *detailed models* and fitting their results
+    with :ref:`empmodels-label`.
+    """
+
     models = models
 
     def run(self, results_dir=None, n_p=1, run_only=False):
-        '''
+        """
         Run detailed models and fit them.
 
         Parameters
@@ -192,7 +190,8 @@ class PKPRunner(ReadConfiguration):
         fit_results: dict
             Dictionary with the results of the calibration of the
             empirical models.
-        '''
+
+        """
         results_dir = self.set_results_dir(results_dir)
         run_results = {}
 
@@ -246,8 +245,8 @@ class PKPRunner(ReadConfiguration):
 
     def fit_detmodel(self, model, model_settings, n_p, results,
                      results_dir):
-        '''
-        Run all fitting of the given detailed model
+        """
+        Run all fitting of the given detailed model.
 
         Parameters
         ----------
@@ -269,7 +268,7 @@ class PKPRunner(ReadConfiguration):
         fit_results: dict
             Contains results of fitting
 
-        '''
+        """
         # loop over the fitting runs, fit0, fit1, etc.
         fit_results = {}
         for fitname, fit in model_settings.items():
@@ -316,13 +315,15 @@ class PKPRunner(ReadConfiguration):
                         '{}:{}'.format(model, fitname))
                 except KeyError as e:
                     raise PKPKeyError(
-                        'Key {} not defined in {}:{}'.format(e.args[0], model, fitname))
+                        'Key {} not defined in {}:{}'.format(e.args[0], model,
+                                                             fitname))
                 fit_results[fitname]['species'] = fit['species']
                 fit_results[fitname]['model'] = fit['model']
         return fit_results
 
     @staticmethod
     def set_results_dir(results_dir):
+        """Set the directory with the results."""
         if results_dir is None:
             results_dir = os.getcwd()
         elif not os.path.exists(results_dir):
@@ -330,8 +331,8 @@ class PKPRunner(ReadConfiguration):
         return results_dir
 
     def run_model(self, model, results_dir):
-        '''
-        Run simulations for the given model
+        """
+        Run simulations for the given model.
 
         Parameters
         ----------
@@ -344,7 +345,8 @@ class PKPRunner(ReadConfiguration):
         Returns
         -------
         results: dict
-        '''
+
+        """
         model_settings = getattr(self, model)
         self.__log.debug('Model %s active %s', model,
                          model_settings['active'])
@@ -386,7 +388,7 @@ class PKPRunner(ReadConfiguration):
         return results
 
     def _run_single(self, model, model_settings, n, results_dir):
-        '''
+        """
         Run a single simulation for the given detailed model.
 
         Parameters
@@ -403,30 +405,37 @@ class PKPRunner(ReadConfiguration):
         Returns
         -------
         res: pd.DataFrame
-            Results datafram
-        '''
+            Results DataFrame
+
+        """
         self.__log.debug(
             'Initialize run %s for %s', n, model)
         if model == 'Polimi' and 'reference' in model_settings:
-            self.__log.debug('Use reference coal for Polimi %s',
-                             model_settings['reference'])
-            run = globals()[model].reference_coal(
-                ref_coal=model_settings['reference'],
-                proximate_analysis=self.proximate_analysis,
-                pressure=self.pressure
-            )
-            self.__log.debug(
-                'Polimi coal composition is set to %s', run.composition)
+            raise NotImplementedError("Polimi reference not working")
+            # self.__log.debug('Use reference coal for Polimi %s',
+            #                  model_settings['reference'])
+            # run = globals()[model].reference_coal(
+            #     ref_coal=model_settings['reference'],
+            #     proximate_analysis=self.proximate_analysis,
+            #     pressure=self.pressure
+            # )
+            # self.__log.debug(
+            #     'Polimi coal composition is set to %s', run.composition)
         else:
             self.__log.debug('Initialize detailed model %s',
                              model)
-            run = globals()[model](
-                ultimate_analysis=self.ultimate_analysis,
-                proximate_analysis=self.proximate_analysis,
-                pressure=self.pressure,
-                # name='{}-{}-Run{}'.format(self.name, model, n)
-                name=self.name
-            )
+            # run = globals()[model](
+            #     ultimate_analysis=self.ultimate_analysis,
+            #     proximate_analysis=self.proximate_analysis,
+            #     pressure=self.pressure,
+            #     # name='{}-{}-Run{}'.format(self.name, model, n)
+            #     name=self.name
+            # )
+            run = pkp.reactor.Reactor(model,
+                                      ultimate_analysis=self.ultimate_analysis,
+                                      proximate_analysis=self.proximate_analysis,
+                                      pressure=self.pressure,
+                                      name=self.name)
         run.basename = '{name}-{model}-run{run}'.format(
             name=self.name, model=model, run=n)
         self.__log.debug('Set basename %s', run.basename)
@@ -480,7 +489,9 @@ class PKPRunner(ReadConfiguration):
 
     def fit_single(self, results, target_conditions, fit_dict,
                    fit_settings, results_dir, n_p=1):
-        '''
+        """
+        Fit single case.
+
         Perform calibration fitting of the empirical model using
         results of the detailed model.
 
@@ -503,7 +514,8 @@ class PKPRunner(ReadConfiguration):
             Path where results are stored
         n_p: int
             Number of processors for the evolution
-        '''
+
+        """
         # parameters_init = fit_settings['parameters_init']
         try:
             method = fit_settings['method']
@@ -559,7 +571,8 @@ class PKPRunner(ReadConfiguration):
             emp_model_class = fmin.empirical_model
 
             # run optimized empirical model
-        m = emp_model_class(best)
+        # m = emp_model_class(best)
+        m = pkp.reactor.Reactor(emp_model_class, **best)
         self.__log.debug('Emp model %s', emp_model)
 
         # plot yield
@@ -567,7 +580,7 @@ class PKPRunner(ReadConfiguration):
                             fit_dict, fit_results, fitname, m,
                             results_dir, target_conditions)
         # calc postulate species
-        if 'y0' in m.parameters_names():
+        if 'y0' in m.model.parameters_names():
             y0 = best['y0']
         else:
             y0 = np.mean([fit_results[run]['y'][-1]
@@ -602,7 +615,9 @@ class PKPRunner(ReadConfiguration):
     def _plot_yieldfit(self, det_model, emp_model, filename, fit_dict,
                        fit_results, fitname, m, results_dir,
                        target_conditions):
-        '''
+        """
+        Plot the fitted yields.
+
         Plot comparison between the yields of the detailed model used as
         target and the yields obtained by the fitted empirical models
 
@@ -625,10 +640,7 @@ class PKPRunner(ReadConfiguration):
             Name of results directory
         target_conditions:
 
-        Returns
-        -------
-
-        '''
+        """
         self.__log.debug('Plot yields')
         fig, ax = plt.subplots()
         runs = list(sorted(target_conditions))
@@ -685,8 +697,11 @@ class PKPRunner(ReadConfiguration):
 
     def _plot_evolution(self, det_model, filename, fitname, ga,
                         results_dir):
-        '''
-        Plot the evolution history
+        """
+        Plot the evolution history.
+
+        This function plot the minimum, maximum and average values of the
+        fitness function for each generations.
 
         Parameters
         ----------
@@ -696,10 +711,7 @@ class PKPRunner(ReadConfiguration):
         ga
         results_dir
 
-        Returns
-        -------
-
-        '''
+        """
         color = 'black'
         color_min = 'red'
         fig, ax = plt.subplots()
@@ -723,6 +735,7 @@ class PKPRunner(ReadConfiguration):
         plt.close(fig)
 
     def evolve(self, n_p, fit_results, fit_settings, target_conditions):
+        """Evolve the genetic algorithm."""
         model = fit_settings['model']
         self.__log.debug('Evolution fit with model %s', model)
         npop = fit_settings['npop']
