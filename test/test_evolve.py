@@ -1,8 +1,8 @@
+"""Test evolution."""
 import pytest
 import numpy as np
 import pkp
 import pkp.evolution
-import pkp.detailed_model
 
 npop = 40
 ngen = 30
@@ -20,10 +20,12 @@ scaled_par = np.random.random(3)
 
 @pytest.fixture
 def ga():
+    """Return the GA manager."""
     return pkp.evolution.Evolution(npop=npop, ngen=ngen)
 
 
 def test_init(ga):
+    """Test initialization of GA."""
     assert ga._npop == npop
     assert ga._ngen == ngen
 
@@ -32,7 +34,7 @@ def test_init(ga):
 
 
 def test_target(ga):
-
+    """Test target."""
     ga.set_target(t=t, y=y, operating_conditions=[[0, 300], [0.1, 1500]])
     assert ga.n_targets == 1
     assert np.allclose(ga.ref_results['run0']['t'], t)
@@ -45,6 +47,7 @@ def test_target(ga):
 
 
 def test_error(ga):
+    """Test error."""
     ga.set_target(t=t, y=y, operating_conditions=[[0, 300], [0.1, 1500]])
     ga.operating_conditions = operating_conditions
     ga.parameters_range(par_min, par_max)
@@ -55,3 +58,13 @@ def test_error(ga):
     unsc_par = ga.unscale_parameters(scaled_par)
     unsc_par_c = par_min + (par_max - par_min) * scaled_par
     assert np.allclose(unsc_par[1:], unsc_par_c[1:])
+
+
+def test_run_error(ga):
+    """Test the run of the error."""
+    ga.set_target(t=t, y=y, operating_conditions=[[0, 300], [0.1, 1500]])
+    ga.operating_conditions = operating_conditions
+    ga.parameters_range(par_min, par_max)
+
+    individual = 3 * [0.5]
+    err = pkp.evolution.error(ga, individual=individual)

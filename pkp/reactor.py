@@ -55,7 +55,7 @@ class Reactor(object):
     _ode_parameters = {'first_step': 1e-5,
                        'max_step': 1e-3}
 
-    def __init__(self, model=None, **kwargs):
+    def __init__(self, model=None, *args, **kwargs):
         """
         Init reactor object.
 
@@ -76,7 +76,13 @@ class Reactor(object):
                 self._ode_parameters[par] = value
             else:
                 model_parameters[par] = value
-        self._model = eval(model)(**model_parameters)
+
+        cls = eval(model) if isinstance(model, str) else model
+
+        if args:
+            self._model = cls(*args)
+        else:
+            self._model = cls(**model_parameters)
         self.operating_conditions = None
 
     @property

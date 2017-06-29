@@ -193,7 +193,7 @@ class EmpiricalModel(Model):
         Set y to 2 and x to its default values.
         """
         if len(args) > 0:
-            if isinstance(args[0], list):
+            if hasattr(args[0], '__iter__'):
                 self._parameters = self._Parameters(*args[0])
             elif args[0] is None:
                 self._parameters = self._Parameters()

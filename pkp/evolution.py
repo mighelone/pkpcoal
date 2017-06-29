@@ -1,4 +1,6 @@
-'''
+r"""
+Genetic evolution module.
+
 This module contains the class manager for the fitting of the detailed
 model results using empirical models, as described by [Vascellari2013]_.
 
@@ -11,7 +13,6 @@ The calibration is based on the :math:`(\mu+\lambda)` genetic algorithm.
 
 Example
 -------
-
 Define a new instance called `ga` of :class:`pkp.evolution.Evolution`::
 
     >>> import pkp.evolution
@@ -46,7 +47,7 @@ toolbox and generate new `n` generations::
 
     >>> ga.register()
     >>> best = ga.run(n_p=4, verbose=True)
-    gen	nevals	avg     	std     	min      	max     
+    gen	nevals	avg     	std     	min      	max
     0  	40    	0.249499	0.213491	0.0540713	0.980968
     1  	30    	0.118864	0.0777908	0.0105721	0.444615
     2  	30    	0.070285	0.0688494	0.00962298	0.432799
@@ -64,14 +65,11 @@ available::
     >>> ga.pop
     >>> ga.log
 
-Evolution class
----------------
-'''
+"""
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
 
-import pkp.detailed_model
 import pkp.empirical_model
 import numpy as np
 import random
@@ -84,6 +82,7 @@ from deap import tools
 from deap.benchmarks import binary
 # from deap import algorithms
 from pkp import algorithms
+import pkp.reactor
 
 
 # import multiprocessing
@@ -94,7 +93,9 @@ from ._exceptions import PKPModelError, PKPParametersError
 
 
 def check_bounds(min, max):
-    '''
+    """
+    Check if the individual exists in the given boundaries.
+
     Decorator which fix the limit of the function arguments to min and
     max values.
 
@@ -102,7 +103,8 @@ def check_bounds(min, max):
     ----------
     min: minimum value of the parameter
     max: minimum value of the parameter
-    '''
+
+    """
     def decorator(func):
         def wrappper(*args, **kargs):
             offspring = func(*args, **kargs)
@@ -119,7 +121,9 @@ def check_bounds(min, max):
 
 @logged
 def error(cls_, individual):
-    '''
+    r"""
+    Calculate the error function.
+
     Calculate the error for the given individual.
     The error is given by:
 
@@ -141,14 +145,18 @@ def error(cls_, individual):
     ------
     err: tuple
         Tuple containing the error for a multi-objective optimization.
-    '''
+
+    """
     err = 0
     parameters = cls_.unscale_parameters(individual)
     error._log.debug('Parameters:%s', parameters)
     for run, results in cls_.ref_results.items():
-        m = cls_.empirical_model(parameters)
-        m.operating_conditions = results['operating_conditions']
-        _, y = m.run(results['t'])
+        # m = cls_.empirical_model(parameters)
+        # m = pkp.reactor.Reactor(cls_.empirical_model,
+        #                         parameters)
+        # m.operating_conditions = results['operating_conditions']
+        # _, y = m.run(results['t'])
+        y = run_reactor(cls_.empirical_model, parameters, results)
         if y.ndim == 2:
             # for multivariables case take only the first solution
             y = y[:, 0]
@@ -158,9 +166,18 @@ def error(cls_, individual):
     return err,
 
 
+def run_reactor(model, parameters, results):
+    """Run reactor."""
+    m = pkp.reactor.Reactor(model, parameters)
+    m.operating_conditions = results['operating_conditions']
+    _, y = m.run(results['t'])
+    return y
+
+
 # @binary.bin2float(0, 1, 16)
 
 def error_binary(cls_, individual):
+    """Return error for binary representation."""
     @binary.bin2float(0, 1, 16)
     def f(individual, cls_):
         return error(cls_, individual)
@@ -169,7 +186,9 @@ def error_binary(cls_, individual):
 
 @logged
 class Evolution(object):
-    '''
+    r"""
+    Evolution manager.
+
     Evolution manager based on DEAP. The :math:`(\mu+\lambda)`
     algorithm is implemented from the **DEAP** library.
 
@@ -178,11 +197,13 @@ class Evolution(object):
     Finally a selection tournamenet allows to select the :math:`(\mu)`
     individuals of the next generation from the joined population
     :math:`(\mu+\lambda)`.
-    '''
+    """
 
     def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2, mu=None,
                  lambda_=None, skip=1):
-        '''
+        """
+        Init the evolution manager.
+
         Parameters
         ----------
         npop: int
@@ -197,10 +218,10 @@ class Evolution(object):
             The number of individuals to select for the next generation.
         lambda_: float
             The number of children to produce at each generation.
-        skip: int 
+        skip: int
             Skip rows in the results
-        '''
 
+        """
         # GA parameters
         self.__log.debug('Init Evolution')
         self._npop = npop
@@ -228,8 +249,9 @@ class Evolution(object):
         self._skip = skip
 
     def set_target(self, t, y, operating_conditions):
-        '''
+        """
         Set the target conditions.
+
         This operation has to be done as many times as necessary
 
         Parameters
@@ -244,7 +266,8 @@ class Evolution(object):
         Note
         ----
         The length `N` and `M` of the arrays can be different.
-        '''
+
+        """
         if not len(t) == len(y):
             raise ValueError('Length of t and y should be the same')
         self.ref_results['run{}'.format(self.n_targets)] = {
@@ -257,24 +280,16 @@ class Evolution(object):
 
     @property
     def n_targets(self):
+        """Number of target solutions."""
         return self._ntargets
 
     @property
     def empirical_model(self):
+        """Empirical model."""
         return self._empirical_model
 
     @empirical_model.setter
     def empirical_model(self, model):
-        '''
-        Set the empirical model for the calibration
-
-        Parameters
-        ----------
-        model: type, default: pkp.empirical_model.SFOR
-            Class used to empirically model the pyrolysis. It has to be
-            a children class of
-            :class:`pkp.empirical_model.EmpiricalModel`.
-        '''
         # check attributes using the EmpiricalModel attributes
         if not issubclass(model, pkp.empirical_model.EmpiricalModel):
             raise PKPModelError('model has to be child of EmpiricalModel!')
@@ -283,12 +298,14 @@ class Evolution(object):
 
     @staticmethod
     def error_run(y, y_t):
+        """Calculate the error."""
         return np.mean((y - y_t)**2)
 
     def evolve(self, n_p=1, verbose=True):
-        '''
-        Evolve the population using the :math:`(\mu+\lambda)`
-        evolutionary algorithm.
+        r"""
+        Evolve the population.
+
+        The :math:`(\mu+\lambda)` evolutionary algorithm is used.
 
         Parameters
         ----------
@@ -301,7 +318,8 @@ class Evolution(object):
         -------
         best: dict
             Best parameters dict
-        '''
+
+        """
         toolbox = self.toolbox
 
         # Process Pool of 4 workers
@@ -357,13 +375,13 @@ class Evolution(object):
         return stats
 
     def register(self):
-        '''
+        """
         Register settings for the Evolution algorithm using DEAP.
 
         Note
         ----
         Check if this can be done inside a function
-        '''
+        """
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         # creator.create("Individual", list, fitness=creator.FitnessMin)
         creator.create("Individual", array.array, typecode='d',
@@ -381,10 +399,12 @@ class Evolution(object):
         self.toolbox = toolbox
 
     def _individual(self, toolbox):
-        '''
-        Set individual enconding. This function can be used for
-        defining settings for specific evolution strategies
-        '''
+        """
+        Set individual enconding.
+
+        This function can be used for defining settings for specific evolution
+        strategies.
+        """
         # Random number generation
         # random.random generates float between 0 and 1
         toolbox.register("attr_float", random.random)
@@ -415,7 +435,7 @@ class Evolution(object):
         return toolbox
 
     def parameters_range(self, parameters_min, parameters_max):
-        '''
+        """
         Define the range of variation of the model parameters.
 
         Parameters
@@ -424,7 +444,8 @@ class Evolution(object):
             List of minimum values of the parameters
         parameters_max: list
             List of maximum values of the parameters
-        '''
+
+        """
         self.__log.debug('par min %s len %s', parameters_min,
                          len(parameters_min))
         self.__log.debug('par min %s len %s', parameters_max,
@@ -437,15 +458,17 @@ class Evolution(object):
                 len(parameters_max) != len_model):
             raise PKPParametersError(
                 'Define parameters min and'
-                ' max with length', len_model, self.empirical_model.parameters_names())
+                ' max with length', len_model,
+                self.empirical_model.parameters_names())
         self._parameters_min = parameters_min
         self._parameters_max = parameters_max
 
     def unscale_parameters(self, norm_parameters):
-        '''
-        Unscale parameters defined between 0 and 1
-        to non-scaled parameters required to set the empirical model.
+        """
+        Unscale parameters.
 
+        The scaled parameters defined between 0 and 1 are converted to
+        non-scaled parameters required to set the empirical model.
 
         Note
         ----
@@ -454,7 +477,10 @@ class Evolution(object):
 
         Parameters
         ----------
-        '''
+        norm_parameters: array
+            Normalized parameters array.
+
+        """
         if (self._parameters_min is None or
                 self._parameters_max is None):
             raise AssertionError(
@@ -464,18 +490,20 @@ class Evolution(object):
             self._parameters_max)
 
     def unscale_parameters_final(self, norm_parameters):
-        '''Only for final step of evolution'''
+        """
+        Unscale the parameters for the final step.
+
+        Only for final step of evolution
+        """
         return self.unscale_parameters(norm_parameters)
 
 
 class EvolutionBinary(Evolution):
-    '''
-    Evolution class using binary representation
-    '''
+    """Evolution class using binary representation."""
     n_decoding = 16
 
     def _individual(self, toolbox):
-        '''Set individual enconding using binary'''
+        """Set individual enconding using binary."""
         toolbox.register("attr_int", random.randint, 0, 1)
         toolbox.register("individual", tools.initRepeat,
                          creator.Individual, toolbox.attr_int,
@@ -492,9 +520,7 @@ class EvolutionBinary(Evolution):
         return toolbox
 
     def unscale_parameters_final(self, individual):
-        '''
-        First convert to float from binary and then unscale parameters
-        '''
+        """First convert to float from binary and then unscale parameters."""
         @binary.bin2float(0, 1, 16)
         def f(individual, cls):
             return cls.unscale_parameters(individual)

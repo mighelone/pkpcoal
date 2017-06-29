@@ -5,6 +5,7 @@ import pytest
 from pkp.empirical_model import namedtuple_with_defaults, Rgas
 from pkp.empirical_model import SFOR, C2SM
 import numpy as np
+import array
 
 
 def test_check_namedtuple():
@@ -67,6 +68,17 @@ def test_parameters(sfor):
     assert sfor.parameters.y0 == sfor.parameters_default()[2]
     assert sfor.parameters.A == sfor.parameters_default()[0]
 
+    par = [A, E, y0]
+    sfor.set_parameters(par)
+    assert sfor.parameters_list == par
+
+    par_np = np.array(par)
+    sfor.set_parameters(par_np)
+    assert sfor.parameters_list == par
+
+    par_ar = array.array('d', par)
+    sfor.set_parameters(par_ar)
+    assert sfor.parameters_list == par
 
 def test_parameters_list(sfor):
     """Test list of parameters."""

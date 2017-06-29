@@ -27,6 +27,14 @@ def test_reactor(reactor):
     assert reactor.reactor_parameters['max_step'] == max_step
 
 
+def test_reactor_class():
+    """Test initialization of the reactor with class."""
+    reactor = Reactor(model=SFOR, max_step=max_step, **sfor_parameters)
+    assert isinstance(reactor.model, SFOR)
+    assert reactor.model_parameters == sfor_parameters
+    assert reactor.reactor_parameters['max_step'] == max_step
+
+
 def test_operating_conditions(reactor):
     """Test the operating conditions."""
     assert reactor.operating_conditions.shape == (3, 2)
@@ -131,7 +139,7 @@ def test_reactor_cpd():
 
     sol = r.run()
     # check that the sum of solid, light_gas and tar is always ==1
-    np.testing.assert_allclose(sol[['solid', 'gas', 'tar']].sum(axis=1),
+    np.testing.assert_allclose(sol[['solid', 'light_gas', 'tar']].sum(axis=1),
                                1)
 
     # test if the solution contains the light gas composition
