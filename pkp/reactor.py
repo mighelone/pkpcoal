@@ -11,6 +11,7 @@ from __future__ import print_function, unicode_literals
 import numpy as np
 from autologging import logged
 from scipy.integrate import ode
+import pandas as pd
 import warnings
 
 # import the models that can be used in the reactor
@@ -18,7 +19,6 @@ from .empirical_model import EmpiricalModel, SFOR, SFORT, C2SM, DAEM
 from .polimi import Polimi
 from .cpd import CPD
 from .biopolimi import BioPolimi
-
 from .interpolate import interp
 
 
@@ -127,7 +127,7 @@ class Reactor(object):
         """Get initial solution vector for the reactor."""
         return np.append(self._model.y0, self.operating_conditions[0, 1])
 
-    def run(self, t=None):
+    def run(self, t=None, save=False):
         """
         Run reactor for a given time.
 
@@ -137,6 +137,8 @@ class Reactor(object):
             Time array. This is used to take results from the ODE
             solver. If None times are automatically taken from
             the solver
+        save: Bool
+            Save results in a csv file
         """
         # backend = 'dopri5'
 
@@ -171,7 +173,10 @@ class Reactor(object):
         warnings.resetwarnings()
 
         # return t, np.squeeze(y)
-        return self.model.postprocess(t, y)
+        res = self.model.postprocess(t, y)
+        if save and isinstance(res, pd.DataFrame):
+            res.set_index('t').to_csv(self.model._out_csv)
+        return res
 
     def rate(self, t, y):
         """Rate for the ode integral."""

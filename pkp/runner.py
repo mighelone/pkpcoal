@@ -431,23 +431,25 @@ class PKPRunner(ReadConfiguration):
             #     # name='{}-{}-Run{}'.format(self.name, model, n)
             #     name=self.name
             # )
-            run = pkp.reactor.Reactor(model,
-                                      ultimate_analysis=self.ultimate_analysis,
-                                      proximate_analysis=self.proximate_analysis,
-                                      pressure=self.pressure,
-                                      name=self.name)
-        run.basename = '{name}-{model}-run{run}'.format(
+            run = pkp.reactor.Reactor(
+                model,
+                ultimate_analysis=self.ultimate_analysis,
+                proximate_analysis=self.proximate_analysis,
+                pressure=self.pressure,
+                name=self.name)
+        # TODO change path from detailed model to reactor
+        run.model.basename = '{name}-{model}-run{run}'.format(
             name=self.name, model=model, run=n)
-        self.__log.debug('Set basename %s', run.basename)
-        run.path = results_dir
-        self.__log.debug('Set path to: %s', run.path)
+        self.__log.debug('Set basename %s', run.model.basename)
+        run.model.path = results_dir
+        self.__log.debug('Set path to: %s', run.model.path)
         run.set_parameters(**model_settings)
         self.__log.debug('Set property run %s for %s', n,
                          model)
         run.operating_conditions = (
             self.operating_conditions['run{}'.format(n)])
         self.__log.debug('Run %s for %s', n, model)
-        res = run.run()
+        res = run.run(save=True)
         return res
 
     def _plot_results(self, model, n, res, results_dir):
