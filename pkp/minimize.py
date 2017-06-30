@@ -4,10 +4,10 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import scipy.optimize
-from . import evolution
-
 from autologging import logged
 
+from . import evolution
+from . import empirical_model
 
 @logged
 class Minimization(evolution.Evolution):

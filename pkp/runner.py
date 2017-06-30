@@ -54,17 +54,16 @@ from . import coal
 from . import reactor
 from . import empirical_model
 from . import __version__
-
-import matplotlib
-
 from ._exceptions import (PKPKeyError, PKPModelError, PKPMethodError,
                           PKPParametersError)
+
+import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
 try:
     plt.style.use('newstyle')
+    plt.rcParams['font.size'] = 10
 except:
     pass
 
@@ -113,6 +112,8 @@ def runs_iterator(op_cond):
 class ReadConfiguration(coal.Coal):
     """Read configuration file for PKP."""
 
+    # TODO implenent increment keyword
+    # TODO check if fit has to be called fit0, fit1 or with any name
     def __init__(self, yml):
         """
         Init Runner.
@@ -448,6 +449,9 @@ class PKPRunner(ReadConfiguration):
         run.model.path = results_dir
         self.__log.debug('Set path to: %s', run.model.path)
         run.set_parameters(**model_settings)
+        self.__log.debug('Reactor Parameters:\n%s', run.reactor_parameters)
+        self.__log.debug('Model %s Parameters:\n%s', model,
+                         run.model_parameters)
         self.__log.debug('Set property run %s for %s', n,
                          model)
         run.operating_conditions = (
@@ -457,6 +461,7 @@ class PKPRunner(ReadConfiguration):
         return res
 
     def _plot_results(self, model, n, res, results_dir):
+        """Plot results of the single run with detailed model."""
         fig, ax = plt.subplots()
         for sp in ['tar', 'light_gas', 'char', 'solid',
                    'volatiles']:
@@ -464,13 +469,14 @@ class PKPRunner(ReadConfiguration):
                 ax.plot(res['t'], res[sp], label=sp)
         ax.set_xlabel('Time, s')
         ax.set_ylabel('Yield, daf')
+        # ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1), frameon=False)
         ax.legend(loc='best', frameon=False)
         ax.set_title('Run{} Model {}'.format(n, model))
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_position(('outward', 20))
         ax.spines['left'].set_position(('outward', 20))
-        ax.set_ylim([0, 1])
+        # ax.set_ylim([0, 1])
         # ax.spines['left'].set_color(col_right)
         # ax.spines['left'].set_color(col_right)
         ax1 = ax.twinx()
@@ -478,6 +484,7 @@ class PKPRunner(ReadConfiguration):
                  label='T', color=col_right)
         ax1.spines['top'].set_visible(False)
         ax1.spines['left'].set_visible(False)
+        ax1.spines['right'].set_visible(True)
         ax1.spines['bottom'].set_position(('outward', 20))
         ax1.spines['right'].set_position(('outward', 20))
         ax1.spines['right'].set_color(col_right)
@@ -491,7 +498,7 @@ class PKPRunner(ReadConfiguration):
             name=self.name, model=model, run=n)
         self.__log.debug('Save plot to %s', fig_name)
         fig.savefig(
-            os.path.join(results_dir, fig_name), bbox_inches='tight')
+            os.path.join(results_dir, fig_name), dpi=120, bbox_inches='tight')
 
     def fit_single(self, results, target_conditions, fit_dict,
                    fit_settings, results_dir, n_p=1):
@@ -686,10 +693,13 @@ class PKPRunner(ReadConfiguration):
         runs_label = [r + '(fitted)' if i < nruns else r
                       for i, r in enumerate(runs)]
         ax.add_artist(plt.legend(ax.lines[::2], runs_label,
-                                 loc='upper right', frameon=False))
+                                 loc='upper left', bbox_to_anchor=(1, 1),
+                                 frameon=False))
         ax.legend(ax.lines[:2],
                   [det_model, m.__class__.__name__],
-                  loc='lower right', frameon=False)
+                  loc='lower left',
+                  bbox_to_anchor=(1, 0),
+                  frameon=False)
         ax.set_title(
             'Fit {} from {} with {} ({})'.format(
                 fit_dict['species'],
@@ -728,7 +738,7 @@ class PKPRunner(ReadConfiguration):
         ax.plot(fit_avg, label='Avg', color=color,
                 linestyle='dashed')
         ax.set_yscale('log')
-        ax.legend(loc='best')
+        ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
         ax.set_xlabel('N. generations')
         ax.set_ylabel('Fitness')
         ax.set_title(
@@ -737,7 +747,9 @@ class PKPRunner(ReadConfiguration):
                 fitname))
         fig.savefig(os.path.join(
             results_dir,
-            '{}-evolution.png'.format(filename)))
+            '{}-evolution.png'.format(filename)),
+                    dpi=120,
+                    bbox_inches='tight')
         plt.close(fig)
 
     def evolve(self, n_p, fit_results, fit_settings, target_conditions):

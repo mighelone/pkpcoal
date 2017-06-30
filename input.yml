@@ -15,26 +15,26 @@ Coal:
     O: 9.83
     S: 2
   #Higher Heating Value, as received, in MJ/kg:
-  HHV :   0.0 
+  HHV :   0.0
   #Tar Molecule weight, MTar:
   rho_dry : 1310 # kg/m3
 
 CPD:
-  active : true
-  dt: 1e-4
-  increment: 1
-  dt_max: 1e-2
-  nmr_parameters: 
-  solver:
+  active : false  # calculate CPD
+  first_step: 1e-5  # ! new version 3.0 ODE max_step compatible with SCIPY
+  max_step: 1e-4  # ! new version 3.0 ODE max_step compatible with SCIPY
+  increment: 1  # ! implement in version 3.0
+  n_frag: 25  # ! new version 3.0 CPD specific parameters
+  # check in cpd.get_parameters() which parameters are available
   fit:
     fit0:
-      active: true
+      active: true  # activate fitting
       model: SFOR
       species: volatiles
       parameters_min: [1e4, 50e6, 0.5]
       parameters_max: [1e9, 200e6, 0.6]
-      parameters_init: [1e5, 100e6, 0.5] 
-      method: evolve
+      parameters_init: [1e5, 100e6, 0.5]
+      method: evolve+min
       # from here parameters of evolve
       npop: 40
       ngen: 40
@@ -59,7 +59,7 @@ CPD:
       mutpb: 0.5
     fit2:
       active: false
-      model: Biagini
+      model: BT  # Biagini-Tognotti model new name!
       species: volatiles
       parameters_min: [1e3, 20e6, 0.3]
       parameters_max: [1e6, 100e6, 1.2]
@@ -89,11 +89,12 @@ CPD:
       mutpb: 0.2
 
 Polimi:
-  active: false
-  backend: dopri5
+  active: true
+  first_step: 1e-5  # ! new version 3.0 ODE max_step compatible with SCIPY
+  max_step: 1e-4  # ! new version 3.0 ODE max_step compatible with SCIPY
   mechanism:
   # force polimi to use one of the referece coals. It override the coal settings
-  # reference: COAL1  
+  # reference: COAL1
   fit:
     fit0:
       active: false
@@ -110,7 +111,7 @@ Polimi:
       lambda_: 30
       cxpb: 0.6
       mutpb: 0.4
-    
+
 BioPolimi:
   active: false
   fit:

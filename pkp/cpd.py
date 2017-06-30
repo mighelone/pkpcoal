@@ -52,17 +52,15 @@ The results are stored in a ``pandas`` dataframe.
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-
-import pkp
-from . import coal
-from . import empirical_model
-from . import triangle
 import numpy as np
 from autologging import logged
 from scipy.optimize import brentq, newton
 import pandas as pd
 import os
 
+from . import coal
+from . import empirical_model
+from . import triangle
 from ._exceptions import ImportError
 
 # Import Numba
@@ -84,6 +82,11 @@ from ._cpd_correlations import CPD_CORRELATION, x_gas, y_gas
 
 Rgas = 1.987  # cal/mol-K
 
+class CPDError(Exception):
+    """CPD error."""
+
+    pass
+
 
 @logged
 class CPD(coal.Coal, empirical_model.Model):
@@ -103,7 +106,7 @@ class CPD(coal.Coal, empirical_model.Model):
     nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
     kin_parameters = ['ab', 'eb', 'ebsig', 'ac', 'ec', 'ag', 'eg', 'egsig',
                       'Acr', 'Ecr', 'arad', 'erad', 'fstable', 'an', 'en',
-                      'ensig']
+                      'ensig', 'n_frag']
 
     # kinetic parameters
     ab = 2.602e15
@@ -122,6 +125,7 @@ class CPD(coal.Coal, empirical_model.Model):
     an = 5.5e7
     en = 90000
     ensig = 0
+    # n_frag = 20  # number of fragments
 
     def __init__(self, ultimate_analysis=None, proximate_analysis=None,
                  pressure=101325, name='CPD coal', **kwargs):
@@ -166,9 +170,25 @@ class CPD(coal.Coal, empirical_model.Model):
         # initialize fractions
         self.f = [[1, 0, 0, 0, 0]]
         self.n_frag = 20
-        self.meta_n = np.zeros(self.n_frag)
-        self.f_frag_n = np.zeros(self.n_frag)
         self.t_old = 0
+
+    @property
+    def n_frag(self):
+        """Define the number of fragments."""
+        return self._n_frag
+
+    @n_frag.setter
+    def n_frag(self, value):
+        self._n_frag = value
+        try:
+            self.meta_n = np.zeros(self._n_frag)
+            self.f_frag_n = np.zeros(self._n_frag)
+        except TypeError as e:
+            raise CPDError("Define n_frag as int")
+        except ValueError as e:
+            raise CPDError("Define n_frag > 1")
+        if self.n_frag <= 0:
+            raise ValueError("Define n_frag > 1")
 
     def set_parameters(self, **kwargs):
         """Set parameters for CPD.
@@ -186,13 +206,7 @@ class CPD(coal.Coal, empirical_model.Model):
             Basename for CPD output files
 
         """
-        # if 'nmr_parameters' in kwargs:
-        #    self._set_NMR_parameters(
-        #        nmr_parameters=kwargs['nmr_parameters'])
-
-        # if 'basename' in kwargs:
-        #    self.basename = kwargs['basename']
-
+        # TODO move to base class!
         nmr_parameters = {key: value for key, value in kwargs.items()}
         if nmr_parameters:
             self._set_NMR_parameters(**nmr_parameters)
@@ -330,7 +344,7 @@ class CPD(coal.Coal, empirical_model.Model):
         # return rates(T, y, self.p0, self.c0, self.ab, self.eb, self.ebsig,
         #              self.ac, self.ec, self.ag, self.eg, self.egsig)
 
-    def _percolation(self, y, f_tar=0, n_frag=20, in_tar=True):
+    def _percolation(self, y, f_tar=0, in_tar=True):
         """
         Percolation statistic calculation.
 
@@ -340,8 +354,6 @@ class CPD(coal.Coal, empirical_model.Model):
             List of bridges parameters (l, delta, c)
         f_tar: float
             Fraction of tar already released
-        n_frag: int, default=20
-            Number of fragments calculated
         in_tar: bool
 
         Returns
@@ -413,7 +425,7 @@ class CPD(coal.Coal, empirical_model.Model):
             ('fraction of remaining solid (includes finite'
              ' and inf. fragments) %s'), f_solid)
 
-        n = np.arange(1, n_frag + 1)  # number of clusters in a fragment
+        n = np.arange(1, self.n_frag + 1)  # number of clusters in a fragment
         # broken bridges per cluster of size n
         tau = n * (self.sigma - 1) + 2
         s = n - 1  # intact bridges per cluster of size n
@@ -768,9 +780,7 @@ class CPD(coal.Coal, empirical_model.Model):
             fract = 1
         self.__log.debug(
             'Crosslinking rate: %s / %s', rate_cross, fract)
-        # TODO percolation use self.n_frag
-        percolation = self._percolation(y, tar, n_frag=self.n_frag,
-                                        in_tar=True)
+        percolation = self._percolation(y, tar, in_tar=True)
 
         # gas formed in the last step
         df_gas = max(percolation['f_gas'] - gas, 0)
