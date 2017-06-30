@@ -35,11 +35,11 @@ from builtins import dict
 import numpy as np
 from autologging import logged
 
-import pkp.polimi
-import pkp.bins
-import pkp.coal
-from pkp.polimi import TriangleCoal
-# from pkp.detailed_model import M_elements
+from . import polimi
+from . import bins
+from . import coal
+from .polimi import TriangleCoal
+
 try:
     import cantera
 except ModuleNotFoundError:
@@ -49,10 +49,8 @@ import os
 
 def set_reference_coal(name, c, h, o):
     """Set the reference biomass."""
-    return pkp.polimi.set_reference_coal(name,
-                                         {'C': c,
-                                          'H': h,
-                                          'O': o})
+    return polimi.set_reference_coal(name,
+                                     {'C': c, 'H': h, 'O': o})
 
 
 def set_reference_coal_mass(name, c, h, o):
@@ -63,7 +61,7 @@ def set_reference_coal_mass(name, c, h, o):
     ua['O'] = o
     ua['N'] = 0
     ua['S'] = 0
-    return pkp.coal.Coal(
+    return coal.Coal(
         name=name,
         ultimate_analysis=ua,
         proximate_analysis={'FC': 50,
@@ -75,13 +73,13 @@ def set_reference_coal_mass(name, c, h, o):
 def set_reference_biomass(name, comp):
     """Set the reference biomass."""
     biomass.TPY = 300, 101325, comp
-    return pkp.polimi.set_reference_coal(
+    return polimi.set_reference_coal(
         name,
         atoms={el: biomass.elemental_mass_fraction(el)
                for el in ('C', 'H', 'O')})
 
 
-biomass_xml = os.path.join(os.path.dirname(pkp.bins.__file__),
+biomass_xml = os.path.join(os.path.dirname(bins.__file__),
                            'Biomass.xml')
 biomass = cantera.Solution(biomass_xml)
 
@@ -112,7 +110,7 @@ triangle_123 = TriangleCoal(bioS1, bioS2, bioS3)
 
 
 @logged
-class BioPolimi(pkp.polimi.Polimi):
+class BioPolimi(polimi.Polimi):
     """
     Biomass Polimi Multiple Step Kinetic Model.
 
@@ -188,7 +186,7 @@ class BioPolimi(pkp.polimi.Polimi):
                 triangle_123)
             self.plot_vankravelen(show=True)
             self.plot_CH(show=True)
-            raise pkp.polimi.CompositionError(
+            raise polimi.CompositionError(
                 'Biomass composition outside definition triangle'
                 '{}'.format(triangle_123))
         self.y0 = self.mechanism.Y

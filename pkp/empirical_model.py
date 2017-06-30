@@ -22,6 +22,7 @@ from autologging import logged
 
 from scipy.misc import factorial
 import collections
+import six
 
 Rgas = 8314.33
 sqrt2 = np.sqrt(2)
@@ -67,10 +68,11 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
 
 
 @logged
-class Model(metaclass=abc.ABCMeta):
+@six.add_metaclass(abc.ABCMeta)
+class Model():
     """Abstract class for Model."""
 
-    __metaclass__ = abc.ABCMeta
+    # __metaclass__ = abc.ABCMeta
     # initial volatile yield
     y0 = [0]
     jacob = None

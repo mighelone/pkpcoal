@@ -11,16 +11,17 @@ import subprocess
 import pandas as pd
 from autologging import logged
 import numpy as np
-
-import pkp.cpd
-import pkp.bins
 import platform
+
+from . import cpd
+from . import bins
+
 
 np.seterr(all='ignore')
 
 
 @logged
-class CPD(pkp.cpd.CPD):
+class CPD(cpd.CPD):
     '''
     Class to run and store results from CPD model. The class set the
     input files required for running CPD using the external fortran
@@ -68,7 +69,7 @@ class CPD(pkp.cpd.CPD):
     @solver.setter
     def solver(self, value):
         if value is None:
-            cpd_path = os.path.dirname(pkp.bins.__file__)
+            cpd_path = os.path.dirname(bins.__file__)
             if platform.system() == 'Darwin':
                 cpd_file = 'cpdnlg.x'
             elif platform.system() == 'Linux':

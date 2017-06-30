@@ -7,6 +7,7 @@ the operating conditions.
 
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
+from six import string_types
 
 import numpy as np
 from autologging import logged
@@ -78,7 +79,7 @@ class Reactor(object):
             else:
                 model_parameters[par] = value
 
-        cls = eval(model) if isinstance(model, str) else model
+        cls = eval(model) if isinstance(model, string_types) else model
 
         if args:
             self._model = cls(*args)

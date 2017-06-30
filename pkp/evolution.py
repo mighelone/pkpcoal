@@ -70,7 +70,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
 
-import pkp.empirical_model
+
 import numpy as np
 import random
 import array
@@ -81,8 +81,10 @@ from deap import creator
 from deap import tools
 from deap.benchmarks import binary
 # from deap import algorithms
-from pkp import algorithms
-import pkp.reactor
+
+from . import empirical_model
+from . import algorithms
+from . import reactor
 
 
 # import multiprocessing
@@ -168,7 +170,7 @@ def error(cls_, individual):
 
 def run_reactor(model, parameters, results):
     """Run reactor."""
-    m = pkp.reactor.Reactor(model, parameters)
+    m = reactor.Reactor(model, parameters)
     m.operating_conditions = results['operating_conditions']
     _, y = m.run(results['t'])
     return y
@@ -242,7 +244,7 @@ class Evolution(object):
         self._ntargets = 0
         self.ref_results = {}
 
-        self._empirical_model = pkp.empirical_model.SFOR
+        self._empirical_model = empirical_model.SFOR
         self._parameters_min = None
         self._parameters_max = None
 
@@ -291,7 +293,7 @@ class Evolution(object):
     @empirical_model.setter
     def empirical_model(self, model):
         # check attributes using the EmpiricalModel attributes
-        if not issubclass(model, pkp.empirical_model.EmpiricalModel):
+        if not issubclass(model, empirical_model.EmpiricalModel):
             raise PKPModelError('model has to be child of EmpiricalModel!')
         self.__log.debug('Set empirical_model to %s', model)
         self._empirical_model = model

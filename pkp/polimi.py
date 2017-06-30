@@ -7,15 +7,17 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 import sys
 
-import pkp.coal
-import pkp.empirical_model
+
 import numpy as np
 import pandas as pd
 import os
 from autologging import logged
 
-from pkp.coal import M_elements
-
+# pkp import
+from . import coal
+from . import bins
+from . import empirical_model
+from .coal import M_elements
 from .triangle import Triangle
 from ._exceptions import ImportError
 
@@ -47,7 +49,7 @@ def set_reference_coal(name, atoms):
     atoms['S'] = 0
     ua = {el: (val * M_elements[el])
           for el, val in atoms.items()}
-    return pkp.coal.Coal(
+    return coal.Coal(
         name=name,
         ultimate_analysis=ua,
         proximate_analysis={'FC': 50,
@@ -101,27 +103,27 @@ class TriangleCoal(Triangle):
             x2=coal2.van_kravelen)
 
     @staticmethod
-    def _coal_to_x(coal):
-        if isinstance(coal, (Polimi, pkp.coal.Coal)):
-            return coal.van_kravelen
+    def _coal_to_x(c):
+        if isinstance(c, (Polimi, coal.Coal)):
+            return c.van_kravelen
         else:
-            return coal
+            return c
 
-    def is_inside(self, coal):
+    def is_inside(self, c):
         """Check if the coal is inside the Triangles."""
         return super(
             TriangleCoal, self).is_inside(
-                self._coal_to_x(coal))
+                self._coal_to_x(c))
 
-    def weights(self, coal):
+    def weights(self, c):
         """Return the weights of the given coal in the triangle."""
         return super(TriangleCoal, self).weights(
-            self._coal_to_x(coal))
+            self._coal_to_x(c))
 
-    def _coeff(self, coal):
+    def _coeff(self, c):
         """Return the weights of the coal in the triangle."""
         return super(TriangleCoal, self)._coeff(
-            self._coal_to_x(coal))
+            self._coal_to_x(c))
 
     def itercoals(self):
         """Iterate over coals returning coal vertices."""
@@ -144,7 +146,7 @@ triangle_123 = TriangleCoal(coal1,
 
 
 @logged
-class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
+class Polimi(coal.Coal, empirical_model.Model):
     """
     Multi-Step Kinetic Devolatilizion Model (Polimi).
 
@@ -228,7 +230,7 @@ class Polimi(pkp.coal.Coal, pkp.empirical_model.Model):
             self._mechanism = value
         else:
             if value is None:
-                value = os.path.join(os.path.dirname(pkp.bins.__file__),
+                value = os.path.join(os.path.dirname(bins.__file__),
                                      'COAL.xml')
             try:
                 self._mechanism = cantera.Solution(value)

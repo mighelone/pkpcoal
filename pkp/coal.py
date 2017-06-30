@@ -2,7 +2,7 @@
 Coal module.
 
 Module contains the Detailed model base class. This class is used as
-parent for detailed model classes, such :class:`pkp.cpd.CPD`,
+parent for detailed model classes, such :class:`4444cpd.CPD`,
 :class:`pkp.polimi.Polimi` and :class:`pkp.biopolimi.BioPolimi`
 """
 from __future__ import division, absolute_import
@@ -13,9 +13,8 @@ from builtins import dict
 import os
 import numpy as np
 import tabulate
-import pkp
-# import pkp.reactor
-import pkp.bins
+
+from . import bins
 import json
 from autologging import logged
 from distutils.dir_util import mkpath
@@ -55,11 +54,11 @@ hf = {'CO2': -394427320.2748184,
       'char': -101.268}
 
 
-with open(os.path.join(os.path.dirname(pkp.bins.__file__),
+with open(os.path.join(os.path.dirname(bins.__file__),
                        'el_fractions.json'), 'r') as f:
     el_fractions = json.load(f)
 
-with open(os.path.join(os.path.dirname(pkp.bins.__file__),
+with open(os.path.join(os.path.dirname(bins.__file__),
                        'species.json'), 'r') as f:
     species = json.load(f)
 

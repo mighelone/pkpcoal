@@ -1,5 +1,6 @@
 """Test module for CPD."""
-
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
 import pytest
 import numpy as np
 
@@ -48,8 +49,8 @@ def test_cpd_init(cpd):
     # mdel /= (1-c0)
     # mdel -= 7
 
-    assert cpd.ultimate_analysis['C'] == 74.12/100
-    assert cpd.ultimate_analysis['H'] == 4.96/100
+    np.testing.assert_almost_equal(cpd.ultimate_analysis['C'], 0.7412)
+    np.testing.assert_almost_equal(cpd.ultimate_analysis['H'], 0.0496)
 
     assert cpd.pressure == pressure
     np.testing.assert_almost_equal(mdel, cpd.mdel, decimal=1)

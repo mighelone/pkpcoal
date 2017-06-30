@@ -1,4 +1,6 @@
 """Test reactor module."""
+from __future__ import division, absolute_import
+from __future__ import print_function, unicode_literals
 import pytest
 import numpy as np
 
@@ -126,7 +128,7 @@ def test_set_parameters(reactor):
 
 def test_reactor_cpd():
     """Test the reactor with the CPD model."""
-    ua = {'C': 80, 'H': 8, 'O': 12, 'N': 0, 'S': 0}
+    ua = {'C': 80.0, 'H': 8.0, 'O': 12.0, 'N': 0.0, 'S': 0.0}
     pressure = 5e5
     r = Reactor(model='CPD', ultimate_analysis=ua, pressure=pressure,
                 name='test', max_step=1e-2)

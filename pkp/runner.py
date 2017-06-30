@@ -33,13 +33,13 @@ import pandas as pd
 
 # detailed models
 # they must be loaded here if you want to use them!
-from pkp.cpd import CPD
+from .cpd import CPD
 # from cpd import CPD
-from pkp.cpd_fortran import CPD as CPDfortran
+# from .cpd_fortran import CPD as CPDfortran
 
 try:
-    from pkp.polimi import Polimi
-    from pkp.biopolimi import BioPolimi
+    from .polimi import Polimi
+    from .biopolimi import BioPolimi
     models = ['CPD', 'CPDfortran', 'Polimi', 'BioPolimi']
 except ModuleNotFoundError:
     logger = logging.getLogger('pkp.runner')
@@ -48,8 +48,12 @@ except ModuleNotFoundError:
     models = ['CPD', 'CPDfortran']
 
 # optimization
-import pkp.evolution
-import pkp.minimize
+from . import evolution
+from . import minimize
+from . import coal
+from . import reactor
+from . import empirical_model
+from . import __version__
 
 import matplotlib
 
@@ -106,7 +110,7 @@ def runs_iterator(op_cond):
 
 
 @logged
-class ReadConfiguration(pkp.coal.Coal):
+class ReadConfiguration(coal.Coal):
     """Read configuration file for PKP."""
 
     def __init__(self, yml):
@@ -209,8 +213,8 @@ class PKPRunner(ReadConfiguration):
             'rho_dry': self.rho_dry,
             'operating_conditions': self.operating_conditions
         }
-        run_results = {'coal': coal, 'version': pkp.__version__}
-        fit_results = {'coal': coal, 'version': pkp.__version__}
+        run_results = {'coal': coal, 'version': __version__}
+        fit_results = {'coal': coal, 'version': __version__}
         for model in self.models:
             if hasattr(self, model):
                 model_settings = getattr(self, model)
@@ -431,7 +435,7 @@ class PKPRunner(ReadConfiguration):
             #     # name='{}-{}-Run{}'.format(self.name, model, n)
             #     name=self.name
             # )
-            run = pkp.reactor.Reactor(
+            run = reactor.Reactor(
                 model,
                 ultimate_analysis=self.ultimate_analysis,
                 proximate_analysis=self.proximate_analysis,
@@ -574,7 +578,7 @@ class PKPRunner(ReadConfiguration):
 
             # run optimized empirical model
         # m = emp_model_class(best)
-        m = pkp.reactor.Reactor(emp_model_class, **best)
+        m = reactor.Reactor(emp_model_class, **best)
         self.__log.debug('Emp model %s', emp_model)
 
         # plot yield
@@ -754,16 +758,16 @@ class PKPRunner(ReadConfiguration):
         # Define Evolution method
         # add a binary field in input yaml for running binary
         # fitting
-        Evolution = pkp.evolution.EvolutionBinary \
+        Evolution = evolution.EvolutionBinary \
             if fit_settings.get('binary', False) else \
-            pkp.evolution.Evolution
+            evolution.Evolution
 
         # Init Evolution
         self.__log.debug('Set skip=%s', skip)
         ga = Evolution(npop=npop, ngen=ngen, cxpb=cxpb, mutpb=mutpb,
                        mu=mu, lambda_=lambda_, skip=skip)
         self.__log.debug('Init GA %s', ga)
-        ga.empirical_model = getattr(pkp.empirical_model, model)
+        ga.empirical_model = getattr(empirical_model, model)
 
         self.__log.debug('Set GA model %s', ga.empirical_model)
 
@@ -814,10 +818,10 @@ class PKPRunner(ReadConfiguration):
         parameters_min = fit_settings['parameters_min']
         parameters_max = fit_settings['parameters_max']
 
-        fmin = pkp.minimize.Minimization()
+        fmin = minimize.Minimization()
 
         self.__log.debug('Init fmin %s', fmin)
-        fmin.empirical_model = getattr(pkp.empirical_model, model)
+        fmin.empirical_model = getattr(empirical_model, model)
         self.__log.debug('Set fmin model %s', fmin.empirical_model)
 
         # Define the range of parameters

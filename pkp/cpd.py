@@ -54,9 +54,9 @@ from __future__ import print_function, unicode_literals
 
 
 import pkp
-import pkp.coal
-import pkp.empirical_model
-import pkp.triangle
+from . import coal
+from . import empirical_model
+from . import triangle
 import numpy as np
 from autologging import logged
 from scipy.optimize import brentq, newton
@@ -86,7 +86,7 @@ Rgas = 1.987  # cal/mol-K
 
 
 @logged
-class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
+class CPD(coal.Coal, empirical_model.Model):
     """
     Chemical Percolation Devolatilization model (CPD).
 
@@ -672,7 +672,7 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
                                       [6, 8, 9],
                                       [8, 9, 10]])
 
-        triangles = [pkp.triangle.Triangle(
+        triangles = [triangle.Triangle(
             *(points[ti] for ti in t)) for t in triangle_vertices]
 
         # search triangle
@@ -699,9 +699,9 @@ class CPD(pkp.coal.Coal, pkp.empirical_model.Model):
             ref_coal = distances.argmin()
             self.__log.error('Closest coal is %s', ref_coal)
 
-            for triangle, vertices in zip(triangles, triangle_vertices):
+            for t, vertices in zip(triangles, triangle_vertices):
                 if ref_coal in vertices:
-                    self.triangle = triangle
+                    self.triangle = t
                     self.triangle_coals = vertices
                     # self.triangle_weights = t.weights(self.van_kravelen)
                     self.triangle_weights = np.array([1 if ref_coal == v

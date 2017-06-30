@@ -1,10 +1,10 @@
-'''
+"""
 *eaMuPlusLambda* algorithm rewritten to introduce user stop of the
 evolution using CTRL-C with. See `deap.algorithms.eaMuCommaLambda` for
 more details.
 
 Modified by Michele Vascellari
-'''
+"""
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 from builtins import dict
