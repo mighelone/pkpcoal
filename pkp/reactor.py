@@ -207,8 +207,9 @@ class Reactor(object):
         while solver.t < time_end:
             solver.integrate(time_end, step=True)
             # print(solver.t, solver.y, self.rate(
-            #    solver.t, solver.y), self.parameters.y0 - solver.y[0])
+            #     solver.t, solver.y), self.parameters.y0 - solver.y[0])
             self.model.postprocess_step(solver.t, solver.y)
+            # print(solver.t, solver.y)
             t.append(solver.t)
             y.append(solver.y)
 
@@ -312,6 +313,10 @@ class DTR(Reactor):
         **kwargs:
             Specific parameters for the model.
         """
+        if 'T0' in kwargs:
+            self.T0 = kwargs.pop('T0')
+        else:
+            self.T0 = None
         super(DTR, self).__init__(model=model, **kwargs)
         # TODO: these variables should call as input
         # TODO: define correctly dy/dt when h_pyro is not zero
@@ -406,3 +411,19 @@ class DTR(Reactor):
     def _qchem(self, rate):
         """Calculate the heat of reacton."""
         return -rate * self.mdaf * self.h_pyro
+
+    @property
+    def y0(self):
+        """Get initial solution vector for the reactor."""
+        return np.append(self._model.y0, self.T0)
+
+    @property
+    def T0(self):
+        return self._T0
+
+    @T0.setter
+    def T0(self, value):
+        if value is None:
+            self._T0 = 300
+        else:
+            self._T0 = value

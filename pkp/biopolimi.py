@@ -178,6 +178,7 @@ class BioPolimi(polimi.Polimi):
                 'biomass_vankravelen.png')
             self.plot_CH(show=False).figure.savefig(
                 'biomass_CH.png')
+            self.mechanism.TPY = None, None, self.composition
         else:
             self.__log.error(
                 'Biomass composition %s '

@@ -154,12 +154,12 @@ class Polimi(coal.Coal, empirical_model.Model):
     """
 
     tar = ['VTAR1', 'VTAR2', 'VTAR3']
-    light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH2', 'CH3O',
+    light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH3O',
                  'BTX2']
     raw = ['COAL1', 'COAL2', 'COAL3']
     metaplast = ['GCH2', 'TAR1', 'GBTX2', 'GCH4', 'GCOH2',
                  'GCO2S', 'GH2O', 'GCOL', 'TAR2', 'GCO2TS',
-                 'GCOAL3', 'GCO2', 'TAR3', 'GCOLS']
+                 'GCOAL3', 'GCO2', 'TAR3']
     char = ['CHAR', 'CHARH', 'CHARG']
 
     # define here the modificable parameters
@@ -225,13 +225,13 @@ class Polimi(coal.Coal, empirical_model.Model):
     # @mechanism.setter
     # def mechanism(self, value=None):
     def _set_mechanism(self, value=None):
-        """Set mechanism. Default is COAL.xml."""
+        """Set mechanism. Default is COAL1207.xml."""
         if isinstance(value, cantera.Solution):
             self._mechanism = value
         else:
             if value is None:
                 value = os.path.join(os.path.dirname(bins.__file__),
-                                     'COAL.xml')
+                                     'COAL1207.xml')
             try:
                 self._mechanism = cantera.Solution(value)
             except:
