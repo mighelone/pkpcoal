@@ -153,14 +153,14 @@ class Polimi(coal.Coal, empirical_model.Model):
     Based on Sommariva (2010).
     """
 
-    tar = ['VTAR1', 'VTAR2', 'VTAR3']
-    light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH3O',
-                 'BTX2']
-    raw = ['COAL1', 'COAL2', 'COAL3']
-    metaplast = ['GCH2', 'TAR1', 'GBTX2', 'GCH4', 'GCOH2',
-                 'GCO2S', 'GH2O', 'GCOL', 'TAR2', 'GCO2TS',
-                 'GCOAL3', 'GCO2', 'TAR3']
-    char = ['CHAR', 'CHARH', 'CHARG']
+    # tar = None
+    # light_gas = ['CO', 'CO2', 'H2O', 'H2', 'CH4', 'CH2', 'CH3O',
+    #             'BTX2']
+    # raw = ['COAL1', 'COAL2', 'COAL3']
+    # metaplast = ['GCH2', 'TAR1', 'GBTX2', 'GCH4', 'GCOH2',
+    #             'GCO2S', 'GH2O', 'GCOL', 'TAR2', 'GCO2TS',
+    #             'GCOAL3', 'GCO2', 'TAR3']
+    # char = ['CHAR', 'CHARH', 'CHARG']
 
     # define here the modificable parameters
     _parameters = ['mechanism']
@@ -237,10 +237,62 @@ class Polimi(coal.Coal, empirical_model.Model):
             except:
                 raise MechanismError('Cannot read {}'.format(value))
         self._mechanism.TP = 300, self.pressure
+
+        self._tar = []
+        self._raw = []
+        self._metaplast = []
+        self._light_gas = []
+        self._char = []
+        self._moisture = []
+        self._ash = []
+        for sp in self._mechanism.species_names:
+            if sp.startswith('VTAR'):
+                self._tar.append(sp)
+            elif sp.startswith('G') or sp.startswith('TAR'):
+                self._metaplast.append(sp)
+            elif sp.startswith('COAL'):
+                self._raw.append(sp)
+            elif sp.startswith('CHAR'):
+                self._char.append(sp)
+            elif sp == 'ACQUA':
+                self._moisture.append(sp)
+            elif sp == 'ASH':
+                self._ash.append(sp)
+            else:
+                self._light_gas.append(sp)
+
         self._calc_light_gas_index()
 
     mechanism = property(_get_mechanism, _set_mechanism,
                          doc='Mechanism in cantera format for Polimi')
+
+    @property
+    def tar(self):
+        return self._tar
+
+    @property
+    def light_gas(self):
+        return self._light_gas
+
+    @property
+    def raw(self):
+        return self._raw
+
+    @property
+    def metaplast(self):
+        return self._metaplast
+
+    @property
+    def char(self):
+        return self._char
+
+    @property
+    def ash(self):
+        return self._ash
+
+    @property
+    def moisture(self):
+        return self._moisture
 
     def _define_triangle(self):
         """Define coal triangle."""
@@ -260,8 +312,12 @@ class Polimi(coal.Coal, empirical_model.Model):
         self.composition = {c.name: self.triangle_weights[i]
                             for i, c in enumerate(
             self.triangle.itercoals())}
+
+    @property
+    def y0(self):
+        """Initial composition."""
         self.mechanism.TPY = None, None, self.composition
-        self.y0 = self.mechanism.Y
+        return self.mechanism.Y
 
     def rate(self, t, y):
         """Volatilization rate."""
