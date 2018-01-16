@@ -128,7 +128,7 @@ class Reactor(object):
         """Get initial solution vector for the reactor."""
         return np.append(self._model.y0, self.operating_conditions[0, 1])
 
-    def run(self, t=None, save=False):
+    def run(self, t=None, save=False, verbose=False):
         """
         Run reactor for a given time.
 
@@ -170,6 +170,14 @@ class Reactor(object):
 
         solver.set_integrator(backend, **ode_args)
         warnings.filterwarnings("ignore", category=UserWarning)
+        if verbose:
+            self.__log.warning('ODE first step %s',
+                               solver._integrator.first_step)
+            self.__log.warning('ODE max_step %s', solver._integrator.max_step)
+            # self.__log.debug('ODE min_step', solver._integrator.min_step)
+            self.__log.warning('ODE atol %s', solver._integrator.atol)
+            self.__log.warning('ODE rtol %s', solver._integrator.rtol)
+            self.__log.warning('ODE beta %s', solver._integrator.beta)
         t, y = ode_run(*args)
         warnings.resetwarnings()
 
