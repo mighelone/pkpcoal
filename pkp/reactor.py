@@ -14,12 +14,20 @@ from autologging import logged
 from scipy.integrate import ode
 import pandas as pd
 import warnings
+import logging
 
 # import the models that can be used in the reactor
 from .empirical_model import EmpiricalModel, SFOR, SFORT, C2SM, DAEM
-from .polimi import Polimi
+
+try:
+    from .polimi import Polimi
+    from .biopolimi import BioPolimi
+except ModuleNotFoundError:
+    logger = logging.getLogger('pkp.runner')
+    logger.warning(
+        'Cantera not available. Polimi and BioPolimi models cannot be used!')
+
 from .cpd import CPD
-from .biopolimi import BioPolimi
 from .interpolate import interp
 
 
