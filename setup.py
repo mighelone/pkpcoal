@@ -54,7 +54,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     packages_dir={'pkp.bins': 'pkp/bins'},
     package_data={'pkp.bins': ['cpdnlg*',
-                               'COAL.xml', 'Biomass.xml', '52.xml']},
+                               'COAL.xml', 'Biomass.xml', '52.xml', 'el_fractions.json']},
     scripts=['runPKP'],
     install_requires=[
         'numpy',
