@@ -19,8 +19,6 @@ def githash():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 
 
-OB
-
 setup(
     name='PKP',
     version=versioneer.get_version(),
