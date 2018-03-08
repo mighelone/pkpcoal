@@ -29,7 +29,9 @@ sqrt2 = np.sqrt(2)
 sqrtpi = np.sqrt(np.pi)
 
 
-def namedtuple_with_defaults(typename, field_names, default_values=(),
+def namedtuple_with_defaults(typename,
+                             field_names,
+                             default_values=(),
                              units=None):
     """
     Create a namedtuple with default values.
@@ -54,7 +56,7 @@ def namedtuple_with_defaults(typename, field_names, default_values=(),
 
     """
     T = collections.namedtuple(typename, field_names)
-    T.__new__.__defaults__ = (None,) * len(T._fields)
+    T.__new__.__defaults__ = (None, ) * len(T._fields)
     if isinstance(default_values, collections.Mapping):
         prototype = T(**default_values)
     else:
@@ -116,9 +118,10 @@ class EmpiricalModel(Model):
     The derived class has to provide the `rate` method.
     """
 
-    _Parameters = namedtuple_with_defaults(typename='EmpiricalModel',
-                                           field_names=('foo', 'bar'),
-                                           default_values=(1, 1))
+    _Parameters = namedtuple_with_defaults(
+        typename='EmpiricalModel',
+        field_names=('foo', 'bar'),
+        default_values=(1, 1))
     _len_parameters = len(_Parameters._fields)
     _mask = np.array([True] * _len_parameters)
 
@@ -258,8 +261,7 @@ class EmpiricalModel(Model):
         return unsc_par
 
     @classmethod
-    def scale_parameters(cls, parameters, parameters_min,
-                         parameters_max):
+    def scale_parameters(cls, parameters, parameters_min, parameters_max):
         """
         Scale/normalize parameters using minimum and maximum values.
 
@@ -286,8 +288,7 @@ class EmpiricalModel(Model):
 
         """
         if isinstance(parameters, dict):
-            parameters = [parameters[p] for p in
-                          cls.parameters_names()]
+            parameters = [parameters[p] for p in cls.parameters_names()]
         parameters = np.array(parameters)
         parameters_min = np.array(parameters_min)
         parameters_max = np.array(parameters_max)
@@ -378,8 +379,7 @@ class SFOR(EmpiricalModel):
         return [k * dy if dy > 1e-6 else 0]
 
     def _calc_k(self, T):
-        return (self.parameters.A /
-                np.exp(self.parameters.E / Rgas / T))
+        return (self.parameters.A / np.exp(self.parameters.E / Rgas / T))
 
     # def jacob(self, t, y):
     #    return -self._calc_k(t)
@@ -488,7 +488,7 @@ class C2SM(EmpiricalModel):
         k1, k2 = self._k(y[-1])
         if y[1] > 1e-6:
             dydt = [(self.parameters.y1 * k1 + self.parameters.y2 * k2) * y[1],
-                    - (k1 + k2) * y[1]]
+                    -(k1 + k2) * y[1]]
         else:
             dydt = [0, 0]
         return dydt
@@ -502,10 +502,8 @@ class C2SM(EmpiricalModel):
     def _k(self, T):
         """Calculate the reaction constants."""
         RT = Rgas * T
-        return (self.parameters.A1 / np.exp(
-            self.parameters.E1 / RT),
-            self.parameters.A2 / np.exp(
-            self.parameters.E2 / RT))
+        return (self.parameters.A1 / np.exp(self.parameters.E1 / RT),
+                self.parameters.A2 / np.exp(self.parameters.E2 / RT))
 
 
 @logged
@@ -529,10 +527,10 @@ class DAEM(EmpiricalModel):
 
     n_quad = 4
     mt = 0.72
-    x = np.array([np.sqrt((3 - np.sqrt(6)) / 2),
-                  -np.sqrt((3 - np.sqrt(6)) / 2),
-                  np.sqrt((3 + np.sqrt(6)) / 2),
-                  -np.sqrt((3 + np.sqrt(6)) / 2)])
+    x = np.array([
+        np.sqrt((3 - np.sqrt(6)) / 2), -np.sqrt((3 - np.sqrt(6)) / 2),
+        np.sqrt((3 + np.sqrt(6)) / 2), -np.sqrt((3 + np.sqrt(6)) / 2)
+    ])
     H = 8 * pow(x, 3) - 12 * x  # hermite polynomial
     w = pow(2, n_quad - 1) * factorial(n_quad) * \
         np.sqrt(np.pi) / (pow(n_quad, 2) * pow(H, 2))
@@ -550,12 +548,11 @@ class DAEM(EmpiricalModel):
         T = yt[-1]
         y = yt[:-1]
         # self.__log.debug('Em %s', Em)
-        dIdt = (self.parameters.A0 *
-                np.exp(-self._Em / Rgas / T))
+        dIdt = (self.parameters.A0 * np.exp(-self._Em / Rgas / T))
         # self.__log.debug('dkdt %s', dkdt)
         coeff1 = self.Wm * self.mt / sqrtpi
-        coeff2 = np.exp(-pow((self._Em - self.parameters.E0) /
-                             self.parameters.sigma, 2) / 2)
+        coeff2 = np.exp(-pow(
+            (self._Em - self.parameters.E0) / self.parameters.sigma, 2) / 2)
         coeff3 = np.exp(-y[1:]) * dIdt
         # self.__log.debug('coeff: %s %s %s', coeff1, coeff2, coeff3)
         # dydt = (self.parameters['y0'] - y[0]) * \

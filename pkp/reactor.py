@@ -14,6 +14,7 @@ from autologging import logged
 from scipy.integrate import ode
 import pandas as pd
 import warnings
+import logging
 
 # import the models that can be used in the reactor
 from .empirical_model import EmpiricalModel, SFOR, SFORT, C2SM, DAEM
@@ -61,8 +62,8 @@ class Reactor(object):
 
     """
 
-    _ode_parameters = {'first_step': 1e-5,
-                       'max_step': 1e-3}
+    _ode_parameters = {'first_step': 1e-5, 'max_step': 1e-3}
+    _increment = 1
 
     def __init__(self, model=None, *args, **kwargs):
         """
@@ -194,6 +195,19 @@ class Reactor(object):
             res.set_index('t').to_csv(self.model._out_csv)
         return res
 
+    @property
+    def increment(self):
+        """Increment in the time step output."""
+        return self._increment
+
+    @increment.setter
+    def increment(self, value):
+        if not isinstance(value, int):
+            raise TypeError('Define incremenet as integer > 1')
+        if value < 1:
+            raise ValueError('Define increment as integer > 1')
+        self._increment = value
+
     def rate(self, t, y):
         """Rate for the ode integral."""
         dydt = self._model.rate(t, y)
@@ -219,14 +233,20 @@ class Reactor(object):
 
         t = [0]
         y = [np.array(self.y0)]
+        counter = 1
         while solver.t < time_end:
             solver.integrate(time_end, step=True)
             # print(solver.t, solver.y, self.rate(
             #     solver.t, solver.y), self.parameters.y0 - solver.y[0])
             self.model.postprocess_step(solver.t, solver.y)
             # print(solver.t, solver.y)
-            t.append(solver.t)
-            y.append(solver.y)
+            if counter == 0:
+                t.append(solver.t)
+                y.append(solver.y)
+
+            if counter == self.increment:
+                counter = 0
+            counter += 1
 
         return np.array(t), np.array(y)
 
@@ -305,6 +325,8 @@ class Reactor(object):
                 model_parameters[key] = value
             elif key in self._ode_parameters:
                 self._ode_parameters[key] = value
+            elif key == 'increment':
+                self.increment = value
 
         self._model.set_parameters(**model_parameters)
 
@@ -338,8 +360,8 @@ class DTR(Reactor):
         self.density = 800
         self.dp = 100e-6
         self.daf = 0.9
-        self.Vp = np.pi * self.dp ** 3 / 8
-        self.Ap = np.pi * self.dp ** 2
+        self.Vp = np.pi * self.dp**3 / 8
+        self.Ap = np.pi * self.dp**2
         self.mp0 = self.density * self.Vp
         self.mash = self.mp0 * (1 - self.daf)
         self.mdaf = self.mp0 * self.daf
@@ -398,6 +420,7 @@ class DTR(Reactor):
         def interp_tT(t):
             """Interpolate time with temperature."""
             return interp(t, conditions[:, 0], conditions[:, 1])
+
         self.Tg = interp_tT
 
     def _dTdt(self, t, yt, dydt):
@@ -409,8 +432,8 @@ class DTR(Reactor):
         # TODO: this rate is valid only for empirical models, but in others.
         rate = dydt[0]
 
-        qtot = (self._qconv(t, yt, Tg) + self._qchem(rate) +
-                self._qrad(t, yt, Tg))
+        qtot = (
+            self._qconv(t, yt, Tg) + self._qchem(rate) + self._qrad(t, yt, Tg))
         return qtot / self.calc_mass(y) / self.cp
 
     def _qconv(self, t, yt, Tg):

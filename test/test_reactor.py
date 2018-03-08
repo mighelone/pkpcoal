@@ -172,3 +172,14 @@ def test_run_dtr(dtr):
     """Test run of DTR."""
     t, y = dtr.run()
     assert all(y[:, 1] <= y[:, 2])
+
+
+def test_run_increment(reactor):
+    """Test increment parameter."""
+    t0, y0 = reactor.run()
+
+    reactor.increment = increment = 3
+    t1, y1 = reactor.run()
+
+    # assert len(t0) > len(t1)
+    assert (t0[::increment] == t1).all()

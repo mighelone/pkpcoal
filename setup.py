@@ -53,9 +53,12 @@ setup(
     # packages=['pkp', 'pkp.bins'],
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     packages_dir={'pkp.bins': 'pkp/bins'},
-    package_data={'pkp.bins': ['cpdnlg*',
-                               'COAL.xml', 'Biomass.xml', '52.xml',
-                               'el_fractions.json', 'species.json']},
+    package_data={
+        'pkp.bins': [
+            'cpdnlg*', 'COAL.xml', 'Biomass.xml', '52.xml',
+            'el_fractions.json', 'species.json'
+        ]
+    },
     scripts=['runPKP'],
     install_requires=[
         'numpy',
@@ -66,11 +69,10 @@ setup(
         'ruamel.yaml',
         'pandas',
         'deap',
-        #'cantera (>=2.2.0)',
+        # 'cantera (>=2.2.0)',
         'tabulate',
         'future',
         'pathos',
         'termcolor',
         'versioneer'
-    ]
-)
+    ])

@@ -3,9 +3,6 @@
 from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
-import matplotlib
-matplotlib.use('Agg')
-
 import pkp.polimi
 import matplotlib.pyplot as plt
 import itertools

@@ -59,10 +59,7 @@ class Triangle(object):
         bool
         """
         coeff = self._coeff(np.array(x))
-        return all([
-            coeff[0] >= 0,
-            coeff[1] >= 0,
-            coeff.sum() <= 1])
+        return all([coeff[0] >= 0, coeff[1] >= 0, coeff.sum() <= 1])
 
     def weights(self, x):
         """
@@ -80,14 +77,14 @@ class Triangle(object):
             Weights array
         """
         if not self.is_inside(x):
-            raise OutsideTriangleError(
-                'x={} is outside triangle\n{}'.format(x, self))
+            raise OutsideTriangleError('x={} is outside triangle\n{}'.format(
+                x, self))
         w = np.cross(self.x0 - self.x1, self.x0 - self.x2)
         # note use the abs value for being sure that all areas are
         # negative
-        return np.abs([np.cross(x - x0, x - x1) / w
-                       for x0, x1 in itertools.combinations(
-            self.__iter__(), 2)
+        return np.abs([
+            np.cross(x - x0, x - x1) / w
+            for x0, x1 in itertools.combinations(self.__iter__(), 2)
         ])[::-1]
 
     def __iter__(self):
@@ -95,8 +92,8 @@ class Triangle(object):
             yield x
 
     def __str__(self):
-        s = tabulate.tabulate([x.tolist() for x in self.__iter__()],
-                              headers=self.headers)
+        s = tabulate.tabulate(
+            [x.tolist() for x in self.__iter__()], headers=self.headers)
         return s
 
     def __repr__(self):

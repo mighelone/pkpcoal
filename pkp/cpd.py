@@ -82,6 +82,7 @@ from ._cpd_correlations import CPD_CORRELATION, x_gas, y_gas
 
 Rgas = 1.987  # cal/mol-K
 
+
 class CPDError(Exception):
     """CPD error."""
 

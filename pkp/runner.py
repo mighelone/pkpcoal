@@ -112,7 +112,6 @@ def runs_iterator(op_cond):
 class ReadConfiguration(coal.Coal):
     """Read configuration file for PKP."""
 
-    # TODO implenent increment keyword
     # TODO check if fit has to be called fit0, fit1 or with any name
     def __init__(self, yml):
         """
@@ -426,22 +425,22 @@ class PKPRunner(ReadConfiguration):
             # )
             # self.__log.debug(
             #     'Polimi coal composition is set to %s', run.composition)
-        else:
-            self.__log.debug('Initialize detailed model %s',
-                             model)
-            # run = globals()[model](
-            #     ultimate_analysis=self.ultimate_analysis,
-            #     proximate_analysis=self.proximate_analysis,
-            #     pressure=self.pressure,
-            #     # name='{}-{}-Run{}'.format(self.name, model, n)
-            #     name=self.name
-            # )
-            run = reactor.Reactor(
-                model,
-                ultimate_analysis=self.ultimate_analysis,
-                proximate_analysis=self.proximate_analysis,
-                pressure=self.pressure,
-                name=self.name)
+
+        self.__log.debug('Initialize detailed model %s',
+                         model)
+        # run = globals()[model](
+        #     ultimate_analysis=self.ultimate_analysis,
+        #     proximate_analysis=self.proximate_analysis,
+        #     pressure=self.pressure,
+        #     # name='{}-{}-Run{}'.format(self.name, model, n)
+        #     name=self.name
+        # )
+        run = reactor.Reactor(
+            model,
+            ultimate_analysis=self.ultimate_analysis,
+            proximate_analysis=self.proximate_analysis,
+            pressure=self.pressure,
+            name=self.name)
         # TODO change path from detailed model to reactor
         run.model.basename = '{name}-{model}-run{run}'.format(
             name=self.name, model=model, run=n)
