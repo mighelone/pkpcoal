@@ -14,6 +14,7 @@ from autologging import logged
 from scipy.integrate import ode
 import pandas as pd
 import warnings
+import logging
 
 # import the models that can be used in the reactor
 from .empirical_model import EmpiricalModel, SFOR, SFORT, C2SM, DAEM
