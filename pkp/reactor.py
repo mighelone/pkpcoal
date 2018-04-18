@@ -193,7 +193,7 @@ class Reactor(object):
         res = self.model.postprocess(t, y)
         if save and isinstance(res, pd.DataFrame):
             res.set_index('t').to_csv(self.model._out_csv)
-        return res
+        return res[::self.increment]
 
     @property
     def increment(self):
@@ -203,7 +203,7 @@ class Reactor(object):
     @increment.setter
     def increment(self, value):
         if not isinstance(value, int):
-            raise TypeError('Define incremenet as integer > 1')
+            raise TypeError('Define increment as integer > 1')
         if value < 1:
             raise ValueError('Define increment as integer > 1')
         self._increment = value
@@ -233,20 +233,14 @@ class Reactor(object):
 
         t = [0]
         y = [np.array(self.y0)]
-        counter = 1
         while solver.t < time_end:
             solver.integrate(time_end, step=True)
             # print(solver.t, solver.y, self.rate(
             #     solver.t, solver.y), self.parameters.y0 - solver.y[0])
             self.model.postprocess_step(solver.t, solver.y)
             # print(solver.t, solver.y)
-            if counter == 0:
-                t.append(solver.t)
-                y.append(solver.y)
-
-            if counter == self.increment:
-                counter = 0
-            counter += 1
+            t.append(solver.t)
+            y.append(solver.y)
 
         return np.array(t), np.array(y)
 
