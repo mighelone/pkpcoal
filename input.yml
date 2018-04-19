@@ -29,7 +29,7 @@ CPD:
     fit0:
       active: true  # activate fitting
       model: SFOR
-      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
+      skip: 10  # ! new version 3.1: number of points to skip in the detailed model results
       species: volatiles
       parameters_min: [1e4, 50e6, 0.5]
       parameters_max: [1e9, 200e6, 0.6]
@@ -78,7 +78,7 @@ CPD:
       active: false
       model: DAEM
       species: volatiles
-      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
+      skip: 10  # ! new version 3.1: number of points to skip in the detailed model results
       parameters_min: [1e3, 10e6, 5e6, 0.65]
       parameters_max: [1e6, 100e6, 50e6, 0.7]
       parameters_init: [1e5, 50e6, 0.4]

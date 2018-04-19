@@ -287,22 +287,6 @@ class PKPRunner(ReadConfiguration):
                         'Key species not defined in {}:{}'.format(
                             model, fitname))
                 try:
-                    skip = fit['skip']
-                except KeyError:
-                    try:
-                        skip = fit['increment']
-                        self.__log.warning(
-                            '%s:%s increment keyword is replaced by skip'
-                            'This keyword will be discontinued in future '
-                            'versions', model, fitname)
-                    except KeyError:
-                        self.__log.warning(
-                            'skip keyword not defined in %s:%s set to 1',
-                            model, fitname)
-                        skip = 1
-
-                self.__log.debug('Set skip %s', skip)
-                try:
                     target_conditions = {
                         run: {
                             't': res['t'].values,
@@ -324,7 +308,7 @@ class PKPRunner(ReadConfiguration):
                 try:
                     fit_results[fitname] = self.fit_single(
                         results, target_conditions, fit_dict, fit, results_dir,
-                        n_p, skip)
+                        n_p)
                 except (PKPModelError, AttributeError) as e:
                     raise PKPModelError(
                         'Empirical model {} in {}:{} not defined.\n'
@@ -524,8 +508,7 @@ class PKPRunner(ReadConfiguration):
                    fit_dict,
                    fit_settings,
                    results_dir,
-                   n_p=1,
-                   skip=1):
+                   n_p=1):
         """
         Fit single case.
 
@@ -551,8 +534,6 @@ class PKPRunner(ReadConfiguration):
             Path where results are stored
         n_p: int
             Number of processors for the evolution
-        skip: int
-            Number of points to skip
 
         """
         # parameters_init = fit_settings['parameters_init']
@@ -575,7 +556,7 @@ class PKPRunner(ReadConfiguration):
 
         runs = self._operating_conditions['runs']
         target_conditions_used = {
-            run: {key: value[::skip] for key, value in conditions.items()}
+            run: conditions
             for run, conditions in target_conditions.items()
             if int(run[3:]) < runs
         }

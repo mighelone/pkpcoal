@@ -384,8 +384,11 @@ class Evolution(object):
         ----
         Check if this can be done inside a function
         """
+        if hasattr(creator, "FitnessMin"):
+            del creator.FitnessMin
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        # creator.create("Individual", list, fitness=creator.FitnessMin)
+        if hasattr(creator, "Individual"):
+            del creator.Individual
         creator.create("Individual", array.array, typecode='d',
                        fitness=creator.FitnessMin)
 
