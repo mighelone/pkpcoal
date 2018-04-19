@@ -20,16 +20,16 @@ Coal:
   rho_dry : 1310 # kg/m3
 
 CPD:
-  active : false  # calculate CPD
+  active : true  # calculate CPD
   first_step: 1e-5  # ! new version 3.0 ODE max_step compatible with SCIPY
   max_step: 1e-4  # ! new version 3.0 ODE max_step compatible with SCIPY
-  increment: 1  # ! implement in version 3.0
   n_frag: 25  # ! new version 3.0 CPD specific parameters
   # check in cpd.get_parameters() which parameters are available
   fit:
     fit0:
       active: true  # activate fitting
       model: SFOR
+      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
       species: volatiles
       parameters_min: [1e4, 50e6, 0.5]
       parameters_max: [1e9, 200e6, 0.6]
@@ -46,6 +46,7 @@ CPD:
       active: false
       model: C2SM
       species: volatiles
+      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
       parameters_min: [1e3, 20e6, 0.3, 1e6, 100e6, 0.6]
       parameters_max: [1e6, 100e6, 0.5, 1e9, 200e6, 1]
       parameters_init: [1e5, 50e6, 0.4, 1e8, 150e6, 0.7]
@@ -60,6 +61,7 @@ CPD:
     fit2:
       active: false
       model: BT  # Biagini-Tognotti model new name!
+      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
       species: volatiles
       parameters_min: [1e3, 20e6, 0.3]
       parameters_max: [1e6, 100e6, 1.2]
@@ -76,6 +78,7 @@ CPD:
       active: false
       model: DAEM
       species: volatiles
+      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
       parameters_min: [1e3, 10e6, 5e6, 0.65]
       parameters_max: [1e6, 100e6, 50e6, 0.7]
       parameters_init: [1e5, 50e6, 0.4]
@@ -91,15 +94,18 @@ CPD:
 Polimi:
   active: true
   first_step: 1e-5  # ! new version 3.0 ODE max_step compatible with SCIPY
-  max_step: 1e-4  # ! new version 3.0 ODE max_step compatible with SCIPY
+  max_step: 1e-3  # ! new version 3.0 ODE max_step compatible with SCIPY
   mechanism:
+  increment: 1
   # force polimi to use one of the referece coals. It override the coal settings
   # reference: COAL1
   fit:
     fit0:
       active: false
       model: SFOR
+      increment: 2
       species: volatiles
+      skip: 1  # ! new version 3.1: number of points to skip in the detailed model results
       parameters_min: [1e5, 50e6, 0.6]
       parameters_max: [1e8, 200e6, 0.7]
       parameters_init: [1e5, 100e6, 0.65] # not required by evolve
@@ -122,7 +128,7 @@ operating_conditions:
     pressure    : 1.0 #atmosphere
     runs: 2
     run0        : [ [ 0, 500], [ 0.005, 1500], [ 0.02, 1500] ]
-    run1        : [ [ 0, 500], [ 0.003, 1700], [ 0.02, 1700] ]
-    run2        : [ [ 0, 500], [ 0.01, 1300], [ 0.02, 1300] ]
-    run3        : [ [ 0, 500], [ 0.01, 1500], [ 0.02, 1500] ]
+    #run1        : [ [ 0, 500], [ 0.003, 1700], [ 0.02, 1700] ]
+    #run2        : [ [ 0, 500], [ 0.01, 1300], [ 0.02, 1300] ]
+    #run3        : [ [ 0, 500], [ 0.01, 1500], [ 0.02, 1500] ]
     # run4        : [ [ 0, 500], [ 0.1, 1400], [ 0.5, 2000] ]

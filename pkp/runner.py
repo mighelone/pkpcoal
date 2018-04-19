@@ -222,6 +222,7 @@ class PKPRunner(ReadConfiguration):
         for model in self.models:
             if hasattr(self, model):
                 model_settings = getattr(self, model)
+                # TODO maybe is better to assume active True if is not defined
                 try:
                     active = model_settings['active']
                 except KeyError:
@@ -279,15 +280,33 @@ class PKPRunner(ReadConfiguration):
         fit_results = {}
         for fitname, fit in model_settings.items():
             if fit.get('active', True):
-                if 'species' not in fit:
+                try:
+                    species = fit['species']
+                except KeyError:
                     raise PKPKeyError(
                         'Key species not defined in {}:{}'.format(
                             model, fitname))
                 try:
+                    skip = fit['skip']
+                except KeyError:
+                    try:
+                        skip = fit['increment']
+                        self.__log.warning(
+                            '%s:%s increment keyword is replaced by skip'
+                            'This keyword will be discontinued in future '
+                            'versions', model, fitname)
+                    except KeyError:
+                        self.__log.warning(
+                            'skip keyword not defined in %s:%s set to 1',
+                            model, fitname)
+                        skip = 1
+
+                self.__log.debug('Set skip %s', skip)
+                try:
                     target_conditions = {
                         run: {
-                            't': np.array(res['t']),
-                            'y': np.array(res[fit['species']])
+                            't': res['t'].values,
+                            'y': res[species].values
                         }
                         for run, res in results.items()
                     }
@@ -305,7 +324,7 @@ class PKPRunner(ReadConfiguration):
                 try:
                     fit_results[fitname] = self.fit_single(
                         results, target_conditions, fit_dict, fit, results_dir,
-                        n_p)
+                        n_p, skip)
                 except (PKPModelError, AttributeError) as e:
                     raise PKPModelError(
                         'Empirical model {} in {}:{} not defined.\n'
@@ -445,8 +464,14 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Set path to: %s', run.model.path)
         run.set_parameters(**model_settings)
         self.__log.debug('Reactor Parameters:\n%s', run.reactor_parameters)
-        self.__log.debug('increment: %s %s', run.increment,
-                         model_settings['increment'])
+        # self.__log.debug('increment: %s %s', run.increment,
+        #                  model_settings['increment'])
+        if 'increment' in model_settings:
+            self.__log.warning('%s: deprecated parameter increment.')
+            self.__log.warning('Add skip to input file in:'
+                               '\n model: %s\n\t'
+                               'fit:\n\t\tfit0:\n\t\tskip=%s', model,
+                               model_settings['increment'])
         self.__log.debug('Model %s Parameters:\n%s', model,
                          run.model_parameters)
         self.__log.debug('Set property run %s for %s', n, model)
@@ -499,7 +524,8 @@ class PKPRunner(ReadConfiguration):
                    fit_dict,
                    fit_settings,
                    results_dir,
-                   n_p=1):
+                   n_p=1,
+                   skip=1):
         """
         Fit single case.
 
@@ -525,6 +551,8 @@ class PKPRunner(ReadConfiguration):
             Path where results are stored
         n_p: int
             Number of processors for the evolution
+        skip: int
+            Number of points to skip
 
         """
         # parameters_init = fit_settings['parameters_init']
@@ -547,8 +575,9 @@ class PKPRunner(ReadConfiguration):
 
         runs = self._operating_conditions['runs']
         target_conditions_used = {
-            key: value
-            for key, value in target_conditions.items() if int(key[3:]) < runs
+            run: {key: value[::skip] for key, value in conditions.items()}
+            for run, conditions in target_conditions.items()
+            if int(run[3:]) < runs
         }
         self.__log.debug('Runs used for calibration %s',
                          list(target_conditions_used.keys()))
@@ -654,14 +683,14 @@ class PKPRunner(ReadConfiguration):
             fit_results[run] = {}
             res = target_conditions[run]
             if i == 0:
-                l = '{} {}'.format(run, det_model)
+                label = '{} {}'.format(run, det_model)
             else:
-                l = run
+                label = run
             self.__log.debug('Plot %s ', run)
             ax.plot(
                 res['t'],
                 res['y'],
-                label=l,
+                label=label,
                 color=colors[i],
                 linestyle='solid')
             # use list for exporting files

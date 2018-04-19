@@ -193,20 +193,7 @@ class Reactor(object):
         res = self.model.postprocess(t, y)
         if save and isinstance(res, pd.DataFrame):
             res.set_index('t').to_csv(self.model._out_csv)
-        return res[::self.increment]
-
-    @property
-    def increment(self):
-        """Increment in the time step output."""
-        return self._increment
-
-    @increment.setter
-    def increment(self, value):
-        if not isinstance(value, int):
-            raise TypeError('Define increment as integer > 1')
-        if value < 1:
-            raise ValueError('Define increment as integer > 1')
-        self._increment = value
+        return res
 
     def rate(self, t, y):
         """Rate for the ode integral."""
