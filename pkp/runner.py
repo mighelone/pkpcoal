@@ -593,9 +593,10 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Emp model %s', emp_model)
 
         # plot yield
+        skip = fit_settings.get('skip', 1)
         self._plot_yieldfit(det_model, emp_model, filename, fit_dict,
                             fit_results, fitname, m, results_dir,
-                            target_conditions)
+                            target_conditions, skip)
         # calc postulate species
         if 'y0' in m.model.parameters_names():
             y0 = best['y0']
@@ -628,9 +629,17 @@ class PKPRunner(ReadConfiguration):
 
         return fit_results
 
-    def _plot_yieldfit(self, det_model, emp_model, filename, fit_dict,
-                       fit_results, fitname, m, results_dir,
-                       target_conditions):
+    def _plot_yieldfit(self,
+                       det_model,
+                       emp_model,
+                       filename,
+                       fit_dict,
+                       fit_results,
+                       fitname,
+                       m,
+                       results_dir,
+                       target_conditions,
+                       skip=1):
         """
         Plot the fitted yields.
 
@@ -655,25 +664,25 @@ class PKPRunner(ReadConfiguration):
         results_dir: str
             Name of results directory
         target_conditions:
+            target
+        skip:
+            number of point to skip
 
         """
         self.__log.debug('Plot yields')
         fig, ax = plt.subplots()
         runs = list(sorted(target_conditions))
+        nruns = self.operating_conditions['runs']
         for i, run in enumerate(runs):
             fit_results[run] = {}
             res = target_conditions[run]
-            if i == 0:
-                label = '{} {}'.format(run, det_model)
-            else:
-                label = run
+            label = '{} {}'.format(run, det_model) if i == 0 else run
             self.__log.debug('Plot %s ', run)
-            ax.plot(
-                res['t'],
-                res['y'],
-                label=label,
-                color=colors[i],
-                linestyle='solid')
+            plt_args = dict(label=label, color=colors[i], linestyle='solid')
+            if len(res['t']) // skip < 20 and i < nruns:
+                plt_args['marker'] = 'o'
+                plt_args['markevery'] = skip
+            ax.plot(res['t'], res['y'], **plt_args)
             # use list for exporting files
             # fit_results[run]['t'] = res['t'].tolist()
             # fit_results[run]['y'] = res['y'].tolist()
@@ -685,17 +694,20 @@ class PKPRunner(ReadConfiguration):
                 y_fit = y_fit[:, 0]
             # fit_results[run]['y_fit'] = y_fit.tolist()
             fit_results[run]['y_fit'] = y_fit
-            if i == 0:
-                l = '{} {}'.format(run, m.__class__.__name__)
-            else:
-                l = None
-            ax.plot(t_fit, y_fit, color=colors[i], linestyle='dashed', label=l)
+            label = '{} {}'.format(run, m.__class__.__name__) \
+                if i == 0 else None
+            plt_args = dict(color=colors[i], linestyle='dashed', label=label)
+            # TODO set number of points
+            if len(res['t']) // skip < 20 and i < nruns:
+                plt_args['marker'] = 'o'
+                plt_args['markevery'] = skip
+            ax.plot(t_fit, y_fit, **plt_args)
         ax.set_ylabel('Yield {}'.format(fit_dict['species']))
         ax.set_xlabel('t, s')
         ax.locator_params(nbins=4)
         # add an extra legend
         # http://matplotlib.org/users/legend_guide.html#multiple-legend
-        nruns = self.operating_conditions['runs']
+
         runs_label = [
             r + '(fitted)' if i < nruns else r for i, r in enumerate(runs)
         ]
@@ -832,6 +844,25 @@ class PKPRunner(ReadConfiguration):
         return best, ga
 
     def minimization(self, fit_results, fit_settings, target_conditions, init):
+        """Run calibration routine using scipy minimization.
+
+        Parameters
+        ----------
+        fit_results : type
+            Description of parameter `fit_results`.
+        fit_settings : type
+            Description of parameter `fit_settings`.
+        target_conditions : type
+            Description of parameter `target_conditions`.
+        init : type
+            Description of parameter `init`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         model = fit_settings['model']
         self.__log.debug('Minimization fit with model %s', model)
 
@@ -863,13 +894,7 @@ class PKPRunner(ReadConfiguration):
                     operating_conditions=self.operating_conditions[run])
             except:
                 raise Exception
-        #[fmin.set_target(
-        #    t=res['t'], y=res['y'],
-        #    operating_conditions=self.operating_conditions[run])
-        # for run, res in target_conditions.items()]
 
-        # Register the DEAP toolbox and do the evolution! (Pearl
-        # Jam)
         best = fmin.run(initial=init)
         self.__log.debug('Best: %s', best)
 
