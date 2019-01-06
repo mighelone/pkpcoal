@@ -15,7 +15,7 @@ def sum_x_n_calc(x, z_n, k_n_1):
 
 
 def fp(x, sigma):
-    return x * (1 - x)**(sigma - 1)
+    return x * (1 - x) ** (sigma - 1)
 
 
 def pstar_f(x, sigma, fpp):
@@ -32,8 +32,9 @@ def combinln(n, k):
     n:
     k:
     """
-    return (special.gammaln(n + 1) - (special.gammaln(k + 1) +
-                                      special.gammaln(n - k + 1)))
+    return special.gammaln(n + 1) - (
+        special.gammaln(k + 1) + special.gammaln(n - k + 1)
+    )
 
 
 def binomial(k, n, p):
@@ -50,7 +51,7 @@ def binomial(k, n, p):
 
 
 def invernorm(y):
-    '''
+    """
     Calculate the inverse of the CDF of the normal distribution.
     It is a wrapper to scipy.stats.norm.ppf, which prevents to use
     values of the cumulative probability too small or too large.
@@ -63,7 +64,7 @@ def invernorm(y):
     Return
     ------
     float: inverse of the norm CDF
-    '''
+    """
     # if y > 0.5:
     #    yp = y
     #    fac = 1

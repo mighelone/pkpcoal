@@ -23,9 +23,8 @@ try:
     from .polimi import Polimi
     from .biopolimi import BioPolimi
 except ModuleNotFoundError:
-    logger = logging.getLogger('pkp.runner')
-    logger.warning(
-        'Cantera not available. Polimi and BioPolimi models cannot be used!')
+    logger = logging.getLogger("pkp.runner")
+    logger.warning("Cantera not available. Polimi and BioPolimi models cannot be used!")
 
 from .cpd import CPD
 from .interpolate import interp
@@ -62,7 +61,7 @@ class Reactor(object):
 
     """
 
-    _ode_parameters = {'first_step': 1e-5, 'max_step': 1e-3}
+    _ode_parameters = {"first_step": 1e-5, "max_step": 1e-3}
     _increment = 1
 
     def __init__(self, model=None, *args, **kwargs):
@@ -114,17 +113,18 @@ class Reactor(object):
             self._operating_conditions = None
             return
         if not isinstance(conditions, (np.ndarray, list)):
-            raise TypeError('Define conditions as list or numpy array')
+            raise TypeError("Define conditions as list or numpy array")
         elif isinstance(conditions, list):
             conditions = np.array(conditions)
         if not conditions.ndim == 2:
-            raise ValueError('Define conditions as array Nx2')
+            raise ValueError("Define conditions as array Nx2")
         if not conditions.shape[-1] == 2:
-            raise ValueError('Define conditions as array Nx2')
+            raise ValueError("Define conditions as array Nx2")
         self._operating_conditions = conditions
 
-        self._dTdt_array = (np.diff(self._operating_conditions[:, 1]) /
-                            np.diff(self._operating_conditions[:, 0]))
+        self._dTdt_array = np.diff(self._operating_conditions[:, 1]) / np.diff(
+            self._operating_conditions[:, 0]
+        )
 
         # def interp_tT(t):
         #     '''Interpolate time with temperature'''
@@ -164,35 +164,34 @@ class Reactor(object):
         #    'max_step': 1e-3,
         # }
         if t is None:
-            backend = 'dopri5'
-            ode_args['nsteps'] = 1
-            ode_args['verbosity'] = 2
+            backend = "dopri5"
+            ode_args["nsteps"] = 1
+            ode_args["verbosity"] = 2
             ode_run = self._run_nostop
         else:
             # backend = 'vode'
-            backend = 'dopri5'
+            backend = "dopri5"
             ode_run = self._run_t
-            ode_args['nsteps'] = 100000
+            ode_args["nsteps"] = 100000
             # ode_args['min_step'] = 1e-13
             args.append(t)
 
         solver.set_integrator(backend, **ode_args)
         warnings.filterwarnings("ignore", category=UserWarning)
         if verbose:
-            self.__log.warning('ODE first step %s',
-                               solver._integrator.first_step)
-            self.__log.warning('ODE max_step %s', solver._integrator.max_step)
+            self.__log.warning("ODE first step %s", solver._integrator.first_step)
+            self.__log.warning("ODE max_step %s", solver._integrator.max_step)
             # self.__log.debug('ODE min_step', solver._integrator.min_step)
-            self.__log.warning('ODE atol %s', solver._integrator.atol)
-            self.__log.warning('ODE rtol %s', solver._integrator.rtol)
-            self.__log.warning('ODE beta %s', solver._integrator.beta)
+            self.__log.warning("ODE atol %s", solver._integrator.atol)
+            self.__log.warning("ODE rtol %s", solver._integrator.rtol)
+            self.__log.warning("ODE beta %s", solver._integrator.beta)
         t, y = ode_run(*args)
         warnings.resetwarnings()
 
         # return t, np.squeeze(y)
         res = self.model.postprocess(t, y)
         if save and isinstance(res, pd.DataFrame):
-            res.set_index('t').to_csv(self.model._out_csv)
+            res.set_index("t").to_csv(self.model._out_csv)
         return res
 
     def rate(self, t, y):
@@ -257,7 +256,7 @@ class Reactor(object):
 
         # if not np.allclose(t, t_calc):
         if not np.allclose(t, t_calc):
-            raise RuntimeError('t and t_calc not the same!')
+            raise RuntimeError("t and t_calc not the same!")
 
         return np.array(t_calc), np.array(y)
 
@@ -265,8 +264,7 @@ class Reactor(object):
         t_array = self.operating_conditions[:, 0]
         if t < t_array[0] or t >= t_array[-1]:
             return 0.0
-        index = next(
-            (idx for idx, val in np.ndenumerate(t_array) if val > t))[0]
+        index = next((idx for idx, val in np.ndenumerate(t_array) if val > t))[0]
 
         return self._dTdt_array[index - 1]
 
@@ -306,7 +304,7 @@ class Reactor(object):
                 model_parameters[key] = value
             elif key in self._ode_parameters:
                 self._ode_parameters[key] = value
-            elif key == 'increment':
+            elif key == "increment":
                 self.increment = value
 
         self._model.set_parameters(**model_parameters)
@@ -331,8 +329,8 @@ class DTR(Reactor):
         **kwargs:
             Specific parameters for the model.
         """
-        if 'T0' in kwargs:
-            self.T0 = kwargs.pop('T0')
+        if "T0" in kwargs:
+            self.T0 = kwargs.pop("T0")
         else:
             self.T0 = None
         super(DTR, self).__init__(model=model, **kwargs)
@@ -341,8 +339,8 @@ class DTR(Reactor):
         self.density = 800
         self.dp = 100e-6
         self.daf = 0.9
-        self.Vp = np.pi * self.dp**3 / 8
-        self.Ap = np.pi * self.dp**2
+        self.Vp = np.pi * self.dp ** 3 / 8
+        self.Ap = np.pi * self.dp ** 2
         self.mp0 = self.density * self.Vp
         self.mash = self.mp0 * (1 - self.daf)
         self.mdaf = self.mp0 * self.daf
@@ -358,13 +356,13 @@ class DTR(Reactor):
         res = super(DTR, self).run(t=t)
         # evaluate the gas temperature
         is_tuple = isinstance(res, tuple)
-        t = res[0] if is_tuple else res['t']
+        t = res[0] if is_tuple else res["t"]
         Tg = np.array([self.Tg(ti) for ti in t])
         if is_tuple:
             y = np.insert(res[1], res[1].shape[1], Tg, axis=1)
             res = (t, y)
         else:
-            res['Tg'] = Tg
+            res["Tg"] = Tg
         return res
 
     @property
@@ -386,17 +384,18 @@ class DTR(Reactor):
             self._operating_conditions = None
             return
         if not isinstance(conditions, (np.ndarray, list)):
-            raise TypeError('Define conditions as list or numpy array')
+            raise TypeError("Define conditions as list or numpy array")
         elif isinstance(conditions, list):
             conditions = np.array(conditions)
         if not conditions.ndim == 2:
-            raise ValueError('Define conditions as array Nx2')
+            raise ValueError("Define conditions as array Nx2")
         if not conditions.shape[-1] == 2:
-            raise ValueError('Define conditions as array Nx2')
+            raise ValueError("Define conditions as array Nx2")
         self._operating_conditions = conditions
 
-        self._dTdt_array = (np.diff(self._operating_conditions[:, 1]) /
-                            np.diff(self._operating_conditions[:, 0]))
+        self._dTdt_array = np.diff(self._operating_conditions[:, 1]) / np.diff(
+            self._operating_conditions[:, 0]
+        )
 
         def interp_tT(t):
             """Interpolate time with temperature."""
@@ -413,8 +412,7 @@ class DTR(Reactor):
         # TODO: this rate is valid only for empirical models, but in others.
         rate = dydt[0]
 
-        qtot = (
-            self._qconv(t, yt, Tg) + self._qchem(rate) + self._qrad(t, yt, Tg))
+        qtot = self._qconv(t, yt, Tg) + self._qchem(rate) + self._qrad(t, yt, Tg)
         return qtot / self.calc_mass(y) / self.cp
 
     def _qconv(self, t, yt, Tg):

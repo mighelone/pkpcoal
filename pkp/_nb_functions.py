@@ -41,7 +41,7 @@ def sum_x_n_calc(x, z_n, k_n_1):
 @numba.jit(nopython=True)
 def fp(x, sigma):
     """Fp for flash distillation."""
-    return x * (1 - x)**(sigma - 1)
+    return x * (1 - x) ** (sigma - 1)
 
 
 @numba.jit(nopython=True)
@@ -61,8 +61,7 @@ def combinln(n, k):
     k:
 
     """
-    return math.lgamma(n + 1) - (math.lgamma(k + 1) +
-                                 math.lgamma(n - k + 1))
+    return math.lgamma(n + 1) - (math.lgamma(k + 1) + math.lgamma(n - k + 1))
 
 
 @numba.jit(nopython=True)
@@ -81,12 +80,12 @@ def binomial(k, n, p):
     logp = math.log(p)
     one_logp = math.log(1 - p)
     for i in range(len(k)):
-        bnm[i] = math.exp(combinln(n[i], k[i]) + k[i] *
-                          logp + (n[i] - k[i]) * one_logp)
+        bnm[i] = math.exp(combinln(n[i], k[i]) + k[i] * logp + (n[i] - k[i]) * one_logp)
     return bnm
 
 
 # FUNCTIONS
+
 
 @numba.jit(nopython=True)
 def invernorm(y):
@@ -110,4 +109,4 @@ def invernorm(y):
     if y >= 0.5:
         return interp(y, yy, xx)
     else:
-        return - interp(1.0 - y, yy, xx)
+        return -interp(1.0 - y, yy, xx)

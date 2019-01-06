@@ -19,8 +19,18 @@ import logging
 
 
 @logged
-def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
-                   stats=None, halloffame=None, verbose=__debug__):
+def eaMuPlusLambda(
+    population,
+    toolbox,
+    mu,
+    lambda_,
+    cxpb,
+    mutpb,
+    ngen,
+    stats=None,
+    halloffame=None,
+    verbose=__debug__,
+):
     """This is the :math:`(\mu + \lambda)` evolutionary algorithm.
 
     :param population: A list of individuals.
@@ -68,7 +78,7 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
     variation.
     """
     logbook = tools.Logbook()
-    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
     # Evaluate the individuals with an invalid fitness
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
@@ -84,13 +94,13 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
 
     handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
-    handler.setFormatter(logging.Formatter(fmt='%(message)s'))
+    handler.setFormatter(logging.Formatter(fmt="%(message)s"))
 
     # #old_handler = eaMuPlusLambda._log.handlers[0]
 
     # # eaMuPlusLambda._log.removeHandler(old_handler)
     # eaMuPlusLambda._log.addHandler(handler)
-    logger = logging.getLogger('algorithms')
+    logger = logging.getLogger("algorithms")
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
@@ -128,7 +138,8 @@ def eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
         except KeyboardInterrupt:
             # print('Interrupt evolution from the user... continue PKP!')
             eaMuPlusLambda._log.warning(
-                'Interrupt evolution from the user... continue PKP!')
+                "Interrupt evolution from the user... continue PKP!"
+            )
             break
 
     return population, logbook

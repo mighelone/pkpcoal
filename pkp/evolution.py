@@ -80,6 +80,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap.benchmarks import binary
+
 # from deap import algorithms
 
 from . import empirical_model
@@ -89,6 +90,7 @@ from . import reactor
 
 # import multiprocessing
 from pathos.multiprocessing import ProcessPool
+
 # from scoop import futures
 
 from ._exceptions import PKPModelError, PKPParametersError
@@ -107,6 +109,7 @@ def check_bounds(min, max):
     max: minimum value of the parameter
 
     """
+
     def decorator(func):
         def wrappper(*args, **kargs):
             offspring = func(*args, **kargs)
@@ -117,7 +120,9 @@ def check_bounds(min, max):
                     elif child[i] < min:
                         child[i] = min
             return offspring
+
         return wrappper
+
     return decorator
 
 
@@ -151,7 +156,7 @@ def error(cls_, individual):
     """
     err = 0
     parameters = cls_.unscale_parameters(individual)
-    error._log.debug('Parameters:%s', parameters)
+    error._log.debug("Parameters:%s", parameters)
     for run, results in cls_.ref_results.items():
         # m = cls_.empirical_model(parameters)
         # m = pkp.reactor.Reactor(cls_.empirical_model,
@@ -162,27 +167,30 @@ def error(cls_, individual):
         if y.ndim == 2:
             # for multivariables case take only the first solution
             y = y[:, 0]
-        err += cls_.error_run(y, results['y'])
+        err += cls_.error_run(y, results["y"])
         # del m
-    error._log.debug('Parameters:%s - err:%s', parameters, err)
-    return err,
+    error._log.debug("Parameters:%s - err:%s", parameters, err)
+    return (err,)
 
 
 def run_reactor(model, parameters, results):
     """Run reactor."""
     m = reactor.Reactor(model, parameters)
-    m.operating_conditions = results['operating_conditions']
-    _, y = m.run(results['t'])
+    m.operating_conditions = results["operating_conditions"]
+    _, y = m.run(results["t"])
     return y
 
 
 # @binary.bin2float(0, 1, 16)
 
+
 def error_binary(cls_, individual):
     """Return error for binary representation."""
+
     @binary.bin2float(0, 1, 16)
     def f(individual, cls_):
         return error(cls_, individual)
+
     return f(individual, cls_)
 
 
@@ -201,8 +209,9 @@ class Evolution(object):
     :math:`(\mu+\lambda)`.
     """
 
-    def __init__(self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2, mu=None,
-                 lambda_=None, skip=1):
+    def __init__(
+        self, npop=40, ngen=30, cxpb=0.6, mutpb=0.2, mu=None, lambda_=None, skip=1
+    ):
         """
         Init the evolution manager.
 
@@ -225,7 +234,7 @@ class Evolution(object):
 
         """
         # GA parameters
-        self.__log.debug('Init Evolution')
+        self.__log.debug("Init Evolution")
         self._npop = npop
         self._ngen = ngen
         self._cxpb = cxpb
@@ -236,10 +245,10 @@ class Evolution(object):
             lambda_ = int(2 / 3 * npop)
         self._mu = mu
         self._lambda = lambda_
-        self.__log.debug('Set npop=%s', self._npop)
-        self.__log.debug('Set ngen=%s', self._ngen)
-        self.__log.debug('Set cxpb=%s', self._cxpb)
-        self.__log.debug('Set mutpb=%s', self._mutpb)
+        self.__log.debug("Set npop=%s", self._npop)
+        self.__log.debug("Set ngen=%s", self._ngen)
+        self.__log.debug("Set cxpb=%s", self._cxpb)
+        self.__log.debug("Set mutpb=%s", self._mutpb)
 
         self._ntargets = 0
         self.ref_results = {}
@@ -271,11 +280,11 @@ class Evolution(object):
 
         """
         if not len(t) == len(y):
-            raise ValueError('Length of t and y should be the same')
-        self.ref_results['run{}'.format(self.n_targets)] = {
-            't': np.array(t)[::self._skip],
-            'y': np.array(y)[::self._skip],
-            'operating_conditions': operating_conditions
+            raise ValueError("Length of t and y should be the same")
+        self.ref_results["run{}".format(self.n_targets)] = {
+            "t": np.array(t)[:: self._skip],
+            "y": np.array(y)[:: self._skip],
+            "operating_conditions": operating_conditions,
         }
         self._ntargets += 1
         # self.__log.debug('Set target run(%s)', self._ntargets)
@@ -294,14 +303,14 @@ class Evolution(object):
     def empirical_model(self, model):
         # check attributes using the EmpiricalModel attributes
         if not issubclass(model, empirical_model.EmpiricalModel):
-            raise PKPModelError('model has to be child of EmpiricalModel!')
-        self.__log.debug('Set empirical_model to %s', model)
+            raise PKPModelError("model has to be child of EmpiricalModel!")
+        self.__log.debug("Set empirical_model to %s", model)
         self._empirical_model = model
 
     @staticmethod
     def error_run(y, y_t):
         """Calculate the error."""
-        return np.mean((y - y_t)**2)
+        return np.mean((y - y_t) ** 2)
 
     def evolve(self, n_p=1, verbose=True):
         r"""
@@ -343,15 +352,18 @@ class Evolution(object):
         #                               mutpb=MUTPB, ngen=NGEN,
         #                               stats=stats, halloffame=hof,
         #                               verbose=True)
-        pop, log = algorithms.eaMuPlusLambda(pop, toolbox,
-                                             mu=self._mu,
-                                             lambda_=self._lambda,
-                                             cxpb=self._cxpb,
-                                             mutpb=self._mutpb,
-                                             ngen=self._ngen,
-                                             stats=stats,
-                                             halloffame=hof,
-                                             verbose=verbose)
+        pop, log = algorithms.eaMuPlusLambda(
+            pop,
+            toolbox,
+            mu=self._mu,
+            lambda_=self._lambda,
+            cxpb=self._cxpb,
+            mutpb=self._mutpb,
+            ngen=self._ngen,
+            stats=stats,
+            halloffame=hof,
+            verbose=verbose,
+        )
         # if n_p > 1:
         #    pool.close()
 
@@ -362,11 +374,10 @@ class Evolution(object):
         fitnesses = np.array([p.fitness.values for p in pop])
         best = pop[fitnesses.argmin()]
 
-        self.__log.debug('best scaled %s', best)
+        self.__log.debug("best scaled %s", best)
         best = self.unscale_parameters_final(best)
-        self.__log.debug('best non-scaled %s', best)
-        return {p: v for p, v in
-                zip(self.empirical_model.parameters_names(), best)}
+        self.__log.debug("best non-scaled %s", best)
+        return {p: v for p, v in zip(self.empirical_model.parameters_names(), best)}
 
     def _set_stats(self):
         stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -389,8 +400,9 @@ class Evolution(object):
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         if hasattr(creator, "Individual"):
             del creator.Individual
-        creator.create("Individual", array.array, typecode='d',
-                       fitness=creator.FitnessMin)
+        creator.create(
+            "Individual", array.array, typecode="d", fitness=creator.FitnessMin
+        )
 
         toolbox = base.Toolbox()
         # Attribute generator
@@ -415,26 +427,28 @@ class Evolution(object):
         toolbox.register("attr_float", random.random)
         # individual uses n chromosomes (as many model parameters)
         # and attr_float
-        toolbox.register("individual", tools.initRepeat,
-                         creator.Individual, toolbox.attr_float,
-                         n=len(self.empirical_model.parameters_names()))
+        toolbox.register(
+            "individual",
+            tools.initRepeat,
+            creator.Individual,
+            toolbox.attr_float,
+            n=len(self.empirical_model.parameters_names()),
+        )
         # define the fit function
-        toolbox.register('evaluate', error, self)
+        toolbox.register("evaluate", error, self)
         # define the population as list of individuals
-        toolbox.register("population", tools.initRepeat, list,
-                         toolbox.individual)
+        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
         # define the mate algorithm
         # cxTwoPoint is good for intege.parr/binary chromosomes
         # toolbox.register('mate', tools.cxTwoPoint)
         # blend crossover extending of 0.1 respect to the parameters
         # range. This can produce values out of the range 0-1.
-        toolbox.register('mate', tools.cxBlend, alpha=0.25)
+        toolbox.register("mate", tools.cxBlend, alpha=0.25)
         # define the mutate algorithm
-        toolbox.register('mutate', tools.mutGaussian, mu=0, sigma=1,
-                         indpb=0.2)
+        toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.2)
         # define the select algorithm
-        toolbox.register('select', tools.selTournament, tournsize=3)
+        toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.decorate("mate", check_bounds(0, 1))
         toolbox.decorate("mutate", check_bounds(0, 1))
         return toolbox
@@ -451,20 +465,16 @@ class Evolution(object):
             List of maximum values of the parameters
 
         """
-        self.__log.debug('par min %s len %s', parameters_min,
-                         len(parameters_min))
-        self.__log.debug('par min %s len %s', parameters_max,
-                         len(parameters_max))
+        self.__log.debug("par min %s len %s", parameters_min, len(parameters_min))
+        self.__log.debug("par min %s len %s", parameters_max, len(parameters_max))
         len_model = len(self.empirical_model.parameters_names())
-        self.__log.debug('len_model %s is %s',
-                         self.empirical_model,
-                         len_model)
-        if (len(parameters_min) != len_model or
-                len(parameters_max) != len_model):
+        self.__log.debug("len_model %s is %s", self.empirical_model, len_model)
+        if len(parameters_min) != len_model or len(parameters_max) != len_model:
             raise PKPParametersError(
-                'Define parameters min and'
-                ' max with length', len_model,
-                self.empirical_model.parameters_names())
+                "Define parameters min and" " max with length",
+                len_model,
+                self.empirical_model.parameters_names(),
+            )
         self._parameters_min = parameters_min
         self._parameters_max = parameters_max
 
@@ -486,13 +496,11 @@ class Evolution(object):
             Normalized parameters array.
 
         """
-        if (self._parameters_min is None or
-                self._parameters_max is None):
-            raise AssertionError(
-                'Define at first the range of parameters')
+        if self._parameters_min is None or self._parameters_max is None:
+            raise AssertionError("Define at first the range of parameters")
         return self.empirical_model.unscale_parameters(
-            norm_parameters, self._parameters_min,
-            self._parameters_max)
+            norm_parameters, self._parameters_min, self._parameters_max
+        )
 
     def unscale_parameters_final(self, norm_parameters):
         """
@@ -505,28 +513,33 @@ class Evolution(object):
 
 class EvolutionBinary(Evolution):
     """Evolution class using binary representation."""
+
     n_decoding = 16
 
     def _individual(self, toolbox):
         """Set individual enconding using binary."""
         toolbox.register("attr_int", random.randint, 0, 1)
-        toolbox.register("individual", tools.initRepeat,
-                         creator.Individual, toolbox.attr_int,
-                         n=self.n_decoding * len(
-                             self.empirical_model.parameters_names()))
+        toolbox.register(
+            "individual",
+            tools.initRepeat,
+            creator.Individual,
+            toolbox.attr_int,
+            n=self.n_decoding * len(self.empirical_model.parameters_names()),
+        )
         # toolbox.register('evaluate', error_binary, self)
-        toolbox.register('evaluate', error_binary, self)
-        toolbox.register("population", tools.initRepeat, list,
-                         toolbox.individual)
+        toolbox.register("evaluate", error_binary, self)
+        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        toolbox.register('mate', tools.cxTwoPoint)
+        toolbox.register("mate", tools.cxTwoPoint)
         toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
-        toolbox.register('select', tools.selTournament, tournsize=3)
+        toolbox.register("select", tools.selTournament, tournsize=3)
         return toolbox
 
     def unscale_parameters_final(self, individual):
         """First convert to float from binary and then unscale parameters."""
+
         @binary.bin2float(0, 1, 16)
         def f(individual, cls):
             return cls.unscale_parameters(individual)
+
         return f(individual, self)

@@ -67,10 +67,12 @@ from ._exceptions import ImportError
 try:
     from ._nb_functions import sum_x_n_calc, x_n_calc, fp, pstar_f
     from ._nb_functions import binomial, invernorm
+
     _use_numba = True
 except ImportError:
     from ._np_functions import sum_x_n_calc, x_n_calc, fp, pstar_f
     from ._np_functions import binomial, invernorm
+
     _use_numba = False
 
 # CPD constants
@@ -104,10 +106,26 @@ class CPD(coal.Coal, empirical_model.Model):
     parameters, or they can directly defined if they are known.
     """
 
-    nmr_parameters = ['mdel', 'mw', 'p0', 'sig', 'c0']
-    kin_parameters = ['ab', 'eb', 'ebsig', 'ac', 'ec', 'ag', 'eg', 'egsig',
-                      'Acr', 'Ecr', 'arad', 'erad', 'fstable', 'an', 'en',
-                      'ensig', 'n_frag']
+    nmr_parameters = ["mdel", "mw", "p0", "sig", "c0"]
+    kin_parameters = [
+        "ab",
+        "eb",
+        "ebsig",
+        "ac",
+        "ec",
+        "ag",
+        "eg",
+        "egsig",
+        "Acr",
+        "Ecr",
+        "arad",
+        "erad",
+        "fstable",
+        "an",
+        "en",
+        "ensig",
+        "n_frag",
+    ]
 
     # kinetic parameters
     ab = 2.602e15
@@ -128,8 +146,14 @@ class CPD(coal.Coal, empirical_model.Model):
     ensig = 0
     # n_frag = 20  # number of fragments
 
-    def __init__(self, ultimate_analysis=None, proximate_analysis=None,
-                 pressure=101325, name='CPD coal', **kwargs):
+    def __init__(
+        self,
+        ultimate_analysis=None,
+        proximate_analysis=None,
+        pressure=101325,
+        name="CPD coal",
+        **kwargs
+    ):
         """
         Initialize CPD model.
 
@@ -149,17 +173,19 @@ class CPD(coal.Coal, empirical_model.Model):
             Additional parameters that can be change from set_parameters
 
         """
-        super(CPD, self).__init__(proximate_analysis=proximate_analysis,
-                                  ultimate_analysis=ultimate_analysis,
-                                  pressure=pressure,
-                                  name=name)
+        super(CPD, self).__init__(
+            proximate_analysis=proximate_analysis,
+            ultimate_analysis=ultimate_analysis,
+            pressure=pressure,
+            name=name,
+        )
 
         # check if they are in %
-        self.fcar = self.ultimate_analysis['C']
-        self.fhyd = self.ultimate_analysis['H']
-        self.fnit = self.ultimate_analysis['N']
-        self.foxy = self.ultimate_analysis['O']
-        self.vm_daf = self.proximate_analysis_daf['VM']
+        self.fcar = self.ultimate_analysis["C"]
+        self.fhyd = self.ultimate_analysis["H"]
+        self.fnit = self.ultimate_analysis["N"]
+        self.foxy = self.ultimate_analysis["O"]
+        self.vm_daf = self.proximate_analysis_daf["VM"]
         self._set_NMR_parameters_from_correlation()
 
         # set parameters -> this can be changed using
@@ -218,8 +244,7 @@ class CPD(coal.Coal, empirical_model.Model):
 
     def get_parameters(self):
         """Get the parameters of CPD model."""
-        return {p: getattr(self, p)
-                for p in self.nmr_parameters + self.kin_parameters}
+        return {p: getattr(self, p) for p in self.nmr_parameters + self.kin_parameters}
 
     @property
     def parameters_dict(self):
@@ -234,19 +259,22 @@ class CPD(coal.Coal, empirical_model.Model):
 
         """
         c = CPD_CORRELATION.copy()
-        self.c0 = (min(0.36, max(0.118 * self.fcar * 100 - 10.1, 0.0)) +
-                   min(0.15, max(0.014 * self.foxy * 100 - 0.175, 0.0)))
+        self.c0 = min(0.36, max(0.118 * self.fcar * 100 - 10.1, 0.0)) + min(
+            0.15, max(0.014 * self.foxy * 100 - 0.175, 0.0)
+        )
 
-        Y = (c[1] + c[2] * (self.fcar * 100.0) +
-             c[3] * (self.fcar * 100)**2 +
-             c[4] * (self.fhyd * 100) +
-             c[5] * (self.fhyd * 100)**2 +
-             c[6] * (self.foxy * 100) +
-             c[7] * (self.foxy * 100)**2 +
-             c[8] * (self.vm_daf * 100) +
-             c[9] * (self.vm_daf * 100)**2)
-        [setattr(self, key, Y[i])
-         for i, key in enumerate(self.nmr_parameters[:4])]
+        Y = (
+            c[1]
+            + c[2] * (self.fcar * 100.0)
+            + c[3] * (self.fcar * 100) ** 2
+            + c[4] * (self.fhyd * 100)
+            + c[5] * (self.fhyd * 100) ** 2
+            + c[6] * (self.foxy * 100)
+            + c[7] * (self.foxy * 100) ** 2
+            + c[8] * (self.vm_daf * 100)
+            + c[9] * (self.vm_daf * 100) ** 2
+        )
+        [setattr(self, key, Y[i]) for i, key in enumerate(self.nmr_parameters[:4])]
 
         self._after_set_NMR()
 
@@ -323,9 +351,7 @@ class CPD(coal.Coal, empirical_model.Model):
     @property
     def y0(self):
         """Init solution."""
-        return [self.p0 - self.c0,
-                2 * (1 - self.p0),
-                self.c0]
+        return [self.p0 - self.c0, 2 * (1 - self.p0), self.c0]
 
     def _rates(self, y):
         """Calculate _rates for the given temperature."""
@@ -334,8 +360,7 @@ class CPD(coal.Coal, empirical_model.Model):
         g = g1 + g2
         RT = T * Rgas
         # calculate bridge decomposition reaction rate
-        eb = self.eb + self.ebsig * invernorm(
-            1 - l / (self.p0 - self.c0))
+        eb = self.eb + self.ebsig * invernorm(1 - l / (self.p0 - self.c0))
         # self.__log.debug('Eb %s Eb0 %s', eb, self.eb)
         kb = self.ab * np.exp(-eb / RT)
         kc = self.ac * np.exp(-self.ec / RT)
@@ -364,7 +389,7 @@ class CPD(coal.Coal, empirical_model.Model):
             'f_frag_n', 'm_frag_n', 'pstar'}
 
         """
-        self.__log.debug('\n\nStart Percolation\n')
+        self.__log.debug("\n\nStart Percolation\n")
 
         l, delta, c = y[:-1]
         p = l + c
@@ -376,14 +401,13 @@ class CPD(coal.Coal, empirical_model.Model):
             # Phi->a
             # Omega->b
             delta_fac = delta / (1 - p) if p < 0.9999 else 1
-            self.__log.debug('delta/(1-p)=%s', delta_fac)
-            a = 1 + self.rba * (l / p + (self.sigma - 1)
-                                * 0.25 * delta_fac)
+            self.__log.debug("delta/(1-p)=%s", delta_fac)
+            a = 1 + self.rba * (l / p + (self.sigma - 1) * 0.25 * delta_fac)
             b = 0.5 * delta_fac - l / p
             # p_threasold is the maxiumum value of pstar_eq
             # pstar is search from 0 to p_threasold
-            p_threasold = 1. / self.sigma
-            self.__log.debug('p thresold %s', p_threasold)
+            p_threasold = 1.0 / self.sigma
+            self.__log.debug("p thresold %s", p_threasold)
             if p > 0.999:
                 pstar = 1
             elif p > p_threasold:
@@ -392,23 +416,19 @@ class CPD(coal.Coal, empirical_model.Model):
 
                 # def pstar_f(x): return fp(x) - fpp
                 # pstar = brentq(pstar_f, 0, p_threasold)
-                pstar = newton(pstar_f, p_threasold * 0.5,
-                               args=(self.sigma, fpp))
-                self.__log.debug('Calc pstar with newton %s', pstar)
+                pstar = newton(pstar_f, p_threasold * 0.5, args=(self.sigma, fpp))
+                self.__log.debug("Calc pstar with newton %s", pstar)
             else:
                 pstar = p
-            self.__log.debug('p %s, pstar %s', p, pstar)
+            self.__log.debug("p %s, pstar %s", p, pstar)
             sfac = self.sig / (self.sigma - 1)
             # Eq. (5) fraction of bridges in finite fragments
             Fp = (pstar / p) ** sfac
-            self.__log.debug(
-                'Fraction of bridges in finite fragments=%s', Fp)
+            self.__log.debug("Fraction of bridges in finite fragments=%s", Fp)
             Kp = Fp * (1 - self.sig * 0.5 * pstar)
             # Eq. (39) mass fraction of finite fragments
-            f_frag = 2 * (a * Fp + b * Kp) / \
-                (2 + self.rba * (1 - self.c0) * self.sig)
-            self.__log.debug(
-                'Mass fraction of finite fragments=%s', f_frag)
+            f_frag = 2 * (a * Fp + b * Kp) / (2 + self.rba * (1 - self.c0) * self.sig)
+            self.__log.debug("Mass fraction of finite fragments=%s", f_frag)
 
         # mass of gas released at time t Eq (31)
         # gas is produced only considering the remaining fragments in
@@ -419,12 +439,13 @@ class CPD(coal.Coal, empirical_model.Model):
         mtot = self.ma + self.mb * self.sig * 0.5 * (1 - self.c0)
         f_gas = mgas / mtot
         self.__log.debug(
-            'fraction of gas (corrected with tar released) %s (%s)',
-            f_gas, f_tar)
+            "fraction of gas (corrected with tar released) %s (%s)", f_gas, f_tar
+        )
         f_solid = 1 - f_tar - f_gas
         self.__log.debug(
-            ('fraction of remaining solid (includes finite'
-             ' and inf. fragments) %s'), f_solid)
+            ("fraction of remaining solid (includes finite" " and inf. fragments) %s"),
+            f_solid,
+        )
 
         n = np.arange(1, self.n_frag + 1)  # number of clusters in a fragment
         # broken bridges per cluster of size n
@@ -432,15 +453,15 @@ class CPD(coal.Coal, empirical_model.Model):
         s = n - 1  # intact bridges per cluster of size n
         n_bridges = tau + s
         # Eq. 32 mass of a finite fragment of size n
-        mw_frag_n = (n * self.ma + (n - 1) * self.mb * l / p +
-                     tau * self.mb * delta_fac * 0.25)
+        mw_frag_n = (
+            n * self.ma + (n - 1) * self.mb * l / p + tau * self.mb * delta_fac * 0.25
+        )
 
         # Eqs (1-4)
         Qn = self.sig / n_bridges / n * binomial(s, n_bridges, p)
         # Eq. (33) total mass of fragments of size
         m_frag_n = mw_frag_n * Qn
-        self.__log.debug(
-            'mass weight of finite fragments %s', mw_frag_n)
+        self.__log.debug("mass weight of finite fragments %s", mw_frag_n)
 
         # Eq 35 total mass of finite fragments
         m_frag = a * self.ma * Fp + b * self.mb * Kp
@@ -449,19 +470,20 @@ class CPD(coal.Coal, empirical_model.Model):
         # TODO this has to be corrected similarly to the f_gas equation
         f_frag = m_frag / mtot
         f_frag_n = m_frag_n / mtot
-        self.__log.debug(
-            'mass fraction of finite fragments %s', f_frag_n)
+        self.__log.debug("mass fraction of finite fragments %s", f_frag_n)
 
         self.__log.debug(
-            'Total fraction of fragments sum %s / Eq.35 %s',
-            f_frag_n.sum(), f_frag)
+            "Total fraction of fragments sum %s / Eq.35 %s", f_frag_n.sum(), f_frag
+        )
 
-        return {'f_gas': f_gas,
-                'f_solid': f_solid,
-                'f_frag': f_frag,
-                'f_frag_n': f_frag_n,
-                'mw_frag_n': mw_frag_n,
-                'pstar': pstar}
+        return {
+            "f_gas": f_gas,
+            "f_solid": f_solid,
+            "f_frag": f_frag,
+            "f_frag_n": f_frag_n,
+            "mw_frag_n": mw_frag_n,
+            "pstar": pstar,
+        }
 
     def _tar_distribution(self):
         pass
@@ -586,28 +608,27 @@ class CPD(coal.Coal, empirical_model.Model):
             Fraction of metaplast remaining in the particle.
 
         """
-        self.__log.debug('\n\nStart flash_distillation\n')
+        self.__log.debug("\n\nStart flash_distillation\n")
 
         a = 87058.0
         b = 299.0
         g = 0.5903
         # mole fraction of n-mers contained in the metaplast
-        self.__log.debug('Increment of fragments %s', df_n)
-        self.__log.debug('Previous metaplast %s', meta_n)
-        self.__log.debug('Cross-linking correction %s', fracr)
-        F_n = np.append((df_n + meta_n * fracr) / mw_n, df_gas /
-                        self.gasmw)
+        self.__log.debug("Increment of fragments %s", df_n)
+        self.__log.debug("Previous metaplast %s", meta_n)
+        self.__log.debug("Cross-linking correction %s", fracr)
+        F_n = np.append((df_n + meta_n * fracr) / mw_n, df_gas / self.gasmw)
         if np.allclose(F_n, 0):
-            self.__log.debug('F_n = 0 return tar, meta = 0')
+            self.__log.debug("F_n = 0 return tar, meta = 0")
             return F_n[:-1], F_n[:-1]
         F_n[F_n < 0] = 0
-        self.__log.debug('F_n (mole) %s', F_n)
+        self.__log.debug("F_n (mole) %s", F_n)
 
         F = F_n.sum()
         mw = np.append(mw_n, self.gasmw)
         # self.__log.debug('MW %s', mw)
         p_vap = a * np.exp(-b * mw ** g / T)
-        self.__log.debug('p_vap %s', p_vap)
+        self.__log.debug("p_vap %s", p_vap)
         k_n = p_vap * 101325 / self.pressure
         # self.__log.debug('kn %s', k_n)
         z_n = F_n / F
@@ -621,7 +642,7 @@ class CPD(coal.Coal, empirical_model.Model):
         # def funct(x): return np.sum(x_n_calc(x) * k_n_1)
         # gradf = lambda x: -np.sum(z_n * k_n_1 / (1 + k_n_1 * x)**2)
         if sum_x_n_calc(0, z_n, k_n_1) * sum_x_n_calc(0.9999, z_n, k_n_1) > 0:
-            self.__log.debug('No vapor')
+            self.__log.debug("No vapor")
             fract_v = 0
             V = 0
             L = F
@@ -632,7 +653,7 @@ class CPD(coal.Coal, empirical_model.Model):
             fract_v = brentq(sum_x_n_calc, 0, 0.9999, args=(z_n, k_n_1))
             # np.testing.assert_almost_equal(fract_v, fract_v_n)
             # fract_v = newton(funct, 0.5)
-            self.__log.debug('V/F = %s', fract_v)
+            self.__log.debug("V/F = %s", fract_v)
             V = fract_v * F  # moles of tar
             L = F - V
             # mole fraction of n-mers in the metaplast
@@ -645,48 +666,58 @@ class CPD(coal.Coal, empirical_model.Model):
         # assert np.allclose(
         #    meta_n_new + tar_n_new, F_n[:-1] * mw_n), \
         #    'Sum of xn+yn should be equal to Fn'
-        self.__log.debug('metaplast fraction %s', x_n)
-        self.__log.debug('tar fraction %s', y_n)
+        self.__log.debug("metaplast fraction %s", x_n)
+        self.__log.debug("tar fraction %s", y_n)
 
-        self.__log.debug('Mass metaplast %s', meta_n_new.sum())
-        self.__log.debug('Mass tar %s', tar_n_new.sum())
+        self.__log.debug("Mass metaplast %s", meta_n_new.sum())
+        self.__log.debug("Mass tar %s", tar_n_new.sum())
 
         return tar_n_new, meta_n_new
 
     def find_triangle(self, plot=False):
         """Find triangle for Genetti light gas correlation."""
+
         def distance(p1, p2):
             """Calc distance between two points."""
             d = p1 - p2
             return np.inner(d, d)
 
-        points = np.array([[0.017773400000000002, 0.67172399999999999],
-                           [0.020365399999999999, 0.58109549999999999],
-                           [0.065940100000000001, 0.65505270000000004],
-                           [0.077346499999999999, 0.80886970000000002],
-                           [0.089362300000000006, 0.7575807],
-                           [0.1077369, 0.85064280000000003],
-                           [0.13058030000000001, 0.76711629999999997],
-                           [0.13575690000000001, 0.85231900000000005],
-                           [0.18034790000000001, 0.84992210000000001],
-                           [0.20934410000000001, 0.78908880000000003],
-                           [0.2603201, 0.85729379999999999],
-                           [0.068699999999999997, 0.86299999999999999]])
+        points = np.array(
+            [
+                [0.017773400000000002, 0.67172399999999999],
+                [0.020365399999999999, 0.58109549999999999],
+                [0.065940100000000001, 0.65505270000000004],
+                [0.077346499999999999, 0.80886970000000002],
+                [0.089362300000000006, 0.7575807],
+                [0.1077369, 0.85064280000000003],
+                [0.13058030000000001, 0.76711629999999997],
+                [0.13575690000000001, 0.85231900000000005],
+                [0.18034790000000001, 0.84992210000000001],
+                [0.20934410000000001, 0.78908880000000003],
+                [0.2603201, 0.85729379999999999],
+                [0.068699999999999997, 0.86299999999999999],
+            ]
+        )
 
-        triangle_vertices = np.array([[0, 1, 2],
-                                      [0, 4, 2],
-                                      [0, 3, 4],
-                                      [0, 11, 3],
-                                      [11, 3, 5],
-                                      [3, 5, 4],
-                                      [4, 5, 6],
-                                      [5, 7, 6],
-                                      [7, 8, 6],
-                                      [6, 8, 9],
-                                      [8, 9, 10]])
+        triangle_vertices = np.array(
+            [
+                [0, 1, 2],
+                [0, 4, 2],
+                [0, 3, 4],
+                [0, 11, 3],
+                [11, 3, 5],
+                [3, 5, 4],
+                [4, 5, 6],
+                [5, 7, 6],
+                [7, 8, 6],
+                [6, 8, 9],
+                [8, 9, 10],
+            ]
+        )
 
-        triangles = [triangle.Triangle(
-            *(points[ti] for ti in t)) for t in triangle_vertices]
+        triangles = [
+            triangle.Triangle(*(points[ti] for ti in t)) for t in triangle_vertices
+        ]
 
         # search triangle
         self.triangle = None
@@ -695,51 +726,57 @@ class CPD(coal.Coal, empirical_model.Model):
                 self.triangle = t
                 self.triangle_coals = t_v
                 self.triangle_weights = t.weights(self.van_kravelen)
-                self.__log.debug('Find triangle %s %s', t, t_v)
+                self.__log.debug("Find triangle %s %s", t, t_v)
                 break
         if self.triangle is None:
             # add here a plot
-            self.__log.error('Defined coal is outside of the coal triangles '
-                             'defined in the Genetti correlation for light '
-                             'gases\n'
-                             'Light gases will not be calculated!')
-            plot = 'show'
+            self.__log.error(
+                "Defined coal is outside of the coal triangles "
+                "defined in the Genetti correlation for light "
+                "gases\n"
+                "Light gases will not be calculated!"
+            )
+            plot = "show"
             # stop_calculation = True
             # we should check for the closest point
 
-            distances = np.array(
-                [distance(p, self.van_kravelen) for p in points])
+            distances = np.array([distance(p, self.van_kravelen) for p in points])
             ref_coal = distances.argmin()
-            self.__log.error('Closest coal is %s', ref_coal)
+            self.__log.error("Closest coal is %s", ref_coal)
 
             for t, vertices in zip(triangles, triangle_vertices):
                 if ref_coal in vertices:
                     self.triangle = t
                     self.triangle_coals = vertices
                     # self.triangle_weights = t.weights(self.van_kravelen)
-                    self.triangle_weights = np.array([1 if ref_coal == v
-                                                      else 0
-                                                      for v in vertices])
+                    self.triangle_weights = np.array(
+                        [1 if ref_coal == v else 0 for v in vertices]
+                    )
                     break
 
         if plot:
             import matplotlib.pyplot as plt
+
             fig, ax = plt.subplots()
-            ax.scatter(points[:, 0], points[:, 1], s=100, c='black')
+            ax.scatter(points[:, 0], points[:, 1], s=100, c="black")
             for n, point in zip(np.arange(len(points)), points):
-                ax.annotate(n, xy=point, xytext=(-5, 5),
-                            textcoords='offset points')
+                ax.annotate(n, xy=point, xytext=(-5, 5), textcoords="offset points")
             for t in triangles:
-                t.plot(ax, color='black', linewidth=1)
-            ax.set_xlabel('O:C')
-            ax.set_ylabel('H:C')
+                t.plot(ax, color="black", linewidth=1)
+            ax.set_xlabel("O:C")
+            ax.set_ylabel("H:C")
             ax.set_xlim(xmin=0)
-            if plot == 'show':
-                ax.scatter(self.van_kravelen[0], self.van_kravelen[
-                           1], c='red', s=100, label=self.name)
-            name = os.path.join(self.path, self.basename + '-van_kravelen.png')
-            ax.set_title('Van Kravelen diagram')
-            ax.legend(loc='lower right')
+            if plot == "show":
+                ax.scatter(
+                    self.van_kravelen[0],
+                    self.van_kravelen[1],
+                    c="red",
+                    s=100,
+                    label=self.name,
+                )
+            name = os.path.join(self.path, self.basename + "-van_kravelen.png")
+            ax.set_title("Van Kravelen diagram")
+            ax.legend(loc="lower right")
             fig.savefig(name)
             plt.close(fig)
 
@@ -760,8 +797,11 @@ class CPD(coal.Coal, empirical_model.Model):
 
         """
         y_refs = np.array(
-            [[np.interp(y, x_gas[i], y_gas[j, i]) for j in range(4)]
-             for i in self.triangle_coals])
+            [
+                [np.interp(y, x_gas[i], y_gas[j, i]) for j in range(4)]
+                for i in self.triangle_coals
+            ]
+        )
         return np.dot(y_refs.T, self.triangle_weights)
 
     def postprocess_step(self, t, y):
@@ -779,38 +819,47 @@ class CPD(coal.Coal, empirical_model.Model):
         else:
             rate_cross = 0
             fract = 1
-        self.__log.debug(
-            'Crosslinking rate: %s / %s', rate_cross, fract)
+        self.__log.debug("Crosslinking rate: %s / %s", rate_cross, fract)
         percolation = self._percolation(y, tar, in_tar=True)
 
         # gas formed in the last step
-        df_gas = max(percolation['f_gas'] - gas, 0)
-        self.__log.debug('gas=%s, df_gas=%s', gas, df_gas)
-        mw_n = percolation['mw_frag_n']
+        df_gas = max(percolation["f_gas"] - gas, 0)
+        self.__log.debug("gas=%s, df_gas=%s", gas, df_gas)
+        mw_n = percolation["mw_frag_n"]
         # fragments formed in the last step
-        df_n = percolation['f_frag_n'] - self.f_frag_n
-        self.__log.debug('df_n=%s', df_n)
+        df_n = percolation["f_frag_n"] - self.f_frag_n
+        self.__log.debug("df_n=%s", df_n)
 
         tar_n, self.meta_n = self._flash_distillation(
-            df_gas=df_gas, df_n=df_n, meta_n=self.meta_n,
-            mw_n=mw_n, fracr=fract, T=T)
+            df_gas=df_gas, df_n=df_n, meta_n=self.meta_n, mw_n=mw_n, fracr=fract, T=T
+        )
 
         # store results
-        self.f_frag_n = percolation['f_frag_n']
-        gas = percolation['f_gas']
+        self.f_frag_n = percolation["f_frag_n"]
+        gas = percolation["f_gas"]
         tar += tar_n.sum()
         meta = self.meta_n.sum()
         solid = 1 - tar - gas
         self.f.append([solid, gas, tar, meta, cross])
-        self.__log.debug('F=%s', self.f[-1])
+        self.__log.debug("F=%s", self.f[-1])
         self.t_old = t
 
     def postprocess(self, t, y):
         """Postprocess results."""
         # stack y with f
         data = np.hstack([t[:, np.newaxis], y, self.f])
-        columns = ['t', 'l', 'delta', 'c', 'T',
-                   'char', 'light_gas', 'tar', 'metaplast', 'cross']
+        columns = [
+            "t",
+            "l",
+            "delta",
+            "c",
+            "T",
+            "char",
+            "light_gas",
+            "tar",
+            "metaplast",
+            "cross",
+        ]
 
         # calc light gas
         X_gas = y[:, 1] * 0.5 + y[:, 0]  # 1/2 delta + l
@@ -819,12 +868,11 @@ class CPD(coal.Coal, empirical_model.Model):
         if self.triangle:
             X_gases = self.calc_lightgases(X_gas)
             data = np.hstack([data, X_gases])
-            columns += ['CO', 'CO2', 'H2O', 'CH4']
+            columns += ["CO", "CO2", "H2O", "CH4"]
         data = pd.DataFrame(data=data, columns=columns)
         if self.triangle:
-            data['others'] = 1 - data[
-                ['CO', 'CO2', 'H2O', 'CH4']].sum(axis=1)
-        data['volatiles'] = data['tar'] + data['light_gas']
+            data["others"] = 1 - data[["CO", "CO2", "H2O", "CH4"]].sum(axis=1)
+        data["volatiles"] = data["tar"] + data["light_gas"]
         return data
 
     def get_yield(self, t, y):

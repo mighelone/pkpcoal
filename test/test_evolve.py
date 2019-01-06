@@ -8,9 +8,7 @@ npop = 40
 ngen = 30
 t = np.linspace(0, 0.02, 100)
 y = np.exp(-t * 1)
-operating_conditions = [[0, 300],
-                        [0.01, 1500],
-                        [0.02, 1500]]
+operating_conditions = [[0, 300], [0.01, 1500], [0.02, 1500]]
 
 par_min = np.array([1e3, 50e6, 0.2])
 par_max = np.array([1e10, 200e6, 0.8])
@@ -37,13 +35,12 @@ def test_target(ga):
     """Test target."""
     ga.set_target(t=t, y=y, operating_conditions=[[0, 300], [0.1, 1500]])
     assert ga.n_targets == 1
-    assert np.allclose(ga.ref_results['run0']['t'], t)
-    assert np.allclose(ga.ref_results['run0']['y'], y)
+    assert np.allclose(ga.ref_results["run0"]["t"], t)
+    assert np.allclose(ga.ref_results["run0"]["y"], y)
 
-    ga.set_target(t=t * 0.9, y=y * 1.1,
-                  operating_conditions=[[0, 300], [0.1, 1500]])
+    ga.set_target(t=t * 0.9, y=y * 1.1, operating_conditions=[[0, 300], [0.1, 1500]])
     assert ga.n_targets == 2
-    assert len(ga.ref_results['run1']['y']) == len(y)
+    assert len(ga.ref_results["run1"]["y"]) == len(y)
 
 
 def test_error(ga):

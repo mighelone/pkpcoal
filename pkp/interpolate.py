@@ -1,5 +1,6 @@
 """Interpolation with numba."""
 import sys
+
 if sys.version_info >= (3, 6):
     NumbaError = ModuleNotFoundError
 else:
@@ -51,8 +52,10 @@ try:
             if j == 50:
                 search = False
 
-        return (y[i_min] + (y[i_max] - y[i_min]) * (xi - x[i_min]) /
-                (x[i_max] - x[i_min]))
+        return y[i_min] + (y[i_max] - y[i_min]) * (xi - x[i_min]) / (
+            x[i_max] - x[i_min]
+        )
+
 
 except NumbaError:
     import numpy as np

@@ -20,7 +20,7 @@ class Triangle(object):
     Triangle class. Used for triangulation calculations
     """
 
-    headers = ['x', 'y']
+    headers = ["x", "y"]
 
     def __init__(self, x0=None, x1=None, x2=None):
         """
@@ -77,15 +77,16 @@ class Triangle(object):
             Weights array
         """
         if not self.is_inside(x):
-            raise OutsideTriangleError('x={} is outside triangle\n{}'.format(
-                x, self))
+            raise OutsideTriangleError("x={} is outside triangle\n{}".format(x, self))
         w = np.cross(self.x0 - self.x1, self.x0 - self.x2)
         # note use the abs value for being sure that all areas are
         # negative
-        return np.abs([
-            np.cross(x - x0, x - x1) / w
-            for x0, x1 in itertools.combinations(self.__iter__(), 2)
-        ])[::-1]
+        return np.abs(
+            [
+                np.cross(x - x0, x - x1) / w
+                for x0, x1 in itertools.combinations(self.__iter__(), 2)
+            ]
+        )[::-1]
 
     def __iter__(self):
         for x in [self.x0, self.x1, self.x2]:
@@ -93,17 +94,17 @@ class Triangle(object):
 
     def __str__(self):
         s = tabulate.tabulate(
-            [x.tolist() for x in self.__iter__()], headers=self.headers)
+            [x.tolist() for x in self.__iter__()], headers=self.headers
+        )
         return s
 
     def __repr__(self):
         s = super(Triangle, self).__repr__()
-        s += '\n\n'
+        s += "\n\n"
         s += self.__str__()
         return s
 
     def plot(self, ax, **kwargs):
         """Plot triangle"""
-        xi, yi = ([self.x0[i], self.x1[i], self.x2[i], self.x0[i]]
-                  for i in range(2))
+        xi, yi = ([self.x0[i], self.x1[i], self.x2[i], self.x0[i]] for i in range(2))
         ax.plot(xi, yi, **kwargs)

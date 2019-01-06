@@ -9,6 +9,7 @@ from autologging import logged
 from . import evolution
 from . import empirical_model
 
+
 @logged
 class Minimization(evolution.Evolution):
     """Minimization class."""
@@ -25,7 +26,7 @@ class Minimization(evolution.Evolution):
     def error(self, x):
         """Calc error."""
         err = evolution.error(self, x)[0]
-        self.__log.debug('x: %s - err: %s', x, err)
+        self.__log.debug("x: %s - err: %s", x, err)
         return err
 
     def run(self, initial):
@@ -38,24 +39,22 @@ class Minimization(evolution.Evolution):
             Initial solution (non-scaled)
 
         """
-        self.__log.debug('Initial non-scaled: %s', initial)
+        self.__log.debug("Initial non-scaled: %s", initial)
         initial = self.empirical_model.scale_parameters(
-            initial,
-            self._parameters_min,
-            self._parameters_max)
-        self.__log.debug('Initial scaled: %s', initial)
+            initial, self._parameters_min, self._parameters_max
+        )
+        self.__log.debug("Initial scaled: %s", initial)
         res = scipy.optimize.minimize(
             fun=self.error,
             x0=initial,
             args=(),
-            method='BFGS',
-            options={'disp': True}
+            method="BFGS",
+            options={"disp": True}
             # maxiter=1000,
             # disp=True,
             # tol=1e-6)
         )
         best = self.unscale_parameters_final(res.x)
         self.results = res
-        self.__log.debug('Best optimized parameters: %s', best)
-        return {p: v for p, v in
-                zip(self.empirical_model.parameters_names(), best)}
+        self.__log.debug("Best optimized parameters: %s", best)
+        return {p: v for p, v in zip(self.empirical_model.parameters_names(), best)}

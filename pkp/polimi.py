@@ -25,8 +25,7 @@ from ._exceptions import ImportError
 try:
     import cantera
 except ImportError:
-    raise ImportError('Cantera not installed! Module cannot be used',
-                      __name__)
+    raise ImportError("Cantera not installed! Module cannot be used", __name__)
 
 
 def set_reference_coal(name, atoms):
@@ -45,24 +44,21 @@ def set_reference_coal(name, atoms):
     pkp.coal.Coal
 
     """
-    atoms['N'] = 0
-    atoms['S'] = 0
-    ua = {el: (val * M_elements[el])
-          for el, val in atoms.items()}
+    atoms["N"] = 0
+    atoms["S"] = 0
+    ua = {el: (val * M_elements[el]) for el, val in atoms.items()}
     return coal.Coal(
         name=name,
         ultimate_analysis=ua,
-        proximate_analysis={'FC': 50,
-                            'VM': 50,
-                            'Ash': 0,
-                            'Moist': 0})
+        proximate_analysis={"FC": 50, "VM": 50, "Ash": 0, "Moist": 0},
+    )
 
 
 # set the reference coals
-coal1 = set_reference_coal('COAL1', atoms={'C': 12, 'H': 11, 'O': 0})
-coal2 = set_reference_coal('COAL2', atoms={'C': 14, 'H': 10, 'O': 1})
-coal3 = set_reference_coal('COAL3', atoms={'C': 12, 'H': 12, 'O': 5})
-char = set_reference_coal('CHAR', atoms={'C': 1, 'H': 0, 'O': 0})
+coal1 = set_reference_coal("COAL1", atoms={"C": 12, "H": 11, "O": 0})
+coal2 = set_reference_coal("COAL2", atoms={"C": 14, "H": 10, "O": 1})
+coal3 = set_reference_coal("COAL3", atoms={"C": 12, "H": 12, "O": 5})
+char = set_reference_coal("CHAR", atoms={"C": 1, "H": 0, "O": 0})
 
 
 # Exceptions
@@ -82,7 +78,7 @@ class CompositionError(Exception):
 class TriangleCoal(Triangle):
     """Triangle class based on coal Van Kravelen diagram."""
 
-    headers = ['O:C', 'H:C']
+    headers = ["O:C", "H:C"]
 
     def __init__(self, coal0, coal1, coal2):
         """
@@ -98,9 +94,8 @@ class TriangleCoal(Triangle):
         self.coal1 = coal1
         self.coal2 = coal2
         super(TriangleCoal, self).__init__(
-            x0=coal0.van_kravelen,
-            x1=coal1.van_kravelen,
-            x2=coal2.van_kravelen)
+            x0=coal0.van_kravelen, x1=coal1.van_kravelen, x2=coal2.van_kravelen
+        )
 
     @staticmethod
     def _coal_to_x(c):
@@ -111,19 +106,15 @@ class TriangleCoal(Triangle):
 
     def is_inside(self, c):
         """Check if the coal is inside the Triangles."""
-        return super(
-            TriangleCoal, self).is_inside(
-                self._coal_to_x(c))
+        return super(TriangleCoal, self).is_inside(self._coal_to_x(c))
 
     def weights(self, c):
         """Return the weights of the given coal in the triangle."""
-        return super(TriangleCoal, self).weights(
-            self._coal_to_x(c))
+        return super(TriangleCoal, self).weights(self._coal_to_x(c))
 
     def _coeff(self, c):
         """Return the weights of the coal in the triangle."""
-        return super(TriangleCoal, self)._coeff(
-            self._coal_to_x(c))
+        return super(TriangleCoal, self)._coeff(self._coal_to_x(c))
 
     def itercoals(self):
         """Iterate over coals returning coal vertices."""
@@ -132,17 +123,11 @@ class TriangleCoal(Triangle):
 
 
 # set the reference triangles
-triangle_012 = TriangleCoal(char,
-                            coal1,
-                            coal2)
+triangle_012 = TriangleCoal(char, coal1, coal2)
 
-triangle_023 = TriangleCoal(char,
-                            coal2,
-                            coal3)
+triangle_023 = TriangleCoal(char, coal2, coal3)
 
-triangle_123 = TriangleCoal(coal1,
-                            coal2,
-                            coal3)
+triangle_123 = TriangleCoal(coal1, coal2, coal3)
 
 
 @logged
@@ -163,10 +148,16 @@ class Polimi(coal.Coal, empirical_model.Model):
     # char = ['CHAR', 'CHARH', 'CHARG']
 
     # define here the modificable parameters
-    _parameters = ['mechanism']
+    _parameters = ["mechanism"]
 
-    def __init__(self, proximate_analysis=None, ultimate_analysis=None,
-                 pressure=101325, name='Coal', **kwargs):
+    def __init__(
+        self,
+        proximate_analysis=None,
+        ultimate_analysis=None,
+        pressure=101325,
+        name="Coal",
+        **kwargs
+    ):
         """
         Init Polimi model from ultimate analysis.
 
@@ -186,7 +177,8 @@ class Polimi(coal.Coal, empirical_model.Model):
             proximate_analysis=proximate_analysis,
             ultimate_analysis=ultimate_analysis,
             pressure=pressure,
-            name=name)
+            name=name,
+        )
         # this information should be setted in set_parameters
         self.mechanism = None
         self.skip = 1
@@ -230,12 +222,11 @@ class Polimi(coal.Coal, empirical_model.Model):
             self._mechanism = value
         else:
             if value is None:
-                value = os.path.join(os.path.dirname(bins.__file__),
-                                     'COAL1207.xml')
+                value = os.path.join(os.path.dirname(bins.__file__), "COAL1207.xml")
             try:
                 self._mechanism = cantera.Solution(value)
             except:
-                raise MechanismError('Cannot read {}'.format(value))
+                raise MechanismError("Cannot read {}".format(value))
         self._mechanism.TP = 300, self.pressure
 
         self._tar = []
@@ -246,25 +237,26 @@ class Polimi(coal.Coal, empirical_model.Model):
         self._moisture = []
         self._ash = []
         for sp in self._mechanism.species_names:
-            if sp.startswith('VTAR'):
+            if sp.startswith("VTAR"):
                 self._tar.append(sp)
-            elif sp.startswith('G') or sp.startswith('TAR'):
+            elif sp.startswith("G") or sp.startswith("TAR"):
                 self._metaplast.append(sp)
-            elif sp.startswith('COAL'):
+            elif sp.startswith("COAL"):
                 self._raw.append(sp)
-            elif sp.startswith('CHAR'):
+            elif sp.startswith("CHAR"):
                 self._char.append(sp)
-            elif sp == 'ACQUA':
+            elif sp == "ACQUA":
                 self._moisture.append(sp)
-            elif sp == 'ASH':
+            elif sp == "ASH":
                 self._ash.append(sp)
             else:
                 self._light_gas.append(sp)
 
         self._calc_light_gas_index()
 
-    mechanism = property(_get_mechanism, _set_mechanism,
-                         doc='Mechanism in cantera format for Polimi')
+    mechanism = property(
+        _get_mechanism, _set_mechanism, doc="Mechanism in cantera format for Polimi"
+    )
 
     @property
     def tar(self):
@@ -298,20 +290,21 @@ class Polimi(coal.Coal, empirical_model.Model):
         """Define coal triangle."""
         if triangle_012.is_inside(self):
             self.triangle = triangle_012
-            self.inside = '012'
+            self.inside = "012"
         elif triangle_023.is_inside(self):
             self.triangle = triangle_023
-            self.inside = '023'
+            self.inside = "023"
         elif triangle_123.is_inside(self):
             self.triangle = triangle_123
-            self.inside = '123'
+            self.inside = "123"
         else:
-            raise CompositionError('Composition outside triangles')
-        self.__log.debug('Coal is inside triangle %s', self.inside)
+            raise CompositionError("Composition outside triangles")
+        self.__log.debug("Coal is inside triangle %s", self.inside)
         self.triangle_weights = self.triangle.weights(self)
-        self.composition = {c.name: self.triangle_weights[i]
-                            for i, c in enumerate(
-            self.triangle.itercoals())}
+        self.composition = {
+            c.name: self.triangle_weights[i]
+            for i, c in enumerate(self.triangle.itercoals())
+        }
 
     @property
     def y0(self):
@@ -324,13 +317,15 @@ class Polimi(coal.Coal, empirical_model.Model):
         try:
             self.mechanism.TPY = y[-1], self.pressure, y[:-1]
         except:
-            raise Exception('Rate Polimi error with cantera')
-        return (self.mechanism.net_production_rates *
-                self.mechanism.molecular_weights / self.mechanism.density)
+            raise Exception("Rate Polimi error with cantera")
+        return (
+            self.mechanism.net_production_rates
+            * self.mechanism.molecular_weights
+            / self.mechanism.density
+        )
 
     @classmethod
-    def reference_coal(cls, ref_coal, proximate_analysis=None,
-                       pressure=101325):
+    def reference_coal(cls, ref_coal, proximate_analysis=None, pressure=101325):
         """
         Init Polimi using reference coals.
 
@@ -345,29 +340,30 @@ class Polimi(coal.Coal, empirical_model.Model):
         """
         try:
             c = getattr(sys.modules[__name__], ref_coal.lower())
-        except AttributeError('Use one of the reference coal for Polimi'
-                              ' model'):
+        except AttributeError("Use one of the reference coal for Polimi" " model"):
             raise
         except:
             raise
         if proximate_analysis is None:
             proximate_analysis = c.proximate_analysis
-        return cls(ultimate_analysis=c.ultimate_analysis,
-                   proximate_analysis=proximate_analysis,
-                   pressure=pressure,
-                   name=c.name)
+        return cls(
+            ultimate_analysis=c.ultimate_analysis,
+            proximate_analysis=proximate_analysis,
+            pressure=pressure,
+            name=c.name,
+        )
 
     def postprocess(self, t, y):
         """Postprocess results."""
-        data = np.insert(y, 0, t, axis=1)[::self.skip]
+        data = np.insert(y, 0, t, axis=1)[:: self.skip]
 
-        data = pd.DataFrame(data=data,
-                            columns=['t'] + self.mechanism.species_names +
-                            ['T'])
-        for v in ('metaplast', 'char', 'raw', 'tar', 'light_gas'):
+        data = pd.DataFrame(
+            data=data, columns=["t"] + self.mechanism.species_names + ["T"]
+        )
+        for v in ("metaplast", "char", "raw", "tar", "light_gas"):
             data[v] = data[getattr(self, v)].sum(axis=1)
-        data['solid'] = data[['metaplast', 'char', 'raw']].sum(axis=1)
-        data['volatiles'] = data[['tar', 'light_gas']].sum(axis=1)
+        data["solid"] = data[["metaplast", "char", "raw"]].sum(axis=1)
+        data["volatiles"] = data[["tar", "light_gas"]].sum(axis=1)
         return data
 
     def get_yield(self, t, y):
@@ -380,5 +376,6 @@ class Polimi(coal.Coal, empirical_model.Model):
 
     def _calc_light_gas_index(self):
         """Get the list of the index of the light gas."""
-        self._light_gas_index = [self._mechanism.species_index(sp)
-                                 for sp in self.light_gas]
+        self._light_gas_index = [
+            self._mechanism.species_index(sp) for sp in self.light_gas
+        ]

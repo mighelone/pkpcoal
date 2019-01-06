@@ -29,10 +29,7 @@ sqrt2 = np.sqrt(2)
 sqrtpi = np.sqrt(np.pi)
 
 
-def namedtuple_with_defaults(typename,
-                             field_names,
-                             default_values=(),
-                             units=None):
+def namedtuple_with_defaults(typename, field_names, default_values=(), units=None):
     """
     Create a namedtuple with default values.
 
@@ -56,14 +53,14 @@ def namedtuple_with_defaults(typename,
 
     """
     T = collections.namedtuple(typename, field_names)
-    T.__new__.__defaults__ = (None, ) * len(T._fields)
+    T.__new__.__defaults__ = (None,) * len(T._fields)
     if isinstance(default_values, collections.Mapping):
         prototype = T(**default_values)
     else:
         prototype = T(*default_values)
     T.__new__.__defaults__ = tuple(prototype)
     if units is None:
-        T.units = ('-') * len(T._fields)
+        T.units = ("-") * len(T._fields)
     else:
         T.units = units
     return T
@@ -71,7 +68,7 @@ def namedtuple_with_defaults(typename,
 
 @logged
 @six.add_metaclass(abc.ABCMeta)
-class Model():
+class Model:
     """Abstract class for Model."""
 
     # __metaclass__ = abc.ABCMeta
@@ -119,9 +116,8 @@ class EmpiricalModel(Model):
     """
 
     _Parameters = namedtuple_with_defaults(
-        typename='EmpiricalModel',
-        field_names=('foo', 'bar'),
-        default_values=(1, 1))
+        typename="EmpiricalModel", field_names=("foo", "bar"), default_values=(1, 1)
+    )
     _len_parameters = len(_Parameters._fields)
     _mask = np.array([True] * _len_parameters)
 
@@ -198,7 +194,7 @@ class EmpiricalModel(Model):
         Set y to 2 and x to its default values.
         """
         if len(args) > 0:
-            if hasattr(args[0], '__iter__'):
+            if hasattr(args[0], "__iter__"):
                 self._parameters = self._Parameters(*args[0])
             elif args[0] is None:
                 self._parameters = self._Parameters()
@@ -218,8 +214,7 @@ class EmpiricalModel(Model):
         return [getattr(self.parameters, p) for p in self.parameters_names()]
 
     @classmethod
-    def unscale_parameters(cls, norm_parameters, parameters_min,
-                           parameters_max):
+    def unscale_parameters(cls, norm_parameters, parameters_min, parameters_max):
         """
         Unscale normalized parameters.
 
@@ -252,8 +247,7 @@ class EmpiricalModel(Model):
         parameters_min[mask] = np.log10(parameters_min[mask])
         parameters_max[mask] = np.log10(parameters_max[mask])
 
-        unsc_par = (parameters_min + norm_parameters *
-                    (parameters_max - parameters_min))
+        unsc_par = parameters_min + norm_parameters * (parameters_max - parameters_min)
 
         # calculate A = 10^log10(A)
         unsc_par[mask] = np.power(10, unsc_par[mask])
@@ -298,8 +292,7 @@ class EmpiricalModel(Model):
         parameters_max[mask] = np.log10(parameters_max[mask])
         parameters[mask] = np.log10(parameters[mask])
 
-        sc_par = ((parameters - parameters_min) /
-                  (parameters_max - parameters_min))
+        sc_par = (parameters - parameters_min) / (parameters_max - parameters_min)
         return sc_par
 
     def postprocess(self, t, y):
@@ -349,10 +342,11 @@ class SFOR(EmpiricalModel):
     """
 
     _Parameters = namedtuple_with_defaults(
-        typename='SFOR',
-        field_names=('A', 'E', 'y0'),
+        typename="SFOR",
+        field_names=("A", "E", "y0"),
         default_values=(1e5, 50e6, 0.6),
-        units=('1/s', 'J/kmol', '-'))
+        units=("1/s", "J/kmol", "-"),
+    )
     _mask = np.array([True, False, False])
     y0 = [0]
 
@@ -379,7 +373,7 @@ class SFOR(EmpiricalModel):
         return [k * dy if dy > 1e-6 else 0]
 
     def _calc_k(self, T):
-        return (self.parameters.A / np.exp(self.parameters.E / Rgas / T))
+        return self.parameters.A / np.exp(self.parameters.E / Rgas / T)
 
     # def jacob(self, t, y):
     #    return -self._calc_k(t)
@@ -391,10 +385,11 @@ class SFORT(SFOR):
     """SFOR model with temperature threasold."""
 
     _Parameters = namedtuple_with_defaults(
-        typename='SFORT',
-        field_names=('A', 'E', 'y0', 'T'),
+        typename="SFORT",
+        field_names=("A", "E", "y0", "T"),
         default_values=(1e5, 50e6, 0.6, 500),
-        units=('1/s', 'J/kmol', '-', 'K'))
+        units=("1/s", "J/kmol", "-", "K"),
+    )
 
     _mask = np.array([True, False, False, False])
 
@@ -457,10 +452,11 @@ class C2SM(EmpiricalModel):
     """
 
     _Parameters = namedtuple_with_defaults(
-        typename='C2SM',
-        field_names=('A1', 'E1', 'y1', 'A2', 'E2', 'y2'),
+        typename="C2SM",
+        field_names=("A1", "E1", "y1", "A2", "E2", "y2"),
         default_values=(49e3, 34e6, 0.41, 7.2e7, 95e6, 0.58),
-        units=('1/s', 'J/kmol', '-', '1/s', 'J/kmol', '-'))
+        units=("1/s", "J/kmol", "-", "1/s", "J/kmol", "-"),
+    )
     _mask = np.array([True, False, False, True, False, False])
 
     y0 = [0, 1]  # volatile yield, raw solid
@@ -487,8 +483,10 @@ class C2SM(EmpiricalModel):
         """
         k1, k2 = self._k(y[-1])
         if y[1] > 1e-6:
-            dydt = [(self.parameters.y1 * k1 + self.parameters.y2 * k2) * y[1],
-                    -(k1 + k2) * y[1]]
+            dydt = [
+                (self.parameters.y1 * k1 + self.parameters.y2 * k2) * y[1],
+                -(k1 + k2) * y[1],
+            ]
         else:
             dydt = [0, 0]
         return dydt
@@ -502,8 +500,10 @@ class C2SM(EmpiricalModel):
     def _k(self, T):
         """Calculate the reaction constants."""
         RT = Rgas * T
-        return (self.parameters.A1 / np.exp(self.parameters.E1 / RT),
-                self.parameters.A2 / np.exp(self.parameters.E2 / RT))
+        return (
+            self.parameters.A1 / np.exp(self.parameters.E1 / RT),
+            self.parameters.A2 / np.exp(self.parameters.E2 / RT),
+        )
 
 
 @logged
@@ -518,22 +518,31 @@ class DAEM(EmpiricalModel):
     """
 
     _Parameters = namedtuple_with_defaults(
-        typename='DAEM',
-        field_names=('A0', 'E0', 'sigma', 'y0'),
+        typename="DAEM",
+        field_names=("A0", "E0", "sigma", "y0"),
         default_values=(1e5, 50e6, 12e6, 0.6),
-        units=('1/s', 'J/kmol', 'J/kmol', '-'))
+        units=("1/s", "J/kmol", "J/kmol", "-"),
+    )
     _mask = np.array([True, False, False, False])
     y0 = [0, 0, 0, 0, 0]
 
     n_quad = 4
     mt = 0.72
-    x = np.array([
-        np.sqrt((3 - np.sqrt(6)) / 2), -np.sqrt((3 - np.sqrt(6)) / 2),
-        np.sqrt((3 + np.sqrt(6)) / 2), -np.sqrt((3 + np.sqrt(6)) / 2)
-    ])
+    x = np.array(
+        [
+            np.sqrt((3 - np.sqrt(6)) / 2),
+            -np.sqrt((3 - np.sqrt(6)) / 2),
+            np.sqrt((3 + np.sqrt(6)) / 2),
+            -np.sqrt((3 + np.sqrt(6)) / 2),
+        ]
+    )
     H = 8 * pow(x, 3) - 12 * x  # hermite polynomial
-    w = pow(2, n_quad - 1) * factorial(n_quad) * \
-        np.sqrt(np.pi) / (pow(n_quad, 2) * pow(H, 2))
+    w = (
+        pow(2, n_quad - 1)
+        * factorial(n_quad)
+        * np.sqrt(np.pi)
+        / (pow(n_quad, 2) * pow(H, 2))
+    )
     Wm = w * np.exp(pow(x, 2))
 
     def rate(self, t, yt):
@@ -548,11 +557,12 @@ class DAEM(EmpiricalModel):
         T = yt[-1]
         y = yt[:-1]
         # self.__log.debug('Em %s', Em)
-        dIdt = (self.parameters.A0 * np.exp(-self._Em / Rgas / T))
+        dIdt = self.parameters.A0 * np.exp(-self._Em / Rgas / T)
         # self.__log.debug('dkdt %s', dkdt)
         coeff1 = self.Wm * self.mt / sqrtpi
-        coeff2 = np.exp(-pow(
-            (self._Em - self.parameters.E0) / self.parameters.sigma, 2) / 2)
+        coeff2 = np.exp(
+            -pow((self._Em - self.parameters.E0) / self.parameters.sigma, 2) / 2
+        )
         coeff3 = np.exp(-y[1:]) * dIdt
         # self.__log.debug('coeff: %s %s %s', coeff1, coeff2, coeff3)
         # dydt = (self.parameters['y0'] - y[0]) * \
@@ -563,8 +573,7 @@ class DAEM(EmpiricalModel):
 
     def _calc_Em(self):
         """Calculate activation energies for the quadrature points."""
-        return (self.parameters.E0 +
-                self.x * sqrt2 * self.parameters.sigma * self.mt)
+        return self.parameters.E0 + self.x * sqrt2 * self.parameters.sigma * self.mt
 
     def set_parameters(self, *args, **kwargs):
         """Set parameters and recalculate energies."""
@@ -601,10 +610,11 @@ class BT(SFOR):
     """
 
     _Parameters = namedtuple_with_defaults(
-        typename='Biagini',
-        field_names=('A', 'E', 'k'),
+        typename="Biagini",
+        field_names=("A", "E", "k"),
         default_values=(1e5, 50e6, 0.5),
-        units=('1/s', 'J/kmol', '-'))
+        units=("1/s", "J/kmol", "-"),
+    )
     _mask = np.array([True, False, False])
     y0 = [0]
     Tst = 1223
@@ -613,7 +623,7 @@ class BT(SFOR):
         """Reaction rate."""
         T = y[-1]
         y0 = self._calc_y0(T)
-        dy = (y0 - y[0])
+        dy = y0 - y[0]
         k = self._calc_k(T)
         return [k * dy]
 

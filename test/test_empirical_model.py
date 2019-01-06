@@ -10,15 +10,16 @@ import array
 
 def test_check_namedtuple():
     """Test the named tuple."""
-    parameters = namedtuple_with_defaults('Test', field_names=('X', 'Y'),
-                                          default_values=(0, 0))
+    parameters = namedtuple_with_defaults(
+        "Test", field_names=("X", "Y"), default_values=(0, 0)
+    )
 
     p = parameters()
 
     assert p.X == 0
     assert p.Y == 0
     assert len(p._fields) == 2
-    assert p._fields == ('X', 'Y')
+    assert p._fields == ("X", "Y")
 
 
 @pytest.fixture
@@ -76,9 +77,10 @@ def test_parameters(sfor):
     sfor.set_parameters(par_np)
     assert sfor.parameters_list == par
 
-    par_ar = array.array('d', par)
+    par_ar = array.array("d", par)
     sfor.set_parameters(par_ar)
     assert sfor.parameters_list == par
+
 
 def test_parameters_list(sfor):
     """Test list of parameters."""
@@ -87,8 +89,9 @@ def test_parameters_list(sfor):
     assert par[1] == sfor.parameters.E
     assert par[2] == sfor.parameters.y0
     par_dict = sfor.parameters_dict
-    assert all(getattr(sfor.parameters, key) ==
-               value for key, value in par_dict.items())
+    assert all(
+        getattr(sfor.parameters, key) == value for key, value in par_dict.items()
+    )
 
 
 def test_sfor(sfor):
@@ -134,7 +137,7 @@ def test_c2sm_rate(c2sm):
     rates = c2sm.rate(0, [y, s, T])
 
     dydt = (parameters.y1 * k1c + parameters.y2 * k2c) * s
-    dsdt = - (k1c + k2c) * s
+    dsdt = -(k1c + k2c) * s
 
     np.testing.assert_almost_equal(dydt, rates[0])
     np.testing.assert_almost_equal(dsdt, rates[1])

@@ -16,15 +16,18 @@ from six import string_types
 
 from autologging import logged
 import logging
+
 try:
     import ruamel.yaml as yaml
 except:
     try:
         import ruamel_yaml as yaml
     except:
-        print('Loading standard yaml module ...\n'
-              'Note that it might give problems with'
-              ' exponential decoding')
+        print(
+            "Loading standard yaml module ...\n"
+            "Note that it might give problems with"
+            " exponential decoding"
+        )
         import yaml
 
 import os
@@ -34,18 +37,19 @@ import pandas as pd
 # detailed models
 # they must be loaded here if you want to use them!
 from .cpd import CPD
+
 # from cpd import CPD
 # from .cpd_fortran import CPD as CPDfortran
 
 try:
     from .polimi import Polimi
     from .biopolimi import BioPolimi
-    models = ['CPD', 'CPDfortran', 'Polimi', 'BioPolimi']
+
+    models = ["CPD", "CPDfortran", "Polimi", "BioPolimi"]
 except ModuleNotFoundError:
-    logger = logging.getLogger('pkp.runner')
-    logger.warning(
-        'Cantera not available. Polimi and BioPolimi models cannot be used!')
-    models = ['CPD', 'CPDfortran']
+    logger = logging.getLogger("pkp.runner")
+    logger.warning("Cantera not available. Polimi and BioPolimi models cannot be used!")
+    models = ["CPD", "CPDfortran"]
 
 # optimization
 from . import evolution
@@ -54,20 +58,21 @@ from . import coal
 from . import reactor
 from . import empirical_model
 from . import __version__
-from ._exceptions import (PKPKeyError, PKPModelError, PKPMethodError,
-                          PKPParametersError)
+from ._exceptions import PKPKeyError, PKPModelError, PKPMethodError, PKPParametersError
 
 import matplotlib
+
 # Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
 try:
-    plt.style.use('newstyle')
-    plt.rcParams['font.size'] = 10
+    plt.style.use("newstyle")
+    plt.rcParams["font.size"] = 10
 except:
     pass
 
-colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 col_right = "#C54E6D"
 col_left = "#009380"
 
@@ -102,7 +107,7 @@ def runs_iterator(op_cond):
     """Iterate over operating_conditions."""
 
     def get_run(i):
-        return 'run{}'.format(i)
+        return "run{}".format(i)
 
     i = 0
     while get_run(i) in op_cond:
@@ -127,33 +132,35 @@ class ReadConfiguration(coal.Coal):
 
         """
         if isinstance(yml, string_types):
-            with open(yml, 'r') as f:
+            with open(yml, "r") as f:
                 yml_input = yaml.safe_load(f)
         elif isinstance(yml, dict):
             yml_input = yml
         else:
-            raise ValueError('Define yml as file name or dictionary')
+            raise ValueError("Define yml as file name or dictionary")
 
         # coal settings
-        coal_settings = yml_input['Coal']
+        coal_settings = yml_input["Coal"]
         # Solver settings
-        pressure = yml_input['operating_conditions']['pressure'] * 101325
+        pressure = yml_input["operating_conditions"]["pressure"] * 101325
 
         super(ReadConfiguration, self).__init__(
-            proximate_analysis=coal_settings['proximate_analysis'],
-            ultimate_analysis=coal_settings['ultimate_analysis'],
+            proximate_analysis=coal_settings["proximate_analysis"],
+            ultimate_analysis=coal_settings["ultimate_analysis"],
             pressure=pressure,
-            name=coal_settings['name'])
+            name=coal_settings["name"],
+        )
 
-        self.operating_conditions = yml_input['operating_conditions']
+        self.operating_conditions = yml_input["operating_conditions"]
 
         # convert HHV from MJ/kg to J/kg
-        self.hhv = coal_settings['HHV']
-        self.rho_dry = coal_settings['rho_dry']
+        self.hhv = coal_settings["HHV"]
+        self.rho_dry = coal_settings["rho_dry"]
 
         # Solver settings
         [
-            setattr(self, model, yml_input[model]) for model in models
+            setattr(self, model, yml_input[model])
+            for model in models
             if model in yml_input
         ]
 
@@ -207,45 +214,45 @@ class PKPRunner(ReadConfiguration):
         # TODO improve this part
 
         coal = {
-            'name': self.name,
-            'ultimate_analysis': self.ultimate_analysis,
-            'proximate_analysis': self.proximate_analysis,
-            'proximate_analysis_daf': self.proximate_analysis_daf,
-            'HHV ar': (self.hhv / 1e6, 'MJ/kg'),
-            'HHV daf': (self.hhv_daf / 1e6, 'MJ/kg'),
-            'LHV daf': (self.lhv_daf / 1e6, 'MJ/kg'),
-            'rho_dry': self.rho_dry,
-            'operating_conditions': self.operating_conditions
+            "name": self.name,
+            "ultimate_analysis": self.ultimate_analysis,
+            "proximate_analysis": self.proximate_analysis,
+            "proximate_analysis_daf": self.proximate_analysis_daf,
+            "HHV ar": (self.hhv / 1e6, "MJ/kg"),
+            "HHV daf": (self.hhv_daf / 1e6, "MJ/kg"),
+            "LHV daf": (self.lhv_daf / 1e6, "MJ/kg"),
+            "rho_dry": self.rho_dry,
+            "operating_conditions": self.operating_conditions,
         }
-        run_results = {'coal': coal, 'version': __version__}
-        fit_results = {'coal': coal, 'version': __version__}
+        run_results = {"coal": coal, "version": __version__}
+        fit_results = {"coal": coal, "version": __version__}
         for model in self.models:
             if hasattr(self, model):
                 model_settings = getattr(self, model)
                 # TODO maybe is better to assume active True if is not defined
                 try:
-                    active = model_settings['active']
+                    active = model_settings["active"]
                 except KeyError:
-                    raise KeyError('{}.active'.format(model))
+                    raise KeyError("{}.active".format(model))
                 if active:
-                    self.__log.info('Run model %s', model)
-                    results = self.run_model(
-                        model=model, results_dir=results_dir)
-                    self.__log.debug('Finish run %s %s', model, results.keys())
+                    self.__log.info("Run model %s", model)
+                    results = self.run_model(model=model, results_dir=results_dir)
+                    self.__log.debug("Finish run %s %s", model, results.keys())
                     if results:
                         run_results[model] = results
-                        if model_settings['fit'] and not run_only:
-                            self.__log.info('Start fit of %s model', model)
+                        if model_settings["fit"] and not run_only:
+                            self.__log.info("Start fit of %s model", model)
                             fit_results[model] = self.fit_detmodel(
-                                model, model_settings['fit'], n_p, results,
-                                results_dir)
+                                model, model_settings["fit"], n_p, results, results_dir
+                            )
                     else:
-                        self.__log.warning('No results for %s', model)
+                        self.__log.warning("No results for %s", model)
 
         yml_fit = os.path.join(
-            results_dir, '{name}-fitreport.yml'.format(name=self.name))
-        self.__log.debug('Export fit report to %s', yml_fit)
-        with open(yml_fit, 'w') as f:
+            results_dir, "{name}-fitreport.yml".format(name=self.name)
+        )
+        self.__log.debug("Export fit report to %s", yml_fit)
+        with open(yml_fit, "w") as f:
             # yaml.dump(clean_dict(fit_results), f, indent=4)
             yaml.dump(fit_results, f, indent=4)
 
@@ -279,55 +286,53 @@ class PKPRunner(ReadConfiguration):
         # loop over the fitting runs, fit0, fit1, etc.
         fit_results = {}
         for fitname, fit in model_settings.items():
-            if fit.get('active', True):
+            if fit.get("active", True):
                 try:
-                    species = fit['species']
+                    species = fit["species"]
                 except KeyError:
                     raise PKPKeyError(
-                        'Key species not defined in {}:{}'.format(
-                            model, fitname))
+                        "Key species not defined in {}:{}".format(model, fitname)
+                    )
                 try:
                     target_conditions = {
-                        run: {
-                            't': res['t'].values,
-                            'y': res[species].values
-                        }
+                        run: {"t": res["t"].values, "y": res[species].values}
                         for run, res in results.items()
                     }
                 except KeyError as e:
-                    raise PKPKeyError('Calibration species {} in {} '
-                                      'not defined in output {} model'.format(
-                                          fit['species'], fitname, model))
-                self.__log.debug('runs calibration %s',
-                                 list(target_conditions.keys()))
-                fit_dict = {
-                    'model': model,
-                    'fit': fitname,
-                    'species': fit['species']
-                }
+                    raise PKPKeyError(
+                        "Calibration species {} in {} "
+                        "not defined in output {} model".format(
+                            fit["species"], fitname, model
+                        )
+                    )
+                self.__log.debug("runs calibration %s", list(target_conditions.keys()))
+                fit_dict = {"model": model, "fit": fitname, "species": fit["species"]}
                 try:
                     fit_results[fitname] = self.fit_single(
-                        results, target_conditions, fit_dict, fit, results_dir,
-                        n_p)
+                        results, target_conditions, fit_dict, fit, results_dir, n_p
+                    )
                 except (PKPModelError, AttributeError) as e:
                     raise PKPModelError(
-                        'Empirical model {} in {}:{} not defined.\n'
-                        'Check pkp.empirical_model'.format(
-                            fit['model'], model, fitname))
+                        "Empirical model {} in {}:{} not defined.\n"
+                        "Check pkp.empirical_model".format(fit["model"], model, fitname)
+                    )
                 except PKPParametersError as e:
                     print(e.args[0])
                     raise PKPParametersError(
-                        '{}:{} define parameters_min and max with lenth {}\n'
-                        'Parameters are: {}'.format(model, fitname, e.args[1],
-                                                    e.args[2]))
+                        "{}:{} define parameters_min and max with lenth {}\n"
+                        "Parameters are: {}".format(
+                            model, fitname, e.args[1], e.args[2]
+                        )
+                    )
 
                 except PKPParametersError as e:
-                    raise PKPParametersError('{}:{}'.format(model, fitname))
+                    raise PKPParametersError("{}:{}".format(model, fitname))
                 except KeyError as e:
-                    raise PKPKeyError('Key {} not defined in {}:{}'.format(
-                        e.args[0], model, fitname))
-                fit_results[fitname]['species'] = fit['species']
-                fit_results[fitname]['model'] = fit['model']
+                    raise PKPKeyError(
+                        "Key {} not defined in {}:{}".format(e.args[0], model, fitname)
+                    )
+                fit_results[fitname]["species"] = fit["species"]
+                fit_results[fitname]["model"] = fit["model"]
         return fit_results
 
     @staticmethod
@@ -357,37 +362,35 @@ class PKPRunner(ReadConfiguration):
 
         """
         model_settings = getattr(self, model)
-        self.__log.debug('Model %s active %s', model, model_settings['active'])
-        if model_settings['active']:
+        self.__log.debug("Model %s active %s", model, model_settings["active"])
+        if model_settings["active"]:
             results = {}
-            self.__log.debug('Run %s', self.operating_conditions['runs'])
+            self.__log.debug("Run %s", self.operating_conditions["runs"])
             vol_composition = pd.DataFrame()
             # new implementation run all the cases
             # for n in range(
             #        self.operating_conditions['runs']):
             for n in runs_iterator(self.operating_conditions):
-                self.__log.info('Run %s with %s model', n, model)
+                self.__log.info("Run %s with %s model", n, model)
                 res = self._run_single(model, model_settings, n, results_dir)
-                results['run{}'.format(n)] = res
+                results["run{}".format(n)] = res
 
                 # add last row to vol_composition
-                vol_composition = vol_composition.append(
-                    res.tail(1), ignore_index=True)
-                self.__log.debug('Finish run %s', results.keys())
+                vol_composition = vol_composition.append(res.tail(1), ignore_index=True)
+                self.__log.debug("Finish run %s", results.keys())
 
                 # plot results
                 self._plot_results(model, n, res, results_dir)
 
             # add index to vol_composition dataframe
             vol_composition.index = [
-                'run{}'.format(n)
-                for n in runs_iterator(self.operating_conditions)
+                "run{}".format(n) for n in runs_iterator(self.operating_conditions)
             ]
-            final_yield = '{name}-{model}-finalyields.csv'.format(
-                name=self.name, model=model)
-            self.__log.debug('Export vol_composition to csv %s', final_yield)
-            vol_composition.to_csv(
-                os.path.join(results_dir, final_yield), index=True)
+            final_yield = "{name}-{model}-finalyields.csv".format(
+                name=self.name, model=model
+            )
+            self.__log.debug("Export vol_composition to csv %s", final_yield)
+            vol_composition.to_csv(os.path.join(results_dir, final_yield), index=True)
         else:
             results = None
         return results
@@ -413,8 +416,8 @@ class PKPRunner(ReadConfiguration):
             Results DataFrame
 
         """
-        self.__log.debug('Initialize run %s for %s', n, model)
-        if model == 'Polimi' and 'reference' in model_settings:
+        self.__log.debug("Initialize run %s for %s", n, model)
+        if model == "Polimi" and "reference" in model_settings:
             raise NotImplementedError("Polimi reference not working")
             # self.__log.debug('Use reference coal for Polimi %s',
             #                  model_settings['reference'])
@@ -426,7 +429,7 @@ class PKPRunner(ReadConfiguration):
             # self.__log.debug(
             #     'Polimi coal composition is set to %s', run.composition)
 
-        self.__log.debug('Initialize detailed model %s', model)
+        self.__log.debug("Initialize detailed model %s", model)
         # run = globals()[model](
         #     ultimate_analysis=self.ultimate_analysis,
         #     proximate_analysis=self.proximate_analysis,
@@ -439,76 +442,75 @@ class PKPRunner(ReadConfiguration):
             ultimate_analysis=self.ultimate_analysis,
             proximate_analysis=self.proximate_analysis,
             pressure=self.pressure,
-            name=self.name)
+            name=self.name,
+        )
         # TODO change path from detailed model to reactor
-        run.model.basename = '{name}-{model}-run{run}'.format(
-            name=self.name, model=model, run=n)
-        self.__log.debug('Set basename %s', run.model.basename)
+        run.model.basename = "{name}-{model}-run{run}".format(
+            name=self.name, model=model, run=n
+        )
+        self.__log.debug("Set basename %s", run.model.basename)
         run.model.path = results_dir
-        self.__log.debug('Set path to: %s', run.model.path)
+        self.__log.debug("Set path to: %s", run.model.path)
         run.set_parameters(**model_settings)
-        self.__log.debug('Reactor Parameters:\n%s', run.reactor_parameters)
+        self.__log.debug("Reactor Parameters:\n%s", run.reactor_parameters)
         # self.__log.debug('increment: %s %s', run.increment,
         #                  model_settings['increment'])
-        if 'increment' in model_settings:
-            self.__log.warning('%s: deprecated parameter increment.')
-            self.__log.warning('Add skip to input file in:'
-                               '\n model: %s\n\t'
-                               'fit:\n\t\tfit0:\n\t\tskip=%s', model,
-                               model_settings['increment'])
-        self.__log.debug('Model %s Parameters:\n%s', model,
-                         run.model_parameters)
-        self.__log.debug('Set property run %s for %s', n, model)
-        run.operating_conditions = (
-            self.operating_conditions['run{}'.format(n)])
-        self.__log.debug('Run %s for %s', n, model)
+        if "increment" in model_settings:
+            self.__log.warning("%s: deprecated parameter increment.")
+            self.__log.warning(
+                "Add skip to input file in:"
+                "\n model: %s\n\t"
+                "fit:\n\t\tfit0:\n\t\tskip=%s",
+                model,
+                model_settings["increment"],
+            )
+        self.__log.debug("Model %s Parameters:\n%s", model, run.model_parameters)
+        self.__log.debug("Set property run %s for %s", n, model)
+        run.operating_conditions = self.operating_conditions["run{}".format(n)]
+        self.__log.debug("Run %s for %s", n, model)
         res = run.run(save=True)
         return res
 
     def _plot_results(self, model, n, res, results_dir):
         """Plot results of the single run with detailed model."""
         fig, ax = plt.subplots()
-        for sp in ['tar', 'light_gas', 'char', 'solid', 'volatiles']:
+        for sp in ["tar", "light_gas", "char", "solid", "volatiles"]:
             if sp in res:
-                ax.plot(res['t'], res[sp], label=sp)
-        ax.set_xlabel('Time, s')
-        ax.set_ylabel('Yield, daf')
+                ax.plot(res["t"], res[sp], label=sp)
+        ax.set_xlabel("Time, s")
+        ax.set_ylabel("Yield, daf")
         # ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1), frameon=False)
-        ax.legend(loc='best', frameon=False)
-        ax.set_title('Run{} Model {}'.format(n, model))
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_position(('outward', 20))
-        ax.spines['left'].set_position(('outward', 20))
+        ax.legend(loc="best", frameon=False)
+        ax.set_title("Run{} Model {}".format(n, model))
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_position(("outward", 20))
+        ax.spines["left"].set_position(("outward", 20))
         # ax.set_ylim([0, 1])
         # ax.spines['left'].set_color(col_right)
         # ax.spines['left'].set_color(col_right)
         ax1 = ax.twinx()
-        ax1.plot(res['t'], res['T'], label='T', color=col_right)
-        ax1.spines['top'].set_visible(False)
-        ax1.spines['left'].set_visible(False)
-        ax1.spines['right'].set_visible(True)
-        ax1.spines['bottom'].set_position(('outward', 20))
-        ax1.spines['right'].set_position(('outward', 20))
-        ax1.spines['right'].set_color(col_right)
-        ax1.tick_params(axis='y', colors=col_right)
-        ax1.set_ylabel('Other scale', color=col_right)
-        ax1.set_ylabel('Temperature, K')
-        ax1.set_ylim([res['T'].min() - 100, res['T'].max() + 100])
+        ax1.plot(res["t"], res["T"], label="T", color=col_right)
+        ax1.spines["top"].set_visible(False)
+        ax1.spines["left"].set_visible(False)
+        ax1.spines["right"].set_visible(True)
+        ax1.spines["bottom"].set_position(("outward", 20))
+        ax1.spines["right"].set_position(("outward", 20))
+        ax1.spines["right"].set_color(col_right)
+        ax1.tick_params(axis="y", colors=col_right)
+        ax1.set_ylabel("Other scale", color=col_right)
+        ax1.set_ylabel("Temperature, K")
+        ax1.set_ylim([res["T"].min() - 100, res["T"].max() + 100])
         ax1.grid(False)
-        fig_name = '{name}-{model}-run{run}.png'.format(
-            name=self.name, model=model, run=n)
-        self.__log.debug('Save plot to %s', fig_name)
-        fig.savefig(
-            os.path.join(results_dir, fig_name), dpi=120, bbox_inches='tight')
+        fig_name = "{name}-{model}-run{run}.png".format(
+            name=self.name, model=model, run=n
+        )
+        self.__log.debug("Save plot to %s", fig_name)
+        fig.savefig(os.path.join(results_dir, fig_name), dpi=120, bbox_inches="tight")
 
-    def fit_single(self,
-                   results,
-                   target_conditions,
-                   fit_dict,
-                   fit_settings,
-                   results_dir,
-                   n_p=1):
+    def fit_single(
+        self, results, target_conditions, fit_dict, fit_settings, results_dir, n_p=1
+    ):
         """
         Fit single case.
 
@@ -538,38 +540,44 @@ class PKPRunner(ReadConfiguration):
         """
         # parameters_init = fit_settings['parameters_init']
         try:
-            method = fit_settings['method']
+            method = fit_settings["method"]
         except KeyError as e:
-            raise PKPKeyError('method')
-        methods = ('evolve', 'evolve+min', 'min')
+            raise PKPKeyError("method")
+        methods = ("evolve", "evolve+min", "min")
         if method not in methods:
             raise PKPMethodError(
-                'Calibration method {} in {}:{} does not exist\n'
-                'Use one of these methods:\n{}'.format(
-                    method, fit_dict['model'], fit_dict['fit'], methods))
+                "Calibration method {} in {}:{} does not exist\n"
+                "Use one of these methods:\n{}".format(
+                    method, fit_dict["model"], fit_dict["fit"], methods
+                )
+            )
 
         fit_results = {}
-        det_model, fitname = fit_dict['model'], fit_dict['fit']
-        emp_model = fit_settings['model']
-        filename = '{name}-{fit}-{det}-{emp}'.format(
-            name=self.name, fit=fitname, det=det_model, emp=emp_model)
+        det_model, fitname = fit_dict["model"], fit_dict["fit"]
+        emp_model = fit_settings["model"]
+        filename = "{name}-{fit}-{det}-{emp}".format(
+            name=self.name, fit=fitname, det=det_model, emp=emp_model
+        )
 
-        runs = self._operating_conditions['runs']
+        runs = self._operating_conditions["runs"]
         target_conditions_used = {
             run: conditions
             for run, conditions in target_conditions.items()
             if int(run[3:]) < runs
         }
-        self.__log.debug('Runs used for calibration %s',
-                         list(target_conditions_used.keys()))
+        self.__log.debug(
+            "Runs used for calibration %s", list(target_conditions_used.keys())
+        )
 
-        if 'evolve' in method:
-            self.__log.info('%s Evolution to fit %s with %s', fitname,
-                            det_model, emp_model)
+        if "evolve" in method:
+            self.__log.info(
+                "%s Evolution to fit %s with %s", fitname, det_model, emp_model
+            )
             # Define properties of evolutionary model
 
-            best, ga = self.evolve(n_p, fit_results, fit_settings,
-                                   target_conditions_used)
+            best, ga = self.evolve(
+                n_p, fit_results, fit_settings, target_conditions_used
+            )
             # plot results (evolution history)
             self._plot_evolution(det_model, filename, fitname, ga, results_dir)
 
@@ -577,69 +585,81 @@ class PKPRunner(ReadConfiguration):
             parameters_init = best
             emp_model_class = ga.empirical_model
         else:
-            parameters_init = fit_settings['parameters_init']
+            parameters_init = fit_settings["parameters_init"]
 
-        if 'min' in method:
-            self.__log.info('%s Minimization to fit %s with %s', fitname,
-                            det_model, emp_model)
-            best, fmin = self.minimization(fit_results, fit_settings,
-                                           target_conditions_used,
-                                           parameters_init)
+        if "min" in method:
+            self.__log.info(
+                "%s Minimization to fit %s with %s", fitname, det_model, emp_model
+            )
+            best, fmin = self.minimization(
+                fit_results, fit_settings, target_conditions_used, parameters_init
+            )
             emp_model_class = fmin.empirical_model
 
             # run optimized empirical model
         # m = emp_model_class(best)
         m = reactor.Reactor(emp_model_class, **best)
-        self.__log.debug('Emp model %s', emp_model)
+        self.__log.debug("Emp model %s", emp_model)
 
         # plot yield
-        skip = fit_settings.get('skip', 1)
-        self._plot_yieldfit(det_model, emp_model, filename, fit_dict,
-                            fit_results, fitname, m, results_dir,
-                            target_conditions, skip)
+        skip = fit_settings.get("skip", 1)
+        self._plot_yieldfit(
+            det_model,
+            emp_model,
+            filename,
+            fit_dict,
+            fit_results,
+            fitname,
+            m,
+            results_dir,
+            target_conditions,
+            skip,
+        )
         # calc postulate species
-        if 'y0' in m.model.parameters_names():
-            y0 = best['y0']
+        if "y0" in m.model.parameters_names():
+            y0 = best["y0"]
         else:
-            y0 = np.mean([
-                fit_results[run]['y'][-1] for run in sorted(target_conditions)
-            ])
-            self.__log.debug('Average y0 %s', y0)
+            y0 = np.mean(
+                [fit_results[run]["y"][-1] for run in sorted(target_conditions)]
+            )
+            self.__log.debug("Average y0 %s", y0)
 
-        tar_mean = np.mean([r.iloc[-1]['tar'] for r in results.values()])
-        self.__log.debug('columns %s', results['run0'].columns)
+        tar_mean = np.mean([r.iloc[-1]["tar"] for r in results.values()])
+        self.__log.debug("columns %s", results["run0"].columns)
         try:
-            co_mean = np.mean([r.iloc[-1]['CO'] for r in results.values()])
+            co_mean = np.mean([r.iloc[-1]["CO"] for r in results.values()])
         except KeyError:
             co_mean = 0.1
-        self.__log.debug('tar mean %s', tar_mean)
-        self.__log.debug('CO mean %s', co_mean)
-        self.__log.debug('y0 mean %s', y0)
+        self.__log.debug("tar mean %s", tar_mean)
+        self.__log.debug("CO mean %s", co_mean)
+        self.__log.debug("y0 mean %s", y0)
 
-        fit_results['postulate_volatiles'] = self.postulate_species(y0)
-        fit_results['empirical_comp'] = self.empirical_composition(
-            y0, tar=tar_mean, CO=co_mean)
+        fit_results["postulate_volatiles"] = self.postulate_species(y0)
+        fit_results["empirical_comp"] = self.empirical_composition(
+            y0, tar=tar_mean, CO=co_mean
+        )
 
-        if det_model in ('CPD', 'CPDfortran'):
-            self.__log.debug('calc CPD composition')
-            self.__log.debug('res = %s', results['run0'].columns)
-            fit_results['cpd_volatiles'] = self.cpd_composition(
-                results['run0'])
-            self.__log.info('calc CPD composition... done')
+        if det_model in ("CPD", "CPDfortran"):
+            self.__log.debug("calc CPD composition")
+            self.__log.debug("res = %s", results["run0"].columns)
+            fit_results["cpd_volatiles"] = self.cpd_composition(results["run0"])
+            self.__log.info("calc CPD composition... done")
 
         return fit_results
 
-    def _plot_yieldfit(self,
-                       det_model,
-                       emp_model,
-                       filename,
-                       fit_dict,
-                       fit_results,
-                       fitname,
-                       m,
-                       results_dir,
-                       target_conditions,
-                       skip=1):
+    def _plot_yieldfit(
+        self,
+        det_model,
+        emp_model,
+        filename,
+        fit_dict,
+        fit_results,
+        fitname,
+        m,
+        results_dir,
+        target_conditions,
+        skip=1,
+    ):
         """
         Plot the fitted yields.
 
@@ -669,65 +689,70 @@ class PKPRunner(ReadConfiguration):
             number of point to skip
 
         """
-        self.__log.debug('Plot yields')
+        self.__log.debug("Plot yields")
         fig, ax = plt.subplots()
         runs = list(sorted(target_conditions))
-        nruns = self.operating_conditions['runs']
+        nruns = self.operating_conditions["runs"]
         for i, run in enumerate(runs):
             fit_results[run] = {}
             res = target_conditions[run]
-            label = '{} {}'.format(run, det_model) if i == 0 else run
-            self.__log.debug('Plot %s ', run)
-            plt_args = dict(label=label, color=colors[i], linestyle='solid')
-            if len(res['t']) // skip < 20 and i < nruns:
-                plt_args['marker'] = 'o'
-                plt_args['markevery'] = skip
-            ax.plot(res['t'], res['y'], **plt_args)
+            label = "{} {}".format(run, det_model) if i == 0 else run
+            self.__log.debug("Plot %s ", run)
+            plt_args = dict(label=label, color=colors[i], linestyle="solid")
+            if len(res["t"]) // skip < 20 and i < nruns:
+                plt_args["marker"] = "o"
+                plt_args["markevery"] = skip
+            ax.plot(res["t"], res["y"], **plt_args)
             # use list for exporting files
             # fit_results[run]['t'] = res['t'].tolist()
             # fit_results[run]['y'] = res['y'].tolist()
-            fit_results[run]['t'] = res['t']
-            fit_results[run]['y'] = res['y']
+            fit_results[run]["t"] = res["t"]
+            fit_results[run]["y"] = res["y"]
             m.operating_conditions = self.operating_conditions[run]
-            t_fit, y_fit = m.run(res['t'])
+            t_fit, y_fit = m.run(res["t"])
             if y_fit.ndim == 2:
                 y_fit = y_fit[:, 0]
             # fit_results[run]['y_fit'] = y_fit.tolist()
-            fit_results[run]['y_fit'] = y_fit
-            label = '{} {}'.format(run, m.__class__.__name__) \
-                if i == 0 else None
-            plt_args = dict(color=colors[i], linestyle='dashed', label=label)
+            fit_results[run]["y_fit"] = y_fit
+            label = "{} {}".format(run, m.__class__.__name__) if i == 0 else None
+            plt_args = dict(color=colors[i], linestyle="dashed", label=label)
             # TODO set number of points
-            if len(res['t']) // skip < 20 and i < nruns:
-                plt_args['marker'] = 'o'
-                plt_args['markevery'] = skip
+            if len(res["t"]) // skip < 20 and i < nruns:
+                plt_args["marker"] = "o"
+                plt_args["markevery"] = skip
             ax.plot(t_fit, y_fit, **plt_args)
-        ax.set_ylabel('Yield {}'.format(fit_dict['species']))
-        ax.set_xlabel('t, s')
+        ax.set_ylabel("Yield {}".format(fit_dict["species"]))
+        ax.set_xlabel("t, s")
         ax.locator_params(nbins=4)
         # add an extra legend
         # http://matplotlib.org/users/legend_guide.html#multiple-legend
 
-        runs_label = [
-            r + '(fitted)' if i < nruns else r for i, r in enumerate(runs)
-        ]
+        runs_label = [r + "(fitted)" if i < nruns else r for i, r in enumerate(runs)]
         ax.add_artist(
             plt.legend(
                 ax.lines[::2],
                 runs_label,
-                loc='upper left',
+                loc="upper left",
                 bbox_to_anchor=(1, 1),
-                frameon=False))
+                frameon=False,
+            )
+        )
         ax.legend(
-            ax.lines[:2], [det_model, m.__class__.__name__],
-            loc='lower left',
+            ax.lines[:2],
+            [det_model, m.__class__.__name__],
+            loc="lower left",
             bbox_to_anchor=(1, 0),
-            frameon=False)
-        ax.set_title('Fit {} from {} with {} ({})'.format(
-            fit_dict['species'], det_model, emp_model, fitname))
+            frameon=False,
+        )
+        ax.set_title(
+            "Fit {} from {} with {} ({})".format(
+                fit_dict["species"], det_model, emp_model, fitname
+            )
+        )
         fig.savefig(
-            os.path.join(results_dir, '{}-yields.png'.format(filename)),
-            bbox_inches='tight')
+            os.path.join(results_dir, "{}-yields.png".format(filename)),
+            bbox_inches="tight",
+        )
         plt.close(fig)
 
     def _plot_evolution(self, det_model, filename, fitname, ga, results_dir):
@@ -746,50 +771,55 @@ class PKPRunner(ReadConfiguration):
         results_dir
 
         """
-        color = 'black'
-        color_min = 'red'
+        color = "black"
+        color_min = "red"
         fig, ax = plt.subplots()
-        fit_min, fit_max, fit_avg, fit_std = ga.log.select(
-            'min', 'max', 'avg', 'std')
-        ax.plot(fit_min, label='Min', color=color_min)
-        ax.plot(fit_max, label='Max', color=color)
-        ax.plot(fit_avg, label='Avg', color=color, linestyle='dashed')
-        ax.set_yscale('log')
-        ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
-        ax.set_xlabel('N. generations')
-        ax.set_ylabel('Fitness')
-        ax.set_title('Fit {} with {}: fitness evolution ({})'.format(
-            det_model, ga.empirical_model.__class__.__name__, fitname))
+        fit_min, fit_max, fit_avg, fit_std = ga.log.select("min", "max", "avg", "std")
+        ax.plot(fit_min, label="Min", color=color_min)
+        ax.plot(fit_max, label="Max", color=color)
+        ax.plot(fit_avg, label="Avg", color=color, linestyle="dashed")
+        ax.set_yscale("log")
+        ax.legend(loc="upper right", bbox_to_anchor=(1, 1))
+        ax.set_xlabel("N. generations")
+        ax.set_ylabel("Fitness")
+        ax.set_title(
+            "Fit {} with {}: fitness evolution ({})".format(
+                det_model, ga.empirical_model.__class__.__name__, fitname
+            )
+        )
         fig.savefig(
-            os.path.join(results_dir, '{}-evolution.png'.format(filename)),
+            os.path.join(results_dir, "{}-evolution.png".format(filename)),
             dpi=120,
-            bbox_inches='tight')
+            bbox_inches="tight",
+        )
         plt.close(fig)
 
     def evolve(self, n_p, fit_results, fit_settings, target_conditions):
         """Evolve the genetic algorithm."""
-        model = fit_settings['model']
-        self.__log.debug('Evolution fit with model %s', model)
-        npop = fit_settings['npop']
-        ngen = fit_settings['ngen']
-        mu = fit_settings['mu']
-        lambda_ = fit_settings['lambda_']
-        cxpb = fit_settings['cxpb']
-        mutpb = fit_settings['mutpb']
-        skip = fit_settings.get('skip', 1)
+        model = fit_settings["model"]
+        self.__log.debug("Evolution fit with model %s", model)
+        npop = fit_settings["npop"]
+        ngen = fit_settings["ngen"]
+        mu = fit_settings["mu"]
+        lambda_ = fit_settings["lambda_"]
+        cxpb = fit_settings["cxpb"]
+        mutpb = fit_settings["mutpb"]
+        skip = fit_settings.get("skip", 1)
 
-        parameters_min = fit_settings['parameters_min']
-        parameters_max = fit_settings['parameters_max']
+        parameters_min = fit_settings["parameters_min"]
+        parameters_max = fit_settings["parameters_max"]
 
         # Define Evolution method
         # add a binary field in input yaml for running binary
         # fitting
-        Evolution = evolution.EvolutionBinary \
-            if fit_settings.get('binary', False) else \
-            evolution.Evolution
+        Evolution = (
+            evolution.EvolutionBinary
+            if fit_settings.get("binary", False)
+            else evolution.Evolution
+        )
 
         # Init Evolution
-        self.__log.debug('Set skip=%s', skip)
+        self.__log.debug("Set skip=%s", skip)
         ga = Evolution(
             npop=npop,
             ngen=ngen,
@@ -797,26 +827,30 @@ class PKPRunner(ReadConfiguration):
             mutpb=mutpb,
             mu=mu,
             lambda_=lambda_,
-            skip=skip)
-        self.__log.debug('Init GA %s', ga)
+            skip=skip,
+        )
+        self.__log.debug("Init GA %s", ga)
         ga.empirical_model = getattr(empirical_model, model)
 
-        self.__log.debug('Set GA model %s', ga.empirical_model)
+        self.__log.debug("Set GA model %s", ga.empirical_model)
 
         # Define the range of parameters
         ga.parameters_range(
-            parameters_min=parameters_min, parameters_max=parameters_max)
-        self.__log.debug('Set GA par range %s, %s', ga._parameters_min,
-                         ga._parameters_max)
+            parameters_min=parameters_min, parameters_max=parameters_max
+        )
+        self.__log.debug(
+            "Set GA par range %s, %s", ga._parameters_min, ga._parameters_max
+        )
 
         # set target conditions
         for run, res in target_conditions.items():
-            self.__log.debug('Set operating_conditions for run:{}'.format(run))
+            self.__log.debug("Set operating_conditions for run:{}".format(run))
             # self.__log.debug('Res keys:'.format(list(res.keys())))
             ga.set_target(
-                t=res['t'],
-                y=res['y'],
-                operating_conditions=self.operating_conditions[run])
+                t=res["t"],
+                y=res["y"],
+                operating_conditions=self.operating_conditions[run],
+            )
 
         # [ga.set_target(
         #    t=res['t'], y=res['y'],
@@ -827,19 +861,21 @@ class PKPRunner(ReadConfiguration):
         # Jam)
         ga.register()
         best = ga.evolve(n_p=n_p, verbose=True)
-        self.__log.debug('Best: %s', best)
+        self.__log.debug("Best: %s", best)
 
-        fit_results['evolve'] = {
-            'best': {
+        fit_results["evolve"] = {
+            "best": {
                 p: (best[p], unit)
-                for p, unit in zip(ga.empirical_model.parameters_names(),
-                                   ga.empirical_model.parameters_units())
+                for p, unit in zip(
+                    ga.empirical_model.parameters_names(),
+                    ga.empirical_model.parameters_units(),
+                )
             },
-            'log': ga.log[-1]
+            "log": ga.log[-1],
         }
 
         # report only last iteration
-        self.__log.info('Best population: %s', fit_results['evolve']['best'])
+        self.__log.info("Best population: %s", fit_results["evolve"]["best"])
 
         return best, ga
 
@@ -863,50 +899,54 @@ class PKPRunner(ReadConfiguration):
             Description of returned object.
 
         """
-        model = fit_settings['model']
-        self.__log.debug('Minimization fit with model %s', model)
+        model = fit_settings["model"]
+        self.__log.debug("Minimization fit with model %s", model)
 
-        parameters_min = fit_settings['parameters_min']
-        parameters_max = fit_settings['parameters_max']
+        parameters_min = fit_settings["parameters_min"]
+        parameters_max = fit_settings["parameters_max"]
 
         fmin = minimize.Minimization()
 
-        self.__log.debug('Init fmin %s', fmin)
+        self.__log.debug("Init fmin %s", fmin)
         fmin.empirical_model = getattr(empirical_model, model)
-        self.__log.debug('Set fmin model %s', fmin.empirical_model)
+        self.__log.debug("Set fmin model %s", fmin.empirical_model)
 
         # Define the range of parameters
         fmin.parameters_range(
-            parameters_min=parameters_min, parameters_max=parameters_max)
-        self.__log.debug('Set fmin par range %s, %s', fmin._parameters_min,
-                         fmin._parameters_max)
+            parameters_min=parameters_min, parameters_max=parameters_max
+        )
+        self.__log.debug(
+            "Set fmin par range %s, %s", fmin._parameters_min, fmin._parameters_max
+        )
 
         # set target conditions
         for run, res in target_conditions.items():
-            self.__log.debug('Set operating_conditions for run: %s', run)
-            self.__log.debug('Res keys: %s', res.keys())
-            self.__log.debug('Operating conditions: %s',
-                             self.operating_conditions[run])
+            self.__log.debug("Set operating_conditions for run: %s", run)
+            self.__log.debug("Res keys: %s", res.keys())
+            self.__log.debug("Operating conditions: %s", self.operating_conditions[run])
             try:
                 fmin.set_target(
-                    t=res['t'],
-                    y=res['y'],
-                    operating_conditions=self.operating_conditions[run])
+                    t=res["t"],
+                    y=res["y"],
+                    operating_conditions=self.operating_conditions[run],
+                )
             except:
                 raise Exception
 
         best = fmin.run(initial=init)
-        self.__log.debug('Best: %s', best)
+        self.__log.debug("Best: %s", best)
 
-        fit_results['fmin'] = {
-            'best': {
+        fit_results["fmin"] = {
+            "best": {
                 p: (best[p], unit)
-                for p, unit in zip(fmin.empirical_model.parameters_names(),
-                                   fmin.empirical_model.parameters_units())
+                for p, unit in zip(
+                    fmin.empirical_model.parameters_names(),
+                    fmin.empirical_model.parameters_units(),
+                )
             },
-            'report': dict(fmin.results)
+            "report": dict(fmin.results),
         }
 
-        self.__log.info('Minimized value: %s', fit_results['fmin']['best'])
+        self.__log.info("Minimized value: %s", fit_results["fmin"]["best"])
 
         return best, fmin
