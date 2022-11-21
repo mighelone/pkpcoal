@@ -264,7 +264,7 @@ class Coal(object):
                               nu_partial['N2'],
                               nu_partial['SO2']))
 
-        hf_vol = np.sum(n * hf[el]
+        hf_vol = sum(n * hf[el]
                         for el, n in nu.items()) + lhv_vol * mw
 
         postulate_dict = {

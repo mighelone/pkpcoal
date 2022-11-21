@@ -368,8 +368,9 @@ class PKPRunner(ReadConfiguration):
                 results['run{}'.format(n)] = res
 
                 # add last row to vol_composition
-                vol_composition = vol_composition.append(
-                    res.tail(1), ignore_index=True)
+                #vol_composition = vol_composition.append(
+                #    res.tail(1), ignore_index=True)
+                vol_composition = pd.concat([vol_composition, res.tail(1)])
                 self.__log.debug('Finish run %s', results.keys())
 
                 # plot results
@@ -445,8 +446,8 @@ class PKPRunner(ReadConfiguration):
         self.__log.debug('Set path to: %s', run.model.path)
         run.set_parameters(**model_settings)
         self.__log.debug('Reactor Parameters:\n%s', run.reactor_parameters)
-        self.__log.debug('increment: %s %s', run.increment,
-                         model_settings['increment'])
+        #self.__log.debug('increment: %s %s', run.increment,
+        #                 model_settings['increment'])
         self.__log.debug('Model %s Parameters:\n%s', model,
                          run.model_parameters)
         self.__log.debug('Set property run %s for %s', n, model)

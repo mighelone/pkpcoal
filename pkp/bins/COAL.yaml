@@ -1,0 +1,433 @@
+description: |-
+  nits(length = "cm", time = "s", quantity = "mol", act_energy = "kcal/mol")
+
+generator: cti2yaml
+cantera-version: 3.0.0a3
+date: Fri, 11 Nov 2022 12:22:16 +0100
+input-files: [COAL.cti]
+
+units: {length: cm, quantity: mol, activation-energy: kcal/mol}
+
+phases:
+- name: gas
+  thermo: ideal-gas
+  elements: [C, H, O]
+  species: [COAL1, CHARH, CHAR, H2, CH4, GCH2, TAR1, CH2, VTAR1, COAL2,
+    GBTX2, GCH4, GCOH2, GCO2S, GH2O, GCOL, CO, H2O, TAR2, VTAR2, GCO2TS,
+    COAL3, CH3O, CO2, GCO2, GCOAL3, TAR3, VTAR3, BTX2, GCOLS, CHARG, ASH,
+    ACQUA]
+  kinetics: gas
+  reactions: all
+  state:
+    T: 300.0
+    P: 1.01325e+05
+
+species:
+- name: COAL1
+  composition: {H: 11, C: 12}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CHARH
+  composition: {H: 1, C: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CHAR
+  composition: {C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: H2
+  composition: {H: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CH4
+  composition: {H: 4, C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCH2
+  composition: {H: 2, C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: TAR1
+  composition: {H: 11, C: 12}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CH2
+  composition: {H: 2, C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: VTAR1
+  composition: {H: 11, C: 12}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: COAL2
+  composition: {H: 10, C: 14, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GBTX2
+  composition: {H: 14, C: 13}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCH4
+  composition: {H: 4, C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCOH2
+  composition: {H: 2, C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCO2S
+  composition: {C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GH2O
+  composition: {H: 2, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCOL
+  composition: {C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CO
+  composition: {C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: H2O
+  composition: {H: 2, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: TAR2
+  composition: {H: 10, C: 14, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: VTAR2
+  composition: {H: 10, C: 14, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCO2TS
+  composition: {C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: COAL3
+  composition: {H: 12, C: 12, O: 5}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CH3O
+  composition: {H: 3, C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CO2
+  composition: {C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCO2
+  composition: {C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCOAL3
+  composition: {H: 12, C: 12, O: 5}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: TAR3
+  composition: {H: 10, C: 11, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: VTAR3
+  composition: {H: 10, C: 11, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: BTX2
+  composition: {H: 14, C: 13}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: GCOLS
+  composition: {C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: CHARG
+  composition: {C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: ASH
+  composition: {C: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+- name: ACQUA
+  composition: {H: 2, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [300.0, 1000.0, 5000.0]
+    data:
+    - [3.298124, 8.2494412e-04, -8.1430147e-07, -9.4754343e-11, 4.134872e-13,
+      -1012.521, -3.294094]
+    - [2.991423, 7.0006441e-04, -5.633828e-08, -9.2315782e-12, 1.582752e-15,
+      -835.0338, -1.35511]
+
+reactions:
+- equation: COAL1 => 5 CHARH + 0.1 CHAR + 0.2 H2 + .9 CH4 + GCH2  # Reaction 1
+  rate-constant: {A: 2.0e+08, b: 0, Ea: 40}
+- equation: COAL1 => TAR1  # Reaction 2
+  rate-constant: {A: 1.0e+08, b: 0, Ea: 40}
+- equation: COAL1 => 4.5 CHARH + 1.25 CHAR + .75 H2 + .75 CH4 + CH2  # Reaction 3
+  rate-constant: {A: 1.0e+09, b: 0.0, Ea: 75}
+- equation: COAL1 => VTAR1  # Reaction 4
+  rate-constant: {A: 1.0e+14, b: 0.0, Ea: 75.0}
+- equation: TAR1 => VTAR1  # Reaction 5
+  rate-constant: {A: 2.5e+12, b: 0.0, Ea: 50.0}
+- equation: TAR1 + CHARH => 5.3 CHARH + 3 CHAR + 2.55 H2 + .4 CH4  # Reaction 6
+  rate-constant: {A: 2.5e+07, b: 0.0, Ea: 32.5}
+- equation: TAR1 + CHAR => 4.3 CHARH + 4 CHAR + 2.55 H2 + .4 CH4  # Reaction 7
+  rate-constant: {A: 2.5e+07, b: 0.0, Ea: 32.5}
+- equation: COAL2 => 2. CHAR + 3.94 CHARH + .25 COAL1 + .02 GBTX2 + .31
+    GCH4 + .11 GCH2 + .11 GCOH2 + .15 GCO2S  + .41 GH2O + .18 GCOL + .265
+    H2  # Reaction 8
+  rate-constant: {A: 6.0e+10, b: 0, Ea: 36}
+- equation: COAL2 => 1.81 CHAR + 3.73 CHARH + .21 COAL1 + .08 GBTX2 + .27
+    CH4 + .50 CO + .1 H2O + .3 GCOH2 + .48 H2 + 0.1 GCOL  # Reaction 9
+  rate-constant: {A: 4.0e+18, b: 0, Ea: 63}
+- equation: COAL2 => TAR2  # Reaction 10
+  rate-constant: {A: 5.0e+10, b: 0, Ea: 36}
+- equation: COAL2 => VTAR2  # Reaction 11
+  rate-constant: {A: 4.0e+17, b: 0, Ea: 63}
+- equation: TAR2 => VTAR2  # Reaction 12
+  rate-constant: {A: 2.4e+09, b: 0, Ea: 39}
+- equation: TAR2 + CHARH => 7 CHARH +  1.5 CHAR + GH2O + .5 CH4  # Reaction 13
+  rate-constant: {A: 4.5e+05, b: 0, Ea: 30}
+- equation: TAR2 + GCO2TS => GCO2TS + .15 GCO2S + 1.94 CHAR + 4. CHARH +
+    .25 COAL1 + .02 GBTX2 +.3 GCH4 + .05 GCH2 + .1 GCOH2 +.4 GH2O + .2 GCOL
+    + .335 H2  # Reaction 14
+  rate-constant: {A: 1.5e+08, b: 0, Ea: 30}
+- equation: COAL3 => 2.73 CHAR + 1.8 CHARH + .22 COAL1 + .04 GBTX2 + .2
+    CH3O + .1 GCH4 + .11 GCH2 + .2 H2 + .6 GCOH2 + 2.2 GH2O + .1 CO2 + .38
+    GCO2 +.02 GCO2TS + GCOL  # Reaction 15
+  rate-constant: {A: 2.0e+10, b: 0, Ea: 33}
+- equation: COAL3 => GCOAL3  # Reaction 16
+  rate-constant: {A: 5.0e+18, b: 0, Ea: 61}
+- equation: GCOAL3 => 1.0 CHARH + 2.23 CHAR + 1.9 CO + .25 CH3O + .17 CH4
+    + .74 CH2 + .5 CO2 + .65 GCOH2 + .08 GBTX2 + .21 COAL1 + 1.2 H2O + .48
+    H2  # Reaction 17
+  rate-constant: {A: 1.2e+08, b: 0, Ea: 30}
+- equation: 'COAL3 => TAR3 + GCO2 + H2O '  # Reaction 18
+  rate-constant: {A: 1.6e+09, b: 0, Ea: 33}
+- equation: 'COAL3 => VTAR3 + CO2 + H2O '  # Reaction 19
+  rate-constant: {A: 2.0e+18, b: 0, Ea: 61}
+- equation: TAR3 => VTAR3  # Reaction 20
+  rate-constant: {A: 5.0e+09, b: 0, Ea: 32}
+- equation: TAR3 + CHARH => 4 CHARH + 2.5 CHAR + .2 GCH4 + 2 GCOH2 + .8
+    H2 + .3 GCH2  # Reaction 21
+  rate-constant: {A: 1.4e+08, b: 0, Ea: 30}
+- equation: GBTX2 => BTX2  # Reaction 22
+  rate-constant: {A: 4.0e+12, b: 0, Ea: 48}
+- equation: GCH4 => CH4  # Reaction 23
+  rate-constant: {A: 1000.0, b: 0, Ea: 17}
+- equation: GCH2 => CH2  # Reaction 24
+  rate-constant: {A: 1000.0, b: 0, Ea: 17}
+- equation: GCO2 => CO2  # Reaction 25
+  rate-constant: {A: 1000.0, b: 0, Ea: 18}
+- equation: GCO2S => CO2  # Reaction 26
+  rate-constant: {A: 100.0, b: 0, Ea: 18}
+- equation: GCO2S => .01 GCO2S + .99 CO2  # Reaction 27
+  rate-constant: {A: 5.0e+11, b: 0, Ea: 65}
+- equation: GH2O => H2O  # Reaction 28
+  rate-constant: {A: 1000.0, b: 0, Ea: 18}
+- equation: GH2O => .01 GH2O + .99 H2O  # Reaction 29
+  rate-constant: {A: 5.0e+13, b: 0, Ea: 60}
+- equation: GCOH2 => GCOLS + H2  # Reaction 30
+  rate-constant: {A: 2.0e+13, b: 0, Ea: 75}
+- equation: GCOL => CO  # Reaction 31
+  rate-constant: {A: 300.0, b: 0, Ea: 20}
+- equation: GCOLS => 0.999 CO + 0.001 GCOLS  # Reaction 32
+  rate-constant: {A: 2.0e+07, b: 0, Ea: 45}
+- equation: GCOLS => CO  # Reaction 33
+  rate-constant: {A: 300.0, b: 0, Ea: 20}
