@@ -20,7 +20,7 @@ import numpy as np
 import abc
 from autologging import logged
 
-from scipy.misc import factorial
+from scipy.special import factorial
 import collections
 import six
 
@@ -57,7 +57,7 @@ def namedtuple_with_defaults(typename,
     """
     T = collections.namedtuple(typename, field_names)
     T.__new__.__defaults__ = (None, ) * len(T._fields)
-    if isinstance(default_values, collections.Mapping):
+    if isinstance(default_values, collections.abc.Mapping):
         prototype = T(**default_values)
     else:
         prototype = T(*default_values)

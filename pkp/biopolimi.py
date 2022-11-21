@@ -79,9 +79,11 @@ def set_reference_biomass(name, comp):
                for el in ('C', 'H', 'O')})
 
 
-biomass_xml = os.path.join(os.path.dirname(bins.__file__),
-                           'Biomass.xml')
-biomass = cantera.Solution(biomass_xml)
+#biomass_xml = os.path.join(os.path.dirname(bins.__file__),
+#                           'Biomass.xml')
+biomass_yaml = os.path.join(os.path.dirname(bins.__file__),
+                           'Biomass.yaml')
+biomass = cantera.Solution(biomass_yaml)
 
 bio1 = set_reference_coal('CELL', c=6, h=10, o=5)
 bio2 = set_reference_coal('HCE', c=5, h=8, o=4)

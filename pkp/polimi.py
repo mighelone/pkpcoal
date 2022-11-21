@@ -225,13 +225,13 @@ class Polimi(coal.Coal, empirical_model.Model):
     # @mechanism.setter
     # def mechanism(self, value=None):
     def _set_mechanism(self, value=None):
-        """Set mechanism. Default is COAL1207.xml."""
+        """Set mechanism. Default is COAL1207.yaml."""
         if isinstance(value, cantera.Solution):
             self._mechanism = value
         else:
             if value is None:
                 value = os.path.join(os.path.dirname(bins.__file__),
-                                     'COAL1207.xml')
+                                     'COAL1207.yaml')
             try:
                 self._mechanism = cantera.Solution(value)
             except:

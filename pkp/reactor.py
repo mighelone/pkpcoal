@@ -211,7 +211,7 @@ class Reactor(object):
     def rate(self, t, y):
         """Rate for the ode integral."""
         dydt = self._model.rate(t, y)
-        return np.concatenate([dydt, [self._dTdt(t, y, dydt)]])
+        return np.concatenate([dydt, [self._dTdt(t, y, dydt)]], axis=None)
 
     def _run_nostop(self, solver):
         """
